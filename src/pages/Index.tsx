@@ -2,31 +2,33 @@
 import { useState } from 'react';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Badge } from '@/components/ui/badge';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Input } from '@/components/ui/input';
 import { Wallet, Trophy, Gift, Sparkles, Crown, Diamond, Star } from 'lucide-react';
 import ChestCard from '@/components/ChestCard';
 import WinModal from '@/components/WinModal';
 import WalletPanel from '@/components/WalletPanel';
+import UserLevelDisplay from '@/components/UserLevelDisplay';
 import { chestData, type ChestType, type Prize } from '@/data/chestData';
+import { calculateUserLevel } from '@/utils/levelSystem';
 
 const Index = () => {
   const [balance, setBalance] = useState(0);
+  const [totalSpent, setTotalSpent] = useState(0);
   const [prizes, setPrizes] = useState<(Prize & { chestType: ChestType, timestamp: Date })[]>([]);
   const [isWinModalOpen, setIsWinModalOpen] = useState(false);
   const [currentPrize, setCurrentPrize] = useState<Prize | null>(null);
   const [isWalletOpen, setIsWalletOpen] = useState(false);
-  const [isLoginOpen, setIsLoginOpen] = useState(false);
   const [user, setUser] = useState<{ name: string; email: string } | null>(null);
   const [loginForm, setLoginForm] = useState({ email: '', password: '' });
 
+  const userLevel = calculateUserLevel(totalSpent, prizes.length);
+
   const handleLogin = (e: React.FormEvent) => {
     e.preventDefault();
-    // Simulação de login
     setUser({ name: 'Usuário Premium', email: loginForm.email });
-    setBalance(150); // Saldo inicial
+    setBalance(150);
+    setTotalSpent(200); // Simular gastos anteriores
     setIsLoginOpen(false);
   };
 
@@ -38,38 +40,45 @@ const Index = () => {
       return;
     }
 
-    // Deduzir o valor do baú
     setBalance(prev => prev - chest.price);
+    setTotalSpent(prev => prev + chest.price);
 
-    // Sortear prêmio aleatório
     const randomIndex = Math.floor(Math.random() * chest.prizes.length);
     const wonPrize = chest.prizes[randomIndex];
 
-    // Adicionar à lista de prêmios
     setPrizes(prev => [...prev, {
       ...wonPrize,
       chestType,
       timestamp: new Date()
     }]);
 
-    // Mostrar modal de vitória
     setCurrentPrize(wonPrize);
     setIsWinModalOpen(true);
   };
 
   const addBalance = (amount: number) => {
     setBalance(prev => prev + amount);
+    setTotalSpent(prev => prev + amount);
   };
 
   if (!user) {
     return (
-      <div className="min-h-screen flex items-center justify-center p-4">
-        <Card className="w-full max-w-md p-8 bg-card/90 backdrop-blur-sm border-primary/20">
+      <div className="min-h-screen flex items-center justify-center p-4" 
+           style={{
+             backgroundImage: 'url(/lovable-uploads/6f83dc9e-58d4-427c-be2a-fb38b0ee66f3.png)',
+             backgroundSize: 'cover',
+             backgroundPosition: 'center',
+             backgroundRepeat: 'no-repeat'
+           }}>
+        <div className="absolute inset-0 bg-black/50" />
+        <Card className="relative z-10 w-full max-w-md p-8 bg-card/90 backdrop-blur-sm border-primary/20">
           <div className="text-center mb-8">
             <div className="flex justify-center mb-4">
-              <div className="w-20 h-20 rounded-full gold-gradient flex items-center justify-center">
-                <Trophy className="w-10 h-10 text-black" />
-              </div>
+              <img 
+                src="/lovable-uploads/0f37c024-1f08-4216-82c9-1583e7900501.png" 
+                alt="Baú Premiado" 
+                className="w-20 h-20 rounded-full"
+              />
             </div>
             <h1 className="text-3xl font-bold gold-gradient bg-clip-text text-transparent mb-2">
               Baú Premiado
@@ -119,9 +128,11 @@ const Index = () => {
       <header className="border-b border-primary/20 bg-card/50 backdrop-blur-sm sticky top-0 z-50">
         <div className="container mx-auto px-4 py-4 flex items-center justify-between">
           <div className="flex items-center space-x-3">
-            <div className="w-10 h-10 rounded-full gold-gradient flex items-center justify-center">
-              <Trophy className="w-6 h-6 text-black" />
-            </div>
+            <img 
+              src="/lovable-uploads/0f37c024-1f08-4216-82c9-1583e7900501.png" 
+              alt="Baú Premiado" 
+              className="w-10 h-10 rounded-full"
+            />
             <h1 className="text-2xl font-bold gold-gradient bg-clip-text text-transparent">
               Baú Premiado
             </h1>
@@ -140,7 +151,10 @@ const Index = () => {
             </Button>
             <div className="text-right">
               <p className="text-sm font-medium">{user.name}</p>
-              <p className="text-xs text-muted-foreground">{user.email}</p>
+              <div className="flex items-center space-x-1">
+                <span className="text-xs">{userLevel.icon}</span>
+                <span className={`text-xs ${userLevel.color}`}>{userLevel.name}</span>
+              </div>
             </div>
           </div>
         </div>
@@ -171,6 +185,19 @@ const Index = () => {
         </div>
       </section>
 
+      {/* User Level Section */}
+      <section className="py-10">
+        <div className="container mx-auto px-4">
+          <div className="max-w-2xl mx-auto">
+            <UserLevelDisplay 
+              userLevel={userLevel}
+              totalSpent={totalSpent}
+              totalPrizes={prizes.length}
+            />
+          </div>
+        </div>
+      </section>
+
       {/* Chests Grid */}
       <section className="py-20">
         <div className="container mx-auto px-4">
@@ -197,7 +224,7 @@ const Index = () => {
           <h3 className="text-3xl font-bold mb-12 gold-gradient bg-clip-text text-transparent">
             Seus Números
           </h3>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+          <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
             <div className="bg-card p-8 rounded-lg border border-primary/20">
               <div className="w-16 h-16 gold-gradient rounded-full flex items-center justify-center mx-auto mb-4">
                 <Trophy className="w-8 h-8 text-black" />
@@ -216,7 +243,14 @@ const Index = () => {
               <div className="w-16 h-16 gold-gradient rounded-full flex items-center justify-center mx-auto mb-4">
                 <Star className="w-8 h-8 text-black" />
               </div>
-              <h4 className="text-2xl font-bold text-primary mb-2">Premium</h4>
+              <h4 className="text-2xl font-bold text-primary mb-2">R$ {totalSpent.toFixed(2)}</h4>
+              <p className="text-muted-foreground">Total Investido</p>
+            </div>
+            <div className="bg-card p-8 rounded-lg border border-primary/20">
+              <div className="w-16 h-16 gold-gradient rounded-full flex items-center justify-center mx-auto mb-4">
+                <div className="text-2xl">{userLevel.icon}</div>
+              </div>
+              <h4 className={`text-2xl font-bold mb-2 ${userLevel.color}`}>{userLevel.name}</h4>
               <p className="text-muted-foreground">Nível Atual</p>
             </div>
           </div>

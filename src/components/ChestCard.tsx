@@ -14,6 +14,15 @@ interface ChestCardProps {
 
 const ChestCard = ({ chest, chestType, onOpen, balance }: ChestCardProps) => {
   const canAfford = balance >= chest.price;
+  
+  const chestImages = {
+    silver: '/lovable-uploads/ba84a4b9-15d4-4eea-afe4-518604f4b511.png',
+    gold: '/lovable-uploads/a9a1a1e2-6d02-4df8-a1f7-95f111b30ee1.png',
+    diamond: '/lovable-uploads/b32691e3-5eb0-4d76-85c1-f349a2615f80.png',
+    ruby: '/lovable-uploads/1e75dbed-c6dc-458b-bf5f-867f613d6c3f.png',
+    premium: '/lovable-uploads/4a2fd772-393f-42ee-a420-0714594e7fbb.png'
+  };
+
   const rarityColors = {
     silver: 'from-gray-400 to-gray-600',
     gold: 'from-yellow-400 to-yellow-600',
@@ -34,10 +43,13 @@ const ChestCard = ({ chest, chestType, onOpen, balance }: ChestCardProps) => {
       <div className={`absolute top-0 left-0 right-0 h-1 bg-gradient-to-r ${rarityColors[chestType]}`} />
       
       <div className="relative p-6 text-center">
-        {/* Chest Icon */}
-        <div className={`w-20 h-20 mx-auto mb-4 rounded-full bg-gradient-to-br ${rarityColors[chestType]} 
-          flex items-center justify-center text-4xl float ${canAfford ? 'pulse-gold' : ''}`}>
-          {chest.icon}
+        {/* Chest Image */}
+        <div className={`w-24 h-24 mx-auto mb-4 rounded-lg overflow-hidden ${canAfford ? 'float pulse-gold' : ''}`}>
+          <img 
+            src={chestImages[chestType]} 
+            alt={chest.name}
+            className="w-full h-full object-contain"
+          />
         </div>
 
         {/* Chest Info */}
