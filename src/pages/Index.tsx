@@ -1,4 +1,3 @@
-
 import { useState } from 'react';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -29,7 +28,6 @@ const Index = () => {
     setUser({ name: 'Usuário Premium', email: loginForm.email });
     setBalance(150);
     setTotalSpent(200); // Simular gastos anteriores
-    setIsLoginOpen(false);
   };
 
   const openChest = (chestType: ChestType) => {
