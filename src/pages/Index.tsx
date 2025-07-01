@@ -10,6 +10,7 @@ import WalletPanel from '@/components/WalletPanel';
 import UserLevelDisplay from '@/components/UserLevelDisplay';
 import { chestData, type ChestType, type Prize } from '@/data/chestData';
 import { calculateUserLevel } from '@/utils/levelSystem';
+import SpinCarousel from '@/components/SpinCarousel';
 
 const Index = () => {
   const [balance, setBalance] = useState(0);
@@ -20,6 +21,8 @@ const Index = () => {
   const [isWalletOpen, setIsWalletOpen] = useState(false);
   const [user, setUser] = useState<{ name: string; email: string } | null>(null);
   const [loginForm, setLoginForm] = useState({ email: '', password: '' });
+  const [isSpinCarouselOpen, setIsSpinCarouselOpen] = useState(false);
+  const [currentChestType, setCurrentChestType] = useState<ChestType | null>(null);
 
   const userLevel = calculateUserLevel(totalSpent, prizes.length);
 
@@ -40,18 +43,20 @@ const Index = () => {
 
     setBalance(prev => prev - chest.price);
     setTotalSpent(prev => prev + chest.price);
+    setCurrentChestType(chestType);
+    setIsSpinCarouselOpen(true);
+  };
 
-    const randomIndex = Math.floor(Math.random() * chest.prizes.length);
-    const wonPrize = chest.prizes[randomIndex];
-
-    setPrizes(prev => [...prev, {
-      ...wonPrize,
-      chestType,
-      timestamp: new Date()
-    }]);
-
-    setCurrentPrize(wonPrize);
-    setIsWinModalOpen(true);
+  const handlePrizeWon = (prize: Prize) => {
+    if (currentChestType) {
+      setPrizes(prev => [...prev, {
+        ...prize,
+        chestType: currentChestType,
+        timestamp: new Date()
+      }]);
+    }
+    setIsSpinCarouselOpen(false);
+    setCurrentChestType(null);
   };
 
   const addBalance = (amount: number) => {
@@ -268,6 +273,14 @@ const Index = () => {
         balance={balance}
         prizes={prizes}
         onAddBalance={addBalance}
+      />
+
+      <SpinCarousel
+        isOpen={isSpinCarouselOpen}
+        onClose={() => setIsSpinCarouselOpen(false)}
+        prizes={currentChestType ? chestData[currentChestType].prizes : []}
+        onPrizeWon={handlePrizeWon}
+        chestName={currentChestType ? chestData[currentChestType].name : ''}
       />
     </div>
   );
