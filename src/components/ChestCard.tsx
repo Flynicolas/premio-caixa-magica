@@ -25,11 +25,11 @@ const ChestCard = ({ chest, chestType, onOpen, onViewItems, balance }: ChestCard
   };
 
   const chestImages = {
-    silver: '/lovable-uploads/a3432c13-9f20-46b8-8cb4-dd116646918a.png',
-    gold: '/lovable-uploads/3027048a-e5a0-4121-a4d3-b0bf2b571472.png',
-    diamond: '/lovable-uploads/b4c7577f-84fd-4631-9956-940cef37c0f5.png',
-    ruby: '/lovable-uploads/a8ce4345-18ed-4110-aa75-0e4b64de767c.png',
-    premium: '/lovable-uploads/a4e45f22-07f1-459a-a5c2-de5eabb4144a.png'
+    silver: '/lovable-uploads/8f503764-12ee-4e00-8148-76b279be343f.png',
+    gold: '/lovable-uploads/8c5dedca-ad61-4b14-a649-8b854950a875.png',
+    diamond: '/lovable-uploads/0ec6f6c5-203f-4fca-855d-59171f78adf3.png',
+    ruby: '/lovable-uploads/a7b012cc-0fae-4b69-b2f4-690740a0ba92.png',
+    premium: '/lovable-uploads/d43f06a5-1532-42ba-8362-5aefb160b408.png'
   };
 
   return (

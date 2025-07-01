@@ -96,7 +96,7 @@ const WinModal = ({ isOpen, onClose, prize }: WinModalProps) => {
             </div>
           </div>
 
-          {/* Congratulations Text - Animated */}
+          {/* Congratulations Text */}
           <h2 className={`text-4xl font-bold text-primary mb-4 ${isAnimating ? 'animate-bounce' : ''}`}>
             🎉 PARABÉNS! 🎉
           </h2>
@@ -135,14 +135,14 @@ const WinModal = ({ isOpen, onClose, prize }: WinModalProps) => {
             </div>
           </div>
 
-          {/* Action Buttons */}
+          {/* Single Action Button */}
           <div className="space-y-3">
             <Button 
               onClick={onClose}
               className="w-full bg-gradient-to-r from-green-500 to-green-600 text-white font-bold hover:opacity-90 py-3"
             >
               <Gift className="w-4 h-4 mr-2" />
-              Adicionar à Carteira
+              Fechar
             </Button>
             
             <p className="text-xs text-muted-foreground">
