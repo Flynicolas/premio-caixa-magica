@@ -1,4 +1,3 @@
-
 import { useState } from 'react';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -24,7 +23,7 @@ import {
 import Header from '@/components/Header';
 import Footer from '@/components/Footer';
 import UserLevelDisplay from '@/components/UserLevelDisplay';
-import { getUserLevel } from '@/utils/levelSystem';
+import { calculateUserLevel } from '@/utils/levelSystem';
 
 const Perfil = () => {
   const [user, setUser] = useState({
@@ -50,7 +49,7 @@ const Perfil = () => {
   const [totalPrizes] = useState(15);
   const [totalWithdrawn] = useState(850.00);
 
-  const userLevel = getUserLevel(totalSpent, totalPrizes);
+  const userLevel = calculateUserLevel(totalSpent, totalPrizes);
 
   const handleSave = () => {
     setIsEditing(false);
