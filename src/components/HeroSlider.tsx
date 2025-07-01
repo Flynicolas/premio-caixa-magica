@@ -5,21 +5,21 @@ import { ChevronLeft, ChevronRight } from 'lucide-react';
 const slides = [
   {
     id: 1,
-    title: "Prêmios Incríveis te Esperam",
-    subtitle: "Abra baús e ganhe desde iPhones até viagens para Dubai",
-    image: "/lovable-uploads/6f83dc9e-58d4-427c-be2a-fb38b0ee66f3.png"
+    title: "Concorra a uma Viagem para Dubai",
+    subtitle: "Abra baús premium e de rubi e tenha a chance de ganhar essa viagem incrível",
+    image: "/lovable-uploads/c63b549b-1ab3-4334-8f46-74c5594d732a.png"
   },
   {
     id: 2,
-    title: "Tesouros Extraordinários",
-    subtitle: "Cada baú é uma nova oportunidade de realizar seus sonhos",
-    image: "/lovable-uploads/0f37c024-1f08-4216-82c9-1583e7900501.png"
+    title: "Baú de Ouro - Prêmios Raros",
+    subtitle: "10x mais chances de ganhar prêmios incríveis de 5 a 15 de julho",
+    image: "/lovable-uploads/177b350c-1b44-4a17-b20e-b66e11c96cc5.png"
   },
   {
     id: 3,
-    title: "Sua Sorte te Aguarda",
-    subtitle: "Milhares de prêmios já foram entregues aos nossos usuários",
-    image: "/lovable-uploads/a9a1a1e2-6d02-4df8-a1f7-95f111b30ee1.png"
+    title: "Use o Cupom e Concorra ao iPhone 16 Pro Max",
+    subtitle: "Ganhe +50% de bônus e concorra aos melhores prêmios",
+    image: "/lovable-uploads/e0452997-8d33-4a8b-98bb-2499385c81dd.png"
   }
 ];
 
@@ -29,7 +29,7 @@ const HeroSlider = () => {
   useEffect(() => {
     const timer = setInterval(() => {
       setCurrentSlide((prev) => (prev + 1) % slides.length);
-    }, 3000);
+    }, 4000);
 
     return () => clearInterval(timer);
   }, []);
@@ -43,7 +43,7 @@ const HeroSlider = () => {
   };
 
   return (
-    <div className="relative h-96 overflow-hidden rounded-lg bg-gradient-to-r from-primary/20 to-secondary/20">
+    <div className="relative h-96 overflow-hidden rounded-lg bg-gradient-to-r from-primary/10 to-secondary/10">
       {slides.map((slide, index) => (
         <div
           key={slide.id}
@@ -52,21 +52,12 @@ const HeroSlider = () => {
             index < currentSlide ? '-translate-x-full' : 'translate-x-full'
           }`}
           style={{
-            backgroundImage: `linear-gradient(rgba(0,0,0,0.4), rgba(0,0,0,0.4)), url(${slide.image})`,
+            backgroundImage: `url(${slide.image})`,
             backgroundSize: 'cover',
             backgroundPosition: 'center'
           }}
         >
-          <div className="flex items-center justify-center h-full text-center">
-            <div className="max-w-2xl px-4">
-              <h2 className="text-4xl md:text-6xl font-bold mb-4 gold-gradient bg-clip-text text-transparent">
-                {slide.title}
-              </h2>
-              <p className="text-xl text-white/90">
-                {slide.subtitle}
-              </p>
-            </div>
-          </div>
+          <div className="absolute inset-0 bg-black/20" />
         </div>
       ))}
 
