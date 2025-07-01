@@ -78,11 +78,12 @@ const LiveWinsCarousel = () => {
                 index === 0 ? 'animate-scale-in' : ''
               }`}
             >
-              <div className="w-12 h-12 rounded-lg overflow-hidden mr-3 bg-primary/20 flex-shrink-0">
+              <div className="w-12 h-12 rounded-lg overflow-hidden mr-3 flex-shrink-0 flex items-center justify-center bg-transparent">
                 <img 
                   src={win.image} 
                   alt={win.prize}
-                  className="w-full h-full object-cover"
+                  className="max-w-full max-h-full object-contain"
+                  style={{ filter: 'drop-shadow(0 2px 4px rgba(0,0,0,0.3))' }}
                 />
               </div>
               <div className="flex-1 min-w-0">

@@ -1,7 +1,7 @@
 
 import { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
-import { ArrowDown, RotateCcw, Package, Sparkles } from 'lucide-react';
+import { ArrowDown, RotateCcw, Package, Sparkles, X } from 'lucide-react';
 import { Prize } from '@/data/chestData';
 
 interface SpinCarouselProps {
@@ -36,12 +36,17 @@ const SpinCarousel = ({ isOpen, onClose, prizes, onPrizeWon, chestName }: SpinCa
 
     const carousel = document.getElementById('carousel');
     if (carousel) {
-      // Phase 1: Fast acceleration
+      // Reset position and remove any existing transitions
+      carousel.style.transition = 'none';
       carousel.style.transform = 'translateX(0px)';
-      carousel.style.transition = 'transform 1s ease-out';
       
+      // Force reflow
+      carousel.offsetHeight;
+      
+      // Phase 1: Fast acceleration
       setTimeout(() => {
         setSpinPhase('building');
+        carousel.style.transition = 'transform 1s ease-out';
         carousel.style.transform = `translateX(-1200px)`;
       }, 100);
 
@@ -88,6 +93,19 @@ const SpinCarousel = ({ isOpen, onClose, prizes, onPrizeWon, chestName }: SpinCa
     }
   };
 
+  const resetCarousel = () => {
+    const carousel = document.getElementById('carousel');
+    if (carousel) {
+      carousel.style.transition = 'none';
+      carousel.style.transform = 'translateX(0px)';
+    }
+  };
+
+  const handleClose = () => {
+    resetCarousel();
+    onClose();
+  };
+
   if (!isOpen) return null;
 
   return (
@@ -121,7 +139,7 @@ const SpinCarousel = ({ isOpen, onClose, prizes, onPrizeWon, chestName }: SpinCa
         }`}>
           <div className="absolute inset-0 bg-black/40 rounded-lg" />
           
-          {/* Center indicator line with glow effect */}
+          {/* Center indicator line */}
           <div className={`absolute left-1/2 top-0 bottom-0 w-1 transform -translate-x-1/2 z-10 transition-all duration-300 ${
             isSpinning ? 'bg-yellow-400 shadow-lg shadow-yellow-400/50' : 'bg-yellow-400'
           }`} />
@@ -164,7 +182,7 @@ const SpinCarousel = ({ isOpen, onClose, prizes, onPrizeWon, chestName }: SpinCa
                   <img 
                     src={prize.image} 
                     alt={prize.name}
-                    className="w-16 h-16 object-cover rounded mb-1"
+                    className="w-16 h-16 object-contain rounded mb-1"
                   />
                   <span className="text-xs text-white text-center font-medium truncate w-full">
                     {prize.name}
@@ -198,7 +216,7 @@ const SpinCarousel = ({ isOpen, onClose, prizes, onPrizeWon, chestName }: SpinCa
           )}
 
           <Button
-            onClick={onClose}
+            onClick={handleClose}
             variant="outline"
             className="border-white/30 text-white hover:bg-white/10"
           >
@@ -210,7 +228,15 @@ const SpinCarousel = ({ isOpen, onClose, prizes, onPrizeWon, chestName }: SpinCa
       {/* Enhanced Result Modal */}
       {showResult && selectedPrize && (
         <div className="fixed inset-0 bg-black/90 backdrop-blur-sm z-60 flex items-center justify-center p-4">
-          <div className="bg-gradient-to-br from-card via-card to-card/90 border-2 border-yellow-400 rounded-xl p-8 max-w-md w-full text-center animate-scale-in relative overflow-hidden">
+          <div className="bg-gradient-to-br from-card via-card to-card/90 border-2 border-yellow-400 rounded-xl p-8 max-w-lg w-full text-center animate-scale-in relative overflow-hidden">
+            {/* Close button */}
+            <button
+              onClick={handleKeepPrize}
+              className="absolute top-4 right-4 text-white/60 hover:text-white transition-colors"
+            >
+              <X className="w-6 h-6" />
+            </button>
+
             {/* Celebration particles */}
             <div className="absolute inset-0 pointer-events-none">
               {[...Array(15)].map((_, i) => (
@@ -228,19 +254,19 @@ const SpinCarousel = ({ isOpen, onClose, prizes, onPrizeWon, chestName }: SpinCa
 
             <div className="relative z-10">
               <div className="mb-6">
-                <div className="w-32 h-32 mx-auto rounded-lg overflow-hidden mb-4 gold-glow animate-pulse border-4 border-yellow-400">
+                <div className="w-40 h-40 mx-auto rounded-lg overflow-hidden mb-4 border-4 border-yellow-400 bg-transparent flex items-center justify-center">
                   <img 
                     src={selectedPrize.image} 
                     alt={selectedPrize.name}
-                    className="w-full h-full object-cover"
+                    className="max-w-full max-h-full object-contain"
                   />
                 </div>
                 
-                <h3 className="text-3xl font-bold gold-gradient bg-clip-text text-transparent mb-2 animate-bounce">
-                  🎉 PARABÉNS! 🎉
+                <h3 className="text-4xl font-bold gold-gradient bg-clip-text text-transparent mb-4 animate-bounce">
+                  Parabéns!
                 </h3>
                 
-                <h4 className="text-xl font-bold text-white mb-2">
+                <h4 className="text-2xl font-bold text-white mb-2">
                   {selectedPrize.name}
                 </h4>
                 
@@ -253,10 +279,10 @@ const SpinCarousel = ({ isOpen, onClose, prizes, onPrizeWon, chestName }: SpinCa
                 </div>
               </div>
 
-              <div className="space-y-3">
+              <div className="space-y-4">
                 <Button
                   onClick={handleKeepPrize}
-                  className="w-full gold-gradient text-black font-bold hover:opacity-90 text-lg py-3"
+                  className="w-full gold-gradient text-black font-bold hover:opacity-90 text-lg py-4"
                 >
                   <Package className="w-5 h-5 mr-2" />
                   Guardar Prêmio
@@ -265,7 +291,7 @@ const SpinCarousel = ({ isOpen, onClose, prizes, onPrizeWon, chestName }: SpinCa
                 <Button
                   onClick={handleSpinAgain}
                   variant="outline" 
-                  className="w-full border-yellow-400 text-yellow-400 hover:bg-yellow-400/10"
+                  className="w-full border-yellow-400 text-yellow-400 hover:bg-yellow-400/10 py-3"
                 >
                   <RotateCcw className="w-4 h-4 mr-2" />
                   Girar Novamente

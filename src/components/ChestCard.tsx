@@ -41,9 +41,8 @@ const ChestCard = ({ chest, chestType, onOpen, balance }: ChestCardProps) => {
       <CardContent className="p-6 flex flex-col h-full">
         {/* Chest Image */}
         <div className="relative mb-6 flex justify-center">
-          <div className={`w-24 h-24 rounded-lg bg-gradient-to-br ${chestColors[chestType]} 
-            flex items-center justify-center shadow-lg group-hover:scale-105 transition-transform duration-300`}>
-            <div className="text-4xl">📦</div>
+          <div className="w-32 h-32 rounded-lg flex items-center justify-center shadow-lg group-hover:scale-105 transition-transform duration-300">
+            <div className="text-6xl">📦</div>
           </div>
           
           {/* Floating sparkles */}
@@ -64,12 +63,12 @@ const ChestCard = ({ chest, chestType, onOpen, balance }: ChestCardProps) => {
               {rareItems.map((item, index) => (
                 <div 
                   key={index}
-                  className={`w-8 h-8 rounded border ${chestThemes[chestType]} flex items-center justify-center`}
+                  className={`w-10 h-10 rounded border ${chestThemes[chestType]} flex items-center justify-center p-1`}
                 >
                   <img 
                     src={item.image} 
                     alt={item.name}
-                    className="w-6 h-6 object-cover rounded"
+                    className="max-w-full max-h-full object-contain"
                   />
                 </div>
               ))}
