@@ -1,4 +1,3 @@
-
 import { useState } from 'react';
 import { Card } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -13,7 +12,7 @@ import Footer from '@/components/Footer';
 import ChestItemsModal from '@/components/ChestItemsModal';
 import { chestData, type ChestType, type Prize, type Chest } from '@/data/chestData';
 import { calculateUserLevel } from '@/utils/levelSystem';
-import SpinCarousel from '@/components/SpinCarousel';
+import SpinCarousel from '@/components/carousel/SpinCarousel';
 
 const Index = () => {
   const [balance, setBalance] = useState(150);
