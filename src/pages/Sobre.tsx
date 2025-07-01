@@ -1,9 +1,10 @@
+
 import { useState } from 'react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
-import { ArrowDown, Plus, MousePointer, Sparkles, Plane, Bike, Smartphone, DollarSign } from 'lucide-react';
+import { ArrowDown, Plus, MousePointer, Sparkles } from 'lucide-react';
 import Header from '@/components/Header';
 import Footer from '@/components/Footer';
 import LoginModal from '@/components/LoginModal';
@@ -38,10 +39,26 @@ const Sobre = () => {
   ];
 
   const premiumPrizes = [
-    { icon: Plane, title: 'Viagem para Dubai', description: 'Pacote completo com hospedagem' },
-    { icon: Bike, title: 'Moto 0km', description: 'Motocicleta Honda CB 650F' },
-    { icon: Smartphone, title: 'iPhone 16 Pro Max', description: '256GB na cor desejada' },
-    { icon: DollarSign, title: 'Prêmios em dinheiro', description: 'De R$ 100 até R$ 50.000' }
+    { 
+      title: 'Viagem para Dubai', 
+      description: 'Pacote completo com hospedagem',
+      image: '/lovable-uploads/262848fe-da75-4887-bb6d-b88247901100.png'
+    },
+    { 
+      title: 'Moto 0km', 
+      description: 'Motocicleta Honda CB 650F',
+      image: '/lovable-uploads/3c51402c-67ee-4d20-8b11-9a334ca0e2db.png'
+    },
+    { 
+      title: 'iPhone 16 Pro Max', 
+      description: '256GB na cor desejada',
+      image: '/lovable-uploads/afe8c6a0-043b-45e3-a2d2-f0016ed54fac.png'
+    },
+    { 
+      title: 'Prêmios em dinheiro', 
+      description: 'De R$ 100 até R$ 50.000',
+      image: '/lovable-uploads/68d2bf66-08db-4fad-8f22-0bbfbbd2f16d.png'
+    }
   ];
 
   return (
@@ -145,19 +162,42 @@ const Sobre = () => {
             Itens Incríveis e Experiências Únicas
           </h2>
           
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-8 max-w-4xl mx-auto">
             {premiumPrizes.map((prize, index) => (
-              <Card key={index} className="p-6 text-center bg-gradient-to-br from-card to-card/90 border-primary/20 hover:border-primary/40 transition-colors">
-                <CardContent className="space-y-4">
-                  <div className="w-20 h-20 gold-gradient rounded-full flex items-center justify-center mx-auto">
-                    <prize.icon className="w-10 h-10 text-black" />
+              <Card key={index} className="overflow-hidden bg-gradient-to-br from-card to-card/90 border-primary/20 hover:border-primary/40 transition-colors">
+                <CardContent className="p-0">
+                  <div className="flex flex-col md:flex-row h-48">
+                    {/* Image Section */}
+                    <div className="flex-1 bg-gradient-to-br from-primary/10 to-primary/5 flex items-center justify-center p-6">
+                      <img 
+                        src={prize.image} 
+                        alt={prize.title}
+                        className="max-w-full max-h-full object-contain drop-shadow-lg"
+                      />
+                    </div>
+                    
+                    {/* Text Section */}
+                    <div className="flex-1 p-6 flex flex-col justify-center">
+                      <h3 className="text-xl font-bold text-primary mb-2">{prize.title}</h3>
+                      <p className="text-muted-foreground">{prize.description}</p>
+                    </div>
                   </div>
-                  <h3 className="text-xl font-bold text-primary">{prize.title}</h3>
-                  <p className="text-muted-foreground">{prize.description}</p>
                 </CardContent>
               </Card>
             ))}
           </div>
+        </div>
+      </section>
+
+      {/* Impact Section */}
+      <section className="py-20 bg-gradient-to-r from-primary/10 to-primary/5">
+        <div className="container mx-auto px-4 text-center">
+          <h2 className="text-4xl md:text-5xl font-bold mb-6 gold-gradient bg-clip-text text-transparent">
+            🎉 Sua sorte está a um clique de distância! 🎉
+          </h2>
+          <p className="text-xl text-muted-foreground max-w-2xl mx-auto">
+            Milhares de pessoas já ganharam prêmios incríveis. Será que a próxima vitória é sua?
+          </p>
         </div>
       </section>
 
