@@ -7,12 +7,12 @@ const SpinCarouselHeader = ({ chestName, spinPhase, selectedPrize }: SpinCarouse
     switch (spinPhase) {
       case 'ready':
         return 'Prepare-se para descobrir seu prêmio!';
-      case 'building':
-        return 'Acelerando... 🚀';
+      case 'spinning':
+        return 'Girando a roleta... 🎯';
       case 'slowing':
-        return 'Definindo seu destino... ✨';
-      case 'stopping':
-        return 'Quase lá... 🎯';
+        return 'Desacelerando... quase lá! ⚡';
+      case 'stopped':
+        return 'Definindo seu prêmio... ✨';
       case 'showing-result':
         return selectedPrize ? `🎉 Você ganhou: ${selectedPrize.name}! 🎉` : '';
       default:
@@ -27,16 +27,19 @@ const SpinCarouselHeader = ({ chestName, spinPhase, selectedPrize }: SpinCarouse
         <h2 className="text-4xl font-bold text-white mb-2">
           {chestName}
         </h2>
-        <p className="text-white/80">
+        <p className={`text-white/80 text-lg transition-all duration-300 ${
+          spinPhase === 'showing-result' ? 'text-green-400 animate-pulse' : ''
+        }`}>
           {getStatusMessage()}
         </p>
       </div>
 
       {/* Arrow Indicator */}
       <div className="flex justify-center mb-4">
-        <ArrowDown className={`w-8 h-8 text-yellow-400 ${
-          spinPhase === 'showing-result' ? 'animate-bounce text-green-400' : 
-          spinPhase === 'ready' ? 'animate-bounce' : 'animate-pulse'
+        <ArrowDown className={`w-8 h-8 transition-all duration-300 ${
+          spinPhase === 'showing-result' ? 'text-green-400 animate-bounce scale-125' : 
+          spinPhase === 'ready' ? 'text-yellow-400 animate-bounce' : 
+          'text-yellow-400 animate-pulse'
         }`} />
       </div>
     </>

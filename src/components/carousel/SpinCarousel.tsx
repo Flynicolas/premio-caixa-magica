@@ -1,5 +1,5 @@
 
-import { useState } from 'react';
+import { useState, useRef } from 'react';
 import { Prize } from '@/data/chestData';
 import { SpinCarouselProps, SpinPhase } from './types';
 import SpinCarouselHeader from './SpinCarouselHeader';
@@ -10,81 +10,76 @@ const SpinCarousel = ({ isOpen, onClose, prizes, onPrizeWon, chestName }: SpinCa
   const [isSpinning, setIsSpinning] = useState(false);
   const [selectedPrize, setSelectedPrize] = useState<Prize | null>(null);
   const [spinPhase, setSpinPhase] = useState<SpinPhase>('ready');
+  const carouselRef = useRef<HTMLDivElement>(null);
 
   const spinCarousel = () => {
+    if (!carouselRef.current) return;
+
     setIsSpinning(true);
     setSelectedPrize(null);
-    setSpinPhase('building');
+    setSpinPhase('spinning');
 
-    // Random prize selection
+    // Select random prize
     const randomIndex = Math.floor(Math.random() * prizes.length);
     const wonPrize = prizes[randomIndex];
 
-    // Calculate exact positioning - each item is 160px wide (140px + 20px gap)
-    const itemWidth = 160;
-    const containerWidth = 5 * itemWidth; // 5 items visible
-    const centerPosition = containerWidth / 2 - itemWidth / 2; // Center of the container
+    const carousel = carouselRef.current;
+    const itemWidth = 160; // 140px + 20px gap
+    const containerWidth = 800; // 5 items visible
+    const centerPosition = containerWidth / 2 - 70; // Center of container minus half item width
     
-    // Find the position of our selected prize in the repeated array
-    const targetItemIndex = prizes.length * 2 + randomIndex; // Use middle section
-    const targetPosition = targetItemIndex * itemWidth;
+    // Calculate position for winning item to be in center
+    const extendedLength = prizes.length * 5; // 5 repetitions
+    const middleSection = Math.floor(extendedLength / 2);
+    const targetIndex = middleSection + randomIndex;
+    const targetPosition = -(targetIndex * itemWidth) + centerPosition;
     
-    // Calculate final position to center the selected item
-    const finalPosition = centerPosition - targetPosition;
+    // Add extra spins for dramatic effect
+    const extraSpins = itemWidth * prizes.length * 3;
+    const finalPosition = targetPosition - extraSpins;
+
+    // Reset carousel position
+    carousel.style.transition = 'none';
+    carousel.style.transform = 'translateX(0px)';
     
-    // Add extra spins for effect
-    const extraSpins = itemWidth * prizes.length * 4; // 4 full rotations
-    const totalFinalPosition = finalPosition - extraSpins;
+    // Force reflow
+    carousel.offsetHeight;
+    
+    // Start spinning animation
+    setTimeout(() => {
+      carousel.style.transition = 'transform 4s cubic-bezier(0.25, 0.1, 0.25, 1)';
+      carousel.style.transform = `translateX(${finalPosition}px)`;
+    }, 50);
 
-    const carousel = document.getElementById('carousel');
-    if (carousel) {
-      // Reset position
-      carousel.style.transition = 'none';
-      carousel.style.transform = 'translateX(0px)';
-      
-      // Force reflow
-      carousel.offsetHeight;
-      
-      // Phase 1: Fast acceleration
-      setTimeout(() => {
-        setSpinPhase('building');
-        carousel.style.transition = 'transform 1.5s cubic-bezier(0.25, 0.46, 0.45, 0.94)';
-        carousel.style.transform = `translateX(-1200px)`;
-      }, 100);
+    // Phase 1: Spinning at full speed
+    setTimeout(() => {
+      setSpinPhase('slowing');
+    }, 2000);
 
-      // Phase 2: Maximum speed with longer duration
-      setTimeout(() => {
-        setSpinPhase('slowing');
-        carousel.style.transition = 'transform 4s cubic-bezier(0.23, 1, 0.32, 1)';
-        carousel.style.transform = `translateX(${totalFinalPosition}px)`;
-      }, 1600);
+    // Phase 2: Slowing down
+    setTimeout(() => {
+      setSpinPhase('stopped');
+      setSelectedPrize(wonPrize);
+      setIsSpinning(false);
+    }, 4000);
 
-      // Phase 3: Final positioning
-      setTimeout(() => {
-        setSpinPhase('stopping');
-      }, 4500);
+    // Phase 3: Show result with pulse effect
+    setTimeout(() => {
+      setSpinPhase('showing-result');
+    }, 5000);
 
-      // Phase 4: Show result for 2 seconds
-      setTimeout(() => {
-        setIsSpinning(false);
-        setSelectedPrize(wonPrize);
-        setSpinPhase('showing-result');
-      }, 6000);
-
-      // Phase 5: Open congratulations modal after showing result
-      setTimeout(() => {
-        onPrizeWon(wonPrize);
-        onClose();
-        setSpinPhase('ready');
-      }, 8000); // 2 seconds after stopping
-    }
+    // Phase 4: Open congratulations modal
+    setTimeout(() => {
+      onPrizeWon(wonPrize);
+      resetCarousel();
+      onClose();
+    }, 7000);
   };
 
   const resetCarousel = () => {
-    const carousel = document.getElementById('carousel');
-    if (carousel) {
-      carousel.style.transition = 'none';
-      carousel.style.transform = 'translateX(0px)';
+    if (carouselRef.current) {
+      carouselRef.current.style.transition = 'none';
+      carouselRef.current.style.transform = 'translateX(0px)';
     }
     setSpinPhase('ready');
     setSelectedPrize(null);
@@ -112,6 +107,7 @@ const SpinCarousel = ({ isOpen, onClose, prizes, onPrizeWon, chestName }: SpinCa
           isSpinning={isSpinning}
           spinPhase={spinPhase}
           selectedPrize={selectedPrize}
+          carouselRef={carouselRef}
         />
 
         <SpinControls

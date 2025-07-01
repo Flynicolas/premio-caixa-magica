@@ -9,7 +9,7 @@ export interface SpinCarouselProps {
   chestName: string;
 }
 
-export type SpinPhase = 'ready' | 'building' | 'slowing' | 'stopping' | 'showing-result';
+export type SpinPhase = 'ready' | 'spinning' | 'slowing' | 'stopped' | 'showing-result';
 
 export interface SpinCarouselHeaderProps {
   chestName: string;
@@ -22,6 +22,7 @@ export interface CarouselContainerProps {
   isSpinning: boolean;
   spinPhase: SpinPhase;
   selectedPrize: Prize | null;
+  carouselRef: React.RefObject<HTMLDivElement>;
 }
 
 export interface SpinControlsProps {
