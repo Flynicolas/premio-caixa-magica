@@ -10,6 +10,8 @@ import HeroSlider from '@/components/HeroSlider';
 import LiveWinsCarousel from '@/components/LiveWinsCarousel';
 import Footer from '@/components/Footer';
 import ChestItemsModal from '@/components/ChestItemsModal';
+import ChestConfirmModal from '@/components/ChestConfirmModal';
+import UpgradeChestModal from '@/components/UpgradeChestModal';
 import { chestData, type ChestType, type Prize, type Chest } from '@/data/chestData';
 import { calculateUserLevel } from '@/utils/levelSystem';
 import SpinCarousel from '@/components/carousel/SpinCarousel';
@@ -25,11 +27,32 @@ const Index = () => {
   const [currentChestType, setCurrentChestType] = useState<ChestType | null>(null);
   const [isChestItemsModalOpen, setIsChestItemsModalOpen] = useState(false);
   const [selectedChest, setSelectedChest] = useState<Chest | null>(null);
+  const [isChestConfirmOpen, setIsChestConfirmOpen] = useState(false);
+  const [isUpgradeModalOpen, setIsUpgradeModalOpen] = useState(false);
+  const [pendingChestType, setPendingChestType] = useState<ChestType | null>(null);
 
   const userLevel = calculateUserLevel(totalSpent, prizes.length);
 
+  // Helper function to get next chest in hierarchy
+  const getNextChest = (currentType: ChestType): { type: ChestType; chest: Chest } | null => {
+    const hierarchy: ChestType[] = ['silver', 'gold', 'diamond', 'ruby', 'premium'];
+    const currentIndex = hierarchy.indexOf(currentType);
+    if (currentIndex < hierarchy.length - 1) {
+      const nextType = hierarchy[currentIndex + 1];
+      return { type: nextType, chest: chestData[nextType] };
+    }
+    return null;
+  };
+
   const openChest = (chestType: ChestType) => {
-    const chest = chestData[chestType];
+    setPendingChestType(chestType);
+    setIsChestConfirmOpen(true);
+  };
+
+  const handleConfirmOpen = () => {
+    if (!pendingChestType) return;
+    
+    const chest = chestData[pendingChestType];
     
     if (balance < chest.price) {
       alert('Saldo insuficiente! Adicione créditos à sua carteira.');
@@ -38,8 +61,50 @@ const Index = () => {
 
     setBalance(prev => prev - chest.price);
     setTotalSpent(prev => prev + chest.price);
-    setCurrentChestType(chestType);
+    setCurrentChestType(pendingChestType);
+    setIsChestConfirmOpen(false);
+    setPendingChestType(null);
     setIsSpinCarouselOpen(true);
+  };
+
+  const handleUpgrade = () => {
+    if (!pendingChestType) return;
+    
+    const nextChest = getNextChest(pendingChestType);
+    if (nextChest) {
+      setIsChestConfirmOpen(false);
+      setIsUpgradeModalOpen(true);
+    }
+  };
+
+  const handleConfirmUpgrade = () => {
+    if (!pendingChestType) return;
+    
+    const nextChest = getNextChest(pendingChestType);
+    if (!nextChest) return;
+    
+    if (balance < nextChest.chest.price) {
+      alert('Saldo insuficiente para o upgrade!');
+      return;
+    }
+
+    setBalance(prev => prev - nextChest.chest.price);
+    setTotalSpent(prev => prev + nextChest.chest.price);
+    setCurrentChestType(nextChest.type);
+    setIsUpgradeModalOpen(false);
+    setPendingChestType(null);
+    setIsSpinCarouselOpen(true);
+  };
+
+  const handleBackToOriginal = () => {
+    setIsUpgradeModalOpen(false);
+    setIsChestConfirmOpen(true);
+  };
+
+  const handleCloseModals = () => {
+    setIsChestConfirmOpen(false);
+    setIsUpgradeModalOpen(false);
+    setPendingChestType(null);
   };
 
   const handlePrizeWon = (prize: Prize) => {
@@ -166,6 +231,38 @@ const Index = () => {
         onClose={() => setIsChestItemsModalOpen(false)}
         chest={selectedChest}
       />
+
+      {/* New Confirmation Modal */}
+      {pendingChestType && (
+        <ChestConfirmModal
+          isOpen={isChestConfirmOpen}
+          onClose={handleCloseModals}
+          onConfirm={handleConfirmOpen}
+          onUpgrade={handleUpgrade}
+          chestType={pendingChestType}
+          chestName={chestData[pendingChestType].name}
+          chestPrice={chestData[pendingChestType].price}
+          balance={balance}
+          nextChestType={getNextChest(pendingChestType)?.type}
+          nextChestName={getNextChest(pendingChestType)?.chest.name}
+          nextChestPrice={getNextChest(pendingChestType)?.chest.price}
+        />
+      )}
+
+      {/* Upgrade Modal */}
+      {pendingChestType && (
+        <UpgradeChestModal
+          isOpen={isUpgradeModalOpen}
+          onClose={handleCloseModals}
+          onConfirm={handleConfirmUpgrade}
+          onBack={handleBackToOriginal}
+          chestType={getNextChest(pendingChestType)?.type || 'gold'}
+          chestName={getNextChest(pendingChestType)?.chest.name || ''}
+          chestPrice={getNextChest(pendingChestType)?.chest.price || 0}
+          balance={balance}
+          originalChestName={chestData[pendingChestType].name}
+        />
+      )}
     </div>
   );
 };
