@@ -1,4 +1,3 @@
-
 import { useState } from 'react';
 import { Card } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -44,6 +43,13 @@ const Ranking = () => {
   const currentUserSpent = 750;
   const currentUserPrizes = 35;
   const currentUserLevel = calculateUserLevel(currentUserSpent, currentUserPrizes);
+  
+  // Mock user data for Header
+  const mockUser = { name: 'João Silva', email: 'joao@email.com' };
+  const mockBalance = 150.75;
+  const handleAddBalance = () => {
+    console.log('Add balance clicked');
+  };
 
   // Mock ranking data
   const [rankingData] = useState<RankingUser[]>([
@@ -151,7 +157,11 @@ const Ranking = () => {
 
   return (
     <div className="min-h-screen bg-background">
-      <Header />
+      <Header 
+        balance={mockBalance}
+        user={mockUser}
+        onAddBalance={handleAddBalance}
+      />
       
       <div className="container mx-auto px-4 py-8 max-w-6xl">
         {/* Page Header */}
