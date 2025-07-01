@@ -18,8 +18,8 @@ const SpinCarousel = ({ isOpen, onClose, prizes, onPrizeWon, chestName }: SpinCa
   const [showResult, setShowResult] = useState(false);
   const [spinPhase, setSpinPhase] = useState<'ready' | 'building' | 'slowing' | 'stopping'>('ready');
 
-  // Duplicate prizes to create seamless infinite scroll effect
-  const carouselItems = [...prizes, ...prizes, ...prizes, ...prizes, ...prizes];
+  // Create carousel with 5 visible items and proper spacing
+  const carouselItems = [...prizes, ...prizes, ...prizes, ...prizes];
 
   const spinCarousel = () => {
     setIsSpinning(true);
@@ -31,12 +31,19 @@ const SpinCarousel = ({ isOpen, onClose, prizes, onPrizeWon, chestName }: SpinCa
     const randomIndex = Math.floor(Math.random() * prizes.length);
     const wonPrize = prizes[randomIndex];
 
-    // Calculate final position for animation with more randomness
-    const finalPosition = -(randomIndex * 120 + Math.random() * 1200 + 2400);
+    // Calculate position to land exactly on an item (140px per item)
+    const itemWidth = 140;
+    const visibleItems = 5;
+    const centerPosition = (visibleItems - 1) * itemWidth / 2;
+    
+    // Calculate final position to land on the selected prize
+    const finalItemPosition = randomIndex * itemWidth;
+    const extraSpins = itemWidth * prizes.length * 3; // 3 full rotations
+    const finalPosition = -(finalItemPosition + extraSpins - centerPosition);
 
     const carousel = document.getElementById('carousel');
     if (carousel) {
-      // Reset position and remove any existing transitions
+      // Reset position
       carousel.style.transition = 'none';
       carousel.style.transform = 'translateX(0px)';
       
@@ -46,33 +53,32 @@ const SpinCarousel = ({ isOpen, onClose, prizes, onPrizeWon, chestName }: SpinCa
       // Phase 1: Fast acceleration
       setTimeout(() => {
         setSpinPhase('building');
-        carousel.style.transition = 'transform 1s ease-out';
-        carousel.style.transform = `translateX(-1200px)`;
+        carousel.style.transition = 'transform 1.5s cubic-bezier(0.25, 0.46, 0.45, 0.94)';
+        carousel.style.transform = `translateX(-800px)`;
       }, 100);
 
-      // Phase 2: Maximum speed
+      // Phase 2: Maximum speed with longer duration
       setTimeout(() => {
         setSpinPhase('slowing');
-        carousel.style.transition = 'transform 3s cubic-bezier(0.25, 0.1, 0.25, 1)';
+        carousel.style.transition = 'transform 3.5s cubic-bezier(0.23, 1, 0.32, 1)';
         carousel.style.transform = `translateX(${finalPosition}px)`;
-      }, 1200);
+      }, 1600);
 
-      // Phase 3: Final slow down with suspense
+      // Phase 3: Final positioning
       setTimeout(() => {
         setSpinPhase('stopping');
-      }, 3000);
+      }, 4000);
     }
 
-    // Stop spinning after animation with celebration delay
+    // Stop spinning after animation
     setTimeout(() => {
       setIsSpinning(false);
       setSelectedPrize(wonPrize);
       setSpinPhase('ready');
-      // Add celebration delay
       setTimeout(() => {
         setShowResult(true);
       }, 500);
-    }, 4500);
+    }, 5500);
   };
 
   const handleSpinAgain = () => {
@@ -110,7 +116,7 @@ const SpinCarousel = ({ isOpen, onClose, prizes, onPrizeWon, chestName }: SpinCa
 
   return (
     <div className="fixed inset-0 bg-black/95 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-      <div className="w-full max-w-4xl">
+      <div className="w-full max-w-5xl">
         {/* Header */}
         <div className="text-center mb-8">
           <h2 className="text-4xl font-bold gold-gradient bg-clip-text text-transparent mb-2">
@@ -124,67 +130,66 @@ const SpinCarousel = ({ isOpen, onClose, prizes, onPrizeWon, chestName }: SpinCa
           </p>
         </div>
 
-        {/* Arrow Indicator - only show when not spinning */}
-        {!isSpinning && (
-          <div className="flex justify-center mb-4">
-            <ArrowDown className="w-8 h-8 text-yellow-400 animate-bounce" />
-          </div>
-        )}
+        {/* Arrow Indicator - centered and always visible */}
+        <div className="flex justify-center mb-4">
+          <ArrowDown className={`w-8 h-8 text-yellow-400 ${!isSpinning ? 'animate-bounce' : 'animate-pulse'}`} />
+        </div>
 
-        {/* Carousel Container */}
-        <div className={`relative rounded-lg p-6 mb-8 overflow-hidden transition-all duration-500 ${
+        {/* Improved Carousel Container */}
+        <div className={`relative rounded-lg p-8 mb-8 overflow-hidden transition-all duration-500 ${
           isSpinning 
-            ? 'bg-gradient-to-r from-purple-600/30 via-yellow-400/40 to-purple-600/30 shadow-2xl' 
-            : 'bg-gradient-to-r from-yellow-600/20 via-yellow-400/30 to-yellow-600/20'
+            ? 'bg-gradient-to-r from-purple-600/40 via-yellow-500/50 to-purple-600/40 shadow-2xl' 
+            : 'bg-gradient-to-r from-gray-800/60 via-gray-700/70 to-gray-800/60'
         }`}>
-          <div className="absolute inset-0 bg-black/40 rounded-lg" />
+          <div className="absolute inset-0 bg-black/20 rounded-lg" />
           
-          {/* Center indicator line */}
-          <div className={`absolute left-1/2 top-0 bottom-0 w-1 transform -translate-x-1/2 z-10 transition-all duration-300 ${
-            isSpinning ? 'bg-yellow-400 shadow-lg shadow-yellow-400/50' : 'bg-yellow-400'
+          {/* Center indicator line - thicker and more visible */}
+          <div className={`absolute left-1/2 top-0 bottom-0 w-2 transform -translate-x-1/2 z-10 transition-all duration-300 ${
+            isSpinning ? 'bg-yellow-400 shadow-xl shadow-yellow-400/80' : 'bg-yellow-400 shadow-lg shadow-yellow-400/50'
           }`} />
           
-          {/* Spinning effect particles */}
+          {/* Enhanced spinning particles */}
           {isSpinning && (
             <div className="absolute inset-0 z-5">
-              {[...Array(20)].map((_, i) => (
+              {[...Array(30)].map((_, i) => (
                 <Sparkles 
                   key={i}
                   className="absolute w-4 h-4 text-yellow-400 animate-ping"
                   style={{
                     left: `${Math.random() * 100}%`,
                     top: `${Math.random() * 100}%`,
-                    animationDelay: `${Math.random() * 2}s`
+                    animationDelay: `${Math.random() * 2}s`,
+                    animationDuration: `${1 + Math.random()}s`
                   }}
                 />
               ))}
             </div>
           )}
           
-          {/* Carousel */}
-          <div className="relative overflow-hidden h-32">
+          {/* Improved Carousel - larger and better spaced */}
+          <div className="relative overflow-hidden h-40">
             <div 
               id="carousel"
               className={`flex space-x-4 h-full transition-all ${
-                spinPhase === 'building' ? 'blur-sm' : ''
+                spinPhase === 'building' ? 'blur-[1px]' : ''
               }`}
               style={{ transform: 'translateX(0px)' }}
             >
               {carouselItems.map((prize, index) => (
                 <div
                   key={`${prize.name}-${index}`}
-                  className={`min-w-[100px] h-28 rounded-lg border-2 flex flex-col items-center justify-center p-2 shadow-lg transition-all duration-200 ${
+                  className={`min-w-[136px] h-36 rounded-lg border-2 flex flex-col items-center justify-center p-3 shadow-xl transition-all duration-300 ${
                     isSpinning 
-                      ? 'bg-gradient-to-br from-purple-800 to-purple-900 border-purple-400/50 scale-95' 
-                      : 'bg-gradient-to-br from-gray-800 to-gray-900 border-yellow-400/50'
+                      ? 'bg-gradient-to-br from-purple-800/90 to-purple-900/90 border-purple-400/60 scale-95 shadow-purple-500/30' 
+                      : 'bg-gradient-to-br from-gray-800/90 to-gray-900/90 border-yellow-400/60 shadow-yellow-400/20'
                   }`}
                 >
                   <img 
                     src={prize.image} 
                     alt={prize.name}
-                    className="w-16 h-16 object-contain rounded mb-1"
+                    className="w-20 h-20 object-contain rounded mb-2"
                   />
-                  <span className="text-xs text-white text-center font-medium truncate w-full">
+                  <span className="text-xs text-white text-center font-medium truncate w-full px-1">
                     {prize.name}
                   </span>
                 </div>
@@ -198,7 +203,7 @@ const SpinCarousel = ({ isOpen, onClose, prizes, onPrizeWon, chestName }: SpinCa
           {!isSpinning && !showResult && (
             <Button
               onClick={spinCarousel}
-              className="gold-gradient text-black font-bold px-8 py-4 text-lg hover:opacity-90 transition-all duration-300 animate-pulse"
+              className="gold-gradient text-black font-bold px-10 py-4 text-xl hover:opacity-90 transition-all duration-300 animate-pulse shadow-lg"
             >
               🎯 Girar Roleta
             </Button>
@@ -206,8 +211,8 @@ const SpinCarousel = ({ isOpen, onClose, prizes, onPrizeWon, chestName }: SpinCa
 
           {isSpinning && (
             <div className="text-center">
-              <div className="animate-spin w-12 h-12 border-4 border-yellow-400 border-t-transparent rounded-full mx-auto mb-2" />
-              <p className="text-white font-medium text-lg">
+              <div className="animate-spin w-16 h-16 border-4 border-yellow-400 border-t-transparent rounded-full mx-auto mb-3" />
+              <p className="text-white font-medium text-xl">
                 {spinPhase === 'building' && 'Acelerando...'}
                 {spinPhase === 'slowing' && 'Definindo...'}
                 {spinPhase === 'stopping' && 'Parando...'}
@@ -239,7 +244,7 @@ const SpinCarousel = ({ isOpen, onClose, prizes, onPrizeWon, chestName }: SpinCa
 
             {/* Celebration particles */}
             <div className="absolute inset-0 pointer-events-none">
-              {[...Array(15)].map((_, i) => (
+              {[...Array(20)].map((_, i) => (
                 <Sparkles 
                   key={i}
                   className="absolute w-6 h-6 text-yellow-400 animate-ping"
@@ -254,7 +259,7 @@ const SpinCarousel = ({ isOpen, onClose, prizes, onPrizeWon, chestName }: SpinCa
 
             <div className="relative z-10">
               <div className="mb-6">
-                <div className="w-40 h-40 mx-auto rounded-lg overflow-hidden mb-4 border-4 border-yellow-400 bg-transparent flex items-center justify-center">
+                <div className="w-48 h-48 mx-auto rounded-lg overflow-hidden mb-4 border-4 border-yellow-400 bg-transparent flex items-center justify-center">
                   <img 
                     src={selectedPrize.image} 
                     alt={selectedPrize.name}
@@ -262,7 +267,7 @@ const SpinCarousel = ({ isOpen, onClose, prizes, onPrizeWon, chestName }: SpinCa
                   />
                 </div>
                 
-                <h3 className="text-4xl font-bold gold-gradient bg-clip-text text-transparent mb-4 animate-bounce">
+                <h3 className="text-5xl font-bold gold-gradient bg-clip-text text-transparent mb-4 animate-bounce">
                   Parabéns!
                 </h3>
                 
@@ -274,7 +279,7 @@ const SpinCarousel = ({ isOpen, onClose, prizes, onPrizeWon, chestName }: SpinCa
                   {selectedPrize.description}
                 </p>
                 
-                <div className="text-2xl font-bold text-yellow-400 animate-pulse">
+                <div className="text-3xl font-bold text-yellow-400 animate-pulse">
                   {selectedPrize.value}
                 </div>
               </div>

@@ -10,7 +10,8 @@ import Header from '@/components/Header';
 import HeroSlider from '@/components/HeroSlider';
 import LiveWinsCarousel from '@/components/LiveWinsCarousel';
 import Footer from '@/components/Footer';
-import { chestData, type ChestType, type Prize } from '@/data/chestData';
+import ChestItemsModal from '@/components/ChestItemsModal';
+import { chestData, type ChestType, type Prize, type Chest } from '@/data/chestData';
 import { calculateUserLevel } from '@/utils/levelSystem';
 import SpinCarousel from '@/components/SpinCarousel';
 
@@ -23,6 +24,8 @@ const Index = () => {
   const [isWalletOpen, setIsWalletOpen] = useState(false);
   const [isSpinCarouselOpen, setIsSpinCarouselOpen] = useState(false);
   const [currentChestType, setCurrentChestType] = useState<ChestType | null>(null);
+  const [isChestItemsModalOpen, setIsChestItemsModalOpen] = useState(false);
+  const [selectedChest, setSelectedChest] = useState<Chest | null>(null);
 
   const userLevel = calculateUserLevel(totalSpent, prizes.length);
 
@@ -41,6 +44,7 @@ const Index = () => {
   };
 
   const handlePrizeWon = (prize: Prize) => {
+    setCurrentPrize(prize);
     if (currentChestType) {
       setPrizes(prev => [...prev, {
         ...prize,
@@ -50,6 +54,15 @@ const Index = () => {
     }
     setIsSpinCarouselOpen(false);
     setCurrentChestType(null);
+    // Show win modal after carousel closes
+    setTimeout(() => {
+      setIsWinModalOpen(true);
+    }, 500);
+  };
+
+  const handleViewItems = (chestType: ChestType) => {
+    setSelectedChest(chestData[chestType]);
+    setIsChestItemsModalOpen(true);
   };
 
   const addBalance = (amount: number) => {
@@ -116,6 +129,7 @@ const Index = () => {
                 chest={chest}
                 chestType={key as ChestType}
                 onOpen={() => openChest(key as ChestType)}
+                onViewItems={() => handleViewItems(key as ChestType)}
                 balance={balance}
               />
             ))}
@@ -146,6 +160,12 @@ const Index = () => {
         prizes={currentChestType ? chestData[currentChestType].prizes : []}
         onPrizeWon={handlePrizeWon}
         chestName={currentChestType ? chestData[currentChestType].name : ''}
+      />
+
+      <ChestItemsModal
+        isOpen={isChestItemsModalOpen}
+        onClose={() => setIsChestItemsModalOpen(false)}
+        chest={selectedChest}
       />
     </div>
   );

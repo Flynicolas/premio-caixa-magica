@@ -2,17 +2,18 @@
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { Sparkles, Lock } from 'lucide-react';
+import { Sparkles, Lock, Eye } from 'lucide-react';
 import { Chest, ChestType } from '@/data/chestData';
 
 interface ChestCardProps {
   chest: Chest;
   chestType: ChestType;
   onOpen: () => void;
+  onViewItems: () => void;
   balance: number;
 }
 
-const ChestCard = ({ chest, chestType, onOpen, balance }: ChestCardProps) => {
+const ChestCard = ({ chest, chestType, onOpen, onViewItems, balance }: ChestCardProps) => {
   const canAfford = balance >= chest.price;
   
   const chestColors = {
@@ -23,26 +24,13 @@ const ChestCard = ({ chest, chestType, onOpen, balance }: ChestCardProps) => {
     premium: 'from-purple-500 to-pink-600'
   };
 
-  const chestThemes = {
-    silver: 'border-gray-400/30 bg-gray-400/10',
-    gold: 'border-yellow-400/30 bg-yellow-400/10',
-    diamond: 'border-blue-400/30 bg-blue-400/10',
-    ruby: 'border-red-400/30 bg-red-400/10',
-    premium: 'border-purple-400/30 bg-purple-400/10'
-  };
-
   const chestImages = {
-    silver: '/lovable-uploads/70a08625-c438-4292-8356-821b05c265bc.png',
-    gold: '/lovable-uploads/0220327d-3f58-4207-9a07-545072aad33d.png',
-    diamond: '/lovable-uploads/7f613316-382c-4ea0-baf0-bf6ed60e27ba.png',
-    ruby: '/lovable-uploads/f6ed1f29-bbd2-497a-af2f-3204fa4345b4.png',
-    premium: '/lovable-uploads/dce87e40-cfc4-462f-becb-60e5d4dc0b8c.png'
+    silver: '/lovable-uploads/a3432c13-9f20-46b8-8cb4-dd116646918a.png',
+    gold: '/lovable-uploads/3027048a-e5a0-4121-a4d3-b0bf2b571472.png',
+    diamond: '/lovable-uploads/b4c7577f-84fd-4631-9956-940cef37c0f5.png',
+    ruby: '/lovable-uploads/a8ce4345-18ed-4110-aa75-0e4b64de767c.png',
+    premium: '/lovable-uploads/a4e45f22-07f1-459a-a5c2-de5eabb4144a.png'
   };
-
-  // Get first 5 rare+ items from chest
-  const rareItems = chest.prizes
-    .filter(prize => prize.rarity !== 'common')
-    .slice(0, 5);
 
   return (
     <Card className="relative overflow-hidden border-primary/20 bg-card/50 hover:bg-card/70 transition-all duration-300 group h-full">
@@ -57,8 +45,17 @@ const ChestCard = ({ chest, chestType, onOpen, balance }: ChestCardProps) => {
             />
           </div>
           
+          {/* View Items Button */}
+          <button
+            onClick={onViewItems}
+            className="absolute top-2 right-2 bg-primary/80 hover:bg-primary text-white px-2 py-1 rounded-full text-xs font-medium transition-all duration-200 flex items-center space-x-1"
+          >
+            <Eye className="w-3 h-3" />
+            <span>ver itens</span>
+          </button>
+          
           {/* Floating sparkles */}
-          <div className="absolute -top-2 -right-2">
+          <div className="absolute -top-2 -left-2">
             <Sparkles className="w-6 h-6 text-yellow-400 animate-pulse" />
           </div>
         </div>
@@ -68,25 +65,6 @@ const ChestCard = ({ chest, chestType, onOpen, balance }: ChestCardProps) => {
           <h3 className="text-xl font-bold text-primary mb-2">{chest.name}</h3>
           <p className="text-sm text-muted-foreground mb-4">{chest.description}</p>
           
-          {/* Preview Items */}
-          <div className="mb-4">
-            <p className="text-xs text-muted-foreground mb-2">Itens Raros Inclusos:</p>
-            <div className="flex justify-center space-x-1">
-              {rareItems.map((item, index) => (
-                <div 
-                  key={index}
-                  className={`w-10 h-10 rounded border ${chestThemes[chestType]} flex items-center justify-center p-1`}
-                >
-                  <img 
-                    src={item.image} 
-                    alt={item.name}
-                    className="max-w-full max-h-full object-contain"
-                  />
-                </div>
-              ))}
-            </div>
-          </div>
-
           <div className="text-2xl font-bold text-white mb-4">
             R$ {chest.price.toFixed(2).replace('.', ',')}
           </div>

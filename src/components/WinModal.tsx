@@ -2,7 +2,7 @@
 import { Dialog, DialogContent } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { Trophy, Sparkles, Gift } from 'lucide-react';
+import { Trophy, Sparkles, Gift, X } from 'lucide-react';
 import { Prize } from '@/data/chestData';
 import { useEffect, useState } from 'react';
 
@@ -40,15 +40,49 @@ const WinModal = ({ isOpen, onClose, prize }: WinModalProps) => {
     legendary: 'Lendário'
   };
 
+  // Generate more specific descriptions based on prize name
+  const getSpecificDescription = (prize: Prize) => {
+    if (prize.name.includes('iPhone') || prize.name.includes('Celular')) {
+      return `${prize.description}. Produto novo, lacrado, com garantia oficial. Inclui carregador e fones de ouvido originais.`;
+    }
+    if (prize.name.includes('PlayStation') || prize.name.includes('Xbox')) {
+      return `${prize.description}. Console completo com 1 controle, todos os cabos e 3 jogos grátis à sua escolha.`;
+    }
+    if (prize.name.includes('TV')) {
+      return `${prize.description}. Smart TV com tecnologia 4K, HDR, conectividade Wi-Fi e todas as principais plataformas de streaming.`;
+    }
+    if (prize.name.includes('Notebook') || prize.name.includes('PC')) {
+      return `${prize.description}. Equipamento completo com Windows licenciado, pacote Office e suporte técnico de 1 ano.`;
+    }
+    if (prize.name.includes('Moto') || prize.name.includes('Bicicleta')) {
+      return `${prize.description}. Produto novo com documentação, seguro DPVAT e capacete de brinde.`;
+    }
+    if (prize.name.includes('Viagem')) {
+      return `${prize.description}. Pacote completo com passagens aéreas, hospedagem, café da manhã e transfer aeroporto.`;
+    }
+    if (prize.name.includes('PIX') || prize.name.includes('Dinheiro')) {
+      return `${prize.description}. Valor depositado em até 24 horas na sua conta bancária via PIX.`;
+    }
+    return `${prize.description}. Produto original, novo e com garantia. Entrega realizada em todo território nacional.`;
+  };
+
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="max-w-md bg-gradient-to-br from-card via-card to-card/90 border-primary/30 backdrop-blur-sm">
-        <div className="text-center py-8">
+      <DialogContent className="max-w-lg bg-gradient-to-br from-card via-card to-card/90 border-primary/30 backdrop-blur-sm">
+        <div className="text-center py-8 relative">
+          {/* Close Button */}
+          <button
+            onClick={onClose}
+            className="absolute top-2 right-2 text-muted-foreground hover:text-white transition-colors"
+          >
+            <X className="w-5 h-5" />
+          </button>
+
           {/* Celebration Animation */}
           <div className={`mb-6 ${isAnimating ? 'animate-bounce' : ''}`}>
-            <div className={`w-24 h-24 mx-auto rounded-full bg-gradient-to-br ${rarityColors[prize.rarity]} 
+            <div className={`w-28 h-28 mx-auto rounded-full bg-gradient-to-br ${rarityColors[prize.rarity]} 
               flex items-center justify-center mb-4 ${isAnimating ? 'pulse-gold' : ''}`}>
-              <Trophy className="w-12 h-12 text-white" />
+              <Trophy className="w-14 h-14 text-white" />
             </div>
             
             <div className="flex justify-center space-x-2 mb-4">
@@ -62,10 +96,11 @@ const WinModal = ({ isOpen, onClose, prize }: WinModalProps) => {
             </div>
           </div>
 
-          {/* Win Message */}
-          <h2 className="text-3xl font-bold gold-gradient bg-clip-text text-transparent mb-2">
+          {/* Congratulations Text - Animated */}
+          <h2 className={`text-4xl font-bold text-primary mb-4 ${isAnimating ? 'animate-bounce' : ''}`}>
             🎉 PARABÉNS! 🎉
           </h2>
+          
           <p className="text-lg text-muted-foreground mb-6">
             Você ganhou um prêmio incrível!
           </p>
@@ -75,15 +110,16 @@ const WinModal = ({ isOpen, onClose, prize }: WinModalProps) => {
             <img 
               src={prize.image} 
               alt={prize.name}
-              className="w-20 h-20 mx-auto mb-4 rounded-lg object-cover"
+              className="w-24 h-24 mx-auto mb-4 rounded-lg object-contain"
             />
             
-            <h3 className="text-xl font-bold text-primary mb-2">
+            <h3 className="text-2xl font-bold text-primary mb-3">
               {prize.name}
             </h3>
             
-            <p className="text-sm text-muted-foreground mb-3">
-              {prize.description}
+            {/* More specific description */}
+            <p className="text-sm text-muted-foreground mb-4 leading-relaxed">
+              {getSpecificDescription(prize)}
             </p>
             
             <div className="flex justify-center items-center space-x-2 mb-3">
@@ -103,7 +139,7 @@ const WinModal = ({ isOpen, onClose, prize }: WinModalProps) => {
           <div className="space-y-3">
             <Button 
               onClick={onClose}
-              className="w-full gold-gradient text-black font-bold hover:opacity-90"
+              className="w-full bg-gradient-to-r from-green-500 to-green-600 text-white font-bold hover:opacity-90 py-3"
             >
               <Gift className="w-4 h-4 mr-2" />
               Adicionar à Carteira
