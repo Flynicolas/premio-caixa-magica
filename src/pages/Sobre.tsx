@@ -1,4 +1,3 @@
-
 import { useState } from 'react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -11,7 +10,7 @@ import LoginModal from '@/components/LoginModal';
 
 const Sobre = () => {
   const [user, setUser] = useState<{ name: string; email: string } | null>(null);
-  const [balance, setBalance] = useState(0);
+  const [balance, setBalance] = useState(150);
   const [isLoginModalOpen, setIsLoginModalOpen] = useState(false);
   const [faqForm, setFaqForm] = useState({ name: '', email: '', question: '' });
 
@@ -21,9 +20,7 @@ const Sobre = () => {
   };
 
   const handleWalletOpen = () => {
-    if (!user) {
-      setIsLoginModalOpen(true);
-    }
+    console.log('Wallet opened');
   };
 
   const handleFaqSubmit = (e: React.FormEvent) => {
@@ -51,7 +48,6 @@ const Sobre = () => {
     <div className="min-h-screen">
       <Header 
         balance={balance}
-        user={user}
         onAddBalance={handleWalletOpen}
       />
 

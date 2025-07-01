@@ -56,6 +56,10 @@ const Perfil = () => {
     // Here would be the API call to save user data
   };
 
+  const handleAddBalance = () => {
+    console.log('Add balance clicked');
+  };
+
   const prizes = [
     { name: 'iPhone 16 Pro Max', value: 'R$ 8.999,00', date: '2024-12-15', status: 'delivered' },
     { name: 'PlayStation 5', value: 'R$ 3.500,00', date: '2024-12-10', status: 'pending' },
@@ -66,8 +70,7 @@ const Perfil = () => {
     <div className="min-h-screen bg-background">
       <Header 
         balance={balance} 
-        user={user} 
-        onAddBalance={() => {}} 
+        onAddBalance={handleAddBalance}
       />
       
       <div className="container mx-auto px-4 py-8">

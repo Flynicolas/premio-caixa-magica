@@ -2,6 +2,7 @@
 export interface UserLevel {
   level: number;
   name: string;
+  title: string;
   minSpent: number;
   minPrizes: number;
   color: string;
@@ -13,6 +14,7 @@ export const levels: UserLevel[] = [
   {
     level: 1,
     name: 'Novato',
+    title: 'Iniciante',
     minSpent: 0,
     minPrizes: 0,
     color: 'text-gray-400',
@@ -22,6 +24,7 @@ export const levels: UserLevel[] = [
   {
     level: 2,
     name: 'Explorador',
+    title: 'Aventureiro',
     minSpent: 100,
     minPrizes: 5,
     color: 'text-green-400',
@@ -31,6 +34,7 @@ export const levels: UserLevel[] = [
   {
     level: 3,
     name: 'Aventureiro',
+    title: 'Destemido',
     minSpent: 300,
     minPrizes: 15,
     color: 'text-blue-400',
@@ -40,6 +44,7 @@ export const levels: UserLevel[] = [
   {
     level: 4,
     name: 'Veterano',
+    title: 'Experiente',
     minSpent: 750,
     minPrizes: 35,
     color: 'text-purple-400',
@@ -49,6 +54,7 @@ export const levels: UserLevel[] = [
   {
     level: 5,
     name: 'Lenda',
+    title: 'Lendário',
     minSpent: 1500,
     minPrizes: 75,
     color: 'text-yellow-400',
@@ -58,6 +64,7 @@ export const levels: UserLevel[] = [
   {
     level: 6,
     name: 'Mestre',
+    title: 'Supremo',
     minSpent: 3000,
     minPrizes: 150,
     color: 'text-red-400',
