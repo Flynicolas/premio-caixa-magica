@@ -1,6 +1,6 @@
 
-import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
+import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Sparkles, Lock } from 'lucide-react';
 import { Chest, ChestType } from '@/data/chestData';
@@ -15,73 +15,80 @@ interface ChestCardProps {
 const ChestCard = ({ chest, chestType, onOpen, balance }: ChestCardProps) => {
   const canAfford = balance >= chest.price;
   
-  const chestImages = {
-    silver: '/lovable-uploads/ba84a4b9-15d4-4eea-afe4-518604f4b511.png',
-    gold: '/lovable-uploads/a9a1a1e2-6d02-4df8-a1f7-95f111b30ee1.png',
-    diamond: '/lovable-uploads/b32691e3-5eb0-4d76-85c1-f349a2615f80.png',
-    ruby: '/lovable-uploads/1e75dbed-c6dc-458b-bf5f-867f613d6c3f.png',
-    premium: '/lovable-uploads/4a2fd772-393f-42ee-a420-0714594e7fbb.png'
-  };
-
-  const rarityColors = {
+  const chestColors = {
     silver: 'from-gray-400 to-gray-600',
     gold: 'from-yellow-400 to-yellow-600',
-    diamond: 'from-blue-400 to-cyan-500',
-    ruby: 'from-red-500 to-pink-600',
-    premium: 'from-purple-500 via-pink-500 to-yellow-500'
+    diamond: 'from-blue-400 to-cyan-400',
+    ruby: 'from-red-400 to-pink-500',
+    premium: 'from-purple-500 to-pink-600'
   };
 
+  const chestThemes = {
+    silver: 'border-gray-400/30 bg-gray-400/10',
+    gold: 'border-yellow-400/30 bg-yellow-400/10',
+    diamond: 'border-blue-400/30 bg-blue-400/10',
+    ruby: 'border-red-400/30 bg-red-400/10',
+    premium: 'border-purple-400/30 bg-purple-400/10'
+  };
+
+  // Get first 5 rare+ items from chest
+  const rareItems = chest.prizes
+    .filter(prize => prize.rarity !== 'common')
+    .slice(0, 5);
+
   return (
-    <Card className={`relative overflow-hidden border-2 transition-all duration-300 hover:scale-105 hover:shadow-2xl ${
-      canAfford ? 'border-primary/50 cursor-pointer' : 'border-gray-600 opacity-50'
-    } bg-gradient-to-br from-card to-card/80 backdrop-blur-sm`}>
-      
-      {/* Shine effect */}
-      <div className="absolute inset-0 chest-shine opacity-30" />
-      
-      {/* Rarity indicator */}
-      <div className={`absolute top-0 left-0 right-0 h-1 bg-gradient-to-r ${rarityColors[chestType]}`} />
-      
-      <div className="relative p-6 text-center">
+    <Card className="relative overflow-hidden border-primary/20 bg-card/50 hover:bg-card/70 transition-all duration-300 group h-full">
+      <CardContent className="p-6 flex flex-col h-full">
         {/* Chest Image */}
-        <div className={`w-24 h-24 mx-auto mb-4 rounded-lg overflow-hidden ${canAfford ? 'float pulse-gold' : ''}`}>
-          <img 
-            src={chestImages[chestType]} 
-            alt={chest.name}
-            className="w-full h-full object-contain"
-          />
+        <div className="relative mb-6 flex justify-center">
+          <div className={`w-24 h-24 rounded-lg bg-gradient-to-br ${chestColors[chestType]} 
+            flex items-center justify-center shadow-lg group-hover:scale-105 transition-transform duration-300`}>
+            <div className="text-4xl">📦</div>
+          </div>
+          
+          {/* Floating sparkles */}
+          <div className="absolute -top-2 -right-2">
+            <Sparkles className="w-6 h-6 text-yellow-400 animate-pulse" />
+          </div>
         </div>
 
         {/* Chest Info */}
-        <h3 className="text-xl font-bold mb-2 gold-gradient bg-clip-text text-transparent">
-          {chest.name}
-        </h3>
-        
-        <p className="text-sm text-muted-foreground mb-4 min-h-[40px]">
-          {chest.description}
-        </p>
+        <div className="text-center mb-4 flex-grow">
+          <h3 className="text-xl font-bold text-primary mb-2">{chest.name}</h3>
+          <p className="text-sm text-muted-foreground mb-4">{chest.description}</p>
+          
+          {/* Preview Items */}
+          <div className="mb-4">
+            <p className="text-xs text-muted-foreground mb-2">Itens Raros Inclusos:</p>
+            <div className="flex justify-center space-x-1">
+              {rareItems.map((item, index) => (
+                <div 
+                  key={index}
+                  className={`w-8 h-8 rounded border ${chestThemes[chestType]} flex items-center justify-center`}
+                >
+                  <img 
+                    src={item.image} 
+                    alt={item.name}
+                    className="w-6 h-6 object-cover rounded"
+                  />
+                </div>
+              ))}
+            </div>
+          </div>
 
-        {/* Price */}
-        <div className="mb-4">
-          <span className="text-2xl font-bold text-primary">
-            R$ {chest.price.toFixed(2)}
-          </span>
+          <div className="text-2xl font-bold text-white mb-4">
+            R$ {chest.price.toFixed(2).replace('.', ',')}
+          </div>
         </div>
-
-        {/* Prize count */}
-        <Badge variant="secondary" className="mb-4">
-          <Sparkles className="w-3 h-3 mr-1" />
-          {chest.prizes.length} prêmios
-        </Badge>
 
         {/* Action Button */}
         <Button
           onClick={onOpen}
           disabled={!canAfford}
-          className={`w-full font-bold transition-all duration-300 ${
+          className={`w-full font-bold ${
             canAfford 
-              ? 'gold-gradient text-black hover:opacity-90 hover:scale-105' 
-              : 'bg-gray-600 text-gray-400 cursor-not-allowed'
+              ? `bg-gradient-to-r ${chestColors[chestType]} text-black hover:opacity-90` 
+              : 'bg-gray-600 text-gray-300 cursor-not-allowed'
           }`}
         >
           {canAfford ? (
@@ -97,11 +104,12 @@ const ChestCard = ({ chest, chestType, onOpen, balance }: ChestCardProps) => {
           )}
         </Button>
 
-        {/* Sample prizes preview */}
-        <div className="mt-4 text-xs text-muted-foreground">
-          <p>Exemplos: {chest.prizes.slice(0, 3).map(p => p.name).join(', ')}...</p>
-        </div>
-      </div>
+        {!canAfford && (
+          <Badge variant="destructive" className="mt-2 text-xs">
+            Faltam R$ {(chest.price - balance).toFixed(2).replace('.', ',')}
+          </Badge>
+        )}
+      </CardContent>
     </Card>
   );
 };

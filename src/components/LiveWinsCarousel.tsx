@@ -3,14 +3,16 @@ import { useState, useEffect } from 'react';
 import { Trophy, Gift } from 'lucide-react';
 
 const prizes = [
-  { name: 'iPhone 16 Pro Max', image: '/lovable-uploads/0f37c024-1f08-4216-82c9-1583e7900501.png' },
-  { name: 'Motocicleta Honda', image: '/lovable-uploads/6f83dc9e-58d4-427c-be2a-fb38b0ee66f3.png' },
-  { name: 'Viagem para Dubai', image: '/lovable-uploads/a9a1a1e2-6d02-4df8-a1f7-95f111b30ee1.png' },
-  { name: 'R$ 5.000 PIX', image: '/lovable-uploads/0f37c024-1f08-4216-82c9-1583e7900501.png' },
-  { name: 'PlayStation 5', image: '/lovable-uploads/6f83dc9e-58d4-427c-be2a-fb38b0ee66f3.png' },
-  { name: 'Smartwatch Apple', image: '/lovable-uploads/a9a1a1e2-6d02-4df8-a1f7-95f111b30ee1.png' },
-  { name: 'Notebook Gamer', image: '/lovable-uploads/0f37c024-1f08-4216-82c9-1583e7900501.png' },
-  { name: 'Fone AirPods Pro', image: '/lovable-uploads/6f83dc9e-58d4-427c-be2a-fb38b0ee66f3.png' }
+  { name: 'iPhone 16 Pro Max', image: '/lovable-uploads/afe8c6a0-043b-45e3-a2d2-f0016ed54fac.png' },
+  { name: 'Smartwatch Apple', image: '/lovable-uploads/e7b617c4-f45a-4596-994a-75c0e3553f78.png' },
+  { name: 'Xiaomi Phone', image: '/lovable-uploads/0d9f41b3-5ac9-4467-9987-5f9f55b48b43.png' },
+  { name: 'Tablet Samsung', image: '/lovable-uploads/853054fe-7848-4ab3-9499-041705d241d2.png' },
+  { name: 'Bicicleta Dobrável', image: '/lovable-uploads/3c51402c-67ee-4d20-8b11-9a334ca0e2db.png' },
+  { name: 'Câmera Segurança', image: '/lovable-uploads/24dbf933-dd9b-4ea9-b253-022bd366da2f.png' },
+  { name: 'Viagem Dubai', image: '/lovable-uploads/262848fe-da75-4887-bb6d-b88247901100.png' },
+  { name: 'Resort 5 Estrelas', image: '/lovable-uploads/b7b47eb2-d95e-46cf-a21c-f76ac2a74d20.png' },
+  { name: 'Viagem Nacional', image: '/lovable-uploads/ced3cdc6-a614-4fa0-9afe-f0f73ff917b5.png' },
+  { name: 'Vale Compras', image: '/lovable-uploads/68d2bf66-08db-4fad-8f22-0bbfbbd2f16d.png' }
 ];
 
 const names = [
@@ -67,16 +69,16 @@ const LiveWinsCarousel = () => {
         <Gift className="w-6 h-6 text-yellow-400 ml-2" />
       </div>
       
-      <div className="relative overflow-hidden h-24">
+      <div className="relative overflow-hidden h-20">
         <div className="flex transition-transform duration-500 ease-in-out">
           {wins.map((win, index) => (
             <div
               key={win.id}
-              className={`min-w-80 h-24 flex items-center p-4 mx-2 bg-card/50 rounded-lg border border-primary/20 ${
+              className={`min-w-80 h-20 flex items-center p-3 mx-2 bg-card/50 rounded-lg border border-primary/20 ${
                 index === 0 ? 'animate-scale-in' : ''
               }`}
             >
-              <div className="w-12 h-12 rounded-lg overflow-hidden mr-4 bg-primary/20 flex-shrink-0">
+              <div className="w-12 h-12 rounded-lg overflow-hidden mr-3 bg-primary/20 flex-shrink-0">
                 <img 
                   src={win.image} 
                   alt={win.prize}

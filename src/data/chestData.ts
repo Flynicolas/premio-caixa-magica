@@ -1,4 +1,3 @@
-
 export type Rarity = 'common' | 'rare' | 'epic' | 'legendary';
 
 export interface Prize {
@@ -142,20 +141,30 @@ export const chestData: Record<ChestType, Chest> = {
       { name: 'Notebook R$ 5000', description: 'Performance empresarial', value: 'R$ 5000', rarity: 'legendary', image: '/lovable-uploads/9b899380-8ff3-426f-9b67-9557ab90bf86.png' },
       { name: 'PC Gamer R$ 10k', description: 'Setup dos sonhos', value: 'R$ 10000', rarity: 'legendary', image: '/lovable-uploads/e153d1cf-dc90-4520-8b27-33a6cb4a3e2f.png' },
       { name: 'Moto R$ 15k', description: 'Motocicleta premium', value: 'R$ 15000', rarity: 'legendary', image: '/lovable-uploads/cf3aebd4-9d1a-4349-84b2-b94d234cfb1f.png' },
-      { name: 'iPhone 16', description: 'Último lançamento Apple', value: 'R$ 8000', rarity: 'legendary', image: '/lovable-uploads/771650de-7318-4924-acad-9c079ea5d562.png' },
+      { name: 'iPhone 16', description: 'Último lançamento Apple', value: 'R$ 8000', rarity: 'legendary', image: '/lovable-uploads/afe8c6a0-043b-45e3-a2d2-f0016ed54fac.png' },
       { name: 'iPhone 14 Pro Max', description: 'Tela maxima Apple', value: 'R$ 6500', rarity: 'legendary', image: '/lovable-uploads/771650de-7318-4924-acad-9c079ea5d562.png' },
-      { name: 'Bicicleta Aro 29', description: 'Mountain bike profissional', value: 'R$ 3000', rarity: 'epic', image: '/lovable-uploads/cf3aebd4-9d1a-4349-84b2-b94d234cfb1f.png' },
+      { name: 'Bicicleta Aro 29', description: 'Mountain bike profissional', value: 'R$ 3000', rarity: 'epic', image: '/lovable-uploads/3c51402c-67ee-4d20-8b11-9a334ca0e2db.png' },
       { name: 'Projetor Cinema', description: 'R$ 150 a R$ 300', value: 'R$ 300', rarity: 'epic', image: '/lovable-uploads/772ebc3d-d9c4-4d27-86f4-62df1722f382.png' },
       { name: 'Drone Premium', description: 'R$ 100 a R$ 300', value: 'R$ 300', rarity: 'epic', image: '/lovable-uploads/89653d9d-fdca-406d-920f-7b77e7e0c37c.png' },
-      { name: 'Viagem Internacional', description: 'América do Sul completa', value: 'R$ 8000', rarity: 'legendary', image: '/lovable-uploads/082b5047-df41-4d24-93f2-4ab5aea94b4f.png' },
-      { name: 'Resort 5 Estrelas', description: '5 diárias tudo incluído', value: 'R$ 5000', rarity: 'legendary', image: '/lovable-uploads/082b5047-df41-4d24-93f2-4ab5aea94b4f.png' },
-      { name: 'Viagem Nacional', description: 'Pacote completo premium', value: 'R$ 4000', rarity: 'legendary', image: '/lovable-uploads/082b5047-df41-4d24-93f2-4ab5aea94b4f.png' },
+      { name: 'Viagem Internacional', description: 'América do Sul completa', value: 'R$ 8000', rarity: 'legendary', image: '/lovable-uploads/262848fe-da75-4887-bb6d-b88247901100.png' },
+      { name: 'Resort 5 Estrelas', description: '5 diárias tudo incluído', value: 'R$ 5000', rarity: 'legendary', image: '/lovable-uploads/b7b47eb2-d95e-46cf-a21c-f76ac2a74d20.png' },
+      { name: 'Viagem Nacional', description: 'Pacote completo premium', value: 'R$ 4000', rarity: 'legendary', image: '/lovable-uploads/ced3cdc6-a614-4fa0-9afe-f0f73ff917b5.png' },
       { name: 'Maleta Maquiagem', description: 'Kit profissional completo', value: 'R$ 2000', rarity: 'epic', image: '/lovable-uploads/082b5047-df41-4d24-93f2-4ab5aea94b4f.png' },
       { name: 'Óculos VR Premium', description: 'Realidade virtual 8K', value: 'R$ 4000', rarity: 'legendary', image: '/lovable-uploads/d680b250-790e-4beb-aa2d-38c7932794db.png' },
-      { name: 'Smartwatch Ultra', description: 'Tecnologia espacial', value: 'R$ 3000', rarity: 'legendary', image: '/lovable-uploads/771650de-7318-4924-acad-9c079ea5d562.png' },
-      { name: 'Tablet Pro', description: 'Profissional avançado', value: 'R$ 3500', rarity: 'legendary', image: '/lovable-uploads/772ebc3d-d9c4-4d27-86f4-62df1722f382.png' },
+      { name: 'Smartwatch Ultra', description: 'Tecnologia espacial', value: 'R$ 3000', rarity: 'legendary', image: '/lovable-uploads/e7b617c4-f45a-4596-994a-75c0e3553f78.png' },
+      { name: 'Tablet Pro', description: 'Profissional avançado', value: 'R$ 3500', rarity: 'legendary', image: '/lovable-uploads/853054fe-7848-4ab3-9499-041705d241d2.png' },
       { name: 'PIX R$ 1000', description: 'Mil reais instantâneo', value: 'R$ 1000', rarity: 'epic', image: '/lovable-uploads/082b5047-df41-4d24-93f2-4ab5aea94b4f.png' },
-      { name: 'Experiência Premium', description: 'Pacote exclusivo VIP', value: 'R$ 10000', rarity: 'legendary', image: '/lovable-uploads/082b5047-df41-4d24-93f2-4ab5aea94b4f.png' }
+      { name: 'Experiência Premium', description: 'Pacote exclusivo VIP', value: 'R$ 10000', rarity: 'legendary', image: '/lovable-uploads/082b5047-df41-4d24-93f2-4ab5aea94b4f.png' },
+      { name: 'Xiaomi Premium', description: 'Smartphone com câmera profissional', value: 'R$ 2500', rarity: 'epic', image: '/lovable-uploads/0d9f41b3-5ac9-4467-9987-5f9f55b48b43.png' },
+      { name: 'Câmera Segurança 4K', description: 'Monitoramento profissional', value: 'R$ 1500', rarity: 'epic', image: '/lovable-uploads/24dbf933-dd9b-4ea9-b253-022bd366da2f.png' },
+      { name: 'Bicicleta Dobrável', description: 'Mobilidade urbana compacta', value: 'R$ 2000', rarity: 'epic', image: '/lovable-uploads/3c51402c-67ee-4d20-8b11-9a334ca0e2db.png' },
+      { name: 'Tablet Samsung Pro', description: 'Performance empresarial', value: 'R$ 4000', rarity: 'legendary', image: '/lovable-uploads/853054fe-7848-4ab3-9499-041705d241d2.png' },
+      { name: 'Smartwatch Apple Ultra', description: 'Tecnologia de ponta no pulso', value: 'R$ 4500', rarity: 'legendary', image: '/lovable-uploads/e7b617c4-f45a-4596-994a-75c0e3553f78.png' },
+      { name: 'iPhone 16 Pro Max', description: 'O melhor da Apple', value: 'R$ 10000', rarity: 'legendary', image: '/lovable-uploads/afe8c6a0-043b-45e3-a2d2-f0016ed54fac.png' },
+      { name: 'Viagem Dubai Premium', description: 'Pacote luxo completo', value: 'R$ 15000', rarity: 'legendary', image: '/lovable-uploads/262848fe-da75-4887-bb6d-b88247901100.png' },
+      { name: 'Resort Maldivas', description: 'Paraíso tropical exclusivo', value: 'R$ 20000', rarity: 'legendary', image: '/lovable-uploads/b7b47eb2-d95e-46cf-a21c-f76ac2a74d20.png' },
+      { name: 'Excursão Europa', description: 'Tour completo pelo continente', value: 'R$ 12000', rarity: 'legendary', image: '/lovable-uploads/ced3cdc6-a614-4fa0-9afe-f0f73ff917b5.png' },
+      { name: 'Vale Premium Global', description: 'Compras internacionais', value: 'R$ 5000', rarity: 'legendary', image: '/lovable-uploads/68d2bf66-08db-4fad-8f22-0bbfbbd2f16d.png' }
     ]
   }
 };
