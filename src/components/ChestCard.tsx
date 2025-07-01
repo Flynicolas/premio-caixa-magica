@@ -31,6 +31,14 @@ const ChestCard = ({ chest, chestType, onOpen, balance }: ChestCardProps) => {
     premium: 'border-purple-400/30 bg-purple-400/10'
   };
 
+  const chestImages = {
+    silver: '/lovable-uploads/70a08625-c438-4292-8356-821b05c265bc.png',
+    gold: '/lovable-uploads/0220327d-3f58-4207-9a07-545072aad33d.png',
+    diamond: '/lovable-uploads/7f613316-382c-4ea0-baf0-bf6ed60e27ba.png',
+    ruby: '/lovable-uploads/f6ed1f29-bbd2-497a-af2f-3204fa4345b4.png',
+    premium: '/lovable-uploads/dce87e40-cfc4-462f-becb-60e5d4dc0b8c.png'
+  };
+
   // Get first 5 rare+ items from chest
   const rareItems = chest.prizes
     .filter(prize => prize.rarity !== 'common')
@@ -41,8 +49,12 @@ const ChestCard = ({ chest, chestType, onOpen, balance }: ChestCardProps) => {
       <CardContent className="p-6 flex flex-col h-full">
         {/* Chest Image */}
         <div className="relative mb-6 flex justify-center">
-          <div className="w-32 h-32 rounded-lg flex items-center justify-center shadow-lg group-hover:scale-105 transition-transform duration-300">
-            <div className="text-6xl">📦</div>
+          <div className="w-40 h-40 rounded-lg flex items-center justify-center shadow-lg group-hover:scale-105 transition-transform duration-300">
+            <img 
+              src={chestImages[chestType]} 
+              alt={chest.name}
+              className="w-full h-full object-contain drop-shadow-lg"
+            />
           </div>
           
           {/* Floating sparkles */}
