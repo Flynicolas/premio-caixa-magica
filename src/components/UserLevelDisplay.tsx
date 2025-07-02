@@ -2,7 +2,7 @@
 import { Card } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Progress } from '@/components/ui/progress';
-import { Trophy, TrendingUp, Gift } from 'lucide-react';
+import { Trophy, TrendingUp } from 'lucide-react';
 import { UserLevel, getProgressToNextLevel } from '@/utils/levelSystem';
 
 interface UserLevelDisplayProps {
