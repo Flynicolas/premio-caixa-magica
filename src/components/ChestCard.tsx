@@ -19,21 +19,32 @@ const ChestCard = ({ chest, chestType, onOpen, onViewItems, balance }: ChestCard
   const chestColors = {
     silver: 'from-gray-400 to-gray-600',
     gold: 'from-yellow-400 to-yellow-600',
+    delas: 'from-pink-400 to-rose-500',
     diamond: 'from-blue-400 to-cyan-400',
     ruby: 'from-red-400 to-pink-500',
     premium: 'from-purple-500 to-pink-600'
   };
 
+  const chestBorderColors = {
+    silver: 'border-gray-400/30',
+    gold: 'border-yellow-400/30',
+    delas: 'border-pink-400/30',
+    diamond: 'border-blue-400/30',
+    ruby: 'border-red-400/30',
+    premium: 'border-purple-500/30'
+  };
+
   const chestImages = {
     silver: '/lovable-uploads/8f503764-12ee-4e00-8148-76b279be343f.png',
     gold: '/lovable-uploads/8c5dedca-ad61-4b14-a649-8b854950a875.png',
+    delas: '/lovable-uploads/85b1ecea-b443-4391-9986-fb77979cf6ea.png',
     diamond: '/lovable-uploads/0ec6f6c5-203f-4fca-855d-59171f78adf3.png',
     ruby: '/lovable-uploads/a7b012cc-0fae-4b69-b2f4-690740a0ba92.png',
     premium: '/lovable-uploads/d43f06a5-1532-42ba-8362-5aefb160b408.png'
   };
 
   return (
-    <Card className="relative overflow-hidden border-primary/20 bg-card/50 hover:bg-card/70 transition-all duration-300 group h-full">
+    <Card className={`relative overflow-hidden ${chestBorderColors[chestType]} bg-card/50 hover:bg-card/70 transition-all duration-300 group h-full border-2`}>
       <CardContent className="p-6 flex flex-col h-full">
         {/* Chest Image */}
         <div className="relative mb-6 flex justify-center">
@@ -48,7 +59,7 @@ const ChestCard = ({ chest, chestType, onOpen, onViewItems, balance }: ChestCard
           {/* View Items Button */}
           <button
             onClick={onViewItems}
-            className="absolute top-2 right-2 bg-primary/80 hover:bg-primary text-white px-2 py-1 rounded-full text-xs font-medium transition-all duration-200 flex items-center space-x-1"
+            className={`absolute top-2 right-2 bg-gradient-to-r ${chestColors[chestType]} text-white px-2 py-1 rounded-full text-xs font-medium transition-all duration-200 flex items-center space-x-1 hover:scale-105`}
           >
             <Eye className="w-3 h-3" />
             <span>ver itens</span>
@@ -74,9 +85,9 @@ const ChestCard = ({ chest, chestType, onOpen, onViewItems, balance }: ChestCard
         <Button
           onClick={onOpen}
           disabled={!canAfford}
-          className={`w-full font-bold ${
+          className={`w-full font-bold transition-all duration-300 ${
             canAfford 
-              ? `bg-gradient-to-r ${chestColors[chestType]} text-black hover:opacity-90` 
+              ? `bg-gradient-to-r ${chestColors[chestType]} text-black hover:opacity-90 hover:scale-105` 
               : 'bg-gray-600 text-gray-300 cursor-not-allowed'
           }`}
         >

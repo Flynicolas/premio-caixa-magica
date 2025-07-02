@@ -27,8 +27,20 @@ export const useWallet = () => {
   const [transactions, setTransactions] = useState<Transaction[]>([]);
   const [loading, setLoading] = useState(true);
 
+  // Temporary balance for testing - remove when authentication is implemented
+  const TEMP_BALANCE = 10000.00;
+
   const fetchWalletData = async () => {
-    if (!user) return;
+    if (!user) {
+      // Set temporary balance for testing
+      setWalletData({
+        balance: TEMP_BALANCE,
+        total_deposited: TEMP_BALANCE,
+        total_withdrawn: 0,
+        total_spent: 0
+      });
+      return;
+    }
 
     try {
       const { data, error } = await (supabase as any)
@@ -41,6 +53,13 @@ export const useWallet = () => {
       setWalletData(data);
     } catch (error) {
       console.error('Error fetching wallet data:', error);
+      // Fallback to temporary balance
+      setWalletData({
+        balance: TEMP_BALANCE,
+        total_deposited: TEMP_BALANCE,
+        total_withdrawn: 0,
+        total_spent: 0
+      });
     }
   };
 
@@ -63,7 +82,26 @@ export const useWallet = () => {
   };
 
   const addBalance = async (amount: number) => {
-    if (!user) return { error: 'Usuário não logado' };
+    if (!user) {
+      // For testing without authentication
+      if (walletData) {
+        const newBalance = walletData.balance + amount;
+        setWalletData({
+          ...walletData,
+          balance: newBalance,
+          total_deposited: walletData.total_deposited + amount
+        });
+        
+        toast({
+          title: "Saldo adicionado!",
+          description: `R$ ${amount.toFixed(2)} foram adicionados à sua conta.`,
+          variant: "default"
+        });
+        
+        return { error: null };
+      }
+      return { error: 'Erro temporário' };
+    }
 
     try {
       const { error } = await (supabase as any)
@@ -99,9 +137,26 @@ export const useWallet = () => {
   };
 
   const purchaseChest = async (chestType: string, amount: number) => {
-    if (!user) return { error: 'Usuário não logado' };
     if (!walletData || walletData.balance < amount) {
       return { error: 'Saldo insuficiente' };
+    }
+
+    // For testing without authentication - just deduct from temporary balance
+    if (!user) {
+      const newBalance = walletData.balance - amount;
+      setWalletData({
+        ...walletData,
+        balance: newBalance,
+        total_spent: walletData.total_spent + amount
+      });
+      
+      toast({
+        title: "Baú comprado!",
+        description: `Você comprou um ${chestType} por R$ ${amount.toFixed(2)}`,
+        variant: "default"
+      });
+      
+      return { error: null };
     }
 
     try {
@@ -127,8 +182,8 @@ export const useWallet = () => {
   };
 
   useEffect(() => {
+    fetchWalletData();
     if (user) {
-      fetchWalletData();
       fetchTransactions();
     }
     setLoading(false);
@@ -142,7 +197,9 @@ export const useWallet = () => {
     purchaseChest,
     refreshData: () => {
       fetchWalletData();
-      fetchTransactions();
+      if (user) {
+        fetchTransactions();
+      }
     }
   };
 };

@@ -34,6 +34,7 @@ const ChestConfirmModal = ({
   const chestColors = {
     silver: 'from-gray-400 to-gray-600',
     gold: 'from-yellow-400 to-yellow-600',
+    delas: 'from-pink-400 to-rose-500',
     diamond: 'from-blue-400 to-cyan-400',
     ruby: 'from-red-400 to-pink-500',
     premium: 'from-purple-500 to-pink-600'
@@ -42,6 +43,7 @@ const ChestConfirmModal = ({
   const chestImages = {
     silver: '/lovable-uploads/8f503764-12ee-4e00-8148-76b279be343f.png',
     gold: '/lovable-uploads/8c5dedca-ad61-4b14-a649-8b854950a875.png',
+    delas: '/lovable-uploads/85b1ecea-b443-4391-9986-fb77979cf6ea.png',
     diamond: '/lovable-uploads/0ec6f6c5-203f-4fca-855d-59171f78adf3.png',
     ruby: '/lovable-uploads/a7b012cc-0fae-4b69-b2f4-690740a0ba92.png',
     premium: '/lovable-uploads/d43f06a5-1532-42ba-8362-5aefb160b408.png'
@@ -53,7 +55,7 @@ const ChestConfirmModal = ({
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
       <DialogContent className="max-w-md p-0 border-0 bg-transparent shadow-none">
-        <div className={`relative rounded-2xl p-8 bg-gradient-to-br ${chestColors[chestType]} shadow-2xl animate-scale-in`}>
+        <div className={`relative rounded-2xl p-8 bg-gradient-to-br ${chestColors[chestType]} shadow-2xl animate-scale-in border-4 border-white/20`}>
           {/* Background overlay */}
           <div className="absolute inset-0 bg-black/20 rounded-2xl" />
           
@@ -98,7 +100,7 @@ const ChestConfirmModal = ({
               <Button
                 onClick={onConfirm}
                 disabled={!canAfford}
-                className="w-full bg-black/80 hover:bg-black text-white font-bold py-3"
+                className="w-full bg-black/80 hover:bg-black text-white font-bold py-3 transition-all duration-300 hover:scale-105"
               >
                 {canAfford ? (
                   <>
@@ -115,7 +117,7 @@ const ChestConfirmModal = ({
                   onClick={onUpgrade}
                   disabled={!canAffordUpgrade}
                   variant="outline"
-                  className="w-full border-black/50 text-black hover:bg-black/10 font-bold py-3"
+                  className="w-full border-black/50 text-black hover:bg-black/10 font-bold py-3 transition-all duration-300 hover:scale-105"
                 >
                   <ArrowUp className="w-4 h-4 mr-2" />
                   Mais Chances - {nextChestName}
@@ -125,7 +127,7 @@ const ChestConfirmModal = ({
               <Button
                 onClick={onClose}
                 variant="ghost"
-                className="w-full text-black/70 hover:text-black hover:bg-black/10"
+                className="w-full text-black/70 hover:text-black hover:bg-black/10 transition-all duration-300"
               >
                 Cancelar
               </Button>

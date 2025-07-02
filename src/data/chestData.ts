@@ -1,3 +1,4 @@
+
 export type Rarity = 'common' | 'rare' | 'epic' | 'legendary';
 
 export interface Prize {
@@ -15,7 +16,7 @@ export interface Chest {
   prizes: Prize[];
 }
 
-export type ChestType = 'silver' | 'gold' | 'diamond' | 'ruby' | 'premium';
+export type ChestType = 'silver' | 'gold' | 'delas' | 'diamond' | 'ruby' | 'premium';
 
 export const chestData: Record<ChestType, Chest> = {
   silver: {
@@ -71,6 +72,34 @@ export const chestData: Record<ChestType, Chest> = {
       { name: 'Kit Gaming', description: 'Acessórios gamer', value: 'R$ 600', rarity: 'epic', image: '/lovable-uploads/e153d1cf-dc90-4520-8b27-33a6cb4a3e2f.png' },
       { name: 'Óculos VR', description: 'Realidade virtual', value: 'R$ 800', rarity: 'epic', image: '/lovable-uploads/d680b250-790e-4beb-aa2d-38c7932794db.png' },
       { name: 'Xbox Series S', description: 'Console compacto', value: 'R$ 2000', rarity: 'legendary', image: '/lovable-uploads/300675c3-5e02-433b-9f0e-df0a52414210.png' }
+    ]
+  },
+
+  delas: {
+    name: 'Baú Delas',
+    price: 97.90,
+    description: 'Especialmente criado para elas, com prêmios únicos!',
+    prizes: [
+      { name: 'Kit Maquiagem Completo', description: 'Maquiagem profissional premium', value: 'R$ 500', rarity: 'epic', image: '/lovable-uploads/082b5047-df41-4d24-93f2-4ab5aea94b4f.png' },
+      { name: 'Perfume Importado', description: 'Fragrância exclusiva + nécessaire', value: 'R$ 400', rarity: 'rare', image: '/lovable-uploads/082b5047-df41-4d24-93f2-4ab5aea94b4f.png' },
+      { name: 'Smartwatch Feminino', description: 'Tecnologia e estilo', value: 'R$ 800', rarity: 'epic', image: '/lovable-uploads/771650de-7318-4924-acad-9c079ea5d562.png' },
+      { name: 'iPhone 14 Rosa', description: 'Smartphone Apple na cor rosa', value: 'R$ 4000', rarity: 'legendary', image: '/lovable-uploads/771650de-7318-4924-acad-9c079ea5d562.png' },
+      { name: 'Secador Premium', description: 'Cuidado profissional dos cabelos', value: 'R$ 300', rarity: 'rare', image: '/lovable-uploads/082b5047-df41-4d24-93f2-4ab5aea94b4f.png' },
+      { name: 'Kit Skincare Luxo', description: 'Rotina completa de cuidados', value: 'R$ 600', rarity: 'epic', image: '/lovable-uploads/082b5047-df41-4d24-93f2-4ab5aea94b4f.png' },
+      { name: 'Bolsa Importada', description: 'Estilo e elegância', value: 'R$ 800', rarity: 'epic', image: '/lovable-uploads/082b5047-df41-4d24-93f2-4ab5aea94b4f.png' },
+      { name: 'Spa Day Completo', description: 'Relaxamento total', value: 'R$ 500', rarity: 'rare', image: '/lovable-uploads/082b5047-df41-4d24-93f2-4ab5aea94b4f.png' },
+      { name: 'Tablet Rosa', description: 'Tecnologia com estilo', value: 'R$ 1200', rarity: 'epic', image: '/lovable-uploads/772ebc3d-d9c4-4d27-86f4-62df1722f382.png' },
+      { name: 'Kit Unhas Profissional', description: 'Manicure profissional em casa', value: 'R$ 250', rarity: 'rare', image: '/lovable-uploads/082b5047-df41-4d24-93f2-4ab5aea94b4f.png' },
+      { name: 'Câmera Instant Pink', description: 'Fotos instantâneas estilosas', value: 'R$ 400', rarity: 'rare', image: '/lovable-uploads/082b5047-df41-4d24-93f2-4ab5aea94b4f.png' },
+      { name: 'Vale Shopping Feminino', description: 'Compras em lojas femininas', value: 'R$ 600', rarity: 'epic', image: '/lovable-uploads/082b5047-df41-4d24-93f2-4ab5aea94b4f.png' },
+      { name: 'Kit Fitness Feminino', description: 'Equipamentos para exercícios', value: 'R$ 350', rarity: 'rare', image: '/lovable-uploads/082b5047-df41-4d24-93f2-4ab5aea94b4f.png' },
+      { name: 'Bicicleta Feminina', description: 'Design especial para elas', value: 'R$ 1500', rarity: 'epic', image: '/lovable-uploads/3c51402c-67ee-4d20-8b11-9a334ca0e2db.png' },
+      { name: 'Viagem Spa Resort', description: 'Fim de semana relaxante', value: 'R$ 2000', rarity: 'legendary', image: '/lovable-uploads/b7b47eb2-d95e-46cf-a21c-f76ac2a74d20.png' },
+      { name: 'Kit Cabelo Profissional', description: 'Cuidado premium para cabelos', value: 'R$ 400', rarity: 'rare', image: '/lovable-uploads/082b5047-df41-4d24-93f2-4ab5aea94b4f.png' },
+      { name: 'Espelho LED Premium', description: 'Iluminação profissional', value: 'R$ 300', rarity: 'rare', image: '/lovable-uploads/082b5047-df41-4d24-93f2-4ab5aea94b4f.png' },
+      { name: 'PIX R$ 200', description: 'Dinheiro para suas compras', value: 'R$ 200', rarity: 'common', image: '/lovable-uploads/082b5047-df41-4d24-93f2-4ab5aea94b4f.png' },
+      { name: 'Curso Online Beleza', description: 'Capacitação profissional', value: 'R$ 500', rarity: 'rare', image: '/lovable-uploads/082b5047-df41-4d24-93f2-4ab5aea94b4f.png' },
+      { name: 'Notebook Rosa', description: 'Tecnologia com seu estilo', value: 'R$ 2500', rarity: 'legendary', image: '/lovable-uploads/9b899380-8ff3-426f-9b67-9557ab90bf86.png' }
     ]
   },
 

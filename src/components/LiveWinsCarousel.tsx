@@ -1,6 +1,6 @@
 
 import { useState, useEffect } from 'react';
-import { Trophy, Gift } from 'lucide-react';
+import { Trophy, Gift, Radio } from 'lucide-react';
 
 const prizes = [
   { name: 'iPhone 16 Pro Max', image: '/lovable-uploads/afe8c6a0-043b-45e3-a2d2-f0016ed54fac.png' },
@@ -28,7 +28,7 @@ const LiveWinsCarousel = () => {
 
   useEffect(() => {
     // Generate initial wins
-    const initialWins = Array.from({ length: 6 }, (_, index) => {
+    const initialWins = Array.from({ length: 4 }, (_, index) => {
       const prize = prizes[Math.floor(Math.random() * prizes.length)];
       return {
         id: index,
@@ -39,9 +39,9 @@ const LiveWinsCarousel = () => {
       };
     });
     setWins(initialWins);
-    setNextId(6);
+    setNextId(4);
 
-    // Add new wins every 3-6 seconds
+    // Add new wins every 4-7 seconds with smoother animations
     const interval = setInterval(() => {
       const prize = prizes[Math.floor(Math.random() * prizes.length)];
       const newWin = {
@@ -52,33 +52,43 @@ const LiveWinsCarousel = () => {
         time: 'Agora mesmo'
       };
       
-      setWins(prev => [newWin, ...prev.slice(0, 5)]);
+      setWins(prev => [newWin, ...prev.slice(0, 3)]);
       setNextId(prev => prev + 1);
-    }, Math.random() * 3000 + 3000); // Random between 3-6 seconds
+    }, Math.random() * 3000 + 4000); // Random between 4-7 seconds
 
     return () => clearInterval(interval);
   }, [nextId]);
 
   return (
-    <div className="bg-gradient-to-r from-green-900/20 to-green-700/20 border border-green-500/20 rounded-lg p-6 mb-8">
-      <div className="flex items-center justify-center mb-4">
-        <Trophy className="w-6 h-6 text-yellow-400 mr-2" />
-        <h2 className="text-xl font-bold text-center text-primary">
-          🎉 Vitórias em Tempo Real 🎉
-        </h2>
-        <Gift className="w-6 h-6 text-yellow-400 ml-2" />
+    <div className="bg-gradient-to-r from-green-900/20 to-green-700/20 border border-green-500/20 rounded-lg p-6 mb-12">
+      <div className="flex items-center justify-center mb-6">
+        <div className="flex items-center space-x-3">
+          <div className="flex items-center space-x-2">
+            <Radio className="w-5 h-5 text-red-500 animate-pulse" />
+            <span className="text-red-500 font-bold text-sm animate-pulse">AO VIVO</span>
+          </div>
+          <Trophy className="w-6 h-6 text-yellow-400" />
+          <h2 className="text-xl font-bold text-center text-primary">
+            Vitórias em Tempo Real
+          </h2>
+          <Gift className="w-6 h-6 text-yellow-400" />
+        </div>
       </div>
       
-      <div className="relative overflow-hidden h-20">
-        <div className="flex transition-transform duration-500 ease-in-out">
+      <div className="relative overflow-hidden">
+        <div className="flex flex-col space-y-4">
           {wins.map((win, index) => (
             <div
               key={win.id}
-              className={`min-w-80 h-20 flex items-center p-3 mx-2 bg-card/50 rounded-lg border border-primary/20 ${
-                index === 0 ? 'animate-scale-in' : ''
+              className={`flex items-center p-4 bg-card/50 rounded-lg border border-primary/20 transition-all duration-700 ease-out ${
+                index === 0 ? 'animate-fade-in scale-105 border-green-500/40 shadow-lg shadow-green-500/20' : ''
               }`}
+              style={{
+                transform: index === 0 ? 'translateY(0)' : `translateY(${index * 4}px)`,
+                opacity: Math.max(0.4, 1 - index * 0.2)
+              }}
             >
-              <div className="w-12 h-12 rounded-lg overflow-hidden mr-3 flex-shrink-0 flex items-center justify-center bg-transparent">
+              <div className="w-14 h-14 rounded-lg overflow-hidden mr-4 flex-shrink-0 flex items-center justify-center bg-transparent border border-primary/20">
                 <img 
                   src={win.image} 
                   alt={win.prize}
@@ -95,6 +105,12 @@ const LiveWinsCarousel = () => {
                 </p>
                 <p className="text-xs text-muted-foreground">{win.time}</p>
               </div>
+              {index === 0 && (
+                <div className="flex items-center space-x-1 text-green-400">
+                  <Radio className="w-3 h-3 animate-pulse" />
+                  <span className="text-xs font-medium">NOVO</span>
+                </div>
+              )}
             </div>
           ))}
         </div>
