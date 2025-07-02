@@ -10,9 +10,10 @@ interface WinModalProps {
   isOpen: boolean;
   onClose: () => void;
   prize: Prize | null;
+  onCollect: () => void;
 }
 
-const WinModal = ({ isOpen, onClose, prize }: WinModalProps) => {
+const WinModal = ({ isOpen, onClose, prize, onCollect }: WinModalProps) => {
   const [isAnimating, setIsAnimating] = useState(false);
 
   useEffect(() => {
@@ -138,7 +139,7 @@ const WinModal = ({ isOpen, onClose, prize }: WinModalProps) => {
           {/* Single Action Button */}
           <div className="space-y-3">
             <Button 
-              onClick={onClose}
+              onClick={onCollect}
               className="w-full bg-gradient-to-r from-green-500 to-green-600 text-white font-bold hover:opacity-90 py-3"
             >
               <Gift className="w-4 h-4 mr-2" />
