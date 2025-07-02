@@ -6,8 +6,9 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Sparkles, Crown, Diamond, Heart, Flame, Star, Gift, Eye, ShoppingCart } from 'lucide-react';
+import { Sparkles, Crown, Diamond, Heart, Flame, Star, Gift, Eye, ShoppingCart, Radio } from 'lucide-react';
 import { chestData, ChestType, Prize } from '@/data/chestData';
+import RealtimeWinsCarousel from '@/components/RealtimeWinsCarousel';
 
 const Baus = () => {
   const { user } = useAuth();
@@ -62,6 +63,15 @@ const Baus = () => {
     <div className="min-h-screen bg-gradient-to-br from-background via-secondary to-background">
       <div className="container mx-auto px-4 py-8">
         
+        {/* Minimized Real-time Wins Carousel */}
+        <div className="mb-8">
+          <div className="flex items-center space-x-2 mb-3">
+            <Radio className="w-4 h-4 text-red-500 animate-pulse" />
+            <span className="text-red-500 font-bold text-sm animate-pulse">AO VIVO</span>
+          </div>
+          <RealtimeWinsCarousel showIcons={false} className="bg-gradient-to-r from-gray-900/20 to-gray-800/20 border border-green-500/10 p-3" />
+        </div>
+
         {/* 1. Carteira de Baús do Usuário */}
         <section className="mb-12">
           <div className="text-center mb-8">

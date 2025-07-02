@@ -4,7 +4,7 @@ import { useAuth } from '@/hooks/useAuth';
 import { useWallet } from '@/hooks/useWallet';
 import HeroSlider from '@/components/HeroSlider';
 import ChestCard from '@/components/ChestCard';
-import LiveWinsCarousel from '@/components/LiveWinsCarousel';
+import RealtimeWinsCarousel from '@/components/RealtimeWinsCarousel';
 import AuthModal from '@/components/AuthModal';
 import WalletPanel from '@/components/WalletPanel';
 import ChestItemsModal from '@/components/ChestItemsModal';
@@ -76,8 +76,8 @@ const Index = () => {
           <HeroSlider />
         </div>
 
-        {/* Live Wins with improved spacing and animations */}
-        <LiveWinsCarousel />
+        {/* Real-time Wins Carousel */}
+        <RealtimeWinsCarousel className="mb-12" />
 
         {/* Featured Chests - 3 columns, 2 rows */}
         <section className="mb-16">
