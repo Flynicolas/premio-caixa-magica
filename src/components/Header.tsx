@@ -19,7 +19,7 @@ const Header = ({ balance, onAddBalance, user, onShowAuth }: HeaderProps) => {
 
   const navigation = [
     { name: 'PÁGINA INICIAL', href: '/' },
-    { name: 'BAÚS', href: '/' },
+    { name: 'BAÚS', href: '/baus' },
     { name: 'SOBRE', href: '/sobre' },
     { name: 'RANKING', href: '/ranking' },
     { name: 'PERFIL', href: '/perfil' },

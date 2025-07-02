@@ -1,0 +1,255 @@
+
+import { useState } from 'react';
+import { useAuth } from '@/hooks/useAuth';
+import { useWallet } from '@/hooks/useWallet';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Sparkles, Crown, Diamond, Heart, Flame, Star, Gift, Eye, ShoppingCart } from 'lucide-react';
+import { chestData, ChestType, Prize } from '@/data/chestData';
+
+const Baus = () => {
+  const { user } = useAuth();
+  const { walletData } = useWallet();
+  const [selectedChest, setSelectedChest] = useState<ChestType>('silver');
+
+  // Mock data para demonstração - substitua com dados reais futuramente
+  const userChests = {
+    silver: 3,
+    gold: 1,
+    delas: 0,
+    diamond: 2,
+    ruby: 0,
+    premium: 1
+  };
+
+  const userItems = [
+    { name: 'iPhone 15 Pro', rarity: 'legendary', image: '/lovable-uploads/177b350c-1b44-4a17-b20e-b66e11c96cc5.png' },
+    { name: 'PlayStation 5', rarity: 'epic', image: '/lovable-uploads/70a08625-c438-4292-8356-821b05c265bc.png' },
+    { name: 'MacBook Pro', rarity: 'epic', image: '/lovable-uploads/24dbf933-dd9b-4ea9-b253-022bd366da2f.png' },
+    { name: 'PIX R$ 500', rarity: 'rare', image: '/lovable-uploads/1e75dbed-c6dc-458b-bf5f-867f613d6c3f.png' },
+    { name: 'AirPods Pro', rarity: 'rare', image: '/lovable-uploads/3c51402c-67ee-4d20-8b11-9a334ca0e2db.png' },
+    { name: 'Smart TV 55"', rarity: 'epic', image: '/lovable-uploads/68d2bf66-08db-4fad-8f22-0bbfbbd2f16d.png' }
+  ];
+
+  const chestThemes = {
+    silver: { color: 'from-gray-400 to-gray-600', icon: Star, description: 'Perfeito para iniciantes que querem experimentar com baixo investimento' },
+    gold: { color: 'from-yellow-400 to-yellow-600', icon: Crown, description: 'Ideal para quem busca um equilíbrio entre custo e recompensas valiosas' },
+    delas: { color: 'from-pink-400 to-rose-500', icon: Heart, description: 'Especialmente curado para o público feminino com itens exclusivos e elegantes' },
+    diamond: { color: 'from-blue-400 to-cyan-400', icon: Diamond, description: 'Experiência premium com chances elevadas de itens de alto valor' },
+    ruby: { color: 'from-red-400 to-pink-500', icon: Flame, description: 'Para os mais corajosos que buscam os maiores prêmios disponíveis' },
+    premium: { color: 'from-purple-500 to-pink-600', icon: Sparkles, description: 'O máximo em exclusividade e luxo, com itens únicos e raríssimos' }
+  };
+
+  const chestImages = {
+    silver: '/lovable-uploads/8f503764-12ee-4e00-8148-76b279be343f.png',
+    gold: '/lovable-uploads/8c5dedca-ad61-4b14-a649-8b854950a875.png',
+    delas: '/lovable-uploads/85b1ecea-b443-4391-9986-fb77979cf6ea.png',
+    diamond: '/lovable-uploads/0ec6f6c5-203f-4fca-855d-59171f78adf3.png',
+    ruby: '/lovable-uploads/a7b012cc-0fae-4b69-b2f4-690740a0ba92.png',
+    premium: '/lovable-uploads/d43f06a5-1532-42ba-8362-5aefb160b408.png'
+  };
+
+  const rarityColors = {
+    common: 'border-gray-400 bg-gray-100',
+    rare: 'border-blue-400 bg-blue-100 shadow-blue-200',
+    epic: 'border-purple-400 bg-purple-100 shadow-purple-200',
+    legendary: 'border-yellow-400 bg-yellow-100 shadow-yellow-200'
+  };
+
+  return (
+    <div className="min-h-screen bg-gradient-to-br from-background via-secondary to-background">
+      <div className="container mx-auto px-4 py-8">
+        
+        {/* 1. Carteira de Baús do Usuário */}
+        <section className="mb-12">
+          <div className="text-center mb-8">
+            <h1 className="text-4xl font-bold text-primary mb-4">Meus Baús & Prêmios</h1>
+            <p className="text-lg text-muted-foreground">Gerencie sua coleção e descubra novos tesouros</p>
+          </div>
+
+          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4 mb-8">
+            {Object.entries(chestData).map(([chestType, chest]) => {
+              const theme = chestThemes[chestType as ChestType];
+              const IconComponent = theme.icon;
+              const count = userChests[chestType as ChestType] || 0;
+              
+              return (
+                <Card key={chestType} className={`relative overflow-hidden border-2 border-opacity-30 bg-card/50 hover:bg-card/70 transition-all duration-300 group`} style={{borderColor: `hsl(var(--${chestType}-border))`}}>
+                  <CardContent className="p-4 text-center">
+                    <div className="w-16 h-16 mx-auto mb-3 rounded-lg flex items-center justify-center">
+                      <img 
+                        src={chestImages[chestType as ChestType]} 
+                        alt={chest.name}
+                        className="w-full h-full object-contain"
+                      />
+                    </div>
+                    <h3 className="font-bold text-sm mb-1">{chest.name}</h3>
+                    <Badge className={`bg-gradient-to-r ${theme.color} text-white`}>
+                      {count} Baús
+                    </Badge>
+                    {count > 0 && (
+                      <Button size="sm" className="w-full mt-2 text-xs">
+                        <Gift className="w-3 h-3 mr-1" />
+                        Abrir
+                      </Button>
+                    )}
+                  </CardContent>
+                </Card>
+              );
+            })}
+          </div>
+        </section>
+
+        {/* 2. Pré-visualização dos Itens Ganhos */}
+        <section className="mb-12">
+          <Card className="bg-card/50 border-primary/20">
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <Sparkles className="w-6 h-6 text-primary" />
+                Meus Prêmios Conquistados
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
+                {userItems.map((item, index) => (
+                  <div key={index} className={`relative p-3 rounded-lg border-2 ${rarityColors[item.rarity]} transition-all duration-300 hover:scale-105`}>
+                    <div className="w-16 h-16 mx-auto mb-2 rounded bg-white/80 flex items-center justify-center">
+                      <img 
+                        src={item.image} 
+                        alt={item.name}
+                        className="max-w-full max-h-full object-contain"
+                      />
+                    </div>
+                    <p className="text-xs font-medium text-center truncate">{item.name}</p>
+                    {item.rarity === 'legendary' && (
+                      <div className="absolute -top-1 -right-1">
+                        <Sparkles className="w-4 h-4 text-yellow-500 animate-pulse" />
+                      </div>
+                    )}
+                  </div>
+                ))}
+              </div>
+            </CardContent>
+          </Card>
+        </section>
+
+        {/* 3. Seção Explicativa dos Baús */}
+        <section>
+          <div className="text-center mb-8">
+            <h2 className="text-3xl font-bold text-primary mb-4">Catálogo de Baús</h2>
+            <p className="text-lg text-muted-foreground">Explore todos os tipos de baús e suas recompensas exclusivas</p>
+          </div>
+
+          <Tabs value={selectedChest} onValueChange={(value) => setSelectedChest(value as ChestType)} className="w-full">
+            <TabsList className="grid w-full grid-cols-3 lg:grid-cols-6 mb-8">
+              {Object.entries(chestData).map(([chestType, chest]) => {
+                const theme = chestThemes[chestType as ChestType];
+                const IconComponent = theme.icon;
+                return (
+                  <TabsTrigger 
+                    key={chestType} 
+                    value={chestType}
+                    className="flex flex-col items-center p-2 data-[state=active]:bg-gradient-to-r data-[state=active]:from-primary/20 data-[state=active]:to-accent/20"
+                  >
+                    <IconComponent className="w-4 h-4 mb-1" />
+                    <span className="text-xs">{chest.name}</span>
+                  </TabsTrigger>
+                );
+              })}
+            </TabsList>
+
+            {Object.entries(chestData).map(([chestType, chest]) => {
+              const theme = chestThemes[chestType as ChestType];
+              const IconComponent = theme.icon;
+              
+              return (
+                <TabsContent key={chestType} value={chestType}>
+                  <Card className={`border-2 border-opacity-30 bg-card/50`}>
+                    <CardHeader className={`bg-gradient-to-r ${theme.color} text-white rounded-t-lg`}>
+                      <div className="flex items-center justify-between">
+                        <div className="flex items-center gap-3">
+                          <div className="w-16 h-16 rounded-lg bg-white/20 flex items-center justify-center">
+                            <img 
+                              src={chestImages[chestType as ChestType]} 
+                              alt={chest.name}
+                              className="w-12 h-12 object-contain"
+                            />
+                          </div>
+                          <div>
+                            <h3 className="text-2xl font-bold">{chest.name}</h3>
+                            <p className="text-lg font-bold">R$ {chest.price.toFixed(2).replace('.', ',')}</p>
+                          </div>
+                        </div>
+                        <Button className="bg-white/20 hover:bg-white/30 text-white border-white/30">
+                          <ShoppingCart className="w-4 h-4 mr-2" />
+                          Comprar Baú
+                        </Button>
+                      </div>
+                    </CardHeader>
+                    <CardContent className="p-6">
+                      <div className="grid md:grid-cols-2 gap-6">
+                        <div>
+                          <h4 className="text-lg font-bold mb-3 text-primary">Sobre este Baú</h4>
+                          <p className="text-muted-foreground mb-4">{theme.description}</p>
+                          
+                          <div className="space-y-2 mb-4">
+                            <div className="flex justify-between">
+                              <span>Valor Investido:</span>
+                              <span className="font-bold">R$ {chest.price.toFixed(2).replace('.', ',')}</span>
+                            </div>
+                            <div className="flex justify-between">
+                              <span>Potencial de Ganho:</span>
+                              <span className="font-bold text-green-500">até R$ 50.000</span>
+                            </div>
+                            <div className="flex justify-between">
+                              <span>Itens Disponíveis:</span>
+                              <span className="font-bold">{chest.prizes.length}+ prêmios</span>
+                            </div>
+                          </div>
+                        </div>
+
+                        <div>
+                          <h4 className="text-lg font-bold mb-3 text-primary">Prêmios Disponíveis</h4>
+                          <div className="grid grid-cols-4 gap-2 max-h-64 overflow-y-auto">
+                            {chest.prizes.slice(0, 20).map((prize, index) => (
+                              <div key={index} className={`relative p-2 rounded border ${rarityColors[prize.rarity]} transition-all duration-300 hover:scale-105`}>
+                                <div className="w-12 h-12 mx-auto mb-1 rounded bg-white/80 flex items-center justify-center">
+                                  <img 
+                                    src={prize.image} 
+                                    alt={prize.name}
+                                    className="max-w-full max-h-full object-contain"
+                                    title={prize.name}
+                                  />
+                                </div>
+                                <p className="text-xs text-center truncate">{prize.name}</p>
+                                {(prize.rarity === 'epic' || prize.rarity === 'legendary') && (
+                                  <div className="absolute -top-1 -right-1">
+                                    <Sparkles className={`w-3 h-3 ${prize.rarity === 'legendary' ? 'text-yellow-500' : 'text-purple-500'} animate-pulse`} />
+                                  </div>
+                                )}
+                              </div>
+                            ))}
+                          </div>
+                          {chest.prizes.length > 20 && (
+                            <Button variant="outline" size="sm" className="w-full mt-3">
+                              <Eye className="w-4 h-4 mr-2" />
+                              Ver Todos os {chest.prizes.length} Prêmios
+                            </Button>
+                          )}
+                        </div>
+                      </div>
+                    </CardContent>
+                  </Card>
+                </TabsContent>
+              );
+            })}
+          </Tabs>
+        </section>
+      </div>
+    </div>
+  );
+};
+
+export default Baus;
