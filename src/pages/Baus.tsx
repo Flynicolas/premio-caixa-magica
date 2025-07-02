@@ -2,37 +2,35 @@
 import { useState } from 'react';
 import { useAuth } from '@/hooks/useAuth';
 import { useWallet } from '@/hooks/useWallet';
+import { useInventory } from '@/hooks/useInventory';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Sparkles, Crown, Diamond, Heart, Flame, Star, Gift, Eye, ShoppingCart, Radio } from 'lucide-react';
-import { chestData, ChestType, Prize } from '@/data/chestData';
+import { Sparkles, Crown, Diamond, Heart, Flame, Star, Gift, Eye, ShoppingCart, Radio, Package } from 'lucide-react';
+import { chestData, ChestType } from '@/data/chestData';
 import RealtimeWinsCarousel from '@/components/RealtimeWinsCarousel';
 
 const Baus = () => {
   const { user } = useAuth();
   const { walletData } = useWallet();
+  const { userChests, userItems, getChestCounts, getItemsByCategory, getChestItems, loading } = useInventory();
   const [selectedChest, setSelectedChest] = useState<ChestType>('silver');
+  const [chestItems, setChestItems] = useState<any[]>([]);
 
-  // Mock data para demonstração - substitua com dados reais futuramente
-  const userChests = {
-    silver: 3,
-    gold: 1,
-    delas: 0,
-    diamond: 2,
-    ruby: 0,
-    premium: 1
+  // Buscar itens do baú selecionado
+  const loadChestItems = async (chestType: ChestType) => {
+    const items = await getChestItems(chestType);
+    setChestItems(items);
   };
 
-  const userItems = [
-    { name: 'iPhone 15 Pro', rarity: 'legendary', image: '/lovable-uploads/177b350c-1b44-4a17-b20e-b66e11c96cc5.png' },
-    { name: 'PlayStation 5', rarity: 'epic', image: '/lovable-uploads/70a08625-c438-4292-8356-821b05c265bc.png' },
-    { name: 'MacBook Pro', rarity: 'epic', image: '/lovable-uploads/24dbf933-dd9b-4ea9-b253-022bd366da2f.png' },
-    { name: 'PIX R$ 500', rarity: 'rare', image: '/lovable-uploads/1e75dbed-c6dc-458b-bf5f-867f613d6c3f.png' },
-    { name: 'AirPods Pro', rarity: 'rare', image: '/lovable-uploads/3c51402c-67ee-4d20-8b11-9a334ca0e2db.png' },
-    { name: 'Smart TV 55"', rarity: 'epic', image: '/lovable-uploads/68d2bf66-08db-4fad-8f22-0bbfbbd2f16d.png' }
-  ];
+  // Carregar itens quando mudar de baú
+  useState(() => {
+    loadChestItems(selectedChest);
+  });
+
+  const chestCounts = getChestCounts();
+  const itemsByCategory = getItemsByCategory();
 
   const chestThemes = {
     silver: { color: 'from-gray-400 to-gray-600', icon: Star, description: 'Perfeito para iniciantes que querem experimentar com baixo investimento' },
@@ -59,11 +57,22 @@ const Baus = () => {
     legendary: 'border-yellow-400 bg-yellow-100 shadow-yellow-200'
   };
 
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-background via-secondary to-background flex items-center justify-center">
+        <div className="text-center">
+          <div className="w-12 h-12 border-4 border-primary border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
+          <p className="text-lg">Carregando inventário...</p>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-background via-secondary to-background">
       <div className="container mx-auto px-4 py-8">
         
-        {/* Minimized Real-time Wins Carousel */}
+        {/* Vitórias em Tempo Real - Minimizada */}
         <div className="mb-8">
           <div className="flex items-center space-x-2 mb-3">
             <Radio className="w-4 h-4 text-red-500 animate-pulse" />
@@ -72,21 +81,22 @@ const Baus = () => {
           <RealtimeWinsCarousel showIcons={false} className="bg-gradient-to-r from-gray-900/20 to-gray-800/20 border border-green-500/10 p-3" />
         </div>
 
-        {/* 1. Carteira de Baús do Usuário */}
+        {/* Carteira de Baús do Usuário */}
         <section className="mb-12">
           <div className="text-center mb-8">
             <h1 className="text-4xl font-bold text-primary mb-4">Meus Baús & Prêmios</h1>
             <p className="text-lg text-muted-foreground">Gerencie sua coleção e descubra novos tesouros</p>
           </div>
 
+          {/* Inventário de Baús */}
           <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4 mb-8">
             {Object.entries(chestData).map(([chestType, chest]) => {
               const theme = chestThemes[chestType as ChestType];
               const IconComponent = theme.icon;
-              const count = userChests[chestType as ChestType] || 0;
+              const count = chestCounts[chestType] || 0;
               
               return (
-                <Card key={chestType} className={`relative overflow-hidden border-2 border-opacity-30 bg-card/50 hover:bg-card/70 transition-all duration-300 group`} style={{borderColor: `hsl(var(--${chestType}-border))`}}>
+                <Card key={chestType} className="relative overflow-hidden border-2 border-opacity-30 bg-card/50 hover:bg-card/70 transition-all duration-300 group">
                   <CardContent className="p-4 text-center">
                     <div className="w-16 h-16 mx-auto mb-3 rounded-lg flex items-center justify-center">
                       <img 
@@ -96,11 +106,11 @@ const Baus = () => {
                       />
                     </div>
                     <h3 className="font-bold text-sm mb-1">{chest.name}</h3>
-                    <Badge className={`bg-gradient-to-r ${theme.color} text-white`}>
+                    <Badge className={`bg-gradient-to-r ${theme.color} text-white mb-2`}>
                       {count} Baús
                     </Badge>
                     {count > 0 && (
-                      <Button size="sm" className="w-full mt-2 text-xs">
+                      <Button size="sm" className="w-full text-xs">
                         <Gift className="w-3 h-3 mr-1" />
                         Abrir
                       </Button>
@@ -112,47 +122,72 @@ const Baus = () => {
           </div>
         </section>
 
-        {/* 2. Pré-visualização dos Itens Ganhos */}
+        {/* Inventário de Itens Ganhos */}
         <section className="mb-12">
           <Card className="bg-card/50 border-primary/20">
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
-                <Sparkles className="w-6 h-6 text-primary" />
-                Meus Prêmios Conquistados
+                <Package className="w-6 h-6 text-primary" />
+                Meus Prêmios Conquistados ({userItems.length} itens)
               </CardTitle>
             </CardHeader>
             <CardContent>
-              <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
-                {userItems.map((item, index) => (
-                  <div key={index} className={`relative p-3 rounded-lg border-2 ${rarityColors[item.rarity]} transition-all duration-300 hover:scale-105`}>
-                    <div className="w-16 h-16 mx-auto mb-2 rounded bg-white/80 flex items-center justify-center">
-                      <img 
-                        src={item.image} 
-                        alt={item.name}
-                        className="max-w-full max-h-full object-contain"
-                      />
-                    </div>
-                    <p className="text-xs font-medium text-center truncate">{item.name}</p>
-                    {item.rarity === 'legendary' && (
-                      <div className="absolute -top-1 -right-1">
-                        <Sparkles className="w-4 h-4 text-yellow-500 animate-pulse" />
+              {userItems.length === 0 ? (
+                <div className="text-center py-12">
+                  <Package className="w-16 h-16 mx-auto text-muted-foreground mb-4" />
+                  <h3 className="text-lg font-semibold mb-2">Nenhum prêmio ainda</h3>
+                  <p className="text-muted-foreground">
+                    Abra alguns baús para conquistar prêmios incríveis!
+                  </p>
+                </div>
+              ) : (
+                <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
+                  {userItems.map((userItem, index) => (
+                    <div key={index} className={`relative p-3 rounded-lg border-2 ${rarityColors[userItem.item?.rarity || 'common']} transition-all duration-300 hover:scale-105`}>
+                      <div className="w-16 h-16 mx-auto mb-2 rounded bg-white/80 flex items-center justify-center">
+                        <img 
+                          src={userItem.item?.image_url || '/placeholder.svg'} 
+                          alt={userItem.item?.name || 'Item'}
+                          className="max-w-full max-h-full object-contain"
+                        />
                       </div>
-                    )}
-                  </div>
-                ))}
-              </div>
+                      <p className="text-xs font-medium text-center truncate mb-1">
+                        {userItem.item?.name || 'Item Desconhecido'}
+                      </p>
+                      <div className="text-center">
+                        <Badge variant="outline" className="text-xs">
+                          {userItem.quantity}x
+                        </Badge>
+                        {!userItem.is_claimed && (
+                          <Button size="sm" className="w-full mt-2 text-xs">
+                            Resgatar
+                          </Button>
+                        )}
+                      </div>
+                      {(userItem.item?.rarity === 'epic' || userItem.item?.rarity === 'legendary') && (
+                        <div className="absolute -top-1 -right-1">
+                          <Sparkles className={`w-4 h-4 ${userItem.item?.rarity === 'legendary' ? 'text-yellow-500' : 'text-purple-500'} animate-pulse`} />
+                        </div>
+                      )}
+                    </div>
+                  ))}
+                </div>
+              )}
             </CardContent>
           </Card>
         </section>
 
-        {/* 3. Seção Explicativa dos Baús */}
+        {/* Catálogo de Baús */}
         <section>
           <div className="text-center mb-8">
             <h2 className="text-3xl font-bold text-primary mb-4">Catálogo de Baús</h2>
             <p className="text-lg text-muted-foreground">Explore todos os tipos de baús e suas recompensas exclusivas</p>
           </div>
 
-          <Tabs value={selectedChest} onValueChange={(value) => setSelectedChest(value as ChestType)} className="w-full">
+          <Tabs value={selectedChest} onValueChange={(value) => {
+            setSelectedChest(value as ChestType);
+            loadChestItems(value as ChestType);
+          }} className="w-full">
             <TabsList className="grid w-full grid-cols-3 lg:grid-cols-6 mb-8">
               {Object.entries(chestData).map(([chestType, chest]) => {
                 const theme = chestThemes[chestType as ChestType];
@@ -172,11 +207,10 @@ const Baus = () => {
 
             {Object.entries(chestData).map(([chestType, chest]) => {
               const theme = chestThemes[chestType as ChestType];
-              const IconComponent = theme.icon;
               
               return (
                 <TabsContent key={chestType} value={chestType}>
-                  <Card className={`border-2 border-opacity-30 bg-card/50`}>
+                  <Card className="border-2 border-opacity-30 bg-card/50">
                     <CardHeader className={`bg-gradient-to-r ${theme.color} text-white rounded-t-lg`}>
                       <div className="flex items-center justify-between">
                         <div className="flex items-center gap-3">
@@ -210,12 +244,8 @@ const Baus = () => {
                               <span className="font-bold">R$ {chest.price.toFixed(2).replace('.', ',')}</span>
                             </div>
                             <div className="flex justify-between">
-                              <span>Potencial de Ganho:</span>
-                              <span className="font-bold text-green-500">até R$ 50.000</span>
-                            </div>
-                            <div className="flex justify-between">
                               <span>Itens Disponíveis:</span>
-                              <span className="font-bold">{chest.prizes.length}+ prêmios</span>
+                              <span className="font-bold">{chestItems.length} prêmios</span>
                             </div>
                           </div>
                         </div>
@@ -223,31 +253,25 @@ const Baus = () => {
                         <div>
                           <h4 className="text-lg font-bold mb-3 text-primary">Prêmios Disponíveis</h4>
                           <div className="grid grid-cols-4 gap-2 max-h-64 overflow-y-auto">
-                            {chest.prizes.slice(0, 20).map((prize, index) => (
-                              <div key={index} className={`relative p-2 rounded border ${rarityColors[prize.rarity]} transition-all duration-300 hover:scale-105`}>
+                            {chestItems.slice(0, 20).map((chestItem, index) => (
+                              <div key={index} className={`relative p-2 rounded border ${rarityColors[chestItem.item?.rarity || 'common']} transition-all duration-300 hover:scale-105`}>
                                 <div className="w-12 h-12 mx-auto mb-1 rounded bg-white/80 flex items-center justify-center">
                                   <img 
-                                    src={prize.image} 
-                                    alt={prize.name}
+                                    src={chestItem.item?.image_url || '/placeholder.svg'} 
+                                    alt={chestItem.item?.name || 'Item'}
                                     className="max-w-full max-h-full object-contain"
-                                    title={prize.name}
+                                    title={chestItem.item?.name}
                                   />
                                 </div>
-                                <p className="text-xs text-center truncate">{prize.name}</p>
-                                {(prize.rarity === 'epic' || prize.rarity === 'legendary') && (
+                                <p className="text-xs text-center truncate">{chestItem.item?.name}</p>
+                                {(chestItem.item?.rarity === 'epic' || chestItem.item?.rarity === 'legendary') && (
                                   <div className="absolute -top-1 -right-1">
-                                    <Sparkles className={`w-3 h-3 ${prize.rarity === 'legendary' ? 'text-yellow-500' : 'text-purple-500'} animate-pulse`} />
+                                    <Sparkles className={`w-3 h-3 ${chestItem.item?.rarity === 'legendary' ? 'text-yellow-500' : 'text-purple-500'} animate-pulse`} />
                                   </div>
                                 )}
                               </div>
                             ))}
                           </div>
-                          {chest.prizes.length > 20 && (
-                            <Button variant="outline" size="sm" className="w-full mt-3">
-                              <Eye className="w-4 h-4 mr-2" />
-                              Ver Todos os {chest.prizes.length} Prêmios
-                            </Button>
-                          )}
                         </div>
                       </div>
                     </CardContent>

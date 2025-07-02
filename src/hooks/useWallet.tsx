@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from './useAuth';
@@ -136,12 +135,18 @@ export const useWallet = () => {
     }
   };
 
+  // Atualizar função de compra de baú para usar o novo sistema
   const purchaseChest = async (chestType: string, amount: number) => {
     if (!walletData || walletData.balance < amount) {
+      toast({
+        title: "Saldo insuficiente",
+        description: `Você precisa de R$ ${amount.toFixed(2)} para comprar este baú.`,
+        variant: "destructive"
+      });
       return { error: 'Saldo insuficiente' };
     }
 
-    // For testing without authentication - just deduct from temporary balance
+    // Para teste sem autenticação - apenas deduzir do saldo temporário
     if (!user) {
       const newBalance = walletData.balance - amount;
       setWalletData({
@@ -150,9 +155,12 @@ export const useWallet = () => {
         total_spent: walletData.total_spent + amount
       });
       
+      // Aqui você poderia chamar useInventory().addChestToInventory()
+      // Mas vamos fazer isso no componente que chama esta função
+      
       toast({
         title: "Baú comprado!",
-        description: `Você comprou um ${chestType} por R$ ${amount.toFixed(2)}`,
+        description: `Você comprou um baú ${chestType} por R$ ${amount.toFixed(2)}`,
         variant: "default"
       });
       
@@ -160,7 +168,23 @@ export const useWallet = () => {
     }
 
     try {
-      const { error } = await (supabase as any)
+      // Criar ordem de compra
+      const { data: order, error: orderError } = await supabase
+        .from('orders')
+        .insert({
+          user_id: user.id,
+          order_type: 'chest_purchase',
+          amount,
+          status: 'completed', // Para teste, marcar como pago imediatamente
+          items: { chest_type: chestType, quantity: 1 }
+        })
+        .select()
+        .single();
+
+      if (orderError) throw orderError;
+
+      // Criar transação
+      const { error: transactionError } = await supabase
         .from('transactions')
         .insert({
           user_id: user.id,
@@ -170,13 +194,37 @@ export const useWallet = () => {
           description: `Compra de baú ${chestType}`
         });
 
-      if (error) throw error;
+      if (transactionError) throw transactionError;
+
+      // Adicionar baú ao inventário
+      const { error: inventoryError } = await supabase
+        .from('user_chest_inventory')
+        .insert({
+          user_id: user.id,
+          chest_type: chestType,
+          quantity: 1,
+          acquired_from: 'purchase',
+          order_id: order.id
+        });
+
+      if (inventoryError) throw inventoryError;
 
       await fetchWalletData();
       await fetchTransactions();
 
+      toast({
+        title: "Baú comprado!",
+        description: `Você comprou um baú ${chestType} por R$ ${amount.toFixed(2)}`,
+        variant: "default"
+      });
+
       return { error: null };
     } catch (error: any) {
+      toast({
+        title: "Erro ao comprar baú",
+        description: error.message,
+        variant: "destructive"
+      });
       return { error: error.message };
     }
   };
