@@ -2,23 +2,27 @@
 import { useState } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
-import { Wallet, Menu, X } from 'lucide-react';
+import { Menu, X } from 'lucide-react';
+import { User } from '@supabase/supabase-js';
+import UserProfile from './UserProfile';
 
 interface HeaderProps {
   balance: number;
   onAddBalance: () => void;
+  user: User | null;
+  onShowAuth: () => void;
 }
 
-const Header = ({ balance, onAddBalance }: HeaderProps) => {
+const Header = ({ balance, onAddBalance, user, onShowAuth }: HeaderProps) => {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const location = useLocation();
 
   const navigation = [
     { name: 'PÁGINA INICIAL', href: '/' },
-    { name: 'BAÚS', href: '/baus' },
+    { name: 'BAÚS', href: '/' },
     { name: 'SOBRE', href: '/sobre' },
     { name: 'RANKING', href: '/ranking' },
-    { name: 'SUPORTE', href: '/suporte' },
+    { name: 'PERFIL', href: '/perfil' },
   ];
 
   const isActive = (href: string) => location.pathname === href;
@@ -54,19 +58,18 @@ const Header = ({ balance, onAddBalance }: HeaderProps) => {
             ))}
           </nav>
 
-          {/* Wallet Section */}
+          {/* User Section */}
           <div className="flex items-center space-x-4">
-            <div className="flex items-center space-x-2 bg-secondary px-4 py-2 rounded-lg">
-              <Wallet className="w-4 h-4 text-primary" />
-              <span className="font-bold text-primary">R$ {balance.toFixed(2)}</span>
-            </div>
-            
-            <Button 
-              onClick={onAddBalance}
-              className="bg-primary text-black font-bold hover:opacity-90"
-            >
-              Carteira
-            </Button>
+            {user ? (
+              <UserProfile onOpenWallet={onAddBalance} />
+            ) : (
+              <Button 
+                onClick={onShowAuth}
+                className="gold-gradient text-black font-bold hover:opacity-90"
+              >
+                Entrar / Cadastrar
+              </Button>
+            )}
 
             {/* Mobile menu button */}
             <button
