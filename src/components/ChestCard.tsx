@@ -43,12 +43,15 @@ const ChestCard = ({ chest, chestType, onOpen, onViewItems, balance }: ChestCard
     premium: '/lovable-uploads/d43f06a5-1532-42ba-8362-5aefb160b408.png'
   };
 
+  // Get 5 rare items for preview
+  const rareItems = chest.prizes.filter(prize => prize.rarity === 'rare' || prize.rarity === 'epic' || prize.rarity === 'legendary').slice(0, 5);
+
   return (
-    <Card className={`relative overflow-hidden ${chestBorderColors[chestType]} bg-card/50 hover:bg-card/70 transition-all duration-300 group h-full border-2`}>
-      <CardContent className="p-6 flex flex-col h-full">
+    <Card className={`relative overflow-hidden ${chestBorderColors[chestType]} bg-card/50 hover:bg-card/70 transition-all duration-300 group h-full border-2 aspect-[4/5]`}>
+      <CardContent className="p-4 flex flex-col h-full">
         {/* Chest Image */}
-        <div className="relative mb-6 flex justify-center">
-          <div className="w-40 h-40 rounded-lg flex items-center justify-center shadow-lg group-hover:scale-105 transition-transform duration-300">
+        <div className="relative mb-4 flex justify-center">
+          <div className="w-24 h-24 rounded-lg flex items-center justify-center shadow-lg group-hover:scale-105 transition-transform duration-300">
             <img 
               src={chestImages[chestType]} 
               alt={chest.name}
@@ -59,25 +62,41 @@ const ChestCard = ({ chest, chestType, onOpen, onViewItems, balance }: ChestCard
           {/* View Items Button */}
           <button
             onClick={onViewItems}
-            className={`absolute top-2 right-2 bg-gradient-to-r ${chestColors[chestType]} text-white px-2 py-1 rounded-full text-xs font-medium transition-all duration-200 flex items-center space-x-1 hover:scale-105`}
+            className={`absolute top-1 right-1 bg-gradient-to-r ${chestColors[chestType]} text-white px-2 py-1 rounded-full text-xs font-medium transition-all duration-200 flex items-center space-x-1 hover:scale-105`}
           >
             <Eye className="w-3 h-3" />
-            <span>ver itens</span>
+            <span>ver</span>
           </button>
           
           {/* Floating sparkles */}
-          <div className="absolute -top-2 -left-2">
-            <Sparkles className="w-6 h-6 text-yellow-400 animate-pulse" />
+          <div className="absolute -top-1 -left-1">
+            <Sparkles className="w-4 h-4 text-yellow-400 animate-pulse" />
           </div>
         </div>
 
         {/* Chest Info */}
-        <div className="text-center mb-4 flex-grow">
-          <h3 className="text-xl font-bold text-primary mb-2">{chest.name}</h3>
-          <p className="text-sm text-muted-foreground mb-4">{chest.description}</p>
+        <div className="text-center mb-3 flex-grow">
+          <h3 className="text-lg font-bold text-primary mb-1">{chest.name}</h3>
           
-          <div className="text-2xl font-bold text-white mb-4">
+          <div className="text-xl font-bold text-white mb-3">
             R$ {chest.price.toFixed(2).replace('.', ',')}
+          </div>
+
+          {/* Preview of rare items */}
+          <div className="mb-3">
+            <p className="text-xs text-muted-foreground mb-2">Itens Raros:</p>
+            <div className="flex justify-center space-x-1">
+              {rareItems.map((item, index) => (
+                <div key={index} className="w-6 h-6 rounded bg-background/50 flex items-center justify-center">
+                  <img 
+                    src={item.image} 
+                    alt={item.name}
+                    className="max-w-full max-h-full object-contain"
+                    title={item.name}
+                  />
+                </div>
+              ))}
+            </div>
           </div>
         </div>
 
@@ -85,7 +104,7 @@ const ChestCard = ({ chest, chestType, onOpen, onViewItems, balance }: ChestCard
         <Button
           onClick={onOpen}
           disabled={!canAfford}
-          className={`w-full font-bold transition-all duration-300 ${
+          className={`w-full font-bold transition-all duration-300 text-sm ${
             canAfford 
               ? `bg-gradient-to-r ${chestColors[chestType]} text-black hover:opacity-90 hover:scale-105` 
               : 'bg-gray-600 text-gray-300 cursor-not-allowed'
@@ -99,13 +118,13 @@ const ChestCard = ({ chest, chestType, onOpen, onViewItems, balance }: ChestCard
           ) : (
             <>
               <Lock className="w-4 h-4 mr-2" />
-              Saldo Insuficiente
+              Sem Saldo
             </>
           )}
         </Button>
 
         {!canAfford && (
-          <Badge variant="destructive" className="mt-2 text-xs">
+          <Badge variant="destructive" className="mt-1 text-xs">
             Faltam R$ {(chest.price - balance).toFixed(2).replace('.', ',')}
           </Badge>
         )}

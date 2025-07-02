@@ -9,7 +9,9 @@ import AuthModal from '@/components/AuthModal';
 import WalletPanel from '@/components/WalletPanel';
 import ChestItemsModal from '@/components/ChestItemsModal';
 import ChestConfirmModal from '@/components/ChestConfirmModal';
-import { chestData, ChestType, Chest } from '@/data/chestData';
+import SpinCarousel from '@/components/carousel/SpinCarousel';
+import WinModal from '@/components/WinModal';
+import { chestData, ChestType, Chest, Prize } from '@/data/chestData';
 
 const Index = () => {
   const { user } = useAuth();
@@ -18,7 +20,10 @@ const Index = () => {
   const [showWalletPanel, setShowWalletPanel] = useState(false);
   const [showItemsModal, setShowItemsModal] = useState(false);
   const [showConfirmModal, setShowConfirmModal] = useState(false);
+  const [showSpinCarousel, setShowSpinCarousel] = useState(false);
+  const [showWinModal, setShowWinModal] = useState(false);
   const [selectedChest, setSelectedChest] = useState<{ chest: Chest; type: ChestType } | null>(null);
+  const [wonPrize, setWonPrize] = useState<Prize | null>(null);
 
   const handleOpenWallet = () => {
     setShowWalletPanel(true);
@@ -42,8 +47,15 @@ const Index = () => {
     const result = await purchaseChest(selectedChest.type, selectedChest.chest.price);
     if (!result.error) {
       setShowConfirmModal(false);
-      // Here you would implement the chest opening animation/logic
+      // Open spin carousel
+      setShowSpinCarousel(true);
     }
+  };
+
+  const handlePrizeWon = (prize: Prize) => {
+    setWonPrize(prize);
+    setShowSpinCarousel(false);
+    setShowWinModal(true);
   };
 
   const getUpgradeChest = (currentType: ChestType): { type: ChestType; chest: Chest } | null => {
@@ -67,7 +79,7 @@ const Index = () => {
         {/* Live Wins with improved spacing and animations */}
         <LiveWinsCarousel />
 
-        {/* Featured Chests */}
+        {/* Featured Chests - 3 columns, 2 rows */}
         <section className="mb-16">
           <div className="text-center mb-12">
             <h2 className="text-4xl font-bold mb-4 text-primary">
@@ -78,7 +90,7 @@ const Index = () => {
             </p>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 gap-6">
+          <div className="grid grid-cols-3 grid-rows-2 gap-6 max-w-6xl mx-auto">
             {Object.entries(chestData).map(([chestType, chest]) => (
               <div key={chestType}>
                 <ChestCard
@@ -148,6 +160,25 @@ const Index = () => {
         nextChestType={getUpgradeChest(selectedChest?.type!)?.type}
         nextChestName={getUpgradeChest(selectedChest?.type!)?.chest.name}
         nextChestPrice={getUpgradeChest(selectedChest?.type!)?.chest.price}
+      />
+
+      <SpinCarousel
+        isOpen={showSpinCarousel}
+        onClose={() => setShowSpinCarousel(false)}
+        prizes={selectedChest?.chest.prizes || []}
+        onPrizeWon={handlePrizeWon}
+        chestName={selectedChest?.chest.name || ''}
+      />
+
+      <WinModal
+        isOpen={showWinModal}
+        onClose={() => setShowWinModal(false)}
+        prize={wonPrize}
+        onCollect={() => {
+          setShowWinModal(false);
+          setWonPrize(null);
+          setSelectedChest(null);
+        }}
       />
     </div>
   );
