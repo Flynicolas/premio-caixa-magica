@@ -8,7 +8,7 @@ import ChestCard from '@/components/ChestCard';
 import LiveWinsCarousel from '@/components/LiveWinsCarousel';
 import AuthModal from '@/components/AuthModal';
 import WalletPanel from '@/components/WalletPanel';
-import { chestData } from '@/data/chestData';
+import { chestData, ChestType } from '@/data/chestData';
 
 const Index = () => {
   const { user } = useAuth();
@@ -22,6 +22,19 @@ const Index = () => {
       return;
     }
     setShowWalletPanel(true);
+  };
+
+  const handleChestOpen = (chestType: ChestType) => {
+    if (!user) {
+      setShowAuthModal(true);
+    } else {
+      // Handle chest purchase logic here
+      console.log('Opening chest:', chestType);
+    }
+  };
+
+  const handleChestViewItems = (chestType: ChestType) => {
+    console.log('Viewing items for chest:', chestType);
   };
 
   return (
@@ -65,22 +78,19 @@ const Index = () => {
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-6">
-            {chestData.map((chest, index) => (
+            {Object.entries(chestData).map(([chestType, chest], index) => (
               <motion.div
-                key={chest.name}
+                key={chestType}
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.5, delay: index * 0.1 }}
               >
                 <ChestCard
                   chest={chest}
-                  onPurchase={() => {
-                    if (!user) {
-                      setShowAuthModal(true);
-                    } else {
-                      // Handle chest purchase logic here
-                    }
-                  }}
+                  chestType={chestType as ChestType}
+                  onOpen={() => handleChestOpen(chestType as ChestType)}
+                  onViewItems={() => handleChestViewItems(chestType as ChestType)}
+                  balance={walletData?.balance || 0}
                 />
               </motion.div>
             ))}

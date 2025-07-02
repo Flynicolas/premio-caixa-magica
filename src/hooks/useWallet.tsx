@@ -31,8 +31,8 @@ export const useWallet = () => {
     if (!user) return;
 
     try {
-      const { data, error } = await supabase
-        .from('user_wallets' as any)
+      const { data, error } = await (supabase as any)
+        .from('user_wallets')
         .select('*')
         .eq('user_id', user.id)
         .single();
@@ -48,8 +48,8 @@ export const useWallet = () => {
     if (!user) return;
 
     try {
-      const { data, error } = await supabase
-        .from('transactions' as any)
+      const { data, error } = await (supabase as any)
+        .from('transactions')
         .select('*')
         .eq('user_id', user.id)
         .order('created_at', { ascending: false })
@@ -66,8 +66,8 @@ export const useWallet = () => {
     if (!user) return { error: 'Usuário não logado' };
 
     try {
-      const { error } = await supabase
-        .from('transactions' as any)
+      const { error } = await (supabase as any)
+        .from('transactions')
         .insert({
           user_id: user.id,
           type: 'deposit',
@@ -105,8 +105,8 @@ export const useWallet = () => {
     }
 
     try {
-      const { error } = await supabase
-        .from('transactions' as any)
+      const { error } = await (supabase as any)
+        .from('transactions')
         .insert({
           user_id: user.id,
           type: 'chest_purchase',

@@ -111,8 +111,8 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     if (!user) return { error: new Error('Usuário não logado') };
 
     try {
-      const { error } = await supabase
-        .from('profiles' as any)
+      const { error } = await (supabase as any)
+        .from('profiles')
         .update(data)
         .eq('id', user.id);
 
