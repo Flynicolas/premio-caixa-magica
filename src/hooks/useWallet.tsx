@@ -32,7 +32,7 @@ export const useWallet = () => {
 
     try {
       const { data, error } = await supabase
-        .from('user_wallets')
+        .from('user_wallets' as any)
         .select('*')
         .eq('user_id', user.id)
         .single();
@@ -49,7 +49,7 @@ export const useWallet = () => {
 
     try {
       const { data, error } = await supabase
-        .from('transactions')
+        .from('transactions' as any)
         .select('*')
         .eq('user_id', user.id)
         .order('created_at', { ascending: false })
@@ -67,7 +67,7 @@ export const useWallet = () => {
 
     try {
       const { error } = await supabase
-        .from('transactions')
+        .from('transactions' as any)
         .insert({
           user_id: user.id,
           type: 'deposit',
@@ -106,7 +106,7 @@ export const useWallet = () => {
 
     try {
       const { error } = await supabase
-        .from('transactions')
+        .from('transactions' as any)
         .insert({
           user_id: user.id,
           type: 'chest_purchase',

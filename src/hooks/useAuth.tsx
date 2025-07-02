@@ -110,26 +110,35 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   const updateProfile = async (data: { full_name?: string; avatar_url?: string }) => {
     if (!user) return { error: new Error('Usuário não logado') };
 
-    const { error } = await supabase
-      .from('profiles')
-      .update(data)
-      .eq('id', user.id);
+    try {
+      const { error } = await supabase
+        .from('profiles' as any)
+        .update(data)
+        .eq('id', user.id);
 
-    if (error) {
+      if (error) {
+        toast({
+          title: "Erro ao atualizar perfil",
+          description: error.message,
+          variant: "destructive"
+        });
+      } else {
+        toast({
+          title: "Perfil atualizado!",
+          description: "Suas informações foram salvas.",
+          variant: "default"
+        });
+      }
+
+      return { error };
+    } catch (error: any) {
       toast({
         title: "Erro ao atualizar perfil",
         description: error.message,
         variant: "destructive"
       });
-    } else {
-      toast({
-        title: "Perfil atualizado!",
-        description: "Suas informações foram salvas.",
-        variant: "default"
-      });
+      return { error };
     }
-
-    return { error };
   };
 
   return (

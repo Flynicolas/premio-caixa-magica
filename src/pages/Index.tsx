@@ -1,268 +1,130 @@
+
 import { useState } from 'react';
-import { Card } from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
-import { Gift, Sparkles } from 'lucide-react';
-import ChestCard from '@/components/ChestCard';
-import WinModal from '@/components/WinModal';
-import WalletPanel from '@/components/WalletPanel';
-import Header from '@/components/Header';
+import { motion } from 'framer-motion';
+import { useAuth } from '@/hooks/useAuth';
+import { useWallet } from '@/hooks/useWallet';
 import HeroSlider from '@/components/HeroSlider';
+import ChestCard from '@/components/ChestCard';
 import LiveWinsCarousel from '@/components/LiveWinsCarousel';
-import Footer from '@/components/Footer';
-import ChestItemsModal from '@/components/ChestItemsModal';
-import ChestConfirmModal from '@/components/ChestConfirmModal';
-import UpgradeChestModal from '@/components/UpgradeChestModal';
-import { chestData, type ChestType, type Prize, type Chest } from '@/data/chestData';
-import { calculateUserLevel } from '@/utils/levelSystem';
-import SpinCarousel from '@/components/carousel/SpinCarousel';
+import AuthModal from '@/components/AuthModal';
+import WalletPanel from '@/components/WalletPanel';
+import { chestData } from '@/data/chestData';
 
 const Index = () => {
-  const [balance, setBalance] = useState(150);
-  const [totalSpent, setTotalSpent] = useState(0);
-  const [prizes, setPrizes] = useState<(Prize & { chestType: ChestType, timestamp: Date })[]>([]);
-  const [isWinModalOpen, setIsWinModalOpen] = useState(false);
-  const [currentPrize, setCurrentPrize] = useState<Prize | null>(null);
-  const [isWalletOpen, setIsWalletOpen] = useState(false);
-  const [isSpinCarouselOpen, setIsSpinCarouselOpen] = useState(false);
-  const [currentChestType, setCurrentChestType] = useState<ChestType | null>(null);
-  const [isChestItemsModalOpen, setIsChestItemsModalOpen] = useState(false);
-  const [selectedChest, setSelectedChest] = useState<Chest | null>(null);
-  const [isChestConfirmOpen, setIsChestConfirmOpen] = useState(false);
-  const [isUpgradeModalOpen, setIsUpgradeModalOpen] = useState(false);
-  const [pendingChestType, setPendingChestType] = useState<ChestType | null>(null);
+  const { user } = useAuth();
+  const { walletData, addBalance } = useWallet();
+  const [showAuthModal, setShowAuthModal] = useState(false);
+  const [showWalletPanel, setShowWalletPanel] = useState(false);
 
-  const userLevel = calculateUserLevel(totalSpent, prizes.length);
-
-  // Helper function to get next chest in hierarchy
-  const getNextChest = (currentType: ChestType): { type: ChestType; chest: Chest } | null => {
-    const hierarchy: ChestType[] = ['silver', 'gold', 'diamond', 'ruby', 'premium'];
-    const currentIndex = hierarchy.indexOf(currentType);
-    if (currentIndex < hierarchy.length - 1) {
-      const nextType = hierarchy[currentIndex + 1];
-      return { type: nextType, chest: chestData[nextType] };
-    }
-    return null;
-  };
-
-  const openChest = (chestType: ChestType) => {
-    setPendingChestType(chestType);
-    setIsChestConfirmOpen(true);
-  };
-
-  const handleConfirmOpen = () => {
-    if (!pendingChestType) return;
-    
-    const chest = chestData[pendingChestType];
-    
-    if (balance < chest.price) {
-      alert('Saldo insuficiente! Adicione créditos à sua carteira.');
+  const handleOpenWallet = () => {
+    if (!user) {
+      setShowAuthModal(true);
       return;
     }
-
-    setBalance(prev => prev - chest.price);
-    setTotalSpent(prev => prev + chest.price);
-    setCurrentChestType(pendingChestType);
-    setIsChestConfirmOpen(false);
-    setPendingChestType(null);
-    setIsSpinCarouselOpen(true);
-  };
-
-  const handleUpgrade = () => {
-    if (!pendingChestType) return;
-    
-    const nextChest = getNextChest(pendingChestType);
-    if (nextChest) {
-      setIsChestConfirmOpen(false);
-      setIsUpgradeModalOpen(true);
-    }
-  };
-
-  const handleConfirmUpgrade = () => {
-    if (!pendingChestType) return;
-    
-    const nextChest = getNextChest(pendingChestType);
-    if (!nextChest) return;
-    
-    if (balance < nextChest.chest.price) {
-      alert('Saldo insuficiente para o upgrade!');
-      return;
-    }
-
-    setBalance(prev => prev - nextChest.chest.price);
-    setTotalSpent(prev => prev + nextChest.chest.price);
-    setCurrentChestType(nextChest.type);
-    setIsUpgradeModalOpen(false);
-    setPendingChestType(null);
-    setIsSpinCarouselOpen(true);
-  };
-
-  const handleBackToOriginal = () => {
-    setIsUpgradeModalOpen(false);
-    setIsChestConfirmOpen(true);
-  };
-
-  const handleCloseModals = () => {
-    setIsChestConfirmOpen(false);
-    setIsUpgradeModalOpen(false);
-    setPendingChestType(null);
-  };
-
-  const handlePrizeWon = (prize: Prize) => {
-    setCurrentPrize(prize);
-    if (currentChestType) {
-      setPrizes(prev => [...prev, {
-        ...prize,
-        chestType: currentChestType,
-        timestamp: new Date()
-      }]);
-    }
-    setIsSpinCarouselOpen(false);
-    setCurrentChestType(null);
-    // Show win modal after carousel closes
-    setTimeout(() => {
-      setIsWinModalOpen(true);
-    }, 500);
-  };
-
-  const handleViewItems = (chestType: ChestType) => {
-    setSelectedChest(chestData[chestType]);
-    setIsChestItemsModalOpen(true);
-  };
-
-  const addBalance = (amount: number) => {
-    setBalance(prev => prev + amount);
-    setTotalSpent(prev => prev + amount);
+    setShowWalletPanel(true);
   };
 
   return (
-    <div className="min-h-screen">
-      <Header 
-        balance={balance}
-        onAddBalance={() => setIsWalletOpen(true)}
-      />
-
-      {/* Hero Section with Slider */}
-      <section className="py-8">
-        <div className="container mx-auto px-4">
-          <HeroSlider />
-        </div>
-      </section>
-
-      {/* Live Wins */}
-      <section className="py-8">
-        <div className="container mx-auto px-4">
-          <LiveWinsCarousel />
-        </div>
-      </section>
-
-      {/* Hero Content */}
-      <section className="py-12 text-center">
-        <div className="container mx-auto px-4">
-          <h2 className="text-4xl md:text-6xl font-bold mb-6">
-            <span className="text-primary bg-clip-text">
-              Tesouros Aguardam
-            </span>
-          </h2>
-          <p className="text-xl text-muted-foreground mb-8 max-w-2xl mx-auto">
-            Abra baús mágicos e descubra prêmios incríveis! De smartwatches a iPhones, 
-            motocicletas e viagens dos sonhos.
+    <div className="min-h-screen bg-gradient-to-br from-background via-secondary to-background">
+      <div className="container mx-auto px-4 py-8">
+        {/* Hero Section */}
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.8 }}
+          className="text-center mb-12"
+        >
+          <h1 className="text-6xl font-bold mb-6 text-primary">
+            🎁 Baú Premiado 🎁
+          </h1>
+          <p className="text-xl text-muted-foreground max-w-2xl mx-auto">
+            Abra baús e ganhe prêmios incríveis! De valores em dinheiro até produtos de alta tecnologia.
           </p>
-          <div className="flex justify-center space-x-4">
-            <Badge variant="secondary" className="px-4 py-2 text-lg">
-              <Gift className="w-4 h-4 mr-2" />
-              +1000 Prêmios
-            </Badge>
-            <Badge variant="secondary" className="px-4 py-2 text-lg">
-              <Sparkles className="w-4 h-4 mr-2" />
-              Sorteios Diários
-            </Badge>
-          </div>
-        </div>
-      </section>
+        </motion.div>
 
-      {/* Chests Section */}
-      <section className="py-20">
-        <div className="container mx-auto px-4">
-          <h3 className="text-4xl font-bold text-center mb-12 text-primary">
-            Escolha seu Baú
-          </h3>
+        {/* Hero Slider */}
+        <HeroSlider />
+
+        {/* Live Wins */}
+        <LiveWinsCarousel />
+
+        {/* Featured Chests */}
+        <motion.section
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ duration: 0.8, delay: 0.4 }}
+          className="mb-16"
+        >
+          <div className="text-center mb-12">
+            <h2 className="text-4xl font-bold mb-4 text-primary">
+              🏆 Escolha Seu Baú 🏆
+            </h2>
+            <p className="text-lg text-muted-foreground max-w-3xl mx-auto">
+              Cada baú tem diferentes chances de prêmios. Quanto maior o investimento, maiores as recompensas!
+            </p>
+          </div>
+
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-6">
-            {Object.entries(chestData).map(([key, chest]) => (
-              <ChestCard
-                key={key}
-                chest={chest}
-                chestType={key as ChestType}
-                onOpen={() => openChest(key as ChestType)}
-                onViewItems={() => handleViewItems(key as ChestType)}
-                balance={balance}
-              />
+            {chestData.map((chest, index) => (
+              <motion.div
+                key={chest.name}
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.5, delay: index * 0.1 }}
+              >
+                <ChestCard
+                  chest={chest}
+                  onPurchase={() => {
+                    if (!user) {
+                      setShowAuthModal(true);
+                    } else {
+                      // Handle chest purchase logic here
+                    }
+                  }}
+                />
+              </motion.div>
             ))}
           </div>
-        </div>
-      </section>
+        </motion.section>
 
-      <Footer />
+        {/* Call to Action */}
+        <motion.section
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.8, delay: 0.6 }}
+          className="text-center py-16 bg-gradient-to-r from-primary/10 to-secondary/10 rounded-3xl border border-primary/20"
+        >
+          <h2 className="text-4xl font-bold mb-6 text-primary">
+            Pronto para Ganhar?
+          </h2>
+          <p className="text-xl text-muted-foreground mb-8 max-w-2xl mx-auto">
+            Cadastre-se agora e receba R$ 50 de bônus para começar a jogar!
+          </p>
+          {!user && (
+            <motion.button
+              onClick={() => setShowAuthModal(true)}
+              whileHover={{ scale: 1.05 }}
+              whileTap={{ scale: 0.95 }}
+              className="gold-gradient text-black text-xl font-bold py-4 px-12 rounded-full shadow-2xl hover:shadow-primary/50 transition-all duration-300"
+            >
+              Começar Agora - Ganhe R$ 50! 🎯
+            </motion.button>
+          )}
+        </motion.section>
+      </div>
 
-      {/* Modals */}
-      <WinModal
-        isOpen={isWinModalOpen}
-        onClose={() => setIsWinModalOpen(false)}
-        prize={currentPrize}
+      <AuthModal 
+        isOpen={showAuthModal} 
+        onClose={() => setShowAuthModal(false)} 
       />
-
+      
       <WalletPanel
-        isOpen={isWalletOpen}
-        onClose={() => setIsWalletOpen(false)}
-        balance={balance}
-        prizes={prizes}
+        isOpen={showWalletPanel}
+        onClose={() => setShowWalletPanel(false)}
+        balance={walletData?.balance || 0}
+        prizes={[]}
         onAddBalance={addBalance}
       />
-
-      <SpinCarousel
-        isOpen={isSpinCarouselOpen}
-        onClose={() => setIsSpinCarouselOpen(false)}
-        prizes={currentChestType ? chestData[currentChestType].prizes : []}
-        onPrizeWon={handlePrizeWon}
-        chestName={currentChestType ? chestData[currentChestType].name : ''}
-      />
-
-      <ChestItemsModal
-        isOpen={isChestItemsModalOpen}
-        onClose={() => setIsChestItemsModalOpen(false)}
-        chest={selectedChest}
-      />
-
-      {/* New Confirmation Modal */}
-      {pendingChestType && (
-        <ChestConfirmModal
-          isOpen={isChestConfirmOpen}
-          onClose={handleCloseModals}
-          onConfirm={handleConfirmOpen}
-          onUpgrade={handleUpgrade}
-          chestType={pendingChestType}
-          chestName={chestData[pendingChestType].name}
-          chestPrice={chestData[pendingChestType].price}
-          balance={balance}
-          nextChestType={getNextChest(pendingChestType)?.type}
-          nextChestName={getNextChest(pendingChestType)?.chest.name}
-          nextChestPrice={getNextChest(pendingChestType)?.chest.price}
-        />
-      )}
-
-      {/* Upgrade Modal */}
-      {pendingChestType && (
-        <UpgradeChestModal
-          isOpen={isUpgradeModalOpen}
-          onClose={handleCloseModals}
-          onConfirm={handleConfirmUpgrade}
-          onBack={handleBackToOriginal}
-          chestType={getNextChest(pendingChestType)?.type || 'gold'}
-          chestName={getNextChest(pendingChestType)?.chest.name || ''}
-          chestPrice={getNextChest(pendingChestType)?.chest.price || 0}
-          balance={balance}
-          originalChestName={chestData[pendingChestType].name}
-        />
-      )}
     </div>
   );
 };
