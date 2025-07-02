@@ -24,7 +24,7 @@ export const useInventory = () => {
     if (!user) return;
     
     try {
-      const { data, error } = await supabase
+      const { data, error } = await (supabase as any)
         .from('user_chest_inventory')
         .select('*')
         .eq('user_id', user.id)
@@ -42,7 +42,7 @@ export const useInventory = () => {
     if (!user) return;
     
     try {
-      const { data, error } = await supabase
+      const { data, error } = await (supabase as any)
         .from('user_item_inventory')
         .select(`
           *,
@@ -61,7 +61,7 @@ export const useInventory = () => {
   // Buscar todos os itens disponíveis
   const fetchAvailableItems = async () => {
     try {
-      const { data, error } = await supabase
+      const { data, error } = await (supabase as any)
         .from('items')
         .select('*')
         .eq('is_active', true)
@@ -77,7 +77,7 @@ export const useInventory = () => {
   // Buscar itens de um baú específico com probabilidades
   const getChestItems = async (chestType: string): Promise<ChestItemProbability[]> => {
     try {
-      const { data, error } = await supabase
+      const { data, error } = await (supabase as any)
         .from('chest_item_probabilities')
         .select(`
           *,
@@ -99,7 +99,7 @@ export const useInventory = () => {
     if (!user) return { error: 'Usuário não logado' };
 
     try {
-      const { error } = await supabase
+      const { error } = await (supabase as any)
         .from('user_chest_inventory')
         .insert({
           user_id: user.id,
@@ -140,13 +140,13 @@ export const useInventory = () => {
       }
 
       // Chamar função do banco para sortear item
-      const { data: drawnItemId, error: drawError } = await supabase
+      const { data: drawnItemId, error: drawError } = await (supabase as any)
         .rpc('draw_item_from_chest', { chest_type_param: chestType });
 
       if (drawError) throw drawError;
 
       // Buscar dados completos do item sorteado
-      const { data: item, error: itemError } = await supabase
+      const { data: item, error: itemError } = await (supabase as any)
         .from('items')
         .select('*')
         .eq('id', drawnItemId)
@@ -155,7 +155,7 @@ export const useInventory = () => {
       if (itemError) throw itemError;
 
       // Criar abertura de baú
-      const { data: chestOpening, error: openingError } = await supabase
+      const { data: chestOpening, error: openingError } = await (supabase as any)
         .from('chest_openings')
         .insert({
           user_id: user.id,
@@ -169,25 +169,25 @@ export const useInventory = () => {
       if (openingError) throw openingError;
 
       // Adicionar item ao inventário do usuário
-      const { error: inventoryError } = await supabase
+      const { error: inventoryError } = await (supabase as any)
         .from('user_item_inventory')
         .insert({
           user_id: user.id,
           item_id: drawnItemId,
           quantity: 1,
-          chest_opening_id: chestOpening.id
+          chest_opening_id: chestOpening?.id
         });
 
       if (inventoryError) throw inventoryError;
 
       // Remover baú do inventário
       if (userChest.quantity === 1) {
-        await supabase
+        await (supabase as any)
           .from('user_chest_inventory')
           .delete()
           .eq('id', userChest.id);
       } else {
-        await supabase
+        await (supabase as any)
           .from('user_chest_inventory')
           .update({ quantity: userChest.quantity - 1 })
           .eq('id', userChest.id);

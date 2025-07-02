@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from './useAuth';
@@ -169,7 +170,7 @@ export const useWallet = () => {
 
     try {
       // Criar ordem de compra
-      const { data: order, error: orderError } = await supabase
+      const { data: order, error: orderError } = await (supabase as any)
         .from('orders')
         .insert({
           user_id: user.id,
@@ -184,7 +185,7 @@ export const useWallet = () => {
       if (orderError) throw orderError;
 
       // Criar transação
-      const { error: transactionError } = await supabase
+      const { error: transactionError } = await (supabase as any)
         .from('transactions')
         .insert({
           user_id: user.id,
@@ -197,7 +198,7 @@ export const useWallet = () => {
       if (transactionError) throw transactionError;
 
       // Adicionar baú ao inventário
-      const { error: inventoryError } = await supabase
+      const { error: inventoryError } = await (supabase as any)
         .from('user_chest_inventory')
         .insert({
           user_id: user.id,
