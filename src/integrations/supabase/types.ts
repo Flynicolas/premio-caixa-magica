@@ -9,7 +9,292 @@ export type Json =
 export type Database = {
   public: {
     Tables: {
-      [_ in never]: never
+      admin_action_logs: {
+        Row: {
+          action_type: string
+          admin_user_id: string
+          affected_record_id: string | null
+          affected_table: string | null
+          created_at: string | null
+          description: string
+          id: string
+          ip_address: string | null
+          new_data: Json | null
+          old_data: Json | null
+          user_agent: string | null
+        }
+        Insert: {
+          action_type: string
+          admin_user_id: string
+          affected_record_id?: string | null
+          affected_table?: string | null
+          created_at?: string | null
+          description: string
+          id?: string
+          ip_address?: string | null
+          new_data?: Json | null
+          old_data?: Json | null
+          user_agent?: string | null
+        }
+        Update: {
+          action_type?: string
+          admin_user_id?: string
+          affected_record_id?: string | null
+          affected_table?: string | null
+          created_at?: string | null
+          description?: string
+          id?: string
+          ip_address?: string | null
+          new_data?: Json | null
+          old_data?: Json | null
+          user_agent?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "admin_action_logs_admin_user_id_fkey"
+            columns: ["admin_user_id"]
+            isOneToOne: false
+            referencedRelation: "admin_users"
+            referencedColumns: ["user_id"]
+          },
+        ]
+      }
+      admin_users: {
+        Row: {
+          created_at: string | null
+          created_by: string | null
+          email: string
+          id: string
+          is_active: boolean | null
+          permissions: Json | null
+          role: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string | null
+          created_by?: string | null
+          email: string
+          id?: string
+          is_active?: boolean | null
+          permissions?: Json | null
+          role?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string | null
+          created_by?: string | null
+          email?: string
+          id?: string
+          is_active?: boolean | null
+          permissions?: Json | null
+          role?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      chest_financial_control: {
+        Row: {
+          chest_type: string
+          chests_opened: number | null
+          created_at: string | null
+          date: string
+          goal_reached: boolean | null
+          id: string
+          net_profit: number | null
+          profit_goal: number | null
+          total_prizes_given: number | null
+          total_sales: number | null
+          updated_at: string | null
+        }
+        Insert: {
+          chest_type: string
+          chests_opened?: number | null
+          created_at?: string | null
+          date?: string
+          goal_reached?: boolean | null
+          id?: string
+          net_profit?: number | null
+          profit_goal?: number | null
+          total_prizes_given?: number | null
+          total_sales?: number | null
+          updated_at?: string | null
+        }
+        Update: {
+          chest_type?: string
+          chests_opened?: number | null
+          created_at?: string | null
+          date?: string
+          goal_reached?: boolean | null
+          id?: string
+          net_profit?: number | null
+          profit_goal?: number | null
+          total_prizes_given?: number | null
+          total_sales?: number | null
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
+      chest_item_probabilities: {
+        Row: {
+          chest_type: string
+          created_at: string | null
+          id: string
+          is_active: boolean | null
+          item_id: string
+          max_quantity: number | null
+          min_quantity: number | null
+          probability_weight: number
+        }
+        Insert: {
+          chest_type: string
+          created_at?: string | null
+          id?: string
+          is_active?: boolean | null
+          item_id: string
+          max_quantity?: number | null
+          min_quantity?: number | null
+          probability_weight?: number
+        }
+        Update: {
+          chest_type?: string
+          created_at?: string | null
+          id?: string
+          is_active?: boolean | null
+          item_id?: string
+          max_quantity?: number | null
+          min_quantity?: number | null
+          probability_weight?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "chest_item_probabilities_item_id_fkey"
+            columns: ["item_id"]
+            isOneToOne: false
+            referencedRelation: "items"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      chest_profit_goals: {
+        Row: {
+          chest_type: string
+          created_at: string | null
+          current_profit: number
+          goal_reached: boolean | null
+          id: string
+          profit_goal: number
+        }
+        Insert: {
+          chest_type: string
+          created_at?: string | null
+          current_profit?: number
+          goal_reached?: boolean | null
+          id?: string
+          profit_goal?: number
+        }
+        Update: {
+          chest_type?: string
+          created_at?: string | null
+          current_profit?: number
+          goal_reached?: boolean | null
+          id?: string
+          profit_goal?: number
+        }
+        Relationships: []
+      }
+      items: {
+        Row: {
+          base_value: number
+          category: string
+          chest_order: number | null
+          created_at: string | null
+          delivery_instructions: string | null
+          delivery_type: string | null
+          description: string | null
+          id: string
+          image_filename: string | null
+          image_url: string | null
+          is_active: boolean | null
+          name: string
+          order_in_chest: number | null
+          rarity: string
+          requires_address: boolean | null
+          requires_document: boolean | null
+          shipping_fee: number | null
+          updated_at: string | null
+        }
+        Insert: {
+          base_value: number
+          category?: string
+          chest_order?: number | null
+          created_at?: string | null
+          delivery_instructions?: string | null
+          delivery_type?: string | null
+          description?: string | null
+          id?: string
+          image_filename?: string | null
+          image_url?: string | null
+          is_active?: boolean | null
+          name: string
+          order_in_chest?: number | null
+          rarity: string
+          requires_address?: boolean | null
+          requires_document?: boolean | null
+          shipping_fee?: number | null
+          updated_at?: string | null
+        }
+        Update: {
+          base_value?: number
+          category?: string
+          chest_order?: number | null
+          created_at?: string | null
+          delivery_instructions?: string | null
+          delivery_type?: string | null
+          description?: string | null
+          id?: string
+          image_filename?: string | null
+          image_url?: string | null
+          is_active?: boolean | null
+          name?: string
+          order_in_chest?: number | null
+          rarity?: string
+          requires_address?: boolean | null
+          requires_document?: boolean | null
+          shipping_fee?: number | null
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
+      profit_alerts: {
+        Row: {
+          alert_type: string
+          chest_type: string
+          data: Json | null
+          id: string
+          is_read: boolean | null
+          message: string
+          triggered_at: string | null
+        }
+        Insert: {
+          alert_type: string
+          chest_type: string
+          data?: Json | null
+          id?: string
+          is_read?: boolean | null
+          message: string
+          triggered_at?: string | null
+        }
+        Update: {
+          alert_type?: string
+          chest_type?: string
+          data?: Json | null
+          id?: string
+          is_read?: boolean | null
+          message?: string
+          triggered_at?: string | null
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never

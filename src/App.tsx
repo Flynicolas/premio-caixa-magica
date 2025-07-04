@@ -10,6 +10,7 @@ import NotFound from '@/pages/NotFound';
 import Sobre from '@/pages/Sobre';
 import Ranking from '@/pages/Ranking';
 import Perfil from '@/pages/Perfil';
+import Admin from '@/pages/Admin';
 import AuthModal from '@/components/AuthModal';
 import WalletPanel from '@/components/WalletPanel';
 import { useWallet } from '@/hooks/useWallet';
@@ -69,6 +70,10 @@ const AppContent = () => {
             <Route 
               path="/perfil" 
               element={user ? <Perfil /> : <Navigate to="/" replace />} 
+            />
+            <Route 
+              path="/admin" 
+              element={<Admin />} 
             />
             <Route path="*" element={<NotFound />} />
           </Routes>
