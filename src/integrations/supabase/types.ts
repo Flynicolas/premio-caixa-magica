@@ -19,6 +19,7 @@ export type Database = {
           description: string
           id: string
           ip_address: string | null
+          metadata: Json | null
           new_data: Json | null
           old_data: Json | null
           user_agent: string | null
@@ -32,6 +33,7 @@ export type Database = {
           description: string
           id?: string
           ip_address?: string | null
+          metadata?: Json | null
           new_data?: Json | null
           old_data?: Json | null
           user_agent?: string | null
@@ -45,6 +47,7 @@ export type Database = {
           description?: string
           id?: string
           ip_address?: string | null
+          metadata?: Json | null
           new_data?: Json | null
           old_data?: Json | null
           user_agent?: string | null
@@ -202,6 +205,45 @@ export type Database = {
         }
         Relationships: []
       }
+      collaborator_invites: {
+        Row: {
+          accepted_at: string | null
+          accepted_by: string | null
+          created_at: string | null
+          email: string
+          expires_at: string
+          id: string
+          invited_by: string
+          is_used: boolean | null
+          role: string
+          token: string
+        }
+        Insert: {
+          accepted_at?: string | null
+          accepted_by?: string | null
+          created_at?: string | null
+          email: string
+          expires_at: string
+          id?: string
+          invited_by: string
+          is_used?: boolean | null
+          role?: string
+          token: string
+        }
+        Update: {
+          accepted_at?: string | null
+          accepted_by?: string | null
+          created_at?: string | null
+          email?: string
+          expires_at?: string
+          id?: string
+          invited_by?: string
+          is_used?: boolean | null
+          role?: string
+          token?: string
+        }
+        Relationships: []
+      }
       items: {
         Row: {
           base_value: number
@@ -300,7 +342,23 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      cleanup_expired_invites: {
+        Args: Record<PropertyKey, never>
+        Returns: undefined
+      }
+      log_admin_action: {
+        Args: {
+          p_admin_user_id: string
+          p_action_type: string
+          p_description: string
+          p_affected_table?: string
+          p_affected_record_id?: string
+          p_old_data?: Json
+          p_new_data?: Json
+          p_metadata?: Json
+        }
+        Returns: string
+      }
     }
     Enums: {
       [_ in never]: never

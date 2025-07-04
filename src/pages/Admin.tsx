@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { useAuth } from '@/hooks/useAuth';
 import { useAdminData } from '@/hooks/useAdminData';
@@ -7,6 +6,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import ChestManagementPanel from '@/components/ChestManagementPanel';
 import ItemManagement from '@/components/admin/ItemManagement';
 import ChestProbabilityManager from '@/components/admin/ChestProbabilityManager';
+import CollaboratorManagement from '@/components/admin/CollaboratorManagement';
 import { Shield, BarChart3, Settings, Users, Package } from 'lucide-react';
 
 const Admin = () => {
@@ -66,7 +66,7 @@ const Admin = () => {
       </div>
 
       <Tabs defaultValue="dashboard" className="space-y-6">
-        <TabsList className="grid w-full grid-cols-5">
+        <TabsList className="grid w-full grid-cols-6">
           <TabsTrigger value="dashboard" className="flex items-center gap-2">
             <BarChart3 className="w-4 h-4" />
             Dashboard
@@ -78,6 +78,10 @@ const Admin = () => {
           <TabsTrigger value="chests" className="flex items-center gap-2">
             <Settings className="w-4 h-4" />
             Baús
+          </TabsTrigger>
+          <TabsTrigger value="collaborators" className="flex items-center gap-2">
+            <Users className="w-4 h-4" />
+            Colaboradores
           </TabsTrigger>
           <TabsTrigger value="users" className="flex items-center gap-2">
             <Users className="w-4 h-4" />
@@ -105,13 +109,17 @@ const Admin = () => {
           </div>
         </TabsContent>
 
+        <TabsContent value="collaborators">
+          <CollaboratorManagement />
+        </TabsContent>
+
         <TabsContent value="users">
           <Card>
             <CardHeader>
               <CardTitle>Gestão de Usuários</CardTitle>
             </CardHeader>
             <CardContent>
-              <p className="text-muted-foreground">Sistema de colaboradores será implementado na próxima etapa.</p>
+              <p className="text-muted-foreground">Sistema de usuários finais será implementado na próxima etapa.</p>
             </CardContent>
           </Card>
         </TabsContent>
