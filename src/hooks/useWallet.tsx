@@ -111,7 +111,18 @@ export const useWallet = () => {
         .limit(50);
 
       if (error) throw error;
-      setTransactions(data || []);
+      
+      // Cast the data to match our Transaction interface
+      const typedTransactions: Transaction[] = (data || []).map(transaction => ({
+        id: transaction.id,
+        type: transaction.type as 'deposit' | 'withdrawal' | 'prize' | 'purchase',
+        amount: Number(transaction.amount),
+        status: transaction.status as 'pending' | 'completed' | 'failed' | 'cancelled',
+        description: transaction.description || '',
+        created_at: transaction.created_at
+      }));
+      
+      setTransactions(typedTransactions);
     } catch (error) {
       console.error('Error fetching transactions:', error);
     }
