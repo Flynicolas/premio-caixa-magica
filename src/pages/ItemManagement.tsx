@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -8,6 +9,7 @@ import ItemsSpreadsheet from '@/components/admin/ItemsSpreadsheet';
 import DataMigrationPanel from '@/components/admin/DataMigrationPanel';
 import ExcelImporter from '@/components/admin/ExcelImporter';
 import ImportGuide from '@/components/admin/ImportGuide';
+import TextImporter from '@/components/admin/TextImporter';
 import { 
   Database, 
   Grid3X3, 
@@ -17,7 +19,8 @@ import {
   TrendingUp,
   Package,
   Image as ImageIcon,
-  BookOpen
+  BookOpen,
+  FileText
 } from 'lucide-react';
 
 const ItemManagement = () => {
@@ -167,11 +170,15 @@ const ItemManagement = () => {
       )}
 
       {/* Abas principais */}
-      <Tabs defaultValue="spreadsheet" className="space-y-6">
-        <TabsList className="grid w-full grid-cols-4">
+      <Tabs defaultValue="migration" className="space-y-6">
+        <TabsList className="grid w-full grid-cols-5">
           <TabsTrigger value="migration" className="flex items-center gap-2">
             <Database className="w-4 h-4" />
             Migração
+          </TabsTrigger>
+          <TabsTrigger value="text-import" className="flex items-center gap-2">
+            <FileText className="w-4 h-4" />
+            Texto
           </TabsTrigger>
           <TabsTrigger value="spreadsheet" className="flex items-center gap-2">
             <Grid3X3 className="w-4 h-4" />
@@ -179,11 +186,11 @@ const ItemManagement = () => {
           </TabsTrigger>
           <TabsTrigger value="upload" className="flex items-center gap-2">
             <Upload className="w-4 h-4" />
-            Importar Excel
+            Excel
           </TabsTrigger>
           <TabsTrigger value="guide" className="flex items-center gap-2">
             <BookOpen className="w-4 h-4" />
-            Guia de Uso
+            Guia
           </TabsTrigger>
         </TabsList>
 
@@ -193,6 +200,10 @@ const ItemManagement = () => {
             loading={loading}
             stats={stats}
           />
+        </TabsContent>
+
+        <TabsContent value="text-import">
+          <TextImporter />
         </TabsContent>
 
         <TabsContent value="spreadsheet">
