@@ -1,13 +1,17 @@
 
 import React from 'react';
 import { useAuth } from '@/hooks/useAuth';
+import { useAdminData } from '@/hooks/useAdminData';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import ChestManagementPanel from '@/components/ChestManagementPanel';
-import { Shield, BarChart3, Settings, Users } from 'lucide-react';
+import ItemManagement from '@/components/admin/ItemManagement';
+import ChestProbabilityManager from '@/components/admin/ChestProbabilityManager';
+import { Shield, BarChart3, Settings, Users, Package } from 'lucide-react';
 
 const Admin = () => {
   const { user } = useAuth();
+  const { items, loading, isAdmin, refreshItems } = useAdminData();
 
   if (!user) {
     return (
@@ -25,6 +29,35 @@ const Admin = () => {
     );
   }
 
+  if (loading) {
+    return (
+      <div className="container mx-auto px-4 py-8">
+        <div className="flex items-center justify-center">
+          <div className="text-center">
+            <div className="w-8 h-8 border-4 border-primary border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
+            <p>Verificando permissões...</p>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  if (!isAdmin) {
+    return (
+      <div className="container mx-auto px-4 py-8">
+        <Card>
+          <CardContent className="flex items-center justify-center py-8">
+            <div className="text-center">
+              <Shield className="w-12 h-12 mx-auto mb-4 text-red-500" />
+              <h2 className="text-xl font-semibold mb-2">Acesso Negado</h2>
+              <p className="text-muted-foreground">Você não tem permissão para acessar o painel administrativo.</p>
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+    );
+  }
+
   return (
     <div className="container mx-auto px-4 py-8">
       <div className="mb-8">
@@ -33,10 +66,14 @@ const Admin = () => {
       </div>
 
       <Tabs defaultValue="dashboard" className="space-y-6">
-        <TabsList className="grid w-full grid-cols-4">
+        <TabsList className="grid w-full grid-cols-5">
           <TabsTrigger value="dashboard" className="flex items-center gap-2">
             <BarChart3 className="w-4 h-4" />
             Dashboard
+          </TabsTrigger>
+          <TabsTrigger value="items" className="flex items-center gap-2">
+            <Package className="w-4 h-4" />
+            Itens
           </TabsTrigger>
           <TabsTrigger value="chests" className="flex items-center gap-2">
             <Settings className="w-4 h-4" />
@@ -56,15 +93,16 @@ const Admin = () => {
           <ChestManagementPanel />
         </TabsContent>
 
+        <TabsContent value="items">
+          <div className="space-y-6">
+            <ItemManagement items={items} onRefresh={refreshItems} />
+          </div>
+        </TabsContent>
+
         <TabsContent value="chests">
-          <Card>
-            <CardHeader>
-              <CardTitle>Gestão de Baús</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <p className="text-muted-foreground">Ferramentas de gestão de baús serão implementadas aqui.</p>
-            </CardContent>
-          </Card>
+          <div className="space-y-6">
+            <ChestProbabilityManager items={items.filter(item => item.is_active)} onRefresh={refreshItems} />
+          </div>
         </TabsContent>
 
         <TabsContent value="users">
@@ -73,7 +111,7 @@ const Admin = () => {
               <CardTitle>Gestão de Usuários</CardTitle>
             </CardHeader>
             <CardContent>
-              <p className="text-muted-foreground">Sistema de colaboradores será implementado aqui.</p>
+              <p className="text-muted-foreground">Sistema de colaboradores será implementado na próxima etapa.</p>
             </CardContent>
           </Card>
         </TabsContent>
@@ -84,7 +122,7 @@ const Admin = () => {
               <CardTitle>Configurações do Sistema</CardTitle>
             </CardHeader>
             <CardContent>
-              <p className="text-muted-foreground">Configurações gerais do sistema.</p>
+              <p className="text-muted-foreground">Configurações gerais do sistema serão implementadas em breve.</p>
             </CardContent>
           </Card>
         </TabsContent>
