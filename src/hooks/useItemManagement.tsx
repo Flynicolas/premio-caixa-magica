@@ -119,10 +119,11 @@ export const useItemManagement = () => {
       setLoading(true);
       
       // Preparar dados para migração
-      const allItems = Object.entries(chestData).flatMap(([chestType, chestItems]) =>
-        chestItems.map(item => ({
+      const allItems = Object.entries(chestData).flatMap(([chestType, chest]) =>
+        chest.prizes.map(item => ({
           ...item,
-          chest_type: chestType
+          chest_type: chestType,
+          value: parseFloat(item.value.replace('R$ ', '').replace('.', '').replace(',', '.'))
         }))
       );
 
