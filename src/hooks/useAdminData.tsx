@@ -49,7 +49,8 @@ export const useAdminData = () => {
       // Type cast para garantir que os tipos correspondam à interface
       const typedData = (data || []).map(item => ({
         ...item,
-        rarity: item.rarity as 'common' | 'rare' | 'epic' | 'legendary'
+        rarity: item.rarity as 'common' | 'rare' | 'epic' | 'legendary',
+        delivery_type: item.delivery_type as 'digital' | 'physical'
       }));
       
       setItems(typedData);

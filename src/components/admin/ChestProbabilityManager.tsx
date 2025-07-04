@@ -51,7 +51,8 @@ const ChestProbabilityManager = ({ items, onRefresh }: ChestProbabilityManagerPr
         chest_type: prob.chest_type as 'silver' | 'gold' | 'delas' | 'diamond' | 'ruby' | 'premium',
         item: prob.item ? {
           ...prob.item,
-          rarity: prob.item.rarity as 'common' | 'rare' | 'epic' | 'legendary'
+          rarity: prob.item.rarity as 'common' | 'rare' | 'epic' | 'legendary',
+          delivery_type: prob.item.delivery_type as 'digital' | 'physical'
         } : undefined
       }));
       
