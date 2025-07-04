@@ -283,11 +283,134 @@ export type Database = {
         }
         Relationships: []
       }
+      data_imports: {
+        Row: {
+          admin_user_id: string | null
+          completed_at: string | null
+          created_at: string | null
+          error_log: Json | null
+          failed_records: number | null
+          filename: string | null
+          id: string
+          import_type: string
+          mapping_config: Json | null
+          preview_data: Json | null
+          processed_records: number | null
+          status: string | null
+          total_records: number | null
+        }
+        Insert: {
+          admin_user_id?: string | null
+          completed_at?: string | null
+          created_at?: string | null
+          error_log?: Json | null
+          failed_records?: number | null
+          filename?: string | null
+          id?: string
+          import_type: string
+          mapping_config?: Json | null
+          preview_data?: Json | null
+          processed_records?: number | null
+          status?: string | null
+          total_records?: number | null
+        }
+        Update: {
+          admin_user_id?: string | null
+          completed_at?: string | null
+          created_at?: string | null
+          error_log?: Json | null
+          failed_records?: number | null
+          filename?: string | null
+          id?: string
+          import_type?: string
+          mapping_config?: Json | null
+          preview_data?: Json | null
+          processed_records?: number | null
+          status?: string | null
+          total_records?: number | null
+        }
+        Relationships: []
+      }
+      item_change_log: {
+        Row: {
+          action_type: string
+          admin_user_id: string | null
+          created_at: string | null
+          description: string | null
+          id: string
+          item_id: string | null
+          new_data: Json | null
+          old_data: Json | null
+        }
+        Insert: {
+          action_type: string
+          admin_user_id?: string | null
+          created_at?: string | null
+          description?: string | null
+          id?: string
+          item_id?: string | null
+          new_data?: Json | null
+          old_data?: Json | null
+        }
+        Update: {
+          action_type?: string
+          admin_user_id?: string | null
+          created_at?: string | null
+          description?: string | null
+          id?: string
+          item_id?: string | null
+          new_data?: Json | null
+          old_data?: Json | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "item_change_log_item_id_fkey"
+            columns: ["item_id"]
+            isOneToOne: false
+            referencedRelation: "items"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      item_images: {
+        Row: {
+          created_at: string | null
+          file_size: number | null
+          filename: string
+          id: string
+          mime_type: string | null
+          original_name: string | null
+          updated_at: string | null
+          url: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          file_size?: number | null
+          filename: string
+          id?: string
+          mime_type?: string | null
+          original_name?: string | null
+          updated_at?: string | null
+          url?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          file_size?: number | null
+          filename?: string
+          id?: string
+          mime_type?: string | null
+          original_name?: string | null
+          updated_at?: string | null
+          url?: string | null
+        }
+        Relationships: []
+      }
       items: {
         Row: {
           base_value: number
           category: string
           chest_order: number | null
+          chest_types: string[] | null
           created_at: string | null
           delivery_instructions: string | null
           delivery_type: string | null
@@ -295,19 +418,24 @@ export type Database = {
           id: string
           image_filename: string | null
           image_url: string | null
+          import_source: string | null
           is_active: boolean | null
           name: string
+          notes: string | null
           order_in_chest: number | null
+          probability_weight: number | null
           rarity: string
           requires_address: boolean | null
           requires_document: boolean | null
           shipping_fee: number | null
+          tags: string[] | null
           updated_at: string | null
         }
         Insert: {
           base_value: number
           category?: string
           chest_order?: number | null
+          chest_types?: string[] | null
           created_at?: string | null
           delivery_instructions?: string | null
           delivery_type?: string | null
@@ -315,19 +443,24 @@ export type Database = {
           id?: string
           image_filename?: string | null
           image_url?: string | null
+          import_source?: string | null
           is_active?: boolean | null
           name: string
+          notes?: string | null
           order_in_chest?: number | null
+          probability_weight?: number | null
           rarity: string
           requires_address?: boolean | null
           requires_document?: boolean | null
           shipping_fee?: number | null
+          tags?: string[] | null
           updated_at?: string | null
         }
         Update: {
           base_value?: number
           category?: string
           chest_order?: number | null
+          chest_types?: string[] | null
           created_at?: string | null
           delivery_instructions?: string | null
           delivery_type?: string | null
@@ -335,13 +468,17 @@ export type Database = {
           id?: string
           image_filename?: string | null
           image_url?: string | null
+          import_source?: string | null
           is_active?: boolean | null
           name?: string
+          notes?: string | null
           order_in_chest?: number | null
+          probability_weight?: number | null
           rarity?: string
           requires_address?: boolean | null
           requires_document?: boolean | null
           shipping_fee?: number | null
+          tags?: string[] | null
           updated_at?: string | null
         }
         Relationships: []
@@ -590,6 +727,19 @@ export type Database = {
           p_experience_gained?: number
         }
         Returns: string
+      }
+      migrate_chest_data: {
+        Args: { items_data: Json }
+        Returns: {
+          migrated_count: number
+          updated_count: number
+          error_count: number
+          errors: string[]
+        }[]
+      }
+      process_excel_import: {
+        Args: { import_id: string; excel_data: Json; column_mapping: Json }
+        Returns: boolean
       }
     }
     Enums: {
