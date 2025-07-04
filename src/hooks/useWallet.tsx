@@ -3,6 +3,7 @@ import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from './useAuth';
 import { useToast } from '@/hooks/use-toast';
+import PaymentModal from '@/components/PaymentModal';
 
 interface WalletData {
   balance: number;
@@ -26,6 +27,8 @@ export const useWallet = () => {
   const [walletData, setWalletData] = useState<WalletData | null>(null);
   const [transactions, setTransactions] = useState<Transaction[]>([]);
   const [loading, setLoading] = useState(true);
+  const [showPaymentModal, setShowPaymentModal] = useState(false);
+  const [requiredAmount, setRequiredAmount] = useState<number | undefined>();
 
   const fetchWalletData = async () => {
     if (!user) {
@@ -128,72 +131,6 @@ export const useWallet = () => {
     }
   };
 
-  const addBalance = async (amount: number) => {
-    if (!user || !walletData) {
-      toast({
-        title: "Erro",
-        description: "Usuário não logado ou carteira não carregada.",
-        variant: "destructive"
-      });
-      return { error: 'Usuário não logado' };
-    }
-
-    try {
-      // Buscar wallet_id
-      const { data: walletInfo } = await supabase
-        .from('user_wallets')
-        .select('id')
-        .eq('user_id', user.id)
-        .single();
-
-      if (!walletInfo) throw new Error('Carteira não encontrada');
-
-      // Criar transação
-      const { error: transactionError } = await supabase
-        .from('transactions')
-        .insert({
-          user_id: user.id,
-          wallet_id: walletInfo.id,
-          type: 'deposit',
-          amount,
-          status: 'completed',
-          description: `Depósito de R$ ${amount.toFixed(2)}`
-        });
-
-      if (transactionError) throw transactionError;
-
-      // Atualizar saldo da carteira
-      const newBalance = walletData.balance + amount;
-      const { error: updateError } = await supabase
-        .from('user_wallets')
-        .update({ 
-          balance: newBalance,
-          updated_at: new Date().toISOString()
-        })
-        .eq('user_id', user.id);
-
-      if (updateError) throw updateError;
-
-      toast({
-        title: "Saldo adicionado!",
-        description: `R$ ${amount.toFixed(2)} foram adicionados à sua conta.`,
-        variant: "default"
-      });
-
-      await fetchWalletData();
-      await fetchTransactions();
-
-      return { error: null };
-    } catch (error: any) {
-      toast({
-        title: "Erro ao adicionar saldo",
-        description: error.message,
-        variant: "destructive"
-      });
-      return { error: error.message };
-    }
-  };
-
   const purchaseChest = async (chestType: string, amount: number) => {
     if (!user || !walletData) {
       toast({
@@ -205,9 +142,14 @@ export const useWallet = () => {
     }
 
     if (walletData.balance < amount) {
+      // Calcular valor faltante e mostrar modal de pagamento
+      const missingAmount = amount - walletData.balance;
+      setRequiredAmount(missingAmount);
+      setShowPaymentModal(true);
+      
       toast({
         title: "Saldo insuficiente",
-        description: `Você precisa de R$ ${amount.toFixed(2)} para comprar este baú.`,
+        description: `Você precisa de R$ ${missingAmount.toFixed(2)} a mais para comprar este baú.`,
         variant: "destructive"
       });
       return { error: 'Saldo insuficiente' };
@@ -270,6 +212,27 @@ export const useWallet = () => {
     }
   };
 
+  const showPaymentModalForAmount = (amount?: number) => {
+    setRequiredAmount(amount);
+    setShowPaymentModal(true);
+  };
+
+  const PaymentModalComponent = () => (
+    <PaymentModal
+      isOpen={showPaymentModal}
+      onClose={() => {
+        setShowPaymentModal(false);
+        setRequiredAmount(undefined);
+      }}
+      requiredAmount={requiredAmount}
+      title={requiredAmount ? "Saldo Insuficiente" : "Adicionar Saldo"}
+      description={requiredAmount 
+        ? `Você precisa de pelo menos R$ ${requiredAmount.toFixed(2)} para continuar.`
+        : "Escolha o valor para adicionar à sua carteira"
+      }
+    />
+  );
+
   useEffect(() => {
     const loadData = async () => {
       setLoading(true);
@@ -287,8 +250,9 @@ export const useWallet = () => {
     walletData,
     transactions,
     loading,
-    addBalance,
     purchaseChest,
+    showPaymentModalForAmount,
+    PaymentModalComponent,
     refreshData: () => {
       fetchWalletData();
       if (user) {

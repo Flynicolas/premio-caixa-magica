@@ -15,7 +15,7 @@ import { chestData, ChestType, Chest, Prize } from '@/data/chestData';
 
 const Index = () => {
   const { user } = useAuth();
-  const { walletData, purchaseChest } = useWallet();
+  const { walletData, purchaseChest, PaymentModalComponent } = useWallet();
   const [showAuthModal, setShowAuthModal] = useState(false);
   const [showWalletPanel, setShowWalletPanel] = useState(false);
   const [showItemsModal, setShowItemsModal] = useState(false);
@@ -134,7 +134,6 @@ const Index = () => {
         onClose={() => setShowWalletPanel(false)}
         balance={walletData?.balance || 0}
         prizes={[]}
-        onAddBalance={(amount) => {}}
       />
 
       <ChestItemsModal
@@ -180,6 +179,8 @@ const Index = () => {
           setSelectedChest(null);
         }}
       />
+
+      <PaymentModalComponent />
     </div>
   );
 };
