@@ -44,7 +44,18 @@ const ChestProbabilityManager = ({ items, onRefresh }: ChestProbabilityManagerPr
         .order('probability_weight', { ascending: false });
 
       if (error) throw error;
-      setProbabilities(data || []);
+      
+      // Type cast para garantir que os tipos correspondam às interfaces
+      const typedData = (data || []).map(prob => ({
+        ...prob,
+        chest_type: prob.chest_type as 'silver' | 'gold' | 'delas' | 'diamond' | 'ruby' | 'premium',
+        item: prob.item ? {
+          ...prob.item,
+          rarity: prob.item.rarity as 'common' | 'rare' | 'epic' | 'legendary'
+        } : undefined
+      }));
+      
+      setProbabilities(typedData);
     } catch (error: any) {
       toast({
         title: "Erro ao carregar probabilidades",

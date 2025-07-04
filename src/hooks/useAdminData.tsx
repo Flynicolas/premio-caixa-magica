@@ -45,7 +45,14 @@ export const useAdminData = () => {
         .order('created_at', { ascending: false });
 
       if (error) throw error;
-      setItems(data || []);
+      
+      // Type cast para garantir que os tipos correspondam à interface
+      const typedData = (data || []).map(item => ({
+        ...item,
+        rarity: item.rarity as 'common' | 'rare' | 'epic' | 'legendary'
+      }));
+      
+      setItems(typedData);
     } catch (error: any) {
       console.error('Erro ao buscar itens:', error);
       toast({
