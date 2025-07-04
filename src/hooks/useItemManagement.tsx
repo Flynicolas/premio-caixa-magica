@@ -103,7 +103,7 @@ export const useItemManagement = () => {
       }
 
       // Contagem por baú (dos chest_types)
-      if (item.chest_types) {
+      if (item.chest_types && Array.isArray(item.chest_types)) {
         item.chest_types.forEach(chestType => {
           newStats.itemsByChest[chestType] = (newStats.itemsByChest[chestType] || 0) + 1;
         });
@@ -119,8 +119,8 @@ export const useItemManagement = () => {
       setLoading(true);
       
       // Preparar dados para migração
-      const allItems = Object.entries(chestData).flatMap(([chestType, chestItems]) =>
-        chestItems.map(item => ({
+      const allItems = Object.entries(chestData).flatMap(([chestType, items]) =>
+        items.map(item => ({
           ...item,
           chest_type: chestType
         }))
@@ -322,10 +322,122 @@ export const useItemManagement = () => {
     loading,
     isAdmin,
     migrateChestData,
-    updateItem,
-    createItem,
-    deleteItem,
-    bulkUpdateItems,
+    updateItem: async (id: string, updates: Partial<DatabaseItem>) => {
+      try {
+        const { error } = await supabase
+          .from('items')
+          .update({
+            ...updates,
+            updated_at: new Date().toISOString()
+          })
+          .eq('id', id);
+
+        if (error) throw error;
+
+        setItems(prev => prev.map(item => 
+          item.id === id ? { ...item, ...updates } : item
+        ));
+
+        toast({
+          title: "Item atualizado!",
+          description: "As alterações foram salvas com sucesso.",
+        });
+      } catch (error: any) {
+        console.error('Erro ao atualizar item:', error);
+        toast({
+          title: "Erro ao atualizar",
+          description: error.message,
+          variant: "destructive"
+        });
+      }
+    },
+    createItem: async (itemData: Omit<DatabaseItem, 'id' | 'created_at' | 'updated_at'>) => {
+      try {
+        const { data, error } = await supabase
+          .from('items')
+          .insert([itemData])
+          .select()
+          .single();
+
+        if (error) throw error;
+
+        const typedData = {
+          ...data,
+          rarity: data.rarity as 'common' | 'rare' | 'epic' | 'legendary',
+          delivery_type: data.delivery_type as 'digital' | 'physical'
+        };
+
+        setItems(prev => [typedData, ...prev]);
+
+        toast({
+          title: "Item criado!",
+          description: "Novo item adicionado com sucesso.",
+        });
+
+        return typedData;
+      } catch (error: any) {
+        console.error('Erro ao criar item:', error);
+        toast({
+          title: "Erro ao criar item",
+          description: error.message,
+          variant: "destructive"
+        });
+        throw error;
+      }
+    },
+    deleteItem: async (id: string) => {
+      try {
+        const { error } = await supabase
+          .from('items')
+          .delete()
+          .eq('id', id);
+
+        if (error) throw error;
+
+        setItems(prev => prev.filter(item => item.id !== id));
+
+        toast({
+          title: "Item removido!",
+          description: "Item deletado com sucesso.",
+        });
+      } catch (error: any) {
+        console.error('Erro ao deletar item:', error);
+        toast({
+          title: "Erro ao deletar",
+          description: error.message,
+          variant: "destructive"
+        });
+      }
+    },
+    bulkUpdateItems: async (itemIds: string[], updates: Partial<DatabaseItem>) => {
+      try {
+        const { error } = await supabase
+          .from('items')
+          .update({
+            ...updates,
+            updated_at: new Date().toISOString()
+          })
+          .in('id', itemIds);
+
+        if (error) throw error;
+
+        setItems(prev => prev.map(item => 
+          itemIds.includes(item.id) ? { ...item, ...updates } : item
+        ));
+
+        toast({
+          title: "Itens atualizados!",
+          description: `${itemIds.length} itens foram atualizados com sucesso.`,
+        });
+      } catch (error: any) {
+        console.error('Erro no bulk update:', error);
+        toast({
+          title: "Erro na atualização em massa",
+          description: error.message,
+          variant: "destructive"
+        });
+      }
+    },
     refetchItems: fetchItems
   };
 };

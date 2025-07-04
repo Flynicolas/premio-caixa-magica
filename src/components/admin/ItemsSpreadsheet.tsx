@@ -1,4 +1,3 @@
-
 import React, { useState, useMemo } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
@@ -12,15 +11,12 @@ import { Textarea } from '@/components/ui/textarea';
 import { DatabaseItem } from '@/types/database';
 import { 
   Search, 
-  Filter, 
   Plus, 
   Edit3, 
   Trash2, 
   Image as ImageIcon,
   Save,
-  X,
-  Upload,
-  Download
+  X
 } from 'lucide-react';
 
 interface ItemsSpreadsheetProps {
@@ -73,7 +69,7 @@ const ItemsSpreadsheet: React.FC<ItemsSpreadsheetProps> = ({
   const chestTypes = useMemo(() => {
     const types = new Set<string>();
     items.forEach(item => {
-      if (item.chest_types) {
+      if (item.chest_types && Array.isArray(item.chest_types)) {
         item.chest_types.forEach(type => types.add(type));
       }
     });

@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
@@ -13,7 +12,7 @@ import {
 } from '@/components/ui/dropdown-menu';
 import { useAuth } from '@/hooks/useAuth';
 import { useAdminCheck } from '@/hooks/useAdminCheck';
-import UserProfile from './UserProfile';
+import { useWallet } from '@/hooks/useWallet';
 import WalletPanel from './WalletPanel';
 import AuthModal from './AuthModal';
 import { 
@@ -27,15 +26,18 @@ import {
   Info, 
   Trophy,
   Shield,
-  Grid3X3
+  Grid3X3,
+  Wallet
 } from 'lucide-react';
 
 const Header = () => {
   const { user, signOut } = useAuth();
   const { isAdmin } = useAdminCheck();
+  const { walletData } = useWallet();
   const location = useLocation();
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [showAuth, setShowAuth] = useState(false);
+  const [showWallet, setShowWallet] = useState(false);
 
   const navigation = [
     { name: 'Início', href: '/', icon: Home },
@@ -51,6 +53,11 @@ const Header = () => {
 
   const getInitials = (name: string) => {
     return name.split(' ').map(n => n[0]).join('').toUpperCase();
+  };
+
+  const handleAddBalance = (amount: number) => {
+    // TODO: Implementar lógica de adicionar saldo
+    console.log('Adicionando saldo:', amount);
   };
 
   return (
@@ -124,7 +131,21 @@ const Header = () => {
             <div className="hidden md:flex items-center space-x-4">
               {user ? (
                 <>
-                  <WalletPanel />
+                  {/* Wallet Balance */}
+                  <div className="flex items-center space-x-2 bg-secondary px-4 py-2 rounded-lg">
+                    <Wallet className="w-4 h-4 text-primary" />
+                    <span className="font-bold text-primary">
+                      R$ {walletData?.balance?.toFixed(2) || '0,00'}
+                    </span>
+                  </div>
+                  
+                  <Button 
+                    onClick={() => setShowWallet(true)}
+                    className="gold-gradient text-black font-bold hover:opacity-90"
+                  >
+                    Carteira
+                  </Button>
+
                   <DropdownMenu>
                     <DropdownMenuTrigger asChild>
                       <Button variant="ghost" className="relative h-10 w-10 rounded-full">
@@ -292,6 +313,14 @@ const Header = () => {
       <AuthModal 
         isOpen={showAuth} 
         onClose={() => setShowAuth(false)} 
+      />
+
+      <WalletPanel
+        isOpen={showWallet}
+        onClose={() => setShowWallet(false)}
+        balance={walletData?.balance || 0}
+        prizes={[]} // TODO: Implementar lista de prêmios
+        onAddBalance={handleAddBalance}
       />
     </>
   );

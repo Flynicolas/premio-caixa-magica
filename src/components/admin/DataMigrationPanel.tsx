@@ -2,15 +2,13 @@
 import React, { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Progress } from '@/components/ui/progress';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Badge } from '@/components/ui/badge';
 import { 
   Database, 
   Upload, 
-  CheckCircle, 
-  AlertTriangle, 
   Info,
+  AlertTriangle,
   ArrowRight,
   FileSpreadsheet
 } from 'lucide-react';

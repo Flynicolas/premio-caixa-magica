@@ -1,4 +1,3 @@
-
 // ==============================================
 // TIPOS DO BANCO DE DADOS
 // ==============================================
@@ -16,6 +15,11 @@ export interface DatabaseItem {
   requires_address: boolean;
   requires_document: boolean;
   is_active: boolean;
+  chest_types: string[] | null;
+  probability_weight: number | null;
+  import_source: string | null;
+  tags: string[] | null;
+  notes: string | null;
   created_at: string;
   updated_at: string;
 }
