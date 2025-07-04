@@ -134,6 +134,42 @@ export type Database = {
         }
         Relationships: []
       }
+      admin_wallet_control: {
+        Row: {
+          created_at: string | null
+          daily_deposits: number | null
+          date_control: string | null
+          id: string
+          last_updated: string | null
+          monthly_deposits: number | null
+          total_chest_sales: number | null
+          total_system_balance: number | null
+          total_withdrawals: number | null
+        }
+        Insert: {
+          created_at?: string | null
+          daily_deposits?: number | null
+          date_control?: string | null
+          id?: string
+          last_updated?: string | null
+          monthly_deposits?: number | null
+          total_chest_sales?: number | null
+          total_system_balance?: number | null
+          total_withdrawals?: number | null
+        }
+        Update: {
+          created_at?: string | null
+          daily_deposits?: number | null
+          date_control?: string | null
+          id?: string
+          last_updated?: string | null
+          monthly_deposits?: number | null
+          total_chest_sales?: number | null
+          total_system_balance?: number | null
+          total_withdrawals?: number | null
+        }
+        Relationships: []
+      }
       chest_financial_control: {
         Row: {
           chest_type: string
@@ -483,6 +519,59 @@ export type Database = {
         }
         Relationships: []
       }
+      mercadopago_payments: {
+        Row: {
+          amount: number
+          created_at: string | null
+          currency: string | null
+          id: string
+          payment_id: string | null
+          payment_method: string | null
+          payment_status: string | null
+          preference_id: string
+          transaction_id: string | null
+          updated_at: string | null
+          user_id: string | null
+          webhook_data: Json | null
+        }
+        Insert: {
+          amount: number
+          created_at?: string | null
+          currency?: string | null
+          id?: string
+          payment_id?: string | null
+          payment_method?: string | null
+          payment_status?: string | null
+          preference_id: string
+          transaction_id?: string | null
+          updated_at?: string | null
+          user_id?: string | null
+          webhook_data?: Json | null
+        }
+        Update: {
+          amount?: number
+          created_at?: string | null
+          currency?: string | null
+          id?: string
+          payment_id?: string | null
+          payment_method?: string | null
+          payment_status?: string | null
+          preference_id?: string
+          transaction_id?: string | null
+          updated_at?: string | null
+          user_id?: string | null
+          webhook_data?: Json | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "mercadopago_payments_transaction_id_fkey"
+            columns: ["transaction_id"]
+            isOneToOne: false
+            referencedRelation: "transactions"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       profiles: {
         Row: {
           achievements: Json | null
@@ -583,6 +672,10 @@ export type Database = {
           description: string | null
           id: string
           metadata: Json | null
+          notification_url: string | null
+          payment_id: string | null
+          payment_provider: string | null
+          payment_status: string | null
           reference_id: string | null
           status: string | null
           type: string
@@ -595,6 +688,10 @@ export type Database = {
           description?: string | null
           id?: string
           metadata?: Json | null
+          notification_url?: string | null
+          payment_id?: string | null
+          payment_provider?: string | null
+          payment_status?: string | null
           reference_id?: string | null
           status?: string | null
           type: string
@@ -607,6 +704,10 @@ export type Database = {
           description?: string | null
           id?: string
           metadata?: Json | null
+          notification_url?: string | null
+          payment_id?: string | null
+          payment_provider?: string | null
+          payment_status?: string | null
           reference_id?: string | null
           status?: string | null
           type?: string
@@ -738,6 +839,9 @@ export type Database = {
           balance: number | null
           created_at: string | null
           id: string
+          total_deposited: number | null
+          total_spent: number | null
+          total_withdrawn: number | null
           updated_at: string | null
           user_id: string
         }
@@ -745,6 +849,9 @@ export type Database = {
           balance?: number | null
           created_at?: string | null
           id?: string
+          total_deposited?: number | null
+          total_spent?: number | null
+          total_withdrawn?: number | null
           updated_at?: string | null
           user_id: string
         }
@@ -752,6 +859,9 @@ export type Database = {
           balance?: number | null
           created_at?: string | null
           id?: string
+          total_deposited?: number | null
+          total_spent?: number | null
+          total_withdrawn?: number | null
           updated_at?: string | null
           user_id?: string
         }
@@ -780,6 +890,13 @@ export type Database = {
         Args: Record<PropertyKey, never>
         Returns: {
           deleted_count: number
+        }[]
+      }
+      create_payment_preference: {
+        Args: { p_user_id: string; p_amount: number; p_description?: string }
+        Returns: {
+          preference_id: string
+          transaction_id: string
         }[]
       }
       is_admin_role: {
@@ -824,6 +941,15 @@ export type Database = {
       }
       process_excel_import: {
         Args: { import_id: string; excel_data: Json; column_mapping: Json }
+        Returns: boolean
+      }
+      process_mercadopago_webhook: {
+        Args: {
+          p_preference_id: string
+          p_payment_id: string
+          p_payment_status: string
+          p_webhook_data: Json
+        }
         Returns: boolean
       }
     }
