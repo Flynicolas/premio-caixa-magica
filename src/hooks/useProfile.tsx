@@ -3,6 +3,7 @@ import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
 import { useToast } from '@/hooks/use-toast';
+import { Json } from '@/integrations/supabase/types';
 
 export interface UserProfile {
   id: string;
@@ -81,7 +82,15 @@ export const useProfile = () => {
         .single();
 
       if (error) throw error;
-      setProfile(data);
+      
+      // Converter os dados do Supabase para o formato esperado
+      const profileData: UserProfile = {
+        ...data,
+        achievements: Array.isArray(data.achievements) ? data.achievements : [],
+        preferences: data.preferences || {}
+      };
+      
+      setProfile(profileData);
 
       // Atualizar último login
       await supabase
@@ -106,15 +115,17 @@ export const useProfile = () => {
 
       if (error) throw error;
       if (data && data.length > 0) {
+        const levelData = data[0];
         setUserLevel({
           id: '',
-          level: data[0].level,
-          name: data[0].name,
+          level: levelData.level,
+          name: levelData.name,
           min_experience: 0,
           max_experience: 0,
-          benefits: JSON.parse(data[0].benefits || '[]'),
-          icon: data[0].icon,
-          color: data[0].color
+          benefits: Array.isArray(levelData.benefits) ? levelData.benefits : 
+                   typeof levelData.benefits === 'string' ? JSON.parse(levelData.benefits) : [],
+          icon: levelData.icon || '',
+          color: levelData.color || ''
         });
       }
     } catch (error) {
@@ -131,7 +142,21 @@ export const useProfile = () => {
         .order('level', { ascending: true });
 
       if (error) throw error;
-      setAllLevels(data || []);
+      
+      // Converter os dados para o formato esperado
+      const levelsData: UserLevel[] = (data || []).map(level => ({
+        id: level.id,
+        level: level.level,
+        name: level.name,
+        min_experience: level.min_experience,
+        max_experience: level.max_experience,
+        benefits: Array.isArray(level.benefits) ? level.benefits : 
+                 typeof level.benefits === 'string' ? JSON.parse(level.benefits) : [],
+        icon: level.icon || '',
+        color: level.color || ''
+      }));
+      
+      setAllLevels(levelsData);
     } catch (error) {
       console.error('Error fetching levels:', error);
     }
