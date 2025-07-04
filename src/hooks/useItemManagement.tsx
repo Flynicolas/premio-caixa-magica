@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
@@ -29,7 +28,6 @@ export const useItemManagement = () => {
     missingImages: 0
   });
 
-  // Verificar se é admin
   const checkAdminStatus = async () => {
     if (!user) return false;
     
@@ -52,7 +50,33 @@ export const useItemManagement = () => {
     }
   };
 
-  // Buscar itens do banco
+  const calculateStats = (itemsList: DatabaseItem[]) => {
+    const newStats: ItemManagementStats = {
+      totalItems: itemsList.length,
+      itemsByChest: {},
+      itemsByRarity: {},
+      totalValue: 0,
+      missingImages: 0
+    };
+
+    itemsList.forEach(item => {
+      newStats.itemsByRarity[item.rarity] = (newStats.itemsByRarity[item.rarity] || 0) + 1;
+      newStats.totalValue += Number(item.base_value);
+      
+      if (!item.image_url) {
+        newStats.missingImages++;
+      }
+
+      if (item.chest_types && Array.isArray(item.chest_types)) {
+        item.chest_types.forEach(chestType => {
+          newStats.itemsByChest[chestType] = (newStats.itemsByChest[chestType] || 0) + 1;
+        });
+      }
+    });
+
+    setStats(newStats);
+  };
+
   const fetchItems = async () => {
     try {
       const { data, error } = await supabase
@@ -80,45 +104,10 @@ export const useItemManagement = () => {
     }
   };
 
-  // Calcular estatísticas
-  const calculateStats = (itemsList: DatabaseItem[]) => {
-    const newStats: ItemManagementStats = {
-      totalItems: itemsList.length,
-      itemsByChest: {},
-      itemsByRarity: {},
-      totalValue: 0,
-      missingImages: 0
-    };
-
-    itemsList.forEach(item => {
-      // Contagem por raridade
-      newStats.itemsByRarity[item.rarity] = (newStats.itemsByRarity[item.rarity] || 0) + 1;
-      
-      // Valor total
-      newStats.totalValue += Number(item.base_value);
-      
-      // Imagens faltando
-      if (!item.image_url) {
-        newStats.missingImages++;
-      }
-
-      // Contagem por baú (dos chest_types)
-      if (item.chest_types && Array.isArray(item.chest_types)) {
-        item.chest_types.forEach(chestType => {
-          newStats.itemsByChest[chestType] = (newStats.itemsByChest[chestType] || 0) + 1;
-        });
-      }
-    });
-
-    setStats(newStats);
-  };
-
-  // Migrar dados do chestData.ts
   const migrateChestData = async () => {
     try {
       setLoading(true);
       
-      // Preparar dados para migração
       const allItems = Object.entries(chestData).flatMap(([chestType, chest]) =>
         chest.prizes.map(item => ({
           ...item,
@@ -153,7 +142,6 @@ export const useItemManagement = () => {
     }
   };
 
-  // Atualizar item
   const updateItem = async (id: string, updates: Partial<DatabaseItem>) => {
     try {
       const { error } = await supabase
@@ -166,7 +154,6 @@ export const useItemManagement = () => {
 
       if (error) throw error;
 
-      // Atualizar estado local
       setItems(prev => prev.map(item => 
         item.id === id ? { ...item, ...updates } : item
       ));
@@ -185,7 +172,6 @@ export const useItemManagement = () => {
     }
   };
 
-  // Criar novo item
   const createItem = async (itemData: Omit<DatabaseItem, 'id' | 'created_at' | 'updated_at'>) => {
     try {
       const { data, error } = await supabase
@@ -221,7 +207,6 @@ export const useItemManagement = () => {
     }
   };
 
-  // Deletar item
   const deleteItem = async (id: string) => {
     try {
       const { error } = await supabase
@@ -247,7 +232,6 @@ export const useItemManagement = () => {
     }
   };
 
-  // Bulk update
   const bulkUpdateItems = async (itemIds: string[], updates: Partial<DatabaseItem>) => {
     try {
       const { error } = await supabase
@@ -260,7 +244,6 @@ export const useItemManagement = () => {
 
       if (error) throw error;
 
-      // Atualizar estado local
       setItems(prev => prev.map(item => 
         itemIds.includes(item.id) ? { ...item, ...updates } : item
       ));
@@ -300,7 +283,6 @@ export const useItemManagement = () => {
     loadData();
   }, [user]);
 
-  // Real-time updates
   useEffect(() => {
     if (!isAdmin) return;
 

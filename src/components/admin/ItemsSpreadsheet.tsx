@@ -1,3 +1,4 @@
+
 import React, { useState, useMemo } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
@@ -8,6 +9,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
+import ImageUploader from './ImageUploader';
 import { DatabaseItem } from '@/types/database';
 import { 
   Search, 
@@ -65,7 +67,6 @@ const ItemsSpreadsheet: React.FC<ItemsSpreadsheetProps> = ({
     });
   }, [items, searchTerm, filterRarity, filterChest]);
 
-  // Obter tipos de baú únicos
   const chestTypes = useMemo(() => {
     const types = new Set<string>();
     items.forEach(item => {
@@ -76,7 +77,6 @@ const ItemsSpreadsheet: React.FC<ItemsSpreadsheetProps> = ({
     return Array.from(types);
   }, [items]);
 
-  // Cores por raridade
   const rarityColors = {
     common: 'bg-gray-100 text-gray-800',
     rare: 'bg-blue-100 text-blue-800',
@@ -90,7 +90,6 @@ const ItemsSpreadsheet: React.FC<ItemsSpreadsheetProps> = ({
     setEditForm(item);
   };
 
-  // Salvar edição
   const saveEdit = async () => {
     if (!editingItem) return;
     
@@ -99,13 +98,11 @@ const ItemsSpreadsheet: React.FC<ItemsSpreadsheetProps> = ({
     setEditForm({});
   };
 
-  // Cancelar edição
   const cancelEdit = () => {
     setEditingItem(null);
     setEditForm({});
   };
 
-  // Criar novo item
   const createNewItem = async () => {
     if (!newItemForm.name || !newItemForm.base_value) return;
     
@@ -121,7 +118,6 @@ const ItemsSpreadsheet: React.FC<ItemsSpreadsheetProps> = ({
     });
   };
 
-  // Toggle seleção
   const toggleSelection = (itemId: string) => {
     setSelectedItems(prev => 
       prev.includes(itemId) 
@@ -130,11 +126,14 @@ const ItemsSpreadsheet: React.FC<ItemsSpreadsheetProps> = ({
     );
   };
 
-  // Seleção em massa
   const toggleSelectAll = () => {
     setSelectedItems(prev => 
       prev.length === filteredItems.length ? [] : filteredItems.map(item => item.id)
     );
+  };
+
+  const handleImageUploaded = async (itemId: string, imageUrl: string) => {
+    await onUpdateItem(itemId, { image_url: imageUrl });
   };
 
   return (
@@ -229,7 +228,6 @@ const ItemsSpreadsheet: React.FC<ItemsSpreadsheetProps> = ({
           </CardTitle>
         </CardHeader>
         <CardContent className="space-y-4">
-          {/* Filtros */}
           <div className="flex flex-wrap items-center gap-4">
             <div className="flex-1 min-w-64">
               <div className="relative">
@@ -269,7 +267,6 @@ const ItemsSpreadsheet: React.FC<ItemsSpreadsheetProps> = ({
             </Select>
           </div>
 
-          {/* Ações em massa */}
           {selectedItems.length > 0 && (
             <div className="flex items-center justify-between p-3 bg-blue-50 rounded-lg">
               <span className="text-sm text-blue-700">
@@ -290,7 +287,7 @@ const ItemsSpreadsheet: React.FC<ItemsSpreadsheetProps> = ({
         </CardContent>
       </Card>
 
-      {/* Tabela de itens */}
+      {/* Tabela de itens com upload de imagem */}
       <Card>
         <CardContent className="p-0">
           <div className="overflow-x-auto">
@@ -323,7 +320,7 @@ const ItemsSpreadsheet: React.FC<ItemsSpreadsheetProps> = ({
                       />
                     </td>
                     <td className="p-3">
-                      <div className="w-12 h-12 bg-gray-100 rounded-lg flex items-center justify-center">
+                      <div className="w-12 h-12 bg-gray-100 rounded-lg flex items-center justify-center relative group">
                         {item.image_url ? (
                           <img 
                             src={item.image_url} 
@@ -333,6 +330,14 @@ const ItemsSpreadsheet: React.FC<ItemsSpreadsheetProps> = ({
                         ) : (
                           <ImageIcon className="w-6 h-6 text-gray-400" />
                         )}
+                        <div className="absolute inset-0 bg-black bg-opacity-50 rounded-lg flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
+                          <ImageUploader
+                            currentImageUrl={item.image_url || undefined}
+                            onImageUploaded={(url) => handleImageUploaded(item.id, url)}
+                            itemId={item.id}
+                            itemName={item.name}
+                          />
+                        </div>
                       </div>
                     </td>
                     <td className="p-3">
@@ -450,7 +455,6 @@ const ItemsSpreadsheet: React.FC<ItemsSpreadsheetProps> = ({
         </CardContent>
       </Card>
 
-      {/* Resumo */}
       <div className="text-sm text-gray-500 text-center">
         Mostrando {filteredItems.length} de {items.length} itens
       </div>

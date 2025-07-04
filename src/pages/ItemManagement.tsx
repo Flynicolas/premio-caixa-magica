@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -90,7 +89,6 @@ const ItemManagement = () => {
         <p className="text-muted-foreground">Gerencie todos os itens dos baús de forma visual e intuitiva</p>
       </div>
 
-      {/* Cards de estatísticas */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
         <Card>
           <CardContent className="p-6">
@@ -141,7 +139,6 @@ const ItemManagement = () => {
         </Card>
       </div>
 
-      {/* Resumo por raridade */}
       {Object.keys(stats.itemsByRarity).length > 0 && (
         <Card className="mb-8">
           <CardHeader>
@@ -169,7 +166,6 @@ const ItemManagement = () => {
         </Card>
       )}
 
-      {/* Abas principais */}
       <Tabs defaultValue="migration" className="space-y-6">
         <TabsList className="grid w-full grid-cols-5">
           <TabsTrigger value="migration" className="flex items-center gap-2">
@@ -199,6 +195,7 @@ const ItemManagement = () => {
             onMigrateData={migrateChestData}
             loading={loading}
             stats={stats}
+            onRefreshData={refetchItems}
           />
         </TabsContent>
 

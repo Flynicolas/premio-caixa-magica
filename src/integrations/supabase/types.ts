@@ -776,6 +776,12 @@ export type Database = {
         Args: Record<PropertyKey, never>
         Returns: undefined
       }
+      clear_items_table: {
+        Args: Record<PropertyKey, never>
+        Returns: {
+          deleted_count: number
+        }[]
+      }
       is_admin_role: {
         Args: Record<PropertyKey, never>
         Returns: boolean

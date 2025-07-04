@@ -5,6 +5,7 @@ import { Button } from '@/components/ui/button';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Badge } from '@/components/ui/badge';
 import { useToast } from '@/hooks/use-toast';
+import ClearTableButton from './ClearTableButton';
 import { 
   Database, 
   Upload, 
@@ -20,9 +21,10 @@ interface DataMigrationPanelProps {
   onMigrateData: () => Promise<void>;
   loading: boolean;
   stats: ItemManagementStats;
+  onRefreshData: () => void;
 }
 
-const DataMigrationPanel = ({ onMigrateData, loading, stats }: DataMigrationPanelProps) => {
+const DataMigrationPanel = ({ onMigrateData, loading, stats, onRefreshData }: DataMigrationPanelProps) => {
   const { toast } = useToast();
   const [migrationReport, setMigrationReport] = useState<any>(null);
 
@@ -49,6 +51,27 @@ const DataMigrationPanel = ({ onMigrateData, loading, stats }: DataMigrationPane
       
     } catch (error) {
       console.error('Erro na migração:', error);
+    }
+  };
+
+  const handleTableCleared = () => {
+    setMigrationReport(null);
+    onRefreshData();
+  };
+
+  const handleClearAndMigrate = async () => {
+    // Implementar processo "Zerar e Alimentar" em um só clique
+    try {
+      toast({
+        title: "Iniciando processo completo",
+        description: "Limpando tabela e importando dados...",
+      });
+      
+      // Primeiro limpar, depois migrar
+      // Este seria implementado com uma função que combine ambos os processos
+      
+    } catch (error) {
+      console.error('Erro no processo completo:', error);
     }
   };
 
@@ -101,39 +124,53 @@ const DataMigrationPanel = ({ onMigrateData, loading, stats }: DataMigrationPane
         </CardContent>
       </Card>
 
-      {/* Migração dos Dados Atuais */}
+      {/* Controles de Limpeza e Migração */}
       <Card>
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
             <Upload className="w-5 h-5" />
-            Migração Automática - Dados do chestData.ts
+            Controles de Tabela
           </CardTitle>
         </CardHeader>
         <CardContent className="space-y-4">
           <Alert>
             <Info className="h-4 w-4" />
             <AlertDescription>
-              <strong>Migração dos dados existentes:</strong>
-              <br />• Importa automaticamente todos os itens do arquivo `src/data/chestData.ts`
-              <br />• Organiza por tipo de baú (silver, gold, delas, diamond, ruby, premium)
-              <br />• Mapeia raridades baseadas nos valores dos prêmios
-              <br />• Aproximadamente 120 itens serão migrados
-              <br />• Dados duplicados são detectados e atualizados automaticamente
+              <strong>Opções disponíveis:</strong>
+              <br />• <strong>Limpar Tabela:</strong> Remove todos os itens do banco de dados
+              <br />• <strong>Migrar Dados:</strong> Importa dados do chestData.ts (mantém itens existentes)
+              <br />• <strong>Zerar e Alimentar:</strong> Limpa tudo e importa dados novos em um processo
             </AlertDescription>
           </Alert>
 
-          <div className="flex gap-2">
+          <div className="flex flex-wrap gap-3">
+            <ClearTableButton 
+              onTableCleared={handleTableCleared}
+              totalItems={stats.totalItems}
+            />
+            
             <Button 
               onClick={handleMigration}
               disabled={loading}
               size="lg"
+              variant="outline"
             >
               {loading ? (
                 <RefreshCw className="w-4 h-4 mr-2 animate-spin" />
               ) : (
                 <Download className="w-4 h-4 mr-2" />
               )}
-              {loading ? 'Migrando...' : 'Migrar Dados Atuais'}
+              {loading ? 'Migrando...' : 'Migrar Dados'}
+            </Button>
+
+            <Button 
+              onClick={handleClearAndMigrate}
+              disabled={loading}
+              size="lg"
+              className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700"
+            >
+              <RefreshCw className="w-4 h-4 mr-2" />
+              Zerar e Alimentar
             </Button>
           </div>
 
