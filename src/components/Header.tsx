@@ -2,8 +2,10 @@
 import { useState } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
-import { Menu, X } from 'lucide-react';
+import { Badge } from '@/components/ui/badge';
+import { Menu, X, Shield } from 'lucide-react';
 import { User } from '@supabase/supabase-js';
+import { useAdminCheck } from '@/hooks/useAdminCheck';
 import UserProfile from './UserProfile';
 
 interface HeaderProps {
@@ -16,6 +18,7 @@ interface HeaderProps {
 const Header = ({ balance, onAddBalance, user, onShowAuth }: HeaderProps) => {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const location = useLocation();
+  const { isAdmin, loading: adminLoading } = useAdminCheck();
 
   const navigation = [
     { name: 'PÁGINA INICIAL', href: '/' },
@@ -24,6 +27,11 @@ const Header = ({ balance, onAddBalance, user, onShowAuth }: HeaderProps) => {
     { name: 'RANKING', href: '/ranking' },
     { name: 'PERFIL', href: '/perfil' },
   ];
+
+  // Add admin link only for admins
+  if (isAdmin) {
+    navigation.push({ name: 'ADMIN', href: '/admin' });
+  }
 
   const isActive = (href: string) => location.pathname === href;
 
@@ -49,11 +57,20 @@ const Header = ({ balance, onAddBalance, user, onShowAuth }: HeaderProps) => {
               <Link
                 key={item.name}
                 to={item.href}
-                className={`text-sm font-medium transition-colors hover:text-primary ${
+                className={`text-sm font-medium transition-colors hover:text-primary relative ${
                   isActive(item.href) ? 'text-primary' : 'text-muted-foreground'
                 }`}
               >
                 {item.name}
+                {item.name === 'ADMIN' && (
+                  <Badge 
+                    variant="secondary" 
+                    className="ml-2 text-xs bg-yellow-500/20 text-yellow-400 border-yellow-500/30"
+                  >
+                    <Shield className="w-3 h-3 mr-1" />
+                    Admin
+                  </Badge>
+                )}
               </Link>
             ))}
           </nav>
@@ -89,12 +106,21 @@ const Header = ({ balance, onAddBalance, user, onShowAuth }: HeaderProps) => {
                 <Link
                   key={item.name}
                   to={item.href}
-                  className={`text-sm font-medium transition-colors hover:text-primary ${
+                  className={`text-sm font-medium transition-colors hover:text-primary flex items-center ${
                     isActive(item.href) ? 'text-primary' : 'text-muted-foreground'
                   }`}
                   onClick={() => setIsMobileMenuOpen(false)}
                 >
                   {item.name}
+                  {item.name === 'ADMIN' && (
+                    <Badge 
+                      variant="secondary" 
+                      className="ml-2 text-xs bg-yellow-500/20 text-yellow-400 border-yellow-500/30"
+                    >
+                      <Shield className="w-3 h-3 mr-1" />
+                      Admin
+                    </Badge>
+                  )}
                 </Link>
               ))}
             </nav>

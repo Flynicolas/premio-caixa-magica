@@ -9,6 +9,45 @@ export type Json =
 export type Database = {
   public: {
     Tables: {
+      achievements: {
+        Row: {
+          condition_type: string
+          condition_value: number
+          created_at: string | null
+          description: string
+          icon: string | null
+          id: string
+          is_active: boolean | null
+          name: string
+          rarity: string | null
+          reward_experience: number | null
+        }
+        Insert: {
+          condition_type: string
+          condition_value: number
+          created_at?: string | null
+          description: string
+          icon?: string | null
+          id?: string
+          is_active?: boolean | null
+          name: string
+          rarity?: string | null
+          reward_experience?: number | null
+        }
+        Update: {
+          condition_type?: string
+          condition_value?: number
+          created_at?: string | null
+          description?: string
+          icon?: string | null
+          id?: string
+          is_active?: boolean | null
+          name?: string
+          rarity?: string | null
+          reward_experience?: number | null
+        }
+        Relationships: []
+      }
       admin_action_logs: {
         Row: {
           action_type: string
@@ -307,6 +346,69 @@ export type Database = {
         }
         Relationships: []
       }
+      profiles: {
+        Row: {
+          achievements: Json | null
+          avatar_url: string | null
+          bio: string | null
+          chests_opened: number | null
+          created_at: string | null
+          email: string
+          experience_points: number | null
+          full_name: string | null
+          id: string
+          is_active: boolean | null
+          join_date: string | null
+          last_login: string | null
+          level: number | null
+          preferences: Json | null
+          total_prizes_won: number | null
+          total_spent: number | null
+          updated_at: string | null
+          username: string | null
+        }
+        Insert: {
+          achievements?: Json | null
+          avatar_url?: string | null
+          bio?: string | null
+          chests_opened?: number | null
+          created_at?: string | null
+          email: string
+          experience_points?: number | null
+          full_name?: string | null
+          id: string
+          is_active?: boolean | null
+          join_date?: string | null
+          last_login?: string | null
+          level?: number | null
+          preferences?: Json | null
+          total_prizes_won?: number | null
+          total_spent?: number | null
+          updated_at?: string | null
+          username?: string | null
+        }
+        Update: {
+          achievements?: Json | null
+          avatar_url?: string | null
+          bio?: string | null
+          chests_opened?: number | null
+          created_at?: string | null
+          email?: string
+          experience_points?: number | null
+          full_name?: string | null
+          id?: string
+          is_active?: boolean | null
+          join_date?: string | null
+          last_login?: string | null
+          level?: number | null
+          preferences?: Json | null
+          total_prizes_won?: number | null
+          total_spent?: number | null
+          updated_at?: string | null
+          username?: string | null
+        }
+        Relationships: []
+      }
       profit_alerts: {
         Row: {
           alert_type: string
@@ -337,11 +439,131 @@ export type Database = {
         }
         Relationships: []
       }
+      user_achievements: {
+        Row: {
+          achievement_id: string
+          id: string
+          unlocked_at: string | null
+          user_id: string
+        }
+        Insert: {
+          achievement_id: string
+          id?: string
+          unlocked_at?: string | null
+          user_id: string
+        }
+        Update: {
+          achievement_id?: string
+          id?: string
+          unlocked_at?: string | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "user_achievements_achievement_id_fkey"
+            columns: ["achievement_id"]
+            isOneToOne: false
+            referencedRelation: "achievements"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "user_achievements_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      user_activities: {
+        Row: {
+          activity_type: string
+          created_at: string | null
+          description: string
+          experience_gained: number | null
+          id: string
+          metadata: Json | null
+          user_id: string
+        }
+        Insert: {
+          activity_type: string
+          created_at?: string | null
+          description: string
+          experience_gained?: number | null
+          id?: string
+          metadata?: Json | null
+          user_id: string
+        }
+        Update: {
+          activity_type?: string
+          created_at?: string | null
+          description?: string
+          experience_gained?: number | null
+          id?: string
+          metadata?: Json | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "user_activities_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      user_levels: {
+        Row: {
+          benefits: Json | null
+          color: string | null
+          created_at: string | null
+          icon: string | null
+          id: string
+          level: number
+          max_experience: number | null
+          min_experience: number
+          name: string
+        }
+        Insert: {
+          benefits?: Json | null
+          color?: string | null
+          created_at?: string | null
+          icon?: string | null
+          id?: string
+          level: number
+          max_experience?: number | null
+          min_experience: number
+          name: string
+        }
+        Update: {
+          benefits?: Json | null
+          color?: string | null
+          created_at?: string | null
+          icon?: string | null
+          id?: string
+          level?: number
+          max_experience?: number | null
+          min_experience?: number
+          name?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
     }
     Functions: {
+      calculate_user_level: {
+        Args: { experience: number }
+        Returns: {
+          level: number
+          name: string
+          icon: string
+          color: string
+          benefits: Json
+        }[]
+      }
       cleanup_expired_invites: {
         Args: Record<PropertyKey, never>
         Returns: undefined
@@ -356,6 +578,16 @@ export type Database = {
           p_old_data?: Json
           p_new_data?: Json
           p_metadata?: Json
+        }
+        Returns: string
+      }
+      log_user_activity: {
+        Args: {
+          p_user_id: string
+          p_activity_type: string
+          p_description: string
+          p_metadata?: Json
+          p_experience_gained?: number
         }
         Returns: string
       }
