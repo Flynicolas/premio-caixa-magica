@@ -187,19 +187,32 @@ export const useWalletAdmin = () => {
         .from('transactions')
         .select(`
           user_id,
-          amount,
-          profiles!inner(email),
-          user_wallets!inner(balance)
+          amount
         `)
         .eq('status', 'completed')
         .order('created_at', { ascending: false });
 
       if (data) {
+        // Buscar perfis dos usuários separadamente
+        const userIds = [...new Set(data.map(t => t.user_id))];
+        const { data: profiles } = await supabase
+          .from('profiles')
+          .select('id, email')
+          .in('id', userIds);
+
+        // Buscar carteiras dos usuários
+        const { data: wallets } = await supabase
+          .from('user_wallets')
+          .select('user_id, balance')
+          .in('user_id', userIds);
+
         // Agrupar por usuário e calcular totais
         const userStats = data.reduce((acc: any, transaction: any) => {
           const userId = transaction.user_id;
-          const email = transaction.profiles?.email || 'Email não encontrado';
-          const balance = Number(transaction.user_wallets?.balance || 0);
+          const userProfile = profiles?.find(p => p.id === userId);
+          const userWallet = wallets?.find(w => w.user_id === userId);
+          const email = userProfile?.email || 'Email não encontrado';
+          const balance = Number(userWallet?.balance || 0);
           
           if (!acc[userId]) {
             acc[userId] = {
@@ -232,7 +245,7 @@ export const useWalletAdmin = () => {
 
   const fetchRecentTransactions = async () => {
     try {
-      const { data } = await supabase
+      const { data: transactions } = await supabase
         .from('transactions')
         .select(`
           id,
@@ -241,20 +254,27 @@ export const useWalletAdmin = () => {
           description,
           status,
           created_at,
-          profiles!inner(email)
+          user_id
         `)
         .order('created_at', { ascending: false })
         .limit(10);
 
-      if (data) {
-        const formattedTransactions = data.map(transaction => ({
+      if (transactions) {
+        // Buscar perfis dos usuários separadamente
+        const userIds = [...new Set(transactions.map(t => t.user_id))];
+        const { data: profiles } = await supabase
+          .from('profiles')
+          .select('id, email')
+          .in('id', userIds);
+
+        const formattedTransactions = transactions.map(transaction => ({
           id: transaction.id,
           type: transaction.type,
           amount: Number(transaction.amount),
           description: transaction.description || `Transação ${transaction.type}`,
           status: transaction.status,
           created_at: transaction.created_at,
-          user_email: transaction.profiles?.email || 'Email não encontrado'
+          user_email: profiles?.find(p => p.id === transaction.user_id)?.email || 'Email não encontrado'
         }));
 
         setRecentTransactions(formattedTransactions);

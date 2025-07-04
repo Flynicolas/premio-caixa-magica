@@ -65,9 +65,7 @@ export const useWalletReports = () => {
       let query = supabase
         .from('transactions')
         .select(`
-          *,
-          profiles!inner(email, full_name),
-          user_wallets!inner(balance)
+          *
         `)
         .gte('created_at', start)
         .lte('created_at', end)
@@ -80,17 +78,47 @@ export const useWalletReports = () => {
         query = query.eq('type', 'purchase');
       }
 
-      const { data, error } = await query;
+      const { data: transactions, error } = await query;
 
       if (error) throw error;
 
+      if (transactions && transactions.length > 0) {
+        // Buscar perfis dos usuários separadamente
+        const userIds = [...new Set(transactions.map(t => t.user_id))];
+        const { data: profiles } = await supabase
+          .from('profiles')
+          .select('id, email, full_name')
+          .in('id', userIds);
+
+        // Buscar carteiras dos usuários
+        const { data: wallets } = await supabase
+          .from('user_wallets')
+          .select('user_id, balance')
+          .in('user_id', userIds);
+
+        // Combinar dados
+        const enrichedData = transactions.map(transaction => ({
+          ...transaction,
+          profiles: profiles?.find(p => p.id === transaction.user_id),
+          user_wallets: wallets?.find(w => w.user_id === transaction.user_id)
+        }));
+
+        toast({
+          title: "Relatório gerado!",
+          description: `${enrichedData.length || 0} registros encontrados`,
+          variant: "default"
+        });
+
+        return enrichedData;
+      }
+
       toast({
         title: "Relatório gerado!",
-        description: `${data?.length || 0} registros encontrados`,
+        description: "0 registros encontrados",
         variant: "default"
       });
 
-      return data;
+      return [];
 
     } catch (error: any) {
       console.error('Erro ao gerar relatório:', error);
