@@ -57,7 +57,7 @@ const Header = () => {
   };
 
   const handleAddBalance = (amount: number) => {
-    // TODO: Implementar lógica de adicionar saldo
+    // Esta função será chamada pelo WalletPanel
     console.log('Adicionando saldo:', amount);
   };
 

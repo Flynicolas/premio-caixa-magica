@@ -13,7 +13,7 @@ interface WalletData {
 
 interface Transaction {
   id: string;
-  type: 'deposit' | 'withdrawal' | 'chest_purchase' | 'prize_win' | 'refund';
+  type: 'deposit' | 'withdrawal' | 'prize' | 'purchase';
   amount: number;
   status: 'pending' | 'completed' | 'failed' | 'cancelled';
   description: string;
@@ -27,38 +27,74 @@ export const useWallet = () => {
   const [transactions, setTransactions] = useState<Transaction[]>([]);
   const [loading, setLoading] = useState(true);
 
-  // Temporary balance for testing - remove when authentication is implemented
-  const TEMP_BALANCE = 10000.00;
-
   const fetchWalletData = async () => {
     if (!user) {
-      // Set temporary balance for testing
-      setWalletData({
-        balance: TEMP_BALANCE,
-        total_deposited: TEMP_BALANCE,
-        total_withdrawn: 0,
-        total_spent: 0
-      });
+      setWalletData(null);
       return;
     }
 
     try {
-      const { data, error } = await (supabase as any)
+      const { data, error } = await supabase
         .from('user_wallets')
         .select('*')
         .eq('user_id', user.id)
         .single();
 
-      if (error) throw error;
-      setWalletData(data);
+      if (error && error.code !== 'PGRST116') {
+        throw error;
+      }
+
+      if (data) {
+        // Calcular totais baseado nas transações
+        const { data: transactionsData } = await supabase
+          .from('transactions')
+          .select('type, amount, status')
+          .eq('user_id', user.id)
+          .eq('status', 'completed');
+
+        let totalDeposited = 0;
+        let totalWithdrawn = 0;
+        let totalSpent = 0;
+
+        transactionsData?.forEach(transaction => {
+          if (transaction.type === 'deposit') {
+            totalDeposited += Number(transaction.amount);
+          } else if (transaction.type === 'withdrawal') {
+            totalWithdrawn += Number(transaction.amount);
+          } else if (transaction.type === 'purchase') {
+            totalSpent += Number(transaction.amount);
+          }
+        });
+
+        setWalletData({
+          balance: Number(data.balance),
+          total_deposited: totalDeposited,
+          total_withdrawn: totalWithdrawn,
+          total_spent: totalSpent
+        });
+      } else {
+        // Criar carteira se não existir
+        const { data: newWallet, error: createError } = await supabase
+          .from('user_wallets')
+          .insert({ user_id: user.id, balance: 0.00 })
+          .select()
+          .single();
+
+        if (createError) throw createError;
+
+        setWalletData({
+          balance: 0,
+          total_deposited: 0,
+          total_withdrawn: 0,
+          total_spent: 0
+        });
+      }
     } catch (error) {
       console.error('Error fetching wallet data:', error);
-      // Fallback to temporary balance
-      setWalletData({
-        balance: TEMP_BALANCE,
-        total_deposited: TEMP_BALANCE,
-        total_withdrawn: 0,
-        total_spent: 0
+      toast({
+        title: "Erro ao carregar carteira",
+        description: "Não foi possível carregar os dados da carteira.",
+        variant: "destructive"
       });
     }
   };
@@ -67,7 +103,7 @@ export const useWallet = () => {
     if (!user) return;
 
     try {
-      const { data, error } = await (supabase as any)
+      const { data, error } = await supabase
         .from('transactions')
         .select('*')
         .eq('user_id', user.id)
@@ -82,39 +118,50 @@ export const useWallet = () => {
   };
 
   const addBalance = async (amount: number) => {
-    if (!user) {
-      // For testing without authentication
-      if (walletData) {
-        const newBalance = walletData.balance + amount;
-        setWalletData({
-          ...walletData,
-          balance: newBalance,
-          total_deposited: walletData.total_deposited + amount
-        });
-        
-        toast({
-          title: "Saldo adicionado!",
-          description: `R$ ${amount.toFixed(2)} foram adicionados à sua conta.`,
-          variant: "default"
-        });
-        
-        return { error: null };
-      }
-      return { error: 'Erro temporário' };
+    if (!user || !walletData) {
+      toast({
+        title: "Erro",
+        description: "Usuário não logado ou carteira não carregada.",
+        variant: "destructive"
+      });
+      return { error: 'Usuário não logado' };
     }
 
     try {
-      const { error } = await (supabase as any)
+      // Buscar wallet_id
+      const { data: walletInfo } = await supabase
+        .from('user_wallets')
+        .select('id')
+        .eq('user_id', user.id)
+        .single();
+
+      if (!walletInfo) throw new Error('Carteira não encontrada');
+
+      // Criar transação
+      const { error: transactionError } = await supabase
         .from('transactions')
         .insert({
           user_id: user.id,
+          wallet_id: walletInfo.id,
           type: 'deposit',
           amount,
           status: 'completed',
           description: `Depósito de R$ ${amount.toFixed(2)}`
         });
 
-      if (error) throw error;
+      if (transactionError) throw transactionError;
+
+      // Atualizar saldo da carteira
+      const newBalance = walletData.balance + amount;
+      const { error: updateError } = await supabase
+        .from('user_wallets')
+        .update({ 
+          balance: newBalance,
+          updated_at: new Date().toISOString()
+        })
+        .eq('user_id', user.id);
+
+      if (updateError) throw updateError;
 
       toast({
         title: "Saldo adicionado!",
@@ -136,9 +183,17 @@ export const useWallet = () => {
     }
   };
 
-  // Atualizar função de compra de baú para usar o novo sistema
   const purchaseChest = async (chestType: string, amount: number) => {
-    if (!walletData || walletData.balance < amount) {
+    if (!user || !walletData) {
+      toast({
+        title: "Erro",
+        description: "Usuário não logado ou carteira não carregada.",
+        variant: "destructive"
+      });
+      return { error: 'Usuário não logado' };
+    }
+
+    if (walletData.balance < amount) {
       toast({
         title: "Saldo insuficiente",
         description: `Você precisa de R$ ${amount.toFixed(2)} para comprar este baú.`,
@@ -147,77 +202,51 @@ export const useWallet = () => {
       return { error: 'Saldo insuficiente' };
     }
 
-    // Para teste sem autenticação - apenas deduzir do saldo temporário
-    if (!user) {
-      const newBalance = walletData.balance - amount;
-      setWalletData({
-        ...walletData,
-        balance: newBalance,
-        total_spent: walletData.total_spent + amount
-      });
-      
-      // Aqui você poderia chamar useInventory().addChestToInventory()
-      // Mas vamos fazer isso no componente que chama esta função
-      
-      toast({
-        title: "Baú comprado!",
-        description: `Você comprou um baú ${chestType} por R$ ${amount.toFixed(2)}`,
-        variant: "default"
-      });
-      
-      return { error: null };
-    }
-
     try {
-      // Criar ordem de compra
-      const { data: order, error: orderError } = await (supabase as any)
-        .from('orders')
-        .insert({
-          user_id: user.id,
-          order_type: 'chest_purchase',
-          amount,
-          status: 'completed', // Para teste, marcar como pago imediatamente
-          items: { chest_type: chestType, quantity: 1 }
-        })
-        .select()
+      // Buscar wallet_id
+      const { data: walletInfo } = await supabase
+        .from('user_wallets')
+        .select('id')
+        .eq('user_id', user.id)
         .single();
 
-      if (orderError) throw orderError;
+      if (!walletInfo) throw new Error('Carteira não encontrada');
 
-      // Criar transação
-      const { error: transactionError } = await (supabase as any)
+      // Criar transação de compra
+      const { error: transactionError } = await supabase
         .from('transactions')
         .insert({
           user_id: user.id,
-          type: 'chest_purchase',
+          wallet_id: walletInfo.id,
+          type: 'purchase',
           amount,
           status: 'completed',
-          description: `Compra de baú ${chestType}`
+          description: `Compra de baú ${chestType}`,
+          metadata: { chest_type: chestType }
         });
 
       if (transactionError) throw transactionError;
 
-      // Adicionar baú ao inventário
-      const { error: inventoryError } = await (supabase as any)
-        .from('user_chest_inventory')
-        .insert({
-          user_id: user.id,
-          chest_type: chestType,
-          quantity: 1,
-          acquired_from: 'purchase',
-          order_id: order.id
-        });
+      // Atualizar saldo da carteira
+      const newBalance = walletData.balance - amount;
+      const { error: updateError } = await supabase
+        .from('user_wallets')
+        .update({ 
+          balance: newBalance,
+          updated_at: new Date().toISOString()
+        })
+        .eq('user_id', user.id);
 
-      if (inventoryError) throw inventoryError;
-
-      await fetchWalletData();
-      await fetchTransactions();
+      if (updateError) throw updateError;
 
       toast({
         title: "Baú comprado!",
         description: `Você comprou um baú ${chestType} por R$ ${amount.toFixed(2)}`,
         variant: "default"
       });
+
+      await fetchWalletData();
+      await fetchTransactions();
 
       return { error: null };
     } catch (error: any) {
@@ -231,11 +260,16 @@ export const useWallet = () => {
   };
 
   useEffect(() => {
-    fetchWalletData();
-    if (user) {
-      fetchTransactions();
-    }
-    setLoading(false);
+    const loadData = async () => {
+      setLoading(true);
+      await fetchWalletData();
+      if (user) {
+        await fetchTransactions();
+      }
+      setLoading(false);
+    };
+
+    loadData();
   }, [user]);
 
   return {
