@@ -1,11 +1,12 @@
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
 @layer base {
   :root {
-    --background: 0 0% 5%;
-    --foreground: 45 100% 85%;
+    --background: 0 0% 3%;
+    --foreground: 45 100% 90%;
     --card: 0 0% 8%;
     --card-foreground: 45 100% 90%;
     --popover: 0 0% 8%;
@@ -19,7 +20,7 @@
     --accent: 45 100% 60%;
     --accent-foreground: 0 0% 5%;
     --destructive: 0 84.2% 60.2%;
-    --destructive-foreground: 210 40% 98%;
+    --destructive-foreground: 0 0% 98%;
     --border: 0 0% 20%;
     --input: 0 0% 15%;
     --ring: 45 100% 50%;
@@ -32,7 +33,7 @@
 
   body {
     @apply bg-background text-foreground font-medium;
-    background: radial-gradient(ellipse at center, rgba(15, 15, 15, 1) 0%, rgba(0, 0, 0, 1) 100%);
+    background: radial-gradient(ellipse at center, hsl(0 0% 5%) 0%, hsl(0 0% 2%) 100%);
     min-height: 100vh;
   }
 }
