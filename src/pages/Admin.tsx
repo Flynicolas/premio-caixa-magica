@@ -1,3 +1,4 @@
+
 import React from 'react';
 import { useAuth } from '@/hooks/useAuth';
 import { useAdminData } from '@/hooks/useAdminData';
@@ -7,7 +8,8 @@ import ChestManagementPanel from '@/components/ChestManagementPanel';
 import ItemManagement from '@/components/admin/ItemManagement';
 import ChestProbabilityManager from '@/components/admin/ChestProbabilityManager';
 import CollaboratorManagement from '@/components/admin/CollaboratorManagement';
-import { Shield, BarChart3, Settings, Users, Package } from 'lucide-react';
+import WalletControlPanel from '@/components/admin/WalletControlPanel';
+import { Shield, BarChart3, Settings, Users, Package, Wallet } from 'lucide-react';
 
 const Admin = () => {
   const { user } = useAuth();
@@ -62,11 +64,15 @@ const Admin = () => {
     <div className="container mx-auto px-4 py-8">
       <div className="mb-8">
         <h1 className="text-3xl font-bold mb-2">Painel Administrativo</h1>
-        <p className="text-muted-foreground">Gerencie o sistema de baús e acompanhe métricas em tempo real</p>
+        <p className="text-muted-foreground">Gerencie o sistema de baús, carteira virtual e acompanhe métricas em tempo real</p>
       </div>
 
-      <Tabs defaultValue="dashboard" className="space-y-6">
-        <TabsList className="grid w-full grid-cols-6">
+      <Tabs defaultValue="wallet" className="space-y-6">
+        <TabsList className="grid w-full grid-cols-7">
+          <TabsTrigger value="wallet" className="flex items-center gap-2">
+            <Wallet className="w-4 h-4" />
+            Carteira
+          </TabsTrigger>
           <TabsTrigger value="dashboard" className="flex items-center gap-2">
             <BarChart3 className="w-4 h-4" />
             Dashboard
@@ -92,6 +98,10 @@ const Admin = () => {
             Configurações
           </TabsTrigger>
         </TabsList>
+
+        <TabsContent value="wallet">
+          <WalletControlPanel />
+        </TabsContent>
 
         <TabsContent value="dashboard">
           <ChestManagementPanel />
