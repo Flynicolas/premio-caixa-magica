@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -7,6 +6,8 @@ import { useAuth } from '@/hooks/useAuth';
 import { useItemManagement } from '@/hooks/useItemManagement';
 import ItemsSpreadsheet from '@/components/admin/ItemsSpreadsheet';
 import DataMigrationPanel from '@/components/admin/DataMigrationPanel';
+import ExcelImporter from '@/components/admin/ExcelImporter';
+import ImportGuide from '@/components/admin/ImportGuide';
 import { 
   Database, 
   Grid3X3, 
@@ -15,7 +16,8 @@ import {
   Shield,
   TrendingUp,
   Package,
-  Image as ImageIcon
+  Image as ImageIcon,
+  BookOpen
 } from 'lucide-react';
 
 const ItemManagement = () => {
@@ -29,7 +31,8 @@ const ItemManagement = () => {
     updateItem,
     createItem,
     deleteItem,
-    bulkUpdateItems
+    bulkUpdateItems,
+    refetchItems
   } = useItemManagement();
 
   if (!user) {
@@ -165,7 +168,7 @@ const ItemManagement = () => {
 
       {/* Abas principais */}
       <Tabs defaultValue="spreadsheet" className="space-y-6">
-        <TabsList className="grid w-full grid-cols-3">
+        <TabsList className="grid w-full grid-cols-4">
           <TabsTrigger value="migration" className="flex items-center gap-2">
             <Database className="w-4 h-4" />
             Migração
@@ -176,7 +179,11 @@ const ItemManagement = () => {
           </TabsTrigger>
           <TabsTrigger value="upload" className="flex items-center gap-2">
             <Upload className="w-4 h-4" />
-            Upload
+            Importar Excel
+          </TabsTrigger>
+          <TabsTrigger value="guide" className="flex items-center gap-2">
+            <BookOpen className="w-4 h-4" />
+            Guia de Uso
           </TabsTrigger>
         </TabsList>
 
@@ -199,20 +206,11 @@ const ItemManagement = () => {
         </TabsContent>
 
         <TabsContent value="upload">
-          <Card>
-            <CardHeader>
-              <CardTitle>Sistema de Upload</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="text-center py-12">
-                <Upload className="w-16 h-16 mx-auto mb-4 text-gray-400" />
-                <h3 className="text-lg font-semibold mb-2">Sistema de Upload em Desenvolvimento</h3>
-                <p className="text-muted-foreground">
-                  Em breve você poderá fazer upload de imagens e planilhas Excel diretamente por aqui.
-                </p>
-              </div>
-            </CardContent>
-          </Card>
+          <ExcelImporter />
+        </TabsContent>
+
+        <TabsContent value="guide">
+          <ImportGuide />
         </TabsContent>
       </Tabs>
     </div>
