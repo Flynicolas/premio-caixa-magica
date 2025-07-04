@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
@@ -268,8 +269,21 @@ const Header = () => {
                 <div className="border-t border-gray-200 pt-4 mt-4">
                   {user ? (
                     <div className="space-y-2">
-                      <div className="px-3">
-                        <UserProfile />
+                      <div className="px-3 flex items-center space-x-4">
+                        {/* Wallet Balance */}
+                        <div className="flex items-center space-x-2 bg-secondary px-4 py-2 rounded-lg">
+                          <Wallet className="w-4 h-4 text-primary" />
+                          <span className="font-bold text-primary">
+                            R$ {walletData?.balance?.toFixed(2) || '0,00'}
+                          </span>
+                        </div>
+                        
+                        <Button 
+                          onClick={() => setShowWallet(true)}
+                          className="gold-gradient text-black font-bold hover:opacity-90"
+                        >
+                          Carteira
+                        </Button>
                       </div>
                       <Link
                         to="/perfil"
@@ -319,7 +333,7 @@ const Header = () => {
         isOpen={showWallet}
         onClose={() => setShowWallet(false)}
         balance={walletData?.balance || 0}
-        prizes={[]} // TODO: Implementar lista de prêmios
+        prizes={[]}
         onAddBalance={handleAddBalance}
       />
     </>

@@ -44,11 +44,11 @@ const DataMigrationPanel: React.FC<DataMigrationPanelProps> = ({
       itemsWithoutImages: 0
     };
 
-    Object.entries(chestData).forEach(([chestType, items]) => {
-      analysis.itemsByChest[chestType] = items.length;
-      analysis.totalItems += items.length;
+    Object.entries(chestData).forEach(([chestType, chestItems]) => {
+      analysis.itemsByChest[chestType] = chestItems.length;
+      analysis.totalItems += chestItems.length;
 
-      items.forEach(item => {
+      chestItems.forEach(item => {
         analysis.itemsByRarity[item.rarity] = (analysis.itemsByRarity[item.rarity] || 0) + 1;
         analysis.totalValue += item.value;
         
