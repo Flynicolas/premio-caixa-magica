@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { useAuth } from '@/hooks/useAuth';
 import { useWallet } from '@/hooks/useWallet';
+import { Button } from '@/components/ui/button';
 import HeroSlider from '@/components/HeroSlider';
 import ChestCard from '@/components/ChestCard';
 import RealtimeWinsCarousel from '@/components/RealtimeWinsCarousel';
