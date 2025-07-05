@@ -3,13 +3,13 @@ import { Dialog, DialogContent } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Trophy, Sparkles, Gift, X } from 'lucide-react';
-import { Prize } from '@/data/chestData';
+import { DatabaseItem } from '@/types/database';
 import { useEffect, useState } from 'react';
 
 interface WinModalProps {
   isOpen: boolean;
   onClose: () => void;
-  prize: Prize | null;
+  prize: DatabaseItem | null;
   onCollect: () => void;
 }
 
@@ -42,29 +42,29 @@ const WinModal = ({ isOpen, onClose, prize, onCollect }: WinModalProps) => {
   };
 
   // Generate more specific descriptions based on prize name
-  const getSpecificDescription = (prize: Prize) => {
+  const getSpecificDescription = (prize: DatabaseItem) => {
     if (prize.name.includes('iPhone') || prize.name.includes('Celular')) {
-      return `${prize.description}. Produto novo, lacrado, com garantia oficial. Inclui carregador e fones de ouvido originais.`;
+      return `${prize.description || 'Smartphone premium'}. Produto novo, lacrado, com garantia oficial. Inclui carregador e fones de ouvido originais.`;
     }
     if (prize.name.includes('PlayStation') || prize.name.includes('Xbox')) {
-      return `${prize.description}. Console completo com 1 controle, todos os cabos e 3 jogos grátis à sua escolha.`;
+      return `${prize.description || 'Console de última geração'}. Console completo com 1 controle, todos os cabos e 3 jogos grátis à sua escolha.`;
     }
     if (prize.name.includes('TV')) {
-      return `${prize.description}. Smart TV com tecnologia 4K, HDR, conectividade Wi-Fi e todas as principais plataformas de streaming.`;
+      return `${prize.description || 'Smart TV premium'}. Smart TV com tecnologia 4K, HDR, conectividade Wi-Fi e todas as principais plataformas de streaming.`;
     }
     if (prize.name.includes('Notebook') || prize.name.includes('PC')) {
-      return `${prize.description}. Equipamento completo com Windows licenciado, pacote Office e suporte técnico de 1 ano.`;
+      return `${prize.description || 'Computador de alta performance'}. Equipamento completo com Windows licenciado, pacote Office e suporte técnico de 1 ano.`;
     }
     if (prize.name.includes('Moto') || prize.name.includes('Bicicleta')) {
-      return `${prize.description}. Produto novo com documentação, seguro DPVAT e capacete de brinde.`;
+      return `${prize.description || 'Veículo em perfeito estado'}. Produto novo com documentação, seguro DPVAT e capacete de brinde.`;
     }
     if (prize.name.includes('Viagem')) {
-      return `${prize.description}. Pacote completo com passagens aéreas, hospedagem, café da manhã e transfer aeroporto.`;
+      return `${prize.description || 'Pacote de viagem completo'}. Pacote completo com passagens aéreas, hospedagem, café da manhã e transfer aeroporto.`;
     }
     if (prize.name.includes('PIX') || prize.name.includes('Dinheiro')) {
-      return `${prize.description}. Valor depositado em até 24 horas na sua conta bancária via PIX.`;
+      return `${prize.description || 'Valor em dinheiro'}. Valor depositado em até 24 horas na sua conta bancária via PIX.`;
     }
-    return `${prize.description}. Produto original, novo e com garantia. Entrega realizada em todo território nacional.`;
+    return `${prize.description || 'Produto premium'}. Produto original, novo e com garantia. Entrega realizada em todo território nacional.`;
   };
 
   return (
@@ -108,11 +108,13 @@ const WinModal = ({ isOpen, onClose, prize, onCollect }: WinModalProps) => {
 
           {/* Prize Details */}
           <div className="bg-secondary/50 rounded-lg p-6 mb-6 border border-primary/20">
-            <img 
-              src={prize.image} 
-              alt={prize.name}
-              className="w-24 h-24 mx-auto mb-4 rounded-lg object-contain"
-            />
+            {prize.image_url && (
+              <img 
+                src={prize.image_url} 
+                alt={prize.name}
+                className="w-24 h-24 mx-auto mb-4 rounded-lg object-contain"
+              />
+            )}
             
             <h3 className="text-2xl font-bold text-primary mb-3">
               {prize.name}
@@ -131,7 +133,7 @@ const WinModal = ({ isOpen, onClose, prize, onCollect }: WinModalProps) => {
                 {rarityLabels[prize.rarity]}
               </Badge>
               <Badge variant="outline" className="text-primary border-primary">
-                {prize.value}
+                R$ {Number(prize.base_value).toFixed(2)}
               </Badge>
             </div>
           </div>
