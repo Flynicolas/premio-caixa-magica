@@ -7,90 +7,48 @@ export const useImageUpload = () => {
   const [uploading, setUploading] = useState(false);
   const { toast } = useToast();
 
-  const resizeImageToSquare = (file: File, size: number = 400): Promise<File> => {
-    return new Promise((resolve) => {
-      const canvas = document.createElement('canvas');
-      const ctx = canvas.getContext('2d')!;
-      const img = new Image();
-      
-      img.onload = () => {
-        canvas.width = size;
-        canvas.height = size;
-        
-        // Preencher com fundo branco
-        ctx.fillStyle = '#ffffff';
-        ctx.fillRect(0, 0, size, size);
-        
-        // Calcular dimensões para manter proporção sem cortar
-        const scale = Math.min(size / img.width, size / img.height);
-        const newWidth = img.width * scale;
-        const newHeight = img.height * scale;
-        
-        // Centralizar a imagem
-        const x = (size - newWidth) / 2;
-        const y = (size - newHeight) / 2;
-        
-        ctx.drawImage(img, x, y, newWidth, newHeight);
-        
-        canvas.toBlob((blob) => {
-          const resizedFile = new File([blob!], file.name, {
-            type: 'image/png',
-            lastModified: Date.now()
-          });
-          resolve(resizedFile);
-        }, 'image/png', 0.9);
-      };
-      
-      img.src = URL.createObjectURL(file);
-    });
-  };
-
   const uploadImage = async (file: File, itemId?: string): Promise<string | null> => {
     try {
       setUploading(true);
-      
-      // Verificar se é uma imagem
-      if (!file.type.startsWith('image/')) {
-        toast({
-          title: "Erro no upload",
-          description: "Por favor, selecione apenas arquivos de imagem.",
-          variant: "destructive"
-        });
-        return null;
-      }
-      
-      // Redimensionar para quadrado
-      const resizedFile = await resizeImageToSquare(file);
-      
+      console.log('Iniciando upload de imagem:', file.name, 'para item:', itemId);
+
       // Gerar nome único para o arquivo
-      const fileExt = 'png';
-      const fileName = `${itemId || Date.now()}-${Math.random().toString(36).substring(2)}.${fileExt}`;
+      const fileExt = file.name.split('.').pop();
+      const fileName = `${itemId || 'item'}_${Date.now()}.${fileExt}`;
       const filePath = `items/${fileName}`;
-      
-      // Upload para o Supabase Storage
+
+      console.log('Upload path:', filePath);
+
+      // Fazer upload do arquivo
       const { data, error } = await supabase.storage
         .from('item-images')
-        .upload(filePath, resizedFile, {
+        .upload(filePath, file, {
           cacheControl: '3600',
-          upsert: false
+          upsert: true
         });
-      
-      if (error) throw error;
-      
+
+      if (error) {
+        console.error('Erro no upload:', error);
+        throw error;
+      }
+
+      console.log('Upload concluído:', data);
+
       // Obter URL pública
-      const { data: urlData } = supabase.storage
+      const { data: { publicUrl } } = supabase.storage
         .from('item-images')
         .getPublicUrl(filePath);
-      
+
+      console.log('URL pública gerada:', publicUrl);
+
       toast({
-        title: "Upload realizado!",
-        description: "Imagem foi redimensionada e carregada com sucesso.",
+        title: "Upload concluído!",
+        description: "Imagem enviada com sucesso.",
       });
-      
-      return urlData.publicUrl;
-      
+
+      return publicUrl;
     } catch (error: any) {
-      console.error('Erro no upload:', error);
+      console.error('Erro no upload de imagem:', error);
       toast({
         title: "Erro no upload",
         description: error.message,
@@ -102,8 +60,32 @@ export const useImageUpload = () => {
     }
   };
 
+  const deleteImage = async (imagePath: string): Promise<boolean> => {
+    try {
+      console.log('Deletando imagem:', imagePath);
+      
+      const { error } = await supabase.storage
+        .from('item-images')
+        .remove([imagePath]);
+
+      if (error) throw error;
+
+      console.log('Imagem deletada com sucesso');
+      return true;
+    } catch (error: any) {
+      console.error('Erro ao deletar imagem:', error);
+      toast({
+        title: "Erro ao deletar imagem",
+        description: error.message,
+        variant: "destructive"
+      });
+      return false;
+    }
+  };
+
   return {
     uploadImage,
+    deleteImage,
     uploading
   };
 };

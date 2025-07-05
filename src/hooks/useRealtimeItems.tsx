@@ -42,7 +42,7 @@ export const useRealtimeItems = () => {
   useEffect(() => {
     fetchItems();
 
-    // Configurar canal de tempo real
+    // Configurar canal de tempo real com logs detalhados
     const channel = supabase
       .channel('items-realtime')
       .on('postgres_changes', 
@@ -93,9 +93,15 @@ export const useRealtimeItems = () => {
           }
         }
       )
-      .subscribe();
+      .subscribe((status) => {
+        console.log('Status do canal realtime:', status);
+        if (status === 'SUBSCRIBED') {
+          console.log('Canal realtime ativo para itens');
+        }
+      });
 
     return () => {
+      console.log('Removendo canal realtime');
       supabase.removeChannel(channel);
     };
   }, []);

@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
@@ -43,6 +44,7 @@ export const useItemManagement = () => {
       
       const adminStatus = !!data;
       setIsAdmin(adminStatus);
+      console.log('Status de admin verificado:', adminStatus);
       return adminStatus;
     } catch (error) {
       console.error('Erro ao verificar status admin:', error);
@@ -79,6 +81,7 @@ export const useItemManagement = () => {
 
   const fetchItems = async () => {
     try {
+      console.log('Buscando itens...');
       const { data, error } = await supabase
         .from('items')
         .select('*')
@@ -92,6 +95,7 @@ export const useItemManagement = () => {
         delivery_type: item.delivery_type as 'digital' | 'physical'
       }));
       
+      console.log('Itens carregados:', typedData.length);
       setItems(typedData);
       calculateStats(typedData);
     } catch (error: any) {
@@ -144,6 +148,7 @@ export const useItemManagement = () => {
 
   const updateItem = async (id: string, updates: Partial<DatabaseItem>) => {
     try {
+      console.log('Atualizando item:', id, updates);
       const { error } = await supabase
         .from('items')
         .update({
@@ -154,6 +159,7 @@ export const useItemManagement = () => {
 
       if (error) throw error;
 
+      // Atualizar estado local imediatamente
       setItems(prev => prev.map(item => 
         item.id === id ? { ...item, ...updates } : item
       ));
@@ -174,6 +180,7 @@ export const useItemManagement = () => {
 
   const createItem = async (itemData: Omit<DatabaseItem, 'id' | 'created_at' | 'updated_at'>) => {
     try {
+      console.log('Criando item:', itemData);
       const { data, error } = await supabase
         .from('items')
         .insert([itemData])
@@ -188,6 +195,7 @@ export const useItemManagement = () => {
         delivery_type: data.delivery_type as 'digital' | 'physical'
       };
 
+      // Atualizar estado local imediatamente
       setItems(prev => [typedData, ...prev]);
 
       toast({
@@ -209,6 +217,7 @@ export const useItemManagement = () => {
 
   const deleteItem = async (id: string) => {
     try {
+      console.log('Deletando item:', id);
       const { error } = await supabase
         .from('items')
         .delete()
@@ -216,6 +225,7 @@ export const useItemManagement = () => {
 
       if (error) throw error;
 
+      // Atualizar estado local imediatamente
       setItems(prev => prev.filter(item => item.id !== id));
 
       toast({
@@ -234,6 +244,7 @@ export const useItemManagement = () => {
 
   const bulkUpdateItems = async (itemIds: string[], updates: Partial<DatabaseItem>) => {
     try {
+      console.log('Atualização em massa:', itemIds.length, 'itens');
       const { error } = await supabase
         .from('items')
         .update({
@@ -244,6 +255,7 @@ export const useItemManagement = () => {
 
       if (error) throw error;
 
+      // Atualizar estado local imediatamente
       setItems(prev => prev.map(item => 
         itemIds.includes(item.id) ? { ...item, ...updates } : item
       ));
@@ -283,18 +295,27 @@ export const useItemManagement = () => {
     loadData();
   }, [user]);
 
+  // Configurar real-time updates
   useEffect(() => {
     if (!isAdmin) return;
 
+    console.log('Configurando realtime para itens...');
     const channel = supabase
       .channel('item-management-updates')
       .on('postgres_changes', 
         { event: '*', schema: 'public', table: 'items' },
-        () => fetchItems()
+        (payload) => {
+          console.log('Mudança realtime detectada:', payload);
+          // O fetchItems será chamado automaticamente pelo realtime
+          fetchItems();
+        }
       )
-      .subscribe();
+      .subscribe((status) => {
+        console.log('Status do canal item-management:', status);
+      });
 
     return () => {
+      console.log('Removendo canal item-management');
       supabase.removeChannel(channel);
     };
   }, [isAdmin]);
