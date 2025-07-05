@@ -113,11 +113,10 @@ const DynamicSpinCarousel = ({
     setSpinPhase('spinning');
 
     try {
-      // Chamar função de sorteio do banco de dados
-      const { data: drawnItemId, error } = await supabase
-        .rpc('draw_item_from_chest', { 
-          chest_type_param: chestType 
-        });
+      // Usar Edge Function para sorteio
+      const { data, error } = await supabase.functions.invoke('draw-item-from-chest', {
+        body: { chestType }
+      });
 
       if (error) throw error;
 
@@ -125,7 +124,7 @@ const DynamicSpinCarousel = ({
       const { data: wonPrize, error: itemError } = await supabase
         .from('items')
         .select('*')
-        .eq('id', drawnItemId)
+        .eq('id', data.itemId)
         .single();
 
       if (itemError) throw itemError;

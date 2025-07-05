@@ -3,10 +3,10 @@ import { DatabaseItem } from '@/types/database';
 import { SpinPhase } from './types';
 
 interface CarouselContainerProps {
-  prizes: (DatabaseItem | any)[];
+  prizes: DatabaseItem[];
   isSpinning: boolean;
   spinPhase: SpinPhase;
-  selectedPrize: DatabaseItem | any | null;
+  selectedPrize: DatabaseItem | null;
   carouselRef: React.RefObject<HTMLDivElement>;
 }
 
@@ -64,15 +64,12 @@ const CarouselContainer = ({
           style={{ width: `${extendedPrizes.length * 154}px` }}
         >
           {extendedPrizes.map((prize, index) => {
-            const isSelected = selectedPrize && 
-              ((prize.id && prize.id === selectedPrize.id) || 
-               (prize.name === selectedPrize.name));
-            
+            const isSelected = selectedPrize && prize.id === selectedPrize.id;
             const isPulsingWinner = spinPhase === 'showing-result' && isSelected;
             
             return (
               <div
-                key={`${prize.id || prize.name}-${index}`}
+                key={`${prize.id}-${index}`}
                 className={`
                   flex-shrink-0 w-36 h-36 rounded-xl flex flex-col items-center justify-center p-3 
                   transition-all duration-300 relative overflow-hidden
@@ -89,9 +86,9 @@ const CarouselContainer = ({
                 
                 {/* Imagem do item */}
                 <div className="w-16 h-16 rounded-lg overflow-hidden mb-2 flex items-center justify-center bg-white/80 shadow-sm">
-                  {(prize.image_url || prize.image) ? (
+                  {prize.image_url ? (
                     <img 
-                      src={prize.image_url || prize.image} 
+                      src={prize.image_url} 
                       alt={prize.name}
                       className="max-w-full max-h-full object-contain"
                       onError={(e) => {
@@ -115,8 +112,7 @@ const CarouselContainer = ({
 
                 {/* Valor do item */}
                 <p className="text-xs text-center font-medium truncate w-full text-green-700">
-                  {prize.base_value ? `R$ ${Number(prize.base_value).toFixed(2)}` : 
-                   prize.value ? prize.value : 'Sem valor'}
+                  R$ {Number(prize.base_value).toFixed(2)}
                 </p>
 
                 {/* Badge de raridade */}

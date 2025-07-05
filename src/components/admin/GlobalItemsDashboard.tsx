@@ -39,10 +39,9 @@ const GlobalItemsDashboard = () => {
     const totalValue = items.reduce((sum, item) => sum + Number(item.base_value), 0);
     const avgValue = items.length > 0 ? totalValue / items.length : 0;
 
-    const mostExpensive = items.reduce((max, item) => 
-      Number(item.base_value) > Number(max.base_value || 0) ? item : max, 
-      items[0] || {}
-    );
+    const mostExpensive = items.length > 0 ? items.reduce((max, item) => 
+      Number(item.base_value) > Number(max.base_value || 0) ? item : max
+    ) : null;
 
     const rareItems = items.filter(item => ['epic', 'legendary'].includes(item.rarity));
     const missingImages = items.filter(item => !item.image_url).length;
