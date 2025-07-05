@@ -9,7 +9,8 @@ import ItemManagement from '@/components/admin/ItemManagement';
 import ChestProbabilityManager from '@/components/admin/ChestProbabilityManager';
 import CollaboratorManagement from '@/components/admin/CollaboratorManagement';
 import WalletControlPanel from '@/components/admin/WalletControlPanel';
-import { Shield, BarChart3, Settings, Users, Package, Wallet } from 'lucide-react';
+import GlobalItemsDashboard from '@/components/admin/GlobalItemsDashboard';
+import { Shield, BarChart3, Settings, Users, Package, Wallet, Globe } from 'lucide-react';
 
 const Admin = () => {
   const { user } = useAuth();
@@ -67,8 +68,12 @@ const Admin = () => {
         <p className="text-muted-foreground">Gerencie o sistema de baús, carteira virtual e acompanhe métricas em tempo real</p>
       </div>
 
-      <Tabs defaultValue="wallet" className="space-y-6">
-        <TabsList className="grid w-full grid-cols-7">
+      <Tabs defaultValue="global" className="space-y-6">
+        <TabsList className="grid w-full grid-cols-8">
+          <TabsTrigger value="global" className="flex items-center gap-2">
+            <Globe className="w-4 h-4" />
+            Global
+          </TabsTrigger>
           <TabsTrigger value="wallet" className="flex items-center gap-2">
             <Wallet className="w-4 h-4" />
             Carteira
@@ -98,6 +103,10 @@ const Admin = () => {
             Configurações
           </TabsTrigger>
         </TabsList>
+
+        <TabsContent value="global">
+          <GlobalItemsDashboard />
+        </TabsContent>
 
         <TabsContent value="wallet">
           <WalletControlPanel />
