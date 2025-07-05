@@ -1,4 +1,3 @@
-
 import { useState } from 'react';
 import { useAuth } from '@/hooks/useAuth';
 import { useWallet } from '@/hooks/useWallet';
@@ -13,6 +12,7 @@ import SpinCarousel from '@/components/carousel/SpinCarousel';
 import WinModal from '@/components/WinModal';
 import { chestData, ChestType, Chest } from '@/data/chestData';
 import { DatabaseItem } from '@/types/database';
+import FreeSpinWheel from '@/components/FreeSpinWheel';
 
 const Index = () => {
   const { user } = useAuth();
@@ -23,6 +23,7 @@ const Index = () => {
   const [showConfirmModal, setShowConfirmModal] = useState(false);
   const [showSpinCarousel, setShowSpinCarousel] = useState(false);
   const [showWinModal, setShowWinModal] = useState(false);
+  const [showFreeWheel, setShowFreeWheel] = useState(false);
   const [selectedChest, setSelectedChest] = useState<{ chest: Chest; type: ChestType } | null>(null);
   const [wonPrize, setWonPrize] = useState<DatabaseItem | null>(null);
 
@@ -101,6 +102,33 @@ const Index = () => {
         <div className="mb-8">
           <HeroSlider />
         </div>
+
+        {/* Roda da Sorte Grátis - Nova seção */}
+        <section className="mb-12">
+          <div className="text-center mb-8">
+            <h2 className="text-3xl font-bold mb-4 text-primary">
+              🎰 Roda da Sorte Grátis 🎰
+            </h2>
+            <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
+              Experimente nossa simulação de abertura de baú! Gire a roda e veja que tipo de prêmio você poderia ganhar.
+            </p>
+          </div>
+          
+          <div className="flex justify-center mb-8">
+            <Button
+              onClick={() => setShowFreeWheel(!showFreeWheel)}
+              className="bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600 text-white font-bold py-3 px-8 rounded-full shadow-lg"
+            >
+              {showFreeWheel ? 'Esconder Roda' : '🎲 Testar Roda Grátis'}
+            </Button>
+          </div>
+          
+          {showFreeWheel && (
+            <div className="mb-8">
+              <FreeSpinWheel />
+            </div>
+          )}
+        </section>
 
         {/* Real-time Wins Carousel */}
         <RealtimeWinsCarousel className="mb-12" />

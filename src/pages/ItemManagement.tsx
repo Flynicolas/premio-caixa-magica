@@ -21,6 +21,7 @@ import {
   BookOpen,
   FileText
 } from 'lucide-react';
+import ImprovedItemsTable from '@/components/admin/ImprovedItemsTable';
 
 const ItemManagement = () => {
   const { user } = useAuth();
@@ -166,8 +167,12 @@ const ItemManagement = () => {
         </Card>
       )}
 
-      <Tabs defaultValue="migration" className="space-y-6">
-        <TabsList className="grid w-full grid-cols-5">
+      <Tabs defaultValue="realtime" className="space-y-6">
+        <TabsList className="grid w-full grid-cols-6">
+          <TabsTrigger value="realtime" className="flex items-center gap-2">
+            <Database className="w-4 h-4" />
+            Tempo Real
+          </TabsTrigger>
           <TabsTrigger value="migration" className="flex items-center gap-2">
             <Database className="w-4 h-4" />
             Migração
@@ -189,6 +194,10 @@ const ItemManagement = () => {
             Guia
           </TabsTrigger>
         </TabsList>
+
+        <TabsContent value="realtime">
+          <ImprovedItemsTable />
+        </TabsContent>
 
         <TabsContent value="migration">
           <DataMigrationPanel
