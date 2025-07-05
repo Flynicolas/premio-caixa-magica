@@ -1,14 +1,22 @@
 
 import { useState, useRef } from 'react';
-import { Prize } from '@/data/chestData';
+import { DatabaseItem } from '@/types/database';
 import { SpinCarouselProps, SpinPhase } from './types';
 import SpinCarouselHeader from './SpinCarouselHeader';
 import CarouselContainer from './CarouselContainer';
 import SpinControls from './SpinControls';
 
-const SpinCarousel = ({ isOpen, onClose, prizes, onPrizeWon, chestName }: SpinCarouselProps) => {
+interface StaticSpinCarouselProps {
+  isOpen: boolean;
+  onClose: () => void;
+  prizes: DatabaseItem[];
+  onPrizeWon: (prize: DatabaseItem) => void;
+  chestName: string;
+}
+
+const SpinCarousel = ({ isOpen, onClose, prizes, onPrizeWon, chestName }: StaticSpinCarouselProps) => {
   const [isSpinning, setIsSpinning] = useState(false);
-  const [selectedPrize, setSelectedPrize] = useState<Prize | null>(null);
+  const [selectedPrize, setSelectedPrize] = useState<DatabaseItem | null>(null);
   const [spinPhase, setSpinPhase] = useState<SpinPhase>('ready');
   const carouselRef = useRef<HTMLDivElement>(null);
 

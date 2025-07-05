@@ -1,48 +1,41 @@
 
-import { ArrowDown } from 'lucide-react';
-import { SpinCarouselHeaderProps } from './types';
+import { DatabaseItem } from '@/types/database';
+import { SpinPhase } from './types';
+
+interface SpinCarouselHeaderProps {
+  chestName: string;
+  spinPhase: SpinPhase;
+  selectedPrize: DatabaseItem | null;
+}
 
 const SpinCarouselHeader = ({ chestName, spinPhase, selectedPrize }: SpinCarouselHeaderProps) => {
-  const getStatusMessage = () => {
-    switch (spinPhase) {
-      case 'ready':
-        return 'Prepare-se para descobrir seu prêmio!';
-      case 'spinning':
-        return 'Girando a roleta... 🎯';
-      case 'slowing':
-        return 'Desacelerando... quase lá! ⚡';
-      case 'stopped':
-        return 'Definindo seu prêmio... ✨';
-      case 'showing-result':
-        return selectedPrize ? `🎉 Você ganhou: ${selectedPrize.name}! 🎉` : '';
-      default:
-        return '';
-    }
-  };
-
   return (
-    <>
-      {/* Header */}
-      <div className="text-center mb-8">
-        <h2 className="text-4xl font-bold text-white mb-2">
-          {chestName}
-        </h2>
-        <p className={`text-white/80 text-lg transition-all duration-300 ${
-          spinPhase === 'showing-result' ? 'text-green-400 animate-pulse' : ''
-        }`}>
-          {getStatusMessage()}
-        </p>
-      </div>
-
-      {/* Arrow Indicator */}
-      <div className="flex justify-center mb-4">
-        <ArrowDown className={`w-8 h-8 transition-all duration-300 ${
-          spinPhase === 'showing-result' ? 'text-green-400 animate-bounce scale-125' : 
-          spinPhase === 'ready' ? 'text-yellow-400 animate-bounce' : 
-          'text-yellow-400 animate-pulse'
-        }`} />
-      </div>
-    </>
+    <div className="text-center mb-8">
+      <h2 className="text-4xl font-bold text-white mb-4">
+        {chestName}
+      </h2>
+      
+      {spinPhase === 'showing-result' && selectedPrize && (
+        <div className="bg-gradient-to-r from-primary/20 to-primary/10 border border-primary/30 rounded-xl p-6 backdrop-blur-sm">
+          <h3 className="text-2xl font-bold text-primary mb-2">
+            Parabéns! Você ganhou:
+          </h3>
+          <div className="flex items-center justify-center space-x-4">
+            {selectedPrize.image_url && (
+              <img 
+                src={selectedPrize.image_url} 
+                alt={selectedPrize.name}
+                className="w-16 h-16 rounded-lg object-contain"
+              />
+            )}
+            <div>
+              <p className="text-xl font-bold text-white">{selectedPrize.name}</p>
+              <p className="text-lg text-green-400">R$ {Number(selectedPrize.base_value).toFixed(2)}</p>
+            </div>
+          </div>
+        </div>
+      )}
+    </div>
   );
 };
 

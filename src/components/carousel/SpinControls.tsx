@@ -1,72 +1,75 @@
 
 import { Button } from '@/components/ui/button';
-import { X, RotateCcw } from 'lucide-react';
-import { SpinControlsProps } from './types';
+import { DatabaseItem } from '@/types/database';
+import { SpinPhase } from './types';
 
-const SpinControls = ({ isSpinning, selectedPrize, spinPhase, onSpin, onClose }: SpinControlsProps) => {
-  const getSpinningStatusText = () => {
-    switch (spinPhase) {
-      case 'spinning':
-        return 'Girando...';
-      case 'slowing':
-        return 'Desacelerando...';
-      case 'stopped':
-        return 'Parando...';
-      case 'showing-result':
-        return 'Resultado!';
-      default:
-        return '';
-    }
-  };
+interface SpinControlsProps {
+  isSpinning: boolean;
+  selectedPrize: DatabaseItem | null;
+  spinPhase: SpinPhase;
+  onSpin: () => void;
+  onClose: () => void;
+}
 
+const SpinControls = ({ 
+  isSpinning, 
+  selectedPrize, 
+  spinPhase, 
+  onSpin, 
+  onClose 
+}: SpinControlsProps) => {
   return (
-    <div className="flex justify-center items-center space-x-6">
-      {/* Ready state - Show spin button */}
-      {!isSpinning && spinPhase === 'ready' && (
-        <Button
-          onClick={onSpin}
-          className="bg-gradient-to-r from-yellow-400 to-yellow-600 text-black font-bold px-12 py-4 text-xl hover:opacity-90 transition-all duration-300 animate-pulse shadow-lg hover:shadow-yellow-400/30"
-        >
-          <RotateCcw className="w-6 h-6 mr-3" />
-          🎯 Girar Roleta
-        </Button>
+    <div className="flex justify-center space-x-4">
+      {spinPhase === 'ready' && (
+        <>
+          <Button
+            onClick={onSpin}
+            disabled={isSpinning}
+            size="lg"
+            className="bg-gradient-to-r from-primary to-primary-600 hover:from-primary-600 hover:to-primary-700 text-white font-bold px-8 py-3 text-lg shadow-lg hover:shadow-xl transition-all duration-300"
+          >
+            {isSpinning ? 'Sorteando...' : 'Sortear Prêmio'}
+          </Button>
+          <Button
+            onClick={onClose}
+            variant="outline"
+            size="lg"
+            className="px-8 py-3 text-lg border-white/20 text-white hover:bg-white/10"
+          >
+            Fechar
+          </Button>
+        </>
       )}
-
-      {/* Spinning states - Show progress */}
-      {(isSpinning || (spinPhase !== 'ready' && spinPhase !== 'showing-result')) && (
+      
+      {(spinPhase === 'spinning' || spinPhase === 'slowing' || spinPhase === 'stopped') && (
         <div className="text-center">
-          <div className="animate-spin w-16 h-16 border-4 border-yellow-400 border-t-transparent rounded-full mx-auto mb-4" />
-          <p className="text-white font-medium text-xl">
-            {getSpinningStatusText()}
-          </p>
-        </div>
-      )}
-
-      {/* Result state - Show celebration */}
-      {spinPhase === 'showing-result' && selectedPrize && (
-        <div className="text-center">
-          <div className="text-5xl font-bold text-green-400 mb-3 animate-bounce">
-            🏆 {selectedPrize.name} 🏆
+          <div className="text-white text-lg font-medium mb-2">
+            {spinPhase === 'spinning' && 'Sorteando seu prêmio...'}
+            {spinPhase === 'slowing' && 'Quase lá...'}
+            {spinPhase === 'stopped' && selectedPrize && `Você ganhou: ${selectedPrize.name}!`}
           </div>
-          <p className="text-white text-lg mb-4">Preparando sua recompensa...</p>
-          <div className="flex justify-center">
-            <div className="w-32 h-2 bg-green-400/30 rounded-full overflow-hidden">
-              <div className="w-full h-full bg-green-400 rounded-full animate-pulse" />
+          {spinPhase === 'stopped' && (
+            <div className="text-gray-300 text-sm">
+              Aguarde para ver seu prêmio...
             </div>
-          </div>
+          )}
         </div>
       )}
-
-      {/* Close button - Always available but disabled during critical moments */}
-      <Button
-        onClick={onClose}
-        variant="outline"
-        className="border-white/30 text-white hover:bg-white/10 transition-all duration-200"
-        disabled={spinPhase === 'spinning' || spinPhase === 'slowing'}
-      >
-        <X className="w-4 h-4 mr-2" />
-        {spinPhase === 'showing-result' ? 'Continuar' : 'Fechar'}
-      </Button>
+      
+      {spinPhase === 'showing-result' && (
+        <div className="text-center">
+          <div className="text-white text-lg font-medium mb-4">
+            Seu prêmio será adicionado ao seu inventário!
+          </div>
+          <Button
+            onClick={onClose}
+            size="lg"
+            className="bg-gradient-to-r from-green-500 to-green-600 hover:from-green-600 hover:to-green-700 text-white font-bold px-8 py-3 text-lg"
+          >
+            Continuar
+          </Button>
+        </div>
+      )}
     </div>
   );
 };
