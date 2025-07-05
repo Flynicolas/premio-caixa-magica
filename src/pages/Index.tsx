@@ -11,7 +11,8 @@ import ChestItemsModal from '@/components/ChestItemsModal';
 import ChestConfirmModal from '@/components/ChestConfirmModal';
 import SpinCarousel from '@/components/carousel/SpinCarousel';
 import WinModal from '@/components/WinModal';
-import { chestData, ChestType, Chest, Prize } from '@/data/chestData';
+import { chestData, ChestType, Chest } from '@/data/chestData';
+import { DatabaseItem } from '@/types/database';
 
 const Index = () => {
   const { user } = useAuth();
@@ -23,7 +24,7 @@ const Index = () => {
   const [showSpinCarousel, setShowSpinCarousel] = useState(false);
   const [showWinModal, setShowWinModal] = useState(false);
   const [selectedChest, setSelectedChest] = useState<{ chest: Chest; type: ChestType } | null>(null);
-  const [wonPrize, setWonPrize] = useState<Prize | null>(null);
+  const [wonPrize, setWonPrize] = useState<DatabaseItem | null>(null);
 
   const handleOpenWallet = () => {
     setShowWalletPanel(true);
@@ -52,7 +53,7 @@ const Index = () => {
     }
   };
 
-  const handlePrizeWon = (prize: Prize) => {
+  const handlePrizeWon = (prize: DatabaseItem) => {
     setWonPrize(prize);
     setShowSpinCarousel(false);
     setShowWinModal(true);
@@ -66,6 +67,31 @@ const Index = () => {
       return { type: nextType, chest: chestData[nextType] };
     }
     return null;
+  };
+
+  // Convert Prize array to DatabaseItem array for compatibility
+  const convertPrizesToDatabaseItems = (prizes: any[]): DatabaseItem[] => {
+    return prizes.map((prize, index) => ({
+      id: `prize-${index}`,
+      name: prize.name,
+      description: prize.description || null,
+      image_url: prize.image || null,
+      category: 'product',
+      rarity: prize.rarity || 'common',
+      base_value: prize.value || 0,
+      delivery_type: 'digital',
+      delivery_instructions: null,
+      requires_address: false,
+      requires_document: false,
+      is_active: true,
+      chest_types: null,
+      probability_weight: null,
+      import_source: null,
+      tags: null,
+      notes: null,
+      created_at: new Date().toISOString(),
+      updated_at: new Date().toISOString(),
+    } as DatabaseItem));
   };
 
   return (
@@ -164,7 +190,7 @@ const Index = () => {
       <SpinCarousel
         isOpen={showSpinCarousel}
         onClose={() => setShowSpinCarousel(false)}
-        prizes={selectedChest?.chest.prizes || []}
+        prizes={selectedChest?.chest.prizes ? convertPrizesToDatabaseItems(selectedChest.chest.prizes) : []}
         onPrizeWon={handlePrizeWon}
         chestName={selectedChest?.chest.name || ''}
       />
