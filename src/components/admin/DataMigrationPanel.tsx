@@ -15,7 +15,7 @@ import {
   Download,
   RefreshCw
 } from 'lucide-react';
-import { ItemManagementStats } from '@/hooks/useItemManagement';
+import { ItemManagementStats } from '@/hooks/useItemManagement/types';
 
 interface DataMigrationPanelProps {
   onMigrateData: () => Promise<void>;
