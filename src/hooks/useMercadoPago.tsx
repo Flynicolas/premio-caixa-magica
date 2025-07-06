@@ -41,7 +41,7 @@ export const useMercadoPago = () => {
       const { data, error } = await supabase.functions.invoke('create-payment', {
         body: {
           amount,
-          description: description || 'Adicionar Saldo'
+          title: description || 'Adicionar Saldo'
         }
       });
 

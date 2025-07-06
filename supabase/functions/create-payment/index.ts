@@ -25,8 +25,8 @@ serve(async (req) => {
         }
       ],
       back_urls: {
-        success: "https://seusite.com/sucesso",
-        failure: "https://seusite.com/erro",
+        success: "https://premio-caixa-magica.lovable.app/sucesso",
+        failure: "https://premio-caixa-magica.lovable.app/erro",
       },
       auto_return: "approved",
       notification_url: "https://jhbafgzfphiizpuoqksj.supabase.co/functions/v1/mercadopago-webhook"
@@ -44,22 +44,27 @@ serve(async (req) => {
     const data = await response.json();
 
     if (response.ok && data.init_point) {
-      return new Response(JSON.stringify({ url: data.init_point }), { 
+      return new Response(JSON.stringify({ 
+        preference_id: data.id,
+        transaction_id: data.id,
+        init_point: data.init_point,
+        sandbox_init_point: data.sandbox_init_point 
+      }), { 
         status: 200,
         headers: { ...corsHeaders, 'Content-Type': 'application/json' }
       });
     } else {
       console.error("Erro ao criar preferência:", data);
-      return new Response("Erro ao criar preferência", { 
+      return new Response(JSON.stringify({ error: "Erro ao criar preferência", details: data }), { 
         status: 500,
-        headers: corsHeaders
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' }
       });
     }
   } catch (err) {
     console.error("Erro geral:", err);
-    return new Response("Erro interno", { 
+    return new Response(JSON.stringify({ error: "Erro interno", details: err.message }), { 
       status: 500,
-      headers: corsHeaders
+      headers: { ...corsHeaders, 'Content-Type': 'application/json' }
     });
   }
 });

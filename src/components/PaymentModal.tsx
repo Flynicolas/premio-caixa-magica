@@ -1,4 +1,3 @@
-
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -47,7 +46,13 @@ const PaymentModal = ({
         <DialogHeader>
           <div className="flex items-center justify-between">
             <DialogTitle className="flex items-center text-xl text-primary">
-              <CreditCard className="w-5 h-5 mr-2" />
+              <div className="w-6 h-6 mr-2 rounded flex items-center justify-center">
+                <img 
+                  src="/lovable-uploads/1b23f313-78a7-4d82-9c0a-1c992d7be9c0.png" 
+                  alt="Baú Premiado Logo"
+                  className="w-5 h-5 object-contain"
+                />
+              </div>
               {title}
             </DialogTitle>
             <Button

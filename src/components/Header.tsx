@@ -69,7 +69,11 @@ const Header = () => {
             {/* Logo */}
             <Link to="/" className="flex items-center space-x-3">
               <div className="w-10 h-10 bg-gradient-to-br from-yellow-400 to-orange-500 rounded-lg flex items-center justify-center shadow-lg">
-                <Package className="w-6 h-6 text-black font-bold" />
+                <img 
+                  src="/lovable-uploads/1b23f313-78a7-4d82-9c0a-1c992d7be9c0.png" 
+                  alt="Baú Premiado Logo"
+                  className="w-8 h-8 object-contain"
+                />
               </div>
               <span className="font-bold text-2xl text-transparent bg-clip-text bg-gradient-to-r from-yellow-400 to-orange-500">
                 Baú Premiado
