@@ -1,10 +1,13 @@
 
 import React, { useState, useEffect } from 'react';
+import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Label } from '@/components/ui/label';
-import { Badge } from '@/components/ui/badge';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
+import { Settings } from 'lucide-react';
 
 interface ItemChestAssignmentProps {
   itemId: string;
@@ -23,6 +26,7 @@ const CHEST_TYPES = [
 const ItemChestAssignment = ({ itemId, onUpdate }: ItemChestAssignmentProps) => {
   const [assignedChests, setAssignedChests] = useState<string[]>([]);
   const [loading, setLoading] = useState(false);
+  const [isDialogOpen, setIsDialogOpen] = useState(false);
   const { toast } = useToast();
 
   useEffect(() => {
@@ -93,31 +97,64 @@ const ItemChestAssignment = ({ itemId, onUpdate }: ItemChestAssignmentProps) => 
     }
   };
 
+  // Mostrar etiquetas dos baús atribuídos
+  const assignedChestLabels = CHEST_TYPES.filter(chest => 
+    assignedChests.includes(chest.value)
+  );
+
   return (
-    <div className="space-y-3">
-      <Label className="text-sm font-medium">Baús atribuídos ao item</Label>
-      <div className="grid grid-cols-2 gap-3">
-        {CHEST_TYPES.map(chest => (
-          <div key={chest.value} className="flex items-center space-x-2">
-            <Checkbox
-              id={`chest-${chest.value}`}
-              checked={assignedChests.includes(chest.value)}
-              onCheckedChange={(checked) => handleChestToggle(chest.value, !!checked)}
-              disabled={loading}
-            />
-            <Label htmlFor={`chest-${chest.value}`} className="flex items-center space-x-2">
-              <Badge className={`text-white ${chest.color} text-xs`}>
-                {chest.label}
-              </Badge>
-            </Label>
-          </div>
-        ))}
+    <div className="flex items-center gap-2">
+      {/* Etiquetas dos baús atribuídos */}
+      <div className="flex flex-wrap gap-1">
+        {assignedChestLabels.length > 0 ? (
+          assignedChestLabels.map(chest => (
+            <Badge key={chest.value} className={`text-white ${chest.color} text-xs`}>
+              {chest.label}
+            </Badge>
+          ))
+        ) : (
+          <span className="text-xs text-gray-500">Nenhum baú</span>
+        )}
       </div>
-      {assignedChests.length > 0 && (
-        <div className="text-xs text-gray-500">
-          Atribuído a {assignedChests.length} baú(s)
-        </div>
-      )}
+
+      {/* Botão para configurar */}
+      <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
+        <DialogTrigger asChild>
+          <Button variant="outline" size="sm">
+            <Settings className="w-3 h-3" />
+          </Button>
+        </DialogTrigger>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Configurar Baús</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4">
+            <Label className="text-sm font-medium">Selecione os baús para este item</Label>
+            <div className="grid grid-cols-2 gap-3">
+              {CHEST_TYPES.map(chest => (
+                <div key={chest.value} className="flex items-center space-x-2">
+                  <Checkbox
+                    id={`chest-${chest.value}`}
+                    checked={assignedChests.includes(chest.value)}
+                    onCheckedChange={(checked) => handleChestToggle(chest.value, !!checked)}
+                    disabled={loading}
+                  />
+                  <Label htmlFor={`chest-${chest.value}`} className="flex items-center space-x-2">
+                    <Badge className={`text-white ${chest.color} text-xs`}>
+                      {chest.label}
+                    </Badge>
+                  </Label>
+                </div>
+              ))}
+            </div>
+            {assignedChests.length > 0 && (
+              <div className="text-xs text-gray-500">
+                Atribuído a {assignedChests.length} baú(s)
+              </div>
+            )}
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };
