@@ -42,14 +42,20 @@ export const useAdminAccess = () => {
     checkAdminStatus();
   }, [user]);
 
-  // Admin bypass para testes - permite acesso a funcionalidades sem saldo
+  // Admin bypass para funcionalidades - permite acesso completo
   const hasAdminBypass = () => {
     return isAdmin;
+  };
+
+  // Verificar se pode abrir baús sem restrições
+  const canOpenChests = () => {
+    return isAdmin; // Admin pode abrir todos os baús
   };
 
   return {
     isAdmin,
     loading,
-    hasAdminBypass
+    hasAdminBypass,
+    canOpenChests
   };
 };

@@ -1,15 +1,16 @@
+
 import React, { useState } from 'react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { useAuth } from '@/hooks/useAuth';
 import { useItemManagement } from '@/hooks/useItemManagement';
-import ItemsSpreadsheet from '@/components/admin/ItemsSpreadsheet';
+import AdminItemManager from '@/components/admin/AdminItemManager';
+import AccountTypeManager from '@/components/admin/AccountTypeManager';
 import DataMigrationPanel from '@/components/admin/DataMigrationPanel';
 import ExcelImporter from '@/components/admin/ExcelImporter';
 import ImportGuide from '@/components/admin/ImportGuide';
 import TextImporter from '@/components/admin/TextImporter';
-import ProfessionalItemsTable from '@/components/admin/ProfessionalItemsTable';
 import { 
   Database, 
   Grid3X3, 
@@ -21,7 +22,9 @@ import {
   Image as ImageIcon,
   BookOpen,
   FileText,
-  Settings
+  Settings,
+  Users,
+  Target
 } from 'lucide-react';
 
 const ItemManagement = () => {
@@ -32,10 +35,6 @@ const ItemManagement = () => {
     loading,
     isAdmin,
     migrateChestData,
-    updateItem,
-    createItem,
-    deleteItem,
-    bulkUpdateItems,
     refetchItems
   } = useItemManagement();
 
@@ -87,8 +86,8 @@ const ItemManagement = () => {
   return (
     <div className="container mx-auto px-4 py-8 max-w-7xl">
       <div className="mb-8">
-        <h1 className="text-3xl font-bold mb-2">Sistema de Gestão de Itens</h1>
-        <p className="text-muted-foreground">Dashboard profissional integrado com banco de dados em tempo real</p>
+        <h1 className="text-3xl font-bold mb-2">Painel Administrativo</h1>
+        <p className="text-muted-foreground">Sistema completo de gestão em tempo real</p>
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
@@ -168,11 +167,19 @@ const ItemManagement = () => {
         </Card>
       )}
 
-      <Tabs defaultValue="professional" className="space-y-6">
-        <TabsList className="grid w-full grid-cols-6">
-          <TabsTrigger value="professional" className="flex items-center gap-2">
+      <Tabs defaultValue="items" className="space-y-6">
+        <TabsList className="grid w-full grid-cols-7">
+          <TabsTrigger value="items" className="flex items-center gap-2">
             <Settings className="w-4 h-4" />
-            Dashboard
+            Itens
+          </TabsTrigger>
+          <TabsTrigger value="accounts" className="flex items-center gap-2">
+            <Users className="w-4 h-4" />
+            Contas
+          </TabsTrigger>
+          <TabsTrigger value="probabilities" className="flex items-center gap-2">
+            <Target className="w-4 h-4" />
+            Probabilidades
           </TabsTrigger>
           <TabsTrigger value="migration" className="flex items-center gap-2">
             <Database className="w-4 h-4" />
@@ -181,10 +188,6 @@ const ItemManagement = () => {
           <TabsTrigger value="text-import" className="flex items-center gap-2">
             <FileText className="w-4 h-4" />
             Texto
-          </TabsTrigger>
-          <TabsTrigger value="spreadsheet" className="flex items-center gap-2">
-            <Grid3X3 className="w-4 h-4" />
-            Planilha
           </TabsTrigger>
           <TabsTrigger value="upload" className="flex items-center gap-2">
             <Upload className="w-4 h-4" />
@@ -196,8 +199,26 @@ const ItemManagement = () => {
           </TabsTrigger>
         </TabsList>
 
-        <TabsContent value="professional">
-          <ProfessionalItemsTable />
+        <TabsContent value="items">
+          <AdminItemManager items={items} onRefresh={refetchItems} />
+        </TabsContent>
+
+        <TabsContent value="accounts">
+          <AccountTypeManager />
+        </TabsContent>
+
+        <TabsContent value="probabilities">
+          <Card>
+            <CardHeader>
+              <CardTitle>Gerenciar Probabilidades</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <p className="text-muted-foreground">
+                Sistema de probabilidades dos itens nos baús em desenvolvimento.
+                Aqui você poderá configurar as chances de cada item aparecer em cada tipo de baú.
+              </p>
+            </CardContent>
+          </Card>
         </TabsContent>
 
         <TabsContent value="migration">
@@ -211,16 +232,6 @@ const ItemManagement = () => {
 
         <TabsContent value="text-import">
           <TextImporter />
-        </TabsContent>
-
-        <TabsContent value="spreadsheet">
-          <ItemsSpreadsheet
-            items={items}
-            onUpdateItem={updateItem}
-            onCreateItem={createItem}
-            onDeleteItem={deleteItem}
-            onBulkUpdate={bulkUpdateItems}
-          />
         </TabsContent>
 
         <TabsContent value="upload">
