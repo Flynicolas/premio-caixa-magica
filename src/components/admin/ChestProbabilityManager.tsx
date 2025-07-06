@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -53,12 +52,23 @@ const ChestProbabilityManager = ({ items, onRefresh }: ChestProbabilityManagerPr
 
       if (error) throw error;
 
-      // Agrupar por tipo de baú
+      // Agrupar por tipo de baú com type casting correto
       const grouped = (data || []).reduce((acc, prob) => {
-        if (!acc[prob.chest_type]) {
-          acc[prob.chest_type] = [];
+        // Type cast para garantir compatibilidade com a interface
+        const typedProb: ChestItemProbability = {
+          ...prob,
+          chest_type: prob.chest_type as 'silver' | 'gold' | 'delas' | 'diamond' | 'ruby' | 'premium',
+          item: prob.item ? {
+            ...prob.item,
+            rarity: prob.item.rarity as 'common' | 'rare' | 'epic' | 'legendary',
+            delivery_type: prob.item.delivery_type as 'digital' | 'physical'
+          } : undefined
+        };
+
+        if (!acc[typedProb.chest_type]) {
+          acc[typedProb.chest_type] = [];
         }
-        acc[prob.chest_type].push(prob);
+        acc[typedProb.chest_type].push(typedProb);
         return acc;
       }, {} as Record<string, ChestItemProbability[]>);
 
