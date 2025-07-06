@@ -2,15 +2,12 @@
 import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { Switch } from '@/components/ui/switch';
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
 import { DatabaseItem, ChestItemProbability } from '@/types/database';
-import { AlertCircle, Trash2, Plus, Save, Unlock } from 'lucide-react';
+import { AlertCircle, Save } from 'lucide-react';
 import { Alert, AlertDescription } from '@/components/ui/alert';
+import ChestCard from './EnhancedChestProbabilityManager/ChestCard';
 
 interface EnhancedChestProbabilityManagerProps {
   items: DatabaseItem[];
@@ -195,16 +192,6 @@ const EnhancedChestProbabilityManager = ({ items, onRefresh }: EnhancedChestProb
     }
   };
 
-  const getRarityColor = (rarity: string) => {
-    switch (rarity) {
-      case 'common': return 'bg-gray-500';
-      case 'rare': return 'bg-blue-500';
-      case 'epic': return 'bg-purple-500';
-      case 'legendary': return 'bg-orange-500';
-      default: return 'bg-gray-500';
-    }
-  };
-
   const hasChanges = Object.keys(editingProbabilities).length > 0;
 
   return (
@@ -241,88 +228,15 @@ const EnhancedChestProbabilityManager = ({ items, onRefresh }: EnhancedChestProb
 
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             {CHEST_TYPES.map(chestType => (
-              <Card key={chestType.value}>
-                <CardHeader>
-                  <CardTitle className="text-lg flex items-center space-x-2">
-                    <Badge className={`text-white ${chestType.color}`}>
-                      {chestType.label}
-                    </Badge>
-                  </CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <div className="space-y-3">
-                    {probabilities[chestType.value]?.length > 0 ? (
-                      probabilities[chestType.value].map(prob => (
-                        <div key={prob.id} className="border rounded-lg p-3 space-y-2">
-                          <div className="flex items-center justify-between">
-                            <div className="flex items-center space-x-2">
-                              {prob.item?.image_url && (
-                                <img
-                                  src={prob.item.image_url}
-                                  alt={prob.item.name}
-                                  className="w-8 h-8 object-cover rounded"
-                                />
-                              )}
-                              <div>
-                                <div className="font-medium text-sm">{prob.item?.name}</div>
-                                <Badge className={`text-white ${getRarityColor(prob.item?.rarity || 'common')} text-xs`}>
-                                  {prob.item?.rarity}
-                                </Badge>
-                              </div>
-                            </div>
-                            <Button
-                              variant="ghost"
-                              size="sm"
-                              onClick={() => removeItemFromChest(prob.id, prob.item?.name || '')}
-                              className="text-red-600 hover:text-red-700"
-                            >
-                              <Trash2 className="w-4 h-4" />
-                            </Button>
-                          </div>
-                          
-                          <div className="space-y-2">
-                            <div className="flex items-center space-x-2">
-                              <Label className="text-xs">Probabilidade (%):</Label>
-                              <Input
-                                type="number"
-                                min="1"
-                                max="100"
-                                value={editingProbabilities[prob.id] ?? prob.probability_weight}
-                                onChange={(e) => handleProbabilityChange(prob.id, parseInt(e.target.value) || 1)}
-                                className="w-16 h-6 text-xs"
-                              />
-                            </div>
-                            
-                            <div className="flex items-center justify-between">
-                              <Button
-                                size="sm"
-                                variant={prob.liberado_manual ? "secondary" : "outline"}
-                                onClick={() => handleManualRelease(prob.id, prob.item?.name || '')}
-                                disabled={prob.liberado_manual}
-                                className="text-xs"
-                              >
-                                <Unlock className="w-3 h-3 mr-1" />
-                                {prob.liberado_manual ? 'Liberado' : 'Liberar'}
-                              </Button>
-                              
-                              {prob.sorteado_em && (
-                                <span className="text-xs text-green-600">
-                                  Sorteado
-                                </span>
-                              )}
-                            </div>
-                          </div>
-                        </div>
-                      ))
-                    ) : (
-                      <div className="text-center py-6 text-gray-500">
-                        <p className="text-sm">Nenhum item configurado</p>
-                        <p className="text-xs">Adicione itens na aba "Itens"</p>
-                      </div>
-                    )}
-                  </div>
-                </CardContent>
-              </Card>
+              <ChestCard
+                key={chestType.value}
+                chestType={chestType}
+                probabilities={probabilities[chestType.value] || []}
+                editingProbabilities={editingProbabilities}
+                onProbabilityChange={handleProbabilityChange}
+                onManualRelease={handleManualRelease}
+                onRemoveItem={removeItemFromChest}
+              />
             ))}
           </div>
         </CardContent>

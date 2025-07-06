@@ -1,34 +1,21 @@
-
 import React, { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
-import { Switch } from '@/components/ui/switch';
-import { useToast } from '@/hooks/use-toast';
 import { useItemManagement } from '@/hooks/useItemManagement';
 import { DatabaseItem } from '@/types/database';
 import { 
   Table,
   TableBody,
-  TableCell,
   TableHead,
   TableHeader,
   TableRow,
 } from '@/components/ui/table';
-import { 
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-  DialogTrigger,
-} from '@/components/ui/dialog';
-import { Edit, Plus, Trash2, Image } from 'lucide-react';
+import { Plus } from 'lucide-react';
 import ItemSearchAndFilters from './ItemSearchAndFilters';
 import EnhancedItemEditDialog from './EnhancedItemEditDialog';
-import ItemChestAssignment from './ItemChestAssignment';
+import ItemTableRow from './ItemManagementTab/ItemTableRow';
 
 const ItemManagementTab = () => {
-  const { toast } = useToast();
   const {
     items,
     loading,
@@ -91,15 +78,6 @@ const ItemManagementTab = () => {
     setFilteredItems(filtered);
   };
 
-  const handleSearch = (searchTerm: string) => {
-    setSearchTerm(searchTerm);
-  };
-
-  const handleSort = (newSortBy: string, newSortOrder: 'asc' | 'desc') => {
-    setSortBy(newSortBy);
-    setSortOrder(newSortOrder);
-  };
-
   // Verificar se o usuário é admin
   if (!isAdmin) {
     return (
@@ -160,21 +138,13 @@ const ItemManagementTab = () => {
     }
   };
 
-  const getRarityColor = (rarity: string) => {
-    switch (rarity) {
-      case 'common': return 'bg-gray-500';
-      case 'rare': return 'bg-blue-500';
-      case 'epic': return 'bg-purple-500';
-      case 'legendary': return 'bg-orange-500';
-      default: return 'bg-gray-500';
-    }
+  const handleSearch = (searchTerm: string) => {
+    setSearchTerm(searchTerm);
   };
 
-  const formatCurrency = (value: number) => {
-    return new Intl.NumberFormat('pt-BR', {
-      style: 'currency',
-      currency: 'BRL'
-    }).format(value);
+  const handleSort = (newSortBy: string, newSortOrder: 'asc' | 'desc') => {
+    setSortBy(newSortBy);
+    setSortOrder(newSortOrder);
   };
 
   if (loading) {
@@ -228,59 +198,14 @@ const ItemManagementTab = () => {
                 </TableHeader>
                 <TableBody>
                   {filteredItems.map((item) => (
-                    <TableRow key={item.id}>
-                      <TableCell>
-                        {item.image_url ? (
-                          <img
-                            src={item.image_url}
-                            alt={item.name}
-                            className="w-12 h-12 object-cover rounded"
-                          />
-                        ) : (
-                          <div className="w-12 h-12 bg-gray-200 rounded flex items-center justify-center">
-                            <Image className="w-6 h-6 text-gray-400" />
-                          </div>
-                        )}
-                      </TableCell>
-                      <TableCell className="font-medium">{item.name}</TableCell>
-                      <TableCell>{formatCurrency(item.base_value)}</TableCell>
-                      <TableCell>
-                        <Badge className={`text-white ${getRarityColor(item.rarity)}`}>
-                          {item.rarity}
-                        </Badge>
-                      </TableCell>
-                      <TableCell>
-                        <ItemChestAssignment 
-                          itemId={item.id} 
-                          onUpdate={refetchItems}
-                        />
-                      </TableCell>
-                      <TableCell>
-                        <Switch
-                          checked={item.is_active}
-                          onCheckedChange={() => handleToggleActive(item)}
-                        />
-                      </TableCell>
-                      <TableCell>
-                        <div className="flex items-center space-x-2">
-                          <Button
-                            variant="outline"
-                            size="sm"
-                            onClick={() => handleEdit(item)}
-                          >
-                            <Edit className="w-4 h-4" />
-                          </Button>
-                          <Button
-                            variant="outline"
-                            size="sm"
-                            onClick={() => handleDelete(item.id, item.name)}
-                            className="text-red-600 hover:text-red-700"
-                          >
-                            <Trash2 className="w-4 h-4" />
-                          </Button>
-                        </div>
-                      </TableCell>
-                    </TableRow>
+                    <ItemTableRow
+                      key={item.id}
+                      item={item}
+                      onEdit={handleEdit}
+                      onDelete={handleDelete}
+                      onToggleActive={handleToggleActive}
+                      onUpdate={refetchItems}
+                    />
                   ))}
                 </TableBody>
               </Table>
