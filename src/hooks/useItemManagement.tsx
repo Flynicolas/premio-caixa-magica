@@ -39,7 +39,10 @@ export const useItemManagement = () => {
         .eq('is_active', true)
         .single();
 
-      if (error && error.code !== 'PGRST116') throw error;
+      if (error && error.code !== 'PGRST116') {
+        console.error('Erro ao verificar status admin:', error);
+        return false;
+      }
       
       const adminStatus = !!data;
       setIsAdmin(adminStatus);
@@ -78,13 +81,19 @@ export const useItemManagement = () => {
   };
 
   const fetchItems = async () => {
+    console.log('Buscando itens do banco de dados...');
     try {
       const { data, error } = await supabase
         .from('items')
         .select('*')
         .order('created_at', { ascending: false });
 
-      if (error) throw error;
+      if (error) {
+        console.error('Erro na consulta:', error);
+        throw error;
+      }
+      
+      console.log('Itens encontrados:', data?.length || 0);
       
       const typedData = (data || []).map(item => ({
         ...item,
@@ -105,25 +114,48 @@ export const useItemManagement = () => {
   };
 
   const updateItem = async (id: string, updates: Partial<DatabaseItem>) => {
+    console.log('Atualizando item:', id, updates);
+    
     try {
-      const { error } = await supabase
+      const { data, error } = await supabase
         .from('items')
         .update({
           ...updates,
           updated_at: new Date().toISOString()
         })
-        .eq('id', id);
+        .eq('id', id)
+        .select()
+        .single();
 
-      if (error) throw error;
+      if (error) {
+        console.error('Erro ao atualizar item:', error);
+        throw error;
+      }
 
+      console.log('Item atualizado com sucesso:', data);
+
+      // Atualizar o estado local imediatamente
       setItems(prev => prev.map(item => 
-        item.id === id ? { ...item, ...updates } : item
+        item.id === id ? { 
+          ...item, 
+          ...updates,
+          rarity: updates.rarity || item.rarity,
+          delivery_type: updates.delivery_type || item.delivery_type 
+        } : item
       ));
+
+      // Recalcular estatísticas
+      const updatedItems = items.map(item => 
+        item.id === id ? { ...item, ...updates } : item
+      );
+      calculateStats(updatedItems);
 
       toast({
         title: "Item atualizado!",
         description: "As alterações foram salvas com sucesso.",
       });
+
+      return data;
     } catch (error: any) {
       console.error('Erro ao atualizar item:', error);
       toast({
@@ -131,10 +163,13 @@ export const useItemManagement = () => {
         description: error.message,
         variant: "destructive"
       });
+      throw error;
     }
   };
 
   const createItem = async (itemData: Omit<DatabaseItem, 'id' | 'created_at' | 'updated_at'>) => {
+    console.log('Criando novo item:', itemData);
+    
     try {
       const { data, error } = await supabase
         .from('items')
@@ -142,7 +177,12 @@ export const useItemManagement = () => {
         .select()
         .single();
 
-      if (error) throw error;
+      if (error) {
+        console.error('Erro ao criar item:', error);
+        throw error;
+      }
+
+      console.log('Item criado com sucesso:', data);
 
       const typedData = {
         ...data,
@@ -150,7 +190,12 @@ export const useItemManagement = () => {
         delivery_type: data.delivery_type as 'digital' | 'physical'
       };
 
+      // Atualizar o estado local imediatamente
       setItems(prev => [typedData, ...prev]);
+      
+      // Recalcular estatísticas
+      const updatedItems = [typedData, ...items];
+      calculateStats(updatedItems);
 
       toast({
         title: "Item criado!",
@@ -170,15 +215,25 @@ export const useItemManagement = () => {
   };
 
   const deleteItem = async (id: string) => {
+    console.log('Deletando item:', id);
+    
     try {
       const { error } = await supabase
         .from('items')
         .delete()
         .eq('id', id);
 
-      if (error) throw error;
+      if (error) {
+        console.error('Erro ao deletar item:', error);
+        throw error;
+      }
 
-      setItems(prev => prev.filter(item => item.id !== id));
+      console.log('Item deletado com sucesso');
+
+      // Atualizar o estado local imediatamente
+      const updatedItems = items.filter(item => item.id !== id);
+      setItems(updatedItems);
+      calculateStats(updatedItems);
 
       toast({
         title: "Item removido!",
@@ -191,6 +246,7 @@ export const useItemManagement = () => {
         description: error.message,
         variant: "destructive"
       });
+      throw error;
     }
   };
 
@@ -203,7 +259,9 @@ export const useItemManagement = () => {
         return;
       }
 
+      console.log('Verificando status de admin...');
       const adminStatus = await checkAdminStatus();
+      console.log('Status admin:', adminStatus);
       
       if (adminStatus) {
         await fetchItems();
@@ -219,6 +277,8 @@ export const useItemManagement = () => {
   useEffect(() => {
     if (!isAdmin) return;
 
+    console.log('Configurando atualizações em tempo real...');
+    
     const channel = supabase
       .channel('item-management-updates')
       .on('postgres_changes', 
@@ -228,9 +288,12 @@ export const useItemManagement = () => {
           fetchItems();
         }
       )
-      .subscribe();
+      .subscribe((status) => {
+        console.log('Status do canal realtime:', status);
+      });
 
     return () => {
+      console.log('Removendo canal realtime');
       supabase.removeChannel(channel);
     };
   }, [isAdmin]);

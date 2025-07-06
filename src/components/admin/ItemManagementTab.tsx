@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -34,6 +33,7 @@ const ItemManagementTab = () => {
   const {
     items,
     loading,
+    isAdmin,
     updateItem,
     createItem,
     deleteItem,
@@ -57,6 +57,20 @@ const ItemManagementTab = () => {
     requires_document: false
   });
 
+  // Verificar se o usuário é admin
+  if (!isAdmin) {
+    return (
+      <Card>
+        <CardContent className="flex items-center justify-center py-8">
+          <div className="text-center">
+            <h2 className="text-xl font-semibold mb-2">Acesso Restrito</h2>
+            <p className="text-muted-foreground">Você não tem permissão para gerenciar itens.</p>
+          </div>
+        </CardContent>
+      </Card>
+    );
+  }
+
   const resetForm = () => {
     setFormData({
       name: '',
@@ -73,6 +87,7 @@ const ItemManagementTab = () => {
   };
 
   const handleEdit = (item: DatabaseItem) => {
+    console.log('Editando item:', item);
     setEditingItem(item);
     setFormData({
       name: item.name,
@@ -113,34 +128,60 @@ const ItemManagementTab = () => {
 
     try {
       if (editingItem) {
+        console.log('Salvando alterações no item:', editingItem.id);
         await updateItem(editingItem.id, itemData);
         setEditingItem(null);
       } else {
+        console.log('Criando novo item');
         await createItem(itemData as Omit<DatabaseItem, 'id' | 'created_at' | 'updated_at'>);
         setIsCreateDialogOpen(false);
       }
       resetForm();
-      refetchItems();
+      
+      // Aguardar um pouco e recarregar para garantir sincronização
+      setTimeout(() => {
+        refetchItems();
+      }, 500);
     } catch (error) {
       console.error('Erro ao salvar item:', error);
     }
   };
 
-  const handleDelete = async (itemId: string) => {
-    if (confirm('Tem certeza que deseja excluir este item?')) {
-      await deleteItem(itemId);
-      refetchItems();
+  const handleDelete = async (itemId: string, itemName: string) => {
+    if (confirm(`Tem certeza que deseja excluir o item "${itemName}"?`)) {
+      console.log('Deletando item:', itemId);
+      try {
+        await deleteItem(itemId);
+        
+        // Aguardar um pouco e recarregar para garantir sincronização
+        setTimeout(() => {
+          refetchItems();
+        }, 500);
+      } catch (error) {
+        console.error('Erro ao deletar item:', error);
+      }
     }
   };
 
   const handleToggleActive = async (item: DatabaseItem) => {
-    await updateItem(item.id, { is_active: !item.is_active });
-    refetchItems();
+    console.log('Alterando status ativo do item:', item.id, !item.is_active);
+    try {
+      await updateItem(item.id, { is_active: !item.is_active });
+      
+      // Aguardar um pouco e recarregar para garantir sincronização
+      setTimeout(() => {
+        refetchItems();
+      }, 500);
+    } catch (error) {
+      console.error('Erro ao alterar status:', error);
+    }
   };
 
   const handleImageUpload = async (file: File, itemId?: string) => {
+    console.log('Fazendo upload de imagem...');
     const imageUrl = await uploadImage(file, itemId);
     if (imageUrl) {
+      console.log('URL da imagem:', imageUrl);
       setFormData(prev => ({ ...prev, image_url: imageUrl }));
     }
   };
@@ -166,6 +207,7 @@ const ItemManagementTab = () => {
     return (
       <div className="flex items-center justify-center p-8">
         <div className="w-8 h-8 border-4 border-primary border-t-transparent rounded-full animate-spin"></div>
+        <p className="ml-3">Carregando itens...</p>
       </div>
     );
   }
@@ -203,98 +245,103 @@ const ItemManagementTab = () => {
           </div>
         </CardHeader>
         <CardContent>
-          <div className="rounded-md border">
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead>Imagem</TableHead>
-                  <TableHead>Nome</TableHead>
-                  <TableHead>Preço</TableHead>
-                  <TableHead>Raridade</TableHead>
-                  <TableHead>Status</TableHead>
-                  <TableHead>Ações</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {items.map((item) => (
-                  <TableRow key={item.id}>
-                    <TableCell>
-                      {item.image_url ? (
-                        <img
-                          src={item.image_url}
-                          alt={item.name}
-                          className="w-12 h-12 object-cover rounded"
-                        />
-                      ) : (
-                        <div className="w-12 h-12 bg-gray-200 rounded flex items-center justify-center">
-                          <Image className="w-6 h-6 text-gray-400" />
-                        </div>
-                      )}
-                    </TableCell>
-                    <TableCell className="font-medium">{item.name}</TableCell>
-                    <TableCell>{formatCurrency(item.base_value)}</TableCell>
-                    <TableCell>
-                      <Badge className={`text-white ${getRarityColor(item.rarity)}`}>
-                        {item.rarity}
-                      </Badge>
-                    </TableCell>
-                    <TableCell>
-                      <Switch
-                        checked={item.is_active}
-                        onCheckedChange={() => handleToggleActive(item)}
-                      />
-                    </TableCell>
-                    <TableCell>
-                      <div className="flex items-center space-x-2">
-                        <Dialog>
-                          <DialogTrigger asChild>
-                            <Button
-                              variant="outline"
-                              size="sm"
-                              onClick={() => handleEdit(item)}
-                            >
-                              <Edit className="w-4 h-4" />
-                            </Button>
-                          </DialogTrigger>
-                          <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
-                            <DialogHeader>
-                              <DialogTitle>Editar Item</DialogTitle>
-                            </DialogHeader>
-                            <ItemForm 
-                              formData={formData}
-                              setFormData={setFormData}
-                              onSave={handleSave}
-                              onCancel={() => {
-                                setEditingItem(null);
-                                resetForm();
-                              }}
-                              onImageUpload={handleImageUpload}
-                              uploading={uploading}
-                            />
-                          </DialogContent>
-                        </Dialog>
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          onClick={() => handleDelete(item.id)}
-                          className="text-red-600 hover:text-red-700"
-                        >
-                          <Trash2 className="w-4 h-4" />
-                        </Button>
-                      </div>
-                    </TableCell>
+          {items.length === 0 ? (
+            <div className="text-center py-8">
+              <p className="text-muted-foreground">Nenhum item encontrado. Adicione seu primeiro item!</p>
+            </div>
+          ) : (
+            <div className="rounded-md border">
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead>Imagem</TableHead>
+                    <TableHead>Nome</TableHead>
+                    <TableHead>Preço</TableHead>
+                    <TableHead>Raridade</TableHead>
+                    <TableHead>Status</TableHead>
+                    <TableHead>Ações</TableHead>
                   </TableRow>
-                ))}
-              </TableBody>
-            </Table>
-          </div>
+                </TableHeader>
+                <TableBody>
+                  {items.map((item) => (
+                    <TableRow key={item.id}>
+                      <TableCell>
+                        {item.image_url ? (
+                          <img
+                            src={item.image_url}
+                            alt={item.name}
+                            className="w-12 h-12 object-cover rounded"
+                          />
+                        ) : (
+                          <div className="w-12 h-12 bg-gray-200 rounded flex items-center justify-center">
+                            <Image className="w-6 h-6 text-gray-400" />
+                          </div>
+                        )}
+                      </TableCell>
+                      <TableCell className="font-medium">{item.name}</TableCell>
+                      <TableCell>{formatCurrency(item.base_value)}</TableCell>
+                      <TableCell>
+                        <Badge className={`text-white ${getRarityColor(item.rarity)}`}>
+                          {item.rarity}
+                        </Badge>
+                      </TableCell>
+                      <TableCell>
+                        <Switch
+                          checked={item.is_active}
+                          onCheckedChange={() => handleToggleActive(item)}
+                        />
+                      </TableCell>
+                      <TableCell>
+                        <div className="flex items-center space-x-2">
+                          <Dialog>
+                            <DialogTrigger asChild>
+                              <Button
+                                variant="outline"
+                                size="sm"
+                                onClick={() => handleEdit(item)}
+                              >
+                                <Edit className="w-4 h-4" />
+                              </Button>
+                            </DialogTrigger>
+                            <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
+                              <DialogHeader>
+                                <DialogTitle>Editar Item</DialogTitle>
+                              </DialogHeader>
+                              <ItemForm 
+                                formData={formData}
+                                setFormData={setFormData}
+                                onSave={handleSave}
+                                onCancel={() => {
+                                  setEditingItem(null);
+                                  resetForm();
+                                }}
+                                onImageUpload={handleImageUpload}
+                                uploading={uploading}
+                              />
+                            </DialogContent>
+                          </Dialog>
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={() => handleDelete(item.id, item.name)}
+                            className="text-red-600 hover:text-red-700"
+                          >
+                            <Trash2 className="w-4 h-4" />
+                          </Button>
+                        </div>
+                      </TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+            </div>
+          )}
         </CardContent>
       </Card>
     </div>
   );
 };
 
-// Componente do formulário separado para reutilização
 const ItemForm = ({ 
   formData, 
   setFormData, 
