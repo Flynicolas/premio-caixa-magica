@@ -13,7 +13,7 @@ import {
 } from 'lucide-react';
 
 interface UserStatsCardsProps {
-  stats: {
+  stats?: {
     total_spent: number;
     total_prizes_won: number;
     chests_opened: number;
@@ -25,6 +25,18 @@ interface UserStatsCardsProps {
 }
 
 const UserStatsCards = ({ stats, className = "" }: UserStatsCardsProps) => {
+  // Default stats if none provided
+  const defaultStats = {
+    total_spent: 0,
+    total_prizes_won: 0,
+    chests_opened: 0,
+    experience_points: 0,
+    level: 1,
+    join_date: new Date().toISOString()
+  };
+
+  const userStats = stats || defaultStats;
+
   const formatCurrency = (value: number) => {
     return new Intl.NumberFormat('pt-BR', {
       style: 'currency',
@@ -41,7 +53,7 @@ const UserStatsCards = ({ stats, className = "" }: UserStatsCardsProps) => {
   };
 
   const getDaysJoined = () => {
-    const joinDate = new Date(stats.join_date);
+    const joinDate = new Date(userStats.join_date);
     const today = new Date();
     const diffTime = Math.abs(today.getTime() - joinDate.getTime());
     const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
@@ -49,14 +61,14 @@ const UserStatsCards = ({ stats, className = "" }: UserStatsCardsProps) => {
   };
 
   const getAverageSpentPerChest = () => {
-    if (stats.chests_opened === 0) return 0;
-    return stats.total_spent / stats.chests_opened;
+    if (userStats.chests_opened === 0) return 0;
+    return userStats.total_spent / userStats.chests_opened;
   };
 
   const statsCards = [
     {
       title: 'Total Investido',
-      value: formatCurrency(stats.total_spent),
+      value: formatCurrency(userStats.total_spent),
       icon: Wallet,
       color: 'text-green-500',
       bgColor: 'bg-green-500/10',
@@ -64,7 +76,7 @@ const UserStatsCards = ({ stats, className = "" }: UserStatsCardsProps) => {
     },
     {
       title: 'Prêmios Ganhos',
-      value: stats.total_prizes_won.toString(),
+      value: userStats.total_prizes_won.toString(),
       icon: Gift,
       color: 'text-purple-500',
       bgColor: 'bg-purple-500/10',
@@ -72,7 +84,7 @@ const UserStatsCards = ({ stats, className = "" }: UserStatsCardsProps) => {
     },
     {
       title: 'Baús Abertos',
-      value: stats.chests_opened.toString(),
+      value: userStats.chests_opened.toString(),
       icon: Trophy,
       color: 'text-blue-500',
       bgColor: 'bg-blue-500/10',
@@ -80,7 +92,7 @@ const UserStatsCards = ({ stats, className = "" }: UserStatsCardsProps) => {
     },
     {
       title: 'Experiência',
-      value: stats.experience_points.toLocaleString(),
+      value: userStats.experience_points.toLocaleString(),
       subtitle: 'XP',
       icon: Zap,
       color: 'text-yellow-500',
@@ -89,7 +101,7 @@ const UserStatsCards = ({ stats, className = "" }: UserStatsCardsProps) => {
     },
     {
       title: 'Nível Atual',
-      value: stats.level.toString(),
+      value: userStats.level.toString(),
       icon: Star,
       color: 'text-cyan-500',
       bgColor: 'bg-cyan-500/10',
@@ -102,7 +114,7 @@ const UserStatsCards = ({ stats, className = "" }: UserStatsCardsProps) => {
       icon: Calendar,
       color: 'text-orange-500',
       bgColor: 'bg-orange-500/10',
-      tooltip: `Membro desde ${formatDate(stats.join_date)}`
+      tooltip: `Membro desde ${formatDate(userStats.join_date)}`
     },
     {
       title: 'Média por Baú',
@@ -114,8 +126,8 @@ const UserStatsCards = ({ stats, className = "" }: UserStatsCardsProps) => {
     },
     {
       title: 'Taxa de Sucesso',
-      value: stats.chests_opened > 0 ? 
-        `${((stats.total_prizes_won / stats.chests_opened) * 100).toFixed(1)}%` : 
+      value: userStats.chests_opened > 0 ? 
+        `${((userStats.total_prizes_won / userStats.chests_opened) * 100).toFixed(1)}%` : 
         '0%',
       icon: TrendingUp,
       color: 'text-emerald-500',
