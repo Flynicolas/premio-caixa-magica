@@ -13,18 +13,23 @@ import SpinCarousel from '@/components/carousel/SpinCarousel';
 import WinModal from '@/components/WinModal';
 import { chestData, ChestType, Chest } from '@/data/chestData';
 import { DatabaseItem } from '@/types/database';
-import FreeSpinWheel from '@/components/FreeSpinWheel';
+import ChestSimulator from '@/components/ChestSimulator';
+import { useDemoAccount } from '@/hooks/useDemoAccount';
+import { useAdminAccess } from '@/hooks/useAdminAccess';
 
 const Index = () => {
   const { user } = useAuth();
   const { walletData, purchaseChest, PaymentModalComponent } = useWallet();
+  const { isDemoAccount, demoAccount } = useDemoAccount();
+  const { hasAdminBypass } = useAdminAccess();
+  
   const [showAuthModal, setShowAuthModal] = useState(false);
   const [showWalletPanel, setShowWalletPanel] = useState(false);
   const [showItemsModal, setShowItemsModal] = useState(false);
   const [showConfirmModal, setShowConfirmModal] = useState(false);
   const [showSpinCarousel, setShowSpinCarousel] = useState(false);
   const [showWinModal, setShowWinModal] = useState(false);
-  const [showFreeWheel, setShowFreeWheel] = useState(false);
+  const [showSimulator, setShowSimulator] = useState(false);
   const [selectedChest, setSelectedChest] = useState<{ chest: Chest; type: ChestType } | null>(null);
   const [wonPrize, setWonPrize] = useState<DatabaseItem | null>(null);
 
@@ -35,6 +40,13 @@ const Index = () => {
   const handleChestOpen = (chestType: ChestType) => {
     const chest = chestData[chestType];
     setSelectedChest({ chest, type: chestType });
+    
+    // Admin bypass ou conta demo
+    if (hasAdminBypass() || isDemoAccount) {
+      setShowSpinCarousel(true);
+      return;
+    }
+    
     setShowConfirmModal(true);
   };
 
@@ -50,7 +62,6 @@ const Index = () => {
     const result = await purchaseChest(selectedChest.type, selectedChest.chest.price);
     if (!result.error) {
       setShowConfirmModal(false);
-      // Open spin carousel
       setShowSpinCarousel(true);
     }
   };
@@ -71,7 +82,6 @@ const Index = () => {
     return null;
   };
 
-  // Convert Prize array to DatabaseItem array for compatibility
   const convertPrizesToDatabaseItems = (prizes: any[]): DatabaseItem[] => {
     return prizes.map((prize, index) => ({
       id: `prize-${index}`,
@@ -96,6 +106,14 @@ const Index = () => {
     } as DatabaseItem));
   };
 
+  // Obter saldo apropriado (demo ou real)
+  const getCurrentBalance = () => {
+    if (isDemoAccount && demoAccount) {
+      return demoAccount.balance;
+    }
+    return walletData?.balance || 0;
+  };
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-background via-secondary to-background">
       <div className="container mx-auto px-4 py-8">
@@ -104,32 +122,47 @@ const Index = () => {
           <HeroSlider />
         </div>
 
-        {/* Roda da Sorte Grátis - Nova seção */}
-        <section className="mb-12">
-          <div className="text-center mb-8">
-            <h2 className="text-3xl font-bold mb-4 text-primary">
-              🎰 Roda da Sorte Grátis 🎰
-            </h2>
-            <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
-              Experimente nossa simulação de abertura de baú! Gire a roda e veja que tipo de prêmio você poderia ganhar.
+        {/* Demo Account Banner */}
+        {isDemoAccount && demoAccount && (
+          <div className="mb-8 bg-gradient-to-r from-blue-500 to-purple-600 text-white rounded-xl p-6 text-center">
+            <h2 className="text-2xl font-bold mb-2">🎮 Modo Demonstração</h2>
+            <p className="mb-3">
+              Você está usando uma conta demo com <strong>R$ {demoAccount.balance.toFixed(2)}</strong> que se renova diariamente!
+            </p>
+            <p className="text-sm opacity-90">
+              Cadastre-se para jogar de verdade e resgatar prêmios reais.
             </p>
           </div>
-          
-          <div className="flex justify-center mb-8">
-            <Button
-              onClick={() => setShowFreeWheel(!showFreeWheel)}
-              className="bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600 text-white font-bold py-3 px-8 rounded-full shadow-lg"
-            >
-              {showFreeWheel ? 'Esconder Roda' : '🎲 Testar Roda Grátis'}
-            </Button>
-          </div>
-          
-          {showFreeWheel && (
-            <div className="mb-8">
-              <FreeSpinWheel />
+        )}
+
+        {/* Simulador de Baú Grátis - Para usuários não cadastrados */}
+        {!user && (
+          <section className="mb-12">
+            <div className="text-center mb-8">
+              <h2 className="text-3xl font-bold mb-4 text-primary">
+                🎁 Simulador de Abertura de Baú 🎁
+              </h2>
+              <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
+                Experimente como funciona nosso sistema! Simulação gratuita com alta chance de prêmios raros.
+              </p>
             </div>
-          )}
-        </section>
+            
+            <div className="flex justify-center mb-8">
+              <Button
+                onClick={() => setShowSimulator(!showSimulator)}
+                className="bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600 text-white font-bold py-3 px-8 rounded-full shadow-lg"
+              >
+                {showSimulator ? 'Esconder Simulador' : '🎲 Testar Simulador Grátis'}
+              </Button>
+            </div>
+            
+            {showSimulator && (
+              <div className="mb-8">
+                <ChestSimulator />
+              </div>
+            )}
+          </section>
+        )}
 
         {/* Real-time Wins Carousel */}
         <RealtimeWinsCarousel className="mb-12" />
@@ -143,6 +176,16 @@ const Index = () => {
             <p className="text-lg text-muted-foreground max-w-3xl mx-auto">
               Cada baú tem diferentes chances de prêmios. Quanto maior o investimento, maiores as recompensas!
             </p>
+            
+            {/* Admin ou Demo Badge */}
+            {(hasAdminBypass() || isDemoAccount) && (
+              <div className="mt-4">
+                <div className="inline-flex items-center px-4 py-2 bg-green-100 text-green-800 rounded-full text-sm font-medium">
+                  {hasAdminBypass() && "🔧 Modo Admin - Teste sem Custos"}
+                  {isDemoAccount && "🎮 Modo Demo - Saldo Renovável"}
+                </div>
+              </div>
+            )}
           </div>
 
           <div className="grid grid-cols-3 grid-rows-2 gap-6 max-w-6xl mx-auto">
@@ -153,7 +196,7 @@ const Index = () => {
                   chestType={chestType as ChestType}
                   onOpen={() => handleChestOpen(chestType as ChestType)}
                   onViewItems={() => handleChestViewItems(chestType as ChestType)}
-                  balance={walletData?.balance || 0}
+                  balance={getCurrentBalance()}
                 />
               </div>
             ))}
@@ -164,10 +207,10 @@ const Index = () => {
         {!user && (
           <section className="text-center py-16 bg-gradient-to-r from-primary/10 to-secondary/10 rounded-3xl border border-primary/20">
             <h2 className="text-4xl font-bold mb-6 text-primary">
-              Pronto para Ganhar?
+              Pronto para Ganhar de Verdade?
             </h2>
             <p className="text-xl text-muted-foreground mb-8 max-w-2xl mx-auto">
-              Cadastre-se agora e receba R$ 50 de bônus para começar a jogar!
+              Cadastre-se agora e receba R$ 50 de bônus para começar a jogar com prêmios reais!
             </p>
             <button
               onClick={() => setShowAuthModal(true)}
@@ -179,6 +222,7 @@ const Index = () => {
         )}
       </div>
 
+      {/* Modals */}
       <AuthModal 
         isOpen={showAuthModal} 
         onClose={() => setShowAuthModal(false)} 
@@ -187,7 +231,7 @@ const Index = () => {
       <WalletPanel
         isOpen={showWalletPanel}
         onClose={() => setShowWalletPanel(false)}
-        balance={walletData?.balance || 0}
+        balance={getCurrentBalance()}
         prizes={[]}
       />
 
@@ -210,7 +254,7 @@ const Index = () => {
         chestType={selectedChest?.type!}
         chestName={selectedChest?.chest.name || ''}
         chestPrice={selectedChest?.chest.price || 0}
-        balance={walletData?.balance || 0}
+        balance={getCurrentBalance()}
         nextChestType={getUpgradeChest(selectedChest?.type!)?.type}
         nextChestName={getUpgradeChest(selectedChest?.type!)?.chest.name}
         nextChestPrice={getUpgradeChest(selectedChest?.type!)?.chest.price}

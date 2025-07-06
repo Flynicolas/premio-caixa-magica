@@ -9,6 +9,7 @@ import DataMigrationPanel from '@/components/admin/DataMigrationPanel';
 import ExcelImporter from '@/components/admin/ExcelImporter';
 import ImportGuide from '@/components/admin/ImportGuide';
 import TextImporter from '@/components/admin/TextImporter';
+import ProfessionalItemsTable from '@/components/admin/ProfessionalItemsTable';
 import { 
   Database, 
   Grid3X3, 
@@ -19,9 +20,9 @@ import {
   Package,
   Image as ImageIcon,
   BookOpen,
-  FileText
+  FileText,
+  Settings
 } from 'lucide-react';
-import ImprovedItemsTable from '@/components/admin/ImprovedItemsTable';
 
 const ItemManagement = () => {
   const { user } = useAuth();
@@ -87,7 +88,7 @@ const ItemManagement = () => {
     <div className="container mx-auto px-4 py-8 max-w-7xl">
       <div className="mb-8">
         <h1 className="text-3xl font-bold mb-2">Sistema de Gestão de Itens</h1>
-        <p className="text-muted-foreground">Gerencie todos os itens dos baús de forma visual e intuitiva</p>
+        <p className="text-muted-foreground">Dashboard profissional integrado com banco de dados em tempo real</p>
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
@@ -96,7 +97,7 @@ const ItemManagement = () => {
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm font-medium text-muted-foreground">Total de Itens</p>
-                <p className="text-2xl font-bold">{stats.totalItems}</p>
+                <p className="text-2xl font-bold text-blue-600">{stats.totalItems}</p>
               </div>
               <Package className="w-8 h-8 text-blue-500" />
             </div>
@@ -108,7 +109,7 @@ const ItemManagement = () => {
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm font-medium text-muted-foreground">Valor Total</p>
-                <p className="text-2xl font-bold">R$ {stats.totalValue.toFixed(2)}</p>
+                <p className="text-2xl font-bold text-green-600">R$ {stats.totalValue.toFixed(2)}</p>
               </div>
               <TrendingUp className="w-8 h-8 text-green-500" />
             </div>
@@ -120,7 +121,7 @@ const ItemManagement = () => {
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm font-medium text-muted-foreground">Tipos de Baú</p>
-                <p className="text-2xl font-bold">{Object.keys(stats.itemsByChest).length}</p>
+                <p className="text-2xl font-bold text-purple-600">{Object.keys(stats.itemsByChest).length}</p>
               </div>
               <Database className="w-8 h-8 text-purple-500" />
             </div>
@@ -167,11 +168,11 @@ const ItemManagement = () => {
         </Card>
       )}
 
-      <Tabs defaultValue="realtime" className="space-y-6">
+      <Tabs defaultValue="professional" className="space-y-6">
         <TabsList className="grid w-full grid-cols-6">
-          <TabsTrigger value="realtime" className="flex items-center gap-2">
-            <Database className="w-4 h-4" />
-            Tempo Real
+          <TabsTrigger value="professional" className="flex items-center gap-2">
+            <Settings className="w-4 h-4" />
+            Dashboard
           </TabsTrigger>
           <TabsTrigger value="migration" className="flex items-center gap-2">
             <Database className="w-4 h-4" />
@@ -195,8 +196,8 @@ const ItemManagement = () => {
           </TabsTrigger>
         </TabsList>
 
-        <TabsContent value="realtime">
-          <ImprovedItemsTable />
+        <TabsContent value="professional">
+          <ProfessionalItemsTable />
         </TabsContent>
 
         <TabsContent value="migration">
