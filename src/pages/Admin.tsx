@@ -68,22 +68,18 @@ const Admin = () => {
       </div>
 
       <Tabs defaultValue="items" className="space-y-6">
-        <TabsList className="grid w-full grid-cols-5">
+        <TabsList className="grid w-full grid-cols-4">
           <TabsTrigger value="items" className="flex items-center gap-2">
             <Package className="w-4 h-4" />
             Gerenciar Itens
           </TabsTrigger>
-          <TabsTrigger value="wallet" className="flex items-center gap-2">
-            <Wallet className="w-4 h-4" />
-            Carteira
-          </TabsTrigger>
-          <TabsTrigger value="dashboard" className="flex items-center gap-2">
-            <BarChart3 className="w-4 h-4" />
-            Dashboard
-          </TabsTrigger>
           <TabsTrigger value="chests" className="flex items-center gap-2">
             <Settings className="w-4 h-4" />
             Baús
+          </TabsTrigger>
+          <TabsTrigger value="wallet" className="flex items-center gap-2">
+            <Wallet className="w-4 h-4" />
+            Carteira
           </TabsTrigger>
           <TabsTrigger value="collaborators" className="flex items-center gap-2">
             <Users className="w-4 h-4" />
@@ -95,18 +91,14 @@ const Admin = () => {
           <ItemManagementTab />
         </TabsContent>
 
-        <TabsContent value="wallet">
-          <WalletControlPanel />
-        </TabsContent>
-
-        <TabsContent value="dashboard">
-          <ChestManagementPanel />
-        </TabsContent>
-
         <TabsContent value="chests">
           <div className="space-y-6">
             <ChestProbabilityManager items={items.filter(item => item.is_active)} onRefresh={refreshItems} />
           </div>
+        </TabsContent>
+
+        <TabsContent value="wallet">
+          <WalletControlPanel />
         </TabsContent>
 
         <TabsContent value="collaborators">

@@ -20,33 +20,61 @@ serve(async (req) => {
 
     const { chestType } = await req.json()
 
-    // Buscar todos os itens do baú com suas probabilidades
+    // Buscar itens do baú específico com suas probabilidades, apenas itens ativos
     const { data: probabilities, error: probError } = await supabaseClient
       .from('chest_item_probabilities')
       .select(`
         *,
-        item:items(*)
+        item:items!inner(*)
       `)
       .eq('chest_type', chestType)
       .eq('is_active', true)
+      .eq('item.is_active', true)
 
     if (probError) throw probError
 
     if (!probabilities || probabilities.length === 0) {
-      throw new Error(`Nenhum item encontrado para o baú ${chestType}`)
+      // Se não há itens configurados para este baú, buscar itens ativos gerais
+      console.log(`Nenhum item específico encontrado para o baú ${chestType}, usando itens gerais ativos`)
+      
+      const { data: generalItems, error: generalError } = await supabaseClient
+        .from('items')
+        .select('*')
+        .eq('is_active', true)
+
+      if (generalError) throw generalError
+
+      if (!generalItems || generalItems.length === 0) {
+        throw new Error(`Nenhum item ativo encontrado no sistema`)
+      }
+
+      // Sortear item aleatório dos itens gerais ativos
+      const randomIndex = Math.floor(Math.random() * generalItems.length)
+      const drawnItem = generalItems[randomIndex]
+
+      console.log(`Sorteio realizado (itens gerais): Baú ${chestType}, Item ID: ${drawnItem.id}`)
+
+      return new Response(
+        JSON.stringify({ itemId: drawnItem.id }),
+        { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      )
     }
 
     // Criar array ponderado baseado nos pesos de probabilidade
     const weightedItems: string[] = []
     
     probabilities.forEach(prob => {
-      if (prob.item) {
+      if (prob.item && prob.item.is_active) {
         // Adicionar o ID do item N vezes baseado no peso
         for (let i = 0; i < prob.probability_weight; i++) {
           weightedItems.push(prob.item.id)
         }
       }
     })
+
+    if (weightedItems.length === 0) {
+      throw new Error(`Nenhum item ativo encontrado para o baú ${chestType}`)
+    }
 
     // Sortear item aleatório do array ponderado
     const randomIndex = Math.floor(Math.random() * weightedItems.length)
