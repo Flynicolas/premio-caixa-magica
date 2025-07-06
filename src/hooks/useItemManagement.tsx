@@ -4,7 +4,6 @@ import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
 import { useToast } from '@/hooks/use-toast';
 import { DatabaseItem } from '@/types/database';
-import { chestData } from '@/data/chestData';
 
 export interface ItemManagementStats {
   totalItems: number;
@@ -44,7 +43,6 @@ export const useItemManagement = () => {
       
       const adminStatus = !!data;
       setIsAdmin(adminStatus);
-      console.log('Status de admin verificado:', adminStatus);
       return adminStatus;
     } catch (error) {
       console.error('Erro ao verificar status admin:', error);
@@ -81,7 +79,6 @@ export const useItemManagement = () => {
 
   const fetchItems = async () => {
     try {
-      console.log('Buscando itens...');
       const { data, error } = await supabase
         .from('items')
         .select('*')
@@ -95,7 +92,6 @@ export const useItemManagement = () => {
         delivery_type: item.delivery_type as 'digital' | 'physical'
       }));
       
-      console.log('Itens carregados:', typedData.length);
       setItems(typedData);
       calculateStats(typedData);
     } catch (error: any) {
@@ -108,47 +104,8 @@ export const useItemManagement = () => {
     }
   };
 
-  const migrateChestData = async () => {
-    try {
-      setLoading(true);
-      
-      const allItems = Object.entries(chestData).flatMap(([chestType, chest]) =>
-        chest.prizes.map(item => ({
-          ...item,
-          chest_type: chestType,
-          value: parseFloat(item.value.replace('R$ ', '').replace('.', '').replace(',', '.'))
-        }))
-      );
-
-      const { data, error } = await supabase.rpc('migrate_chest_data', {
-        items_data: allItems
-      });
-
-      if (error) throw error;
-
-      const result = data[0];
-      
-      toast({
-        title: "Migração concluída!",
-        description: `${result.migrated_count} itens migrados, ${result.updated_count} atualizados. ${result.error_count} erros.`,
-      });
-
-      await fetchItems();
-    } catch (error: any) {
-      console.error('Erro na migração:', error);
-      toast({
-        title: "Erro na migração",
-        description: error.message,
-        variant: "destructive"
-      });
-    } finally {
-      setLoading(false);
-    }
-  };
-
   const updateItem = async (id: string, updates: Partial<DatabaseItem>) => {
     try {
-      console.log('Atualizando item:', id, updates);
       const { error } = await supabase
         .from('items')
         .update({
@@ -159,7 +116,6 @@ export const useItemManagement = () => {
 
       if (error) throw error;
 
-      // Atualizar estado local imediatamente
       setItems(prev => prev.map(item => 
         item.id === id ? { ...item, ...updates } : item
       ));
@@ -180,7 +136,6 @@ export const useItemManagement = () => {
 
   const createItem = async (itemData: Omit<DatabaseItem, 'id' | 'created_at' | 'updated_at'>) => {
     try {
-      console.log('Criando item:', itemData);
       const { data, error } = await supabase
         .from('items')
         .insert([itemData])
@@ -195,7 +150,6 @@ export const useItemManagement = () => {
         delivery_type: data.delivery_type as 'digital' | 'physical'
       };
 
-      // Atualizar estado local imediatamente
       setItems(prev => [typedData, ...prev]);
 
       toast({
@@ -217,7 +171,6 @@ export const useItemManagement = () => {
 
   const deleteItem = async (id: string) => {
     try {
-      console.log('Deletando item:', id);
       const { error } = await supabase
         .from('items')
         .delete()
@@ -225,7 +178,6 @@ export const useItemManagement = () => {
 
       if (error) throw error;
 
-      // Atualizar estado local imediatamente
       setItems(prev => prev.filter(item => item.id !== id));
 
       toast({
@@ -236,38 +188,6 @@ export const useItemManagement = () => {
       console.error('Erro ao deletar item:', error);
       toast({
         title: "Erro ao deletar",
-        description: error.message,
-        variant: "destructive"
-      });
-    }
-  };
-
-  const bulkUpdateItems = async (itemIds: string[], updates: Partial<DatabaseItem>) => {
-    try {
-      console.log('Atualização em massa:', itemIds.length, 'itens');
-      const { error } = await supabase
-        .from('items')
-        .update({
-          ...updates,
-          updated_at: new Date().toISOString()
-        })
-        .in('id', itemIds);
-
-      if (error) throw error;
-
-      // Atualizar estado local imediatamente
-      setItems(prev => prev.map(item => 
-        itemIds.includes(item.id) ? { ...item, ...updates } : item
-      ));
-
-      toast({
-        title: "Itens atualizados!",
-        description: `${itemIds.length} itens foram atualizados com sucesso.`,
-      });
-    } catch (error: any) {
-      console.error('Erro no bulk update:', error);
-      toast({
-        title: "Erro na atualização em massa",
         description: error.message,
         variant: "destructive"
       });
@@ -299,23 +219,18 @@ export const useItemManagement = () => {
   useEffect(() => {
     if (!isAdmin) return;
 
-    console.log('Configurando realtime para itens...');
     const channel = supabase
       .channel('item-management-updates')
       .on('postgres_changes', 
         { event: '*', schema: 'public', table: 'items' },
         (payload) => {
           console.log('Mudança realtime detectada:', payload);
-          // O fetchItems será chamado automaticamente pelo realtime
           fetchItems();
         }
       )
-      .subscribe((status) => {
-        console.log('Status do canal item-management:', status);
-      });
+      .subscribe();
 
     return () => {
-      console.log('Removendo canal item-management');
       supabase.removeChannel(channel);
     };
   }, [isAdmin]);
@@ -325,11 +240,9 @@ export const useItemManagement = () => {
     stats,
     loading,
     isAdmin,
-    migrateChestData,
     updateItem,
     createItem,
     deleteItem,
-    bulkUpdateItems,
     refetchItems: fetchItems
   };
 };

@@ -13,7 +13,6 @@ import Sobre from "./pages/Sobre";
 import Ranking from "./pages/Ranking";
 import Perfil from "./pages/Perfil";
 import Admin from "./pages/Admin";
-import ItemManagement from "./pages/ItemManagement";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -35,7 +34,6 @@ const App = () => (
                 <Route path="/ranking" element={<Ranking />} />
                 <Route path="/perfil" element={<Perfil />} />
                 <Route path="/admin" element={<Admin />} />
-                <Route path="/gestao-itens" element={<ItemManagement />} />
                 <Route path="*" element={<NotFound />} />
               </Routes>
             </main>

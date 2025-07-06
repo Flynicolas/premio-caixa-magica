@@ -5,12 +5,11 @@ import { useAdminData } from '@/hooks/useAdminData';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import ChestManagementPanel from '@/components/ChestManagementPanel';
-import ItemManagement from '@/components/admin/ItemManagement';
 import ChestProbabilityManager from '@/components/admin/ChestProbabilityManager';
 import CollaboratorManagement from '@/components/admin/CollaboratorManagement';
 import WalletControlPanel from '@/components/admin/WalletControlPanel';
-import GlobalItemsDashboard from '@/components/admin/GlobalItemsDashboard';
-import { Shield, BarChart3, Settings, Users, Package, Wallet, Globe } from 'lucide-react';
+import ItemManagementTab from '@/components/admin/ItemManagementTab';
+import { Shield, BarChart3, Settings, Users, Package, Wallet } from 'lucide-react';
 
 const Admin = () => {
   const { user } = useAuth();
@@ -65,14 +64,14 @@ const Admin = () => {
     <div className="container mx-auto px-4 py-8">
       <div className="mb-8">
         <h1 className="text-3xl font-bold mb-2">Painel Administrativo</h1>
-        <p className="text-muted-foreground">Gerencie o sistema de baús, carteira virtual e acompanhe métricas em tempo real</p>
+        <p className="text-muted-foreground">Gerencie o sistema de baús, itens e usuários</p>
       </div>
 
-      <Tabs defaultValue="global" className="space-y-6">
-        <TabsList className="grid w-full grid-cols-8">
-          <TabsTrigger value="global" className="flex items-center gap-2">
-            <Globe className="w-4 h-4" />
-            Global
+      <Tabs defaultValue="items" className="space-y-6">
+        <TabsList className="grid w-full grid-cols-5">
+          <TabsTrigger value="items" className="flex items-center gap-2">
+            <Package className="w-4 h-4" />
+            Gerenciar Itens
           </TabsTrigger>
           <TabsTrigger value="wallet" className="flex items-center gap-2">
             <Wallet className="w-4 h-4" />
@@ -82,10 +81,6 @@ const Admin = () => {
             <BarChart3 className="w-4 h-4" />
             Dashboard
           </TabsTrigger>
-          <TabsTrigger value="items" className="flex items-center gap-2">
-            <Package className="w-4 h-4" />
-            Itens
-          </TabsTrigger>
           <TabsTrigger value="chests" className="flex items-center gap-2">
             <Settings className="w-4 h-4" />
             Baús
@@ -94,18 +89,10 @@ const Admin = () => {
             <Users className="w-4 h-4" />
             Colaboradores
           </TabsTrigger>
-          <TabsTrigger value="users" className="flex items-center gap-2">
-            <Users className="w-4 h-4" />
-            Usuários
-          </TabsTrigger>
-          <TabsTrigger value="settings" className="flex items-center gap-2">
-            <Settings className="w-4 h-4" />
-            Configurações
-          </TabsTrigger>
         </TabsList>
 
-        <TabsContent value="global">
-          <GlobalItemsDashboard />
+        <TabsContent value="items">
+          <ItemManagementTab />
         </TabsContent>
 
         <TabsContent value="wallet">
@@ -116,12 +103,6 @@ const Admin = () => {
           <ChestManagementPanel />
         </TabsContent>
 
-        <TabsContent value="items">
-          <div className="space-y-6">
-            <ItemManagement items={items} onRefresh={refreshItems} />
-          </div>
-        </TabsContent>
-
         <TabsContent value="chests">
           <div className="space-y-6">
             <ChestProbabilityManager items={items.filter(item => item.is_active)} onRefresh={refreshItems} />
@@ -130,28 +111,6 @@ const Admin = () => {
 
         <TabsContent value="collaborators">
           <CollaboratorManagement />
-        </TabsContent>
-
-        <TabsContent value="users">
-          <Card>
-            <CardHeader>
-              <CardTitle>Gestão de Usuários</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <p className="text-muted-foreground">Sistema de usuários finais será implementado na próxima etapa.</p>
-            </CardContent>
-          </Card>
-        </TabsContent>
-
-        <TabsContent value="settings">
-          <Card>
-            <CardHeader>
-              <CardTitle>Configurações do Sistema</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <p className="text-muted-foreground">Configurações gerais do sistema serão implementadas em breve.</p>
-            </CardContent>
-          </Card>
         </TabsContent>
       </Tabs>
     </div>
