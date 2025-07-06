@@ -4,12 +4,11 @@ import { useAuth } from '@/hooks/useAuth';
 import { useAdminData } from '@/hooks/useAdminData';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import ChestManagementPanel from '@/components/ChestManagementPanel';
-import ChestProbabilityManager from '@/components/admin/ChestProbabilityManager';
 import CollaboratorManagement from '@/components/admin/CollaboratorManagement';
 import WalletControlPanel from '@/components/admin/WalletControlPanel';
 import ItemManagementTab from '@/components/admin/ItemManagementTab';
-import { Shield, BarChart3, Settings, Users, Package, Wallet } from 'lucide-react';
+import EnhancedChestProbabilityManager from '@/components/admin/EnhancedChestProbabilityManager';
+import { Shield, Package, Settings, Users, Wallet } from 'lucide-react';
 
 const Admin = () => {
   const { user } = useAuth();
@@ -71,7 +70,7 @@ const Admin = () => {
         <TabsList className="grid w-full grid-cols-4">
           <TabsTrigger value="items" className="flex items-center gap-2">
             <Package className="w-4 h-4" />
-            Gerenciar Itens
+            Itens
           </TabsTrigger>
           <TabsTrigger value="chests" className="flex items-center gap-2">
             <Settings className="w-4 h-4" />
@@ -92,9 +91,10 @@ const Admin = () => {
         </TabsContent>
 
         <TabsContent value="chests">
-          <div className="space-y-6">
-            <ChestProbabilityManager items={items.filter(item => item.is_active)} onRefresh={refreshItems} />
-          </div>
+          <EnhancedChestProbabilityManager 
+            items={items.filter(item => item.is_active)} 
+            onRefresh={refreshItems} 
+          />
         </TabsContent>
 
         <TabsContent value="wallet">

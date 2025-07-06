@@ -219,9 +219,11 @@ export type Database = {
           id: string
           is_active: boolean | null
           item_id: string
+          liberado_manual: boolean | null
           max_quantity: number | null
           min_quantity: number | null
           probability_weight: number
+          sorteado_em: string | null
         }
         Insert: {
           chest_type: string
@@ -229,9 +231,11 @@ export type Database = {
           id?: string
           is_active?: boolean | null
           item_id: string
+          liberado_manual?: boolean | null
           max_quantity?: number | null
           min_quantity?: number | null
           probability_weight?: number
+          sorteado_em?: string | null
         }
         Update: {
           chest_type?: string
@@ -239,9 +243,11 @@ export type Database = {
           id?: string
           is_active?: boolean | null
           item_id?: string
+          liberado_manual?: boolean | null
           max_quantity?: number | null
           min_quantity?: number | null
           probability_weight?: number
+          sorteado_em?: string | null
         }
         Relationships: [
           {

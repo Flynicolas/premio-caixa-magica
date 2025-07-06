@@ -32,6 +32,8 @@ export interface ChestItemProbability {
   min_quantity: number;
   max_quantity: number;
   is_active: boolean;
+  liberado_manual: boolean;
+  sorteado_em: string | null;
   created_at: string;
   item?: DatabaseItem; // Join com a tabela items
 }
