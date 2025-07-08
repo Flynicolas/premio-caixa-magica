@@ -1,4 +1,3 @@
-
 import { useState } from 'react';
 import { useAuth } from '@/hooks/useAuth';
 import { useWallet } from '@/hooks/useWallet';
@@ -26,6 +25,9 @@ const Index = () => {
   const [showWinModal, setShowWinModal] = useState(false);
   const [selectedChest, setSelectedChest] = useState<{ chest: Chest; type: ChestType } | null>(null);
   const [wonPrize, setWonPrize] = useState<DatabaseItem | null>(null);
+
+  // Definir ordem específica dos baús
+  const chestOrder: ChestType[] = ['silver', 'gold', 'diamond', 'ruby', 'premium', 'delas'];
 
   const handleOpenWallet = () => {
     setShowWalletPanel(true);
@@ -118,13 +120,13 @@ const Index = () => {
           </div>
 
           <div className="grid grid-cols-3 grid-rows-2 gap-6 max-w-6xl mx-auto">
-            {Object.entries(chestData).map(([chestType, chest]) => (
+            {chestOrder.map((chestType) => (
               <div key={chestType}>
                 <ChestCard
-                  chest={chest}
-                  chestType={chestType as ChestType}
-                  onOpen={() => handleChestOpen(chestType as ChestType)}
-                  onViewItems={() => handleChestViewItems(chestType as ChestType)}
+                  chest={chestData[chestType]}
+                  chestType={chestType}
+                  onOpen={() => handleChestOpen(chestType)}
+                  onViewItems={() => handleChestViewItems(chestType)}
                   balance={walletData?.balance || 0}
                 />
               </div>

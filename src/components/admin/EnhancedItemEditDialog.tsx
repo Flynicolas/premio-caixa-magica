@@ -1,5 +1,5 @@
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -32,22 +32,56 @@ const EnhancedItemEditDialog = ({
   const { toast } = useToast();
   const { uploadImage } = useImageUpload();
   const [formData, setFormData] = useState(() => ({
-    name: item?.name || '',
-    description: item?.description || '',
-    base_value: item?.base_value?.toString() || '',
-    rarity: item?.rarity || 'common' as 'common' | 'rare' | 'epic' | 'legendary',
-    category: item?.category || 'product',
-    delivery_type: item?.delivery_type || 'digital' as 'digital' | 'physical',
-    is_active: item?.is_active ?? true,
-    image_url: item?.image_url || '',
-    requires_address: item?.requires_address || false,
-    requires_document: item?.requires_document || false,
-    delivery_instructions: item?.delivery_instructions || ''
+    name: '',
+    description: '',
+    base_value: '',
+    rarity: 'common' as 'common' | 'rare' | 'epic' | 'legendary',
+    category: 'product',
+    delivery_type: 'digital' as 'digital' | 'physical',
+    is_active: true,
+    image_url: '',
+    requires_address: false,
+    requires_document: false,
+    delivery_instructions: ''
   }));
   const [showConfirmation, setShowConfirmation] = useState(false);
   const [saving, setSaving] = useState(false);
 
   const fileInputRef = React.useRef<HTMLInputElement>(null);
+
+  // Atualizar formData quando o item mudar
+  useEffect(() => {
+    if (item) {
+      setFormData({
+        name: item.name || '',
+        description: item.description || '',
+        base_value: item.base_value?.toString() || '',
+        rarity: item.rarity || 'common',
+        category: item.category || 'product',
+        delivery_type: item.delivery_type || 'digital',
+        is_active: item.is_active ?? true,
+        image_url: item.image_url || '',
+        requires_address: item.requires_address || false,
+        requires_document: item.requires_document || false,
+        delivery_instructions: item.delivery_instructions || ''
+      });
+    } else {
+      // Resetar para valores padrão quando criar novo item
+      setFormData({
+        name: '',
+        description: '',
+        base_value: '',
+        rarity: 'common',
+        category: 'product',
+        delivery_type: 'digital',
+        is_active: true,
+        image_url: '',
+        requires_address: false,
+        requires_document: false,
+        delivery_instructions: ''
+      });
+    }
+  }, [item, isOpen]);
 
   const handleImageChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -110,7 +144,7 @@ const EnhancedItemEditDialog = ({
       <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle>
-            {item ? 'Editar Item' : 'Novo Item'}
+            {item ? `Editar Item: ${item.name}` : 'Novo Item'}
           </DialogTitle>
         </DialogHeader>
 

@@ -1,18 +1,23 @@
 
-import React from 'react';
+import React, { useState } from 'react';
 import { useAuth } from '@/hooks/useAuth';
 import { useAdminData } from '@/hooks/useAdminData';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Button } from '@/components/ui/button';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import CollaboratorManagement from '@/components/admin/CollaboratorManagement';
 import WalletControlPanel from '@/components/admin/WalletControlPanel';
 import ItemManagementTab from '@/components/admin/ItemManagementTab';
 import EnhancedChestProbabilityManager from '@/components/admin/EnhancedChestProbabilityManager';
-import { Shield, Package, Settings, Users, Wallet } from 'lucide-react';
+import UsersManagement from '@/components/admin/UsersManagement';
+import ChestGoalsManager from '@/components/admin/ChestGoalsManager';
+import { Shield, Package, Settings, Users, Wallet, Target } from 'lucide-react';
 
 const Admin = () => {
   const { user } = useAuth();
   const { items, loading, isAdmin, refreshItems } = useAdminData();
+  const [showGoalsDialog, setShowGoalsDialog] = useState(false);
 
   if (!user) {
     return (
@@ -67,7 +72,7 @@ const Admin = () => {
       </div>
 
       <Tabs defaultValue="items" className="space-y-6">
-        <TabsList className="grid w-full grid-cols-4">
+        <TabsList className="grid w-full grid-cols-5">
           <TabsTrigger value="items" className="flex items-center gap-2">
             <Package className="w-4 h-4" />
             Itens
@@ -79,6 +84,10 @@ const Admin = () => {
           <TabsTrigger value="wallet" className="flex items-center gap-2">
             <Wallet className="w-4 h-4" />
             Carteira
+          </TabsTrigger>
+          <TabsTrigger value="users" className="flex items-center gap-2">
+            <Users className="w-4 h-4" />
+            Usuários
           </TabsTrigger>
           <TabsTrigger value="collaborators" className="flex items-center gap-2">
             <Users className="w-4 h-4" />
@@ -98,7 +107,29 @@ const Admin = () => {
         </TabsContent>
 
         <TabsContent value="wallet">
-          <WalletControlPanel />
+          <div className="space-y-6">
+            <div className="flex justify-end">
+              <Dialog open={showGoalsDialog} onOpenChange={setShowGoalsDialog}>
+                <DialogTrigger asChild>
+                  <Button variant="outline">
+                    <Target className="w-4 h-4 mr-2" />
+                    Editar Metas
+                  </Button>
+                </DialogTrigger>
+                <DialogContent className="max-w-6xl max-h-[90vh] overflow-y-auto">
+                  <DialogHeader>
+                    <DialogTitle>Configurar Metas dos Baús</DialogTitle>
+                  </DialogHeader>
+                  <ChestGoalsManager />
+                </DialogContent>
+              </Dialog>
+            </div>
+            <WalletControlPanel />
+          </div>
+        </TabsContent>
+
+        <TabsContent value="users">
+          <UsersManagement />
         </TabsContent>
 
         <TabsContent value="collaborators">
