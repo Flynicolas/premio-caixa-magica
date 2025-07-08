@@ -246,7 +246,10 @@ const UsersManagement = () => {
                         </span>
                       </TableCell>
                       <TableCell>
-                        <Badge variant={user.is_active ? "success" : "destructive"}>
+                        <Badge 
+                          variant={user.is_active ? "default" : "destructive"}
+                          className={user.is_active ? "bg-green-100 text-green-800 hover:bg-green-200" : ""}
+                        >
                           {user.is_active ? 'Ativo' : 'Inativo'}
                         </Badge>
                       </TableCell>
