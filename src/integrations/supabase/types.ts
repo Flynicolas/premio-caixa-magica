@@ -595,10 +595,12 @@ export type Database = {
           full_name: string | null
           id: string
           is_active: boolean | null
+          is_demo: boolean | null
           join_date: string | null
           last_login: string | null
           level: number | null
           preferences: Json | null
+          simulate_actions: boolean | null
           total_prizes_won: number | null
           total_spent: number | null
           updated_at: string | null
@@ -615,10 +617,12 @@ export type Database = {
           full_name?: string | null
           id: string
           is_active?: boolean | null
+          is_demo?: boolean | null
           join_date?: string | null
           last_login?: string | null
           level?: number | null
           preferences?: Json | null
+          simulate_actions?: boolean | null
           total_prizes_won?: number | null
           total_spent?: number | null
           updated_at?: string | null
@@ -635,10 +639,12 @@ export type Database = {
           full_name?: string | null
           id?: string
           is_active?: boolean | null
+          is_demo?: boolean | null
           join_date?: string | null
           last_login?: string | null
           level?: number | null
           preferences?: Json | null
+          simulate_actions?: boolean | null
           total_prizes_won?: number | null
           total_spent?: number | null
           updated_at?: string | null

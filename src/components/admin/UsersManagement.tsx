@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -17,7 +18,8 @@ import {
   ShoppingBag,
   Mail,
   Plus,
-  UserPlus
+  UserPlus,
+  Filter
 } from 'lucide-react';
 import {
   Table,
@@ -27,6 +29,13 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/table';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
 import UserEditDialog from './UsersManagement/UserEditDialog';
 import UserToolsDialog from './UsersManagement/UserToolsDialog';
 import CreateDemoUserModal from './UsersManagement/CreateDemoUserModal';
@@ -51,6 +60,7 @@ const UsersManagement = () => {
   const [filteredUsers, setFilteredUsers] = useState<UserData[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
+  const [statusFilter, setStatusFilter] = useState('all');
   const [selectedUser, setSelectedUser] = useState<UserData | null>(null);
   const [showEditDialog, setShowEditDialog] = useState(false);
   const [showToolsDialog, setShowToolsDialog] = useState(false);
@@ -64,7 +74,7 @@ const UsersManagement = () => {
 
   useEffect(() => {
     filterUsers();
-  }, [users, searchTerm]);
+  }, [users, searchTerm, statusFilter]);
 
   const fetchUsers = async () => {
     try {
@@ -113,15 +123,31 @@ const UsersManagement = () => {
   };
 
   const filterUsers = () => {
-    if (!searchTerm) {
-      setFilteredUsers(users);
-      return;
+    let filtered = users;
+
+    // Filtro por busca
+    if (searchTerm) {
+      filtered = filtered.filter(user => 
+        user.email.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        (user.full_name && user.full_name.toLowerCase().includes(searchTerm.toLowerCase()))
+      );
     }
 
-    const filtered = users.filter(user => 
-      user.email.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      (user.full_name && user.full_name.toLowerCase().includes(searchTerm.toLowerCase()))
-    );
+    // Filtro por status
+    if (statusFilter !== 'all') {
+      filtered = filtered.filter(user => {
+        switch (statusFilter) {
+          case 'active':
+            return user.is_active && !user.is_demo;
+          case 'inactive':
+            return !user.is_active && !user.is_demo;
+          case 'demo':
+            return user.is_demo;
+          default:
+            return true;
+        }
+      });
+    }
 
     setFilteredUsers(filtered);
   };
@@ -144,6 +170,20 @@ const UsersManagement = () => {
   const formatDateTime = (dateString: string | null) => {
     if (!dateString) return 'Nunca';
     return new Date(dateString).toLocaleString('pt-BR');
+  };
+
+  const getStatusBadge = (user: UserData) => {
+    if (user.is_demo) {
+      return <Badge variant="secondary" className="bg-purple-100 text-purple-800 hover:bg-purple-200">Demo</Badge>;
+    }
+    return (
+      <Badge 
+        variant={user.is_active ? "default" : "destructive"}
+        className={user.is_active ? "bg-green-100 text-green-800 hover:bg-green-200" : ""}
+      >
+        {user.is_active ? 'Ativo' : 'Inativo'}
+      </Badge>
+    );
   };
 
   if (loading) {
@@ -176,6 +216,20 @@ const UsersManagement = () => {
                   Criar Usuário DEMO
                 </Button>
               )}
+              <div className="flex items-center gap-2">
+                <Filter className="w-4 h-4 text-gray-400" />
+                <Select value={statusFilter} onValueChange={setStatusFilter}>
+                  <SelectTrigger className="w-32">
+                    <SelectValue placeholder="Status" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">Todos</SelectItem>
+                    <SelectItem value="active">Ativos</SelectItem>
+                    <SelectItem value="inactive">Inativos</SelectItem>
+                    <SelectItem value="demo">Demo</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
               <div className="relative">
                 <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
                 <Input
@@ -193,7 +247,7 @@ const UsersManagement = () => {
             <div className="text-center py-8">
               <Users className="w-12 h-12 mx-auto mb-4 text-gray-400" />
               <p className="text-gray-500">
-                {searchTerm ? 'Nenhum usuário encontrado para a busca.' : 'Nenhum usuário cadastrado ainda.'}
+                {searchTerm || statusFilter !== 'all' ? 'Nenhum usuário encontrado para os filtros aplicados.' : 'Nenhum usuário cadastrado ainda.'}
               </p>
             </div>
           ) : (
@@ -273,12 +327,7 @@ const UsersManagement = () => {
                         </span>
                       </TableCell>
                       <TableCell>
-                        <Badge 
-                          variant={user.is_active ? "default" : "destructive"}
-                          className={user.is_active ? "bg-green-100 text-green-800 hover:bg-green-200" : ""}
-                        >
-                          {user.is_active ? 'Ativo' : 'Inativo'}
-                        </Badge>
+                        {getStatusBadge(user)}
                       </TableCell>
                       <TableCell>
                         <div className="flex items-center gap-2">
