@@ -1,8 +1,9 @@
 
 import { Dialog, DialogContent } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
-import { Sparkles, ArrowUp } from 'lucide-react';
+import { Sparkles, ArrowUp, AlertTriangle } from 'lucide-react';
 import { ChestType } from '@/data/chestData';
+import { useChestItemCount } from '@/hooks/useChestItemCount';
 
 interface ChestConfirmModalProps {
   isOpen: boolean;
@@ -31,6 +32,8 @@ const ChestConfirmModal = ({
   nextChestName,
   nextChestPrice
 }: ChestConfirmModalProps) => {
+  const { itemCount, hasMinimumItems, loading } = useChestItemCount(chestType);
+
   const chestColors = {
     silver: 'from-gray-400 to-gray-600',
     gold: 'from-yellow-400 to-yellow-600',
@@ -51,6 +54,7 @@ const ChestConfirmModal = ({
 
   const canAfford = balance >= chestPrice;
   const canAffordUpgrade = nextChestPrice ? balance >= nextChestPrice : false;
+  const canPurchase = canAfford && hasMinimumItems;
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
@@ -91,28 +95,41 @@ const ChestConfirmModal = ({
               R$ {chestPrice.toFixed(2).replace('.', ',')}
             </p>
             
-            <p className="text-sm text-black/70 mb-6">
+            <p className="text-sm text-black/70 mb-2">
               Saldo: R$ {balance.toFixed(2).replace('.', ',')}
+            </p>
+
+            <p className="text-sm text-black/70 mb-6">
+              {loading ? 'Carregando...' : `${itemCount} itens disponíveis`}
             </p>
 
             {/* Action Buttons */}
             <div className="space-y-3">
-              <Button
-                onClick={onConfirm}
-                disabled={!canAfford}
-                className="w-full bg-black/80 hover:bg-black text-white font-bold py-3 transition-all duration-300 hover:scale-105"
-              >
-                {canAfford ? (
-                  <>
-                    <Sparkles className="w-4 h-4 mr-2" />
-                    Sim, Abrir Baú!
-                  </>
-                ) : (
-                  'Saldo Insuficiente'
-                )}
-              </Button>
+              {!hasMinimumItems ? (
+                <div className="bg-black/80 text-white font-bold py-3 px-4 rounded text-center">
+                  <AlertTriangle className="w-4 h-4 mx-auto mb-2" />
+                  <p className="text-sm">Baú indisponível no momento</p>
+                  <p className="text-xs">Aguarde mais itens serem adicionados</p>
+                  <p className="text-xs">({itemCount}/10 itens)</p>
+                </div>
+              ) : (
+                <Button
+                  onClick={onConfirm}
+                  disabled={!canPurchase}
+                  className="w-full bg-black/80 hover:bg-black text-white font-bold py-3 transition-all duration-300 hover:scale-105"
+                >
+                  {canAfford ? (
+                    <>
+                      <Sparkles className="w-4 h-4 mr-2" />
+                      Sim, Abrir Baú!
+                    </>
+                  ) : (
+                    'Saldo Insuficiente'
+                  )}
+                </Button>
+              )}
 
-              {nextChestType && nextChestName && nextChestPrice && (
+              {nextChestType && nextChestName && nextChestPrice && hasMinimumItems && (
                 <Button
                   onClick={onUpgrade}
                   disabled={!canAffordUpgrade}

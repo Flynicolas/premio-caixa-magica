@@ -53,22 +53,48 @@ const ItemChestAssignment = ({ itemId, onUpdate }: ItemChestAssignmentProps) => 
     setLoading(true);
     try {
       if (checked) {
-        // Adicionar item ao baú
-        const { error } = await supabase
+        // Verificar se já existe a combinação item_id + chest_type
+        const { data: existing, error: checkError } = await supabase
           .from('chest_item_probabilities')
-          .insert({
-            chest_type: chestType,
-            item_id: itemId,
-            probability_weight: 1,
-            min_quantity: 1,
-            max_quantity: 1,
-            is_active: true
-          });
+          .select('id, is_active')
+          .eq('chest_type', chestType)
+          .eq('item_id', itemId)
+          .maybeSingle();
 
-        if (error) throw error;
+        if (checkError && checkError.code !== 'PGRST116') {
+          throw checkError;
+        }
+
+        if (existing) {
+          // Se existe mas está inativo, reativar
+          if (!existing.is_active) {
+            const { error: updateError } = await supabase
+              .from('chest_item_probabilities')
+              .update({ is_active: true })
+              .eq('id', existing.id);
+
+            if (updateError) throw updateError;
+          }
+          // Se já existe e está ativo, não fazer nada
+        } else {
+          // Criar nova relação
+          const { error: insertError } = await supabase
+            .from('chest_item_probabilities')
+            .insert({
+              chest_type: chestType,
+              item_id: itemId,
+              probability_weight: 1,
+              min_quantity: 1,
+              max_quantity: 1,
+              is_active: true
+            });
+
+          if (insertError) throw insertError;
+        }
+
         setAssignedChests([...assignedChests, chestType]);
       } else {
-        // Remover item do baú
+        // Desativar item do baú (não deletar)
         const { error } = await supabase
           .from('chest_item_probabilities')
           .update({ is_active: false })

@@ -2,8 +2,9 @@
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { Sparkles, Lock, Eye } from 'lucide-react';
+import { Sparkles, Lock, Eye, AlertTriangle } from 'lucide-react';
 import { Chest, ChestType } from '@/data/chestData';
+import { useChestItemCount } from '@/hooks/useChestItemCount';
 
 interface ChestCardProps {
   chest: Chest;
@@ -14,7 +15,9 @@ interface ChestCardProps {
 }
 
 const ChestCard = ({ chest, chestType, onOpen, onViewItems, balance }: ChestCardProps) => {
+  const { itemCount, hasMinimumItems, loading } = useChestItemCount(chestType);
   const canAfford = balance >= chest.price;
+  const canPurchase = canAfford && hasMinimumItems;
   
   const chestColors = {
     silver: 'from-gray-400 to-gray-600',
@@ -45,6 +48,54 @@ const ChestCard = ({ chest, chestType, onOpen, onViewItems, balance }: ChestCard
 
   // Get 5 rare items for preview
   const rareItems = chest.prizes.filter(prize => prize.rarity === 'rare' || prize.rarity === 'epic' || prize.rarity === 'legendary').slice(0, 5);
+
+  const getButtonContent = () => {
+    if (loading) {
+      return (
+        <>
+          <Sparkles className="w-4 h-4 mr-2" />
+          Carregando...
+        </>
+      );
+    }
+
+    if (!hasMinimumItems) {
+      return (
+        <>
+          <AlertTriangle className="w-4 h-4 mr-2" />
+          Indisponível
+        </>
+      );
+    }
+
+    if (!canAfford) {
+      return (
+        <>
+          <Lock className="w-4 h-4 mr-2" />
+          Sem Saldo
+        </>
+      );
+    }
+
+    return (
+      <>
+        <Sparkles className="w-4 h-4 mr-2" />
+        Abrir Baú
+      </>
+    );
+  };
+
+  const getStatusMessage = () => {
+    if (!hasMinimumItems) {
+      return `Baú indisponível no momento. Aguarde mais itens serem adicionados. (${itemCount}/10 itens)`;
+    }
+
+    if (!canAfford) {
+      return `Faltam R$ ${(chest.price - balance).toFixed(2).replace('.', ',')}`;
+    }
+
+    return null;
+  };
 
   return (
     <Card className={`relative overflow-hidden ${chestBorderColors[chestType]} bg-card/50 hover:bg-card/70 transition-all duration-300 group h-full border-2 aspect-[4/5]`}>
@@ -82,6 +133,11 @@ const ChestCard = ({ chest, chestType, onOpen, onViewItems, balance }: ChestCard
             R$ {chest.price.toFixed(2).replace('.', ',')}
           </div>
 
+          {/* Item count info */}
+          <div className="mb-2 text-xs text-muted-foreground">
+            {loading ? 'Carregando...' : `${itemCount} itens disponíveis`}
+          </div>
+
           {/* Preview of rare items */}
           <div className="mb-3">
             <p className="text-xs text-muted-foreground mb-2">Itens Raros:</p>
@@ -103,29 +159,23 @@ const ChestCard = ({ chest, chestType, onOpen, onViewItems, balance }: ChestCard
         {/* Action Button */}
         <Button
           onClick={onOpen}
-          disabled={!canAfford}
+          disabled={!canPurchase || loading}
           className={`w-full font-bold transition-all duration-300 text-sm ${
-            canAfford 
+            canPurchase 
               ? `bg-gradient-to-r ${chestColors[chestType]} text-black hover:opacity-90 hover:scale-105` 
               : 'bg-gray-600 text-gray-300 cursor-not-allowed'
           }`}
         >
-          {canAfford ? (
-            <>
-              <Sparkles className="w-4 h-4 mr-2" />
-              Abrir Baú
-            </>
-          ) : (
-            <>
-              <Lock className="w-4 h-4 mr-2" />
-              Sem Saldo
-            </>
-          )}
+          {getButtonContent()}
         </Button>
 
-        {!canAfford && (
-          <Badge variant="destructive" className="mt-1 text-xs">
-            Faltam R$ {(chest.price - balance).toFixed(2).replace('.', ',')}
+        {/* Status Message */}
+        {getStatusMessage() && (
+          <Badge 
+            variant="destructive" 
+            className="mt-1 text-xs text-center w-full"
+          >
+            {getStatusMessage()}
           </Badge>
         )}
       </CardContent>
