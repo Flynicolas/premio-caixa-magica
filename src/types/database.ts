@@ -1,3 +1,4 @@
+
 // ==============================================
 // TIPOS DO BANCO DE DADOS
 // ==============================================
@@ -149,6 +150,8 @@ export interface UserProfile {
   join_date: string;
   last_login: string;
   is_active: boolean;
+  is_demo: boolean;
+  simulate_actions: boolean;
   preferences: any;
   achievements: any[];
   created_at: string;

@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -17,7 +16,8 @@ import {
   Calendar,
   ShoppingBag,
   Mail,
-  Plus
+  Plus,
+  UserPlus
 } from 'lucide-react';
 import {
   Table,
@@ -29,6 +29,8 @@ import {
 } from '@/components/ui/table';
 import UserEditDialog from './UsersManagement/UserEditDialog';
 import UserToolsDialog from './UsersManagement/UserToolsDialog';
+import CreateDemoUserModal from './UsersManagement/CreateDemoUserModal';
+import { useAdminCheck } from '@/hooks/useAdminCheck';
 
 interface UserData {
   id: string;
@@ -36,6 +38,8 @@ interface UserData {
   full_name: string | null;
   created_at: string;
   is_active: boolean;
+  is_demo: boolean;
+  simulate_actions: boolean;
   balance: number;
   total_spent: number;
   chests_opened: number;
@@ -50,7 +54,9 @@ const UsersManagement = () => {
   const [selectedUser, setSelectedUser] = useState<UserData | null>(null);
   const [showEditDialog, setShowEditDialog] = useState(false);
   const [showToolsDialog, setShowToolsDialog] = useState(false);
+  const [showCreateDemoModal, setShowCreateDemoModal] = useState(false);
   const { toast } = useToast();
+  const { isAdmin } = useAdminCheck();
 
   useEffect(() => {
     fetchUsers();
@@ -84,6 +90,8 @@ const UsersManagement = () => {
           full_name: profile.full_name,
           created_at: profile.created_at,
           is_active: profile.is_active,
+          is_demo: profile.is_demo || false,
+          simulate_actions: profile.simulate_actions || false,
           balance: wallet?.balance || 0,
           total_spent: wallet?.total_spent || 0,
           chests_opened: profile.chests_opened || 0,
@@ -159,6 +167,15 @@ const UsersManagement = () => {
               Gerenciar Usuários ({filteredUsers.length})
             </CardTitle>
             <div className="flex items-center gap-4">
+              {isAdmin && (
+                <Button
+                  onClick={() => setShowCreateDemoModal(true)}
+                  className="flex items-center gap-2"
+                >
+                  <UserPlus className="w-4 h-4" />
+                  Criar Usuário DEMO
+                </Button>
+              )}
               <div className="relative">
                 <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
                 <Input
@@ -200,8 +217,18 @@ const UsersManagement = () => {
                     <TableRow key={user.id}>
                       <TableCell>
                         <div>
-                          <div className="font-medium">
+                          <div className="font-medium flex items-center gap-2">
                             {user.full_name || 'Nome não informado'}
+                            {user.is_demo && (
+                              <Badge variant="secondary" className="text-xs">
+                                DEMO
+                              </Badge>
+                            )}
+                            {user.simulate_actions && (
+                              <Badge variant="outline" className="text-xs">
+                                AUTO
+                              </Badge>
+                            )}
                           </div>
                           <div className="text-sm text-gray-500">
                             ID: {user.id.slice(0, 8)}...
@@ -304,6 +331,12 @@ const UsersManagement = () => {
         onUpdate={() => {
           fetchUsers();
         }}
+      />
+
+      <CreateDemoUserModal
+        isOpen={showCreateDemoModal}
+        onClose={() => setShowCreateDemoModal(false)}
+        onSuccess={fetchUsers}
       />
     </div>
   );
