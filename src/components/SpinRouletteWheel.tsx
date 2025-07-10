@@ -37,6 +37,7 @@ const SpinRouletteWheel = ({
   const [isAnimating, setIsAnimating] = useState(false);
   const [showWinner, setShowWinner] = useState(false);
   const [showParticles, setShowParticles] = useState(false);
+  const [finalTransform, setFinalTransform] = useState('');
   const trackRef = useRef<HTMLDivElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
 
@@ -70,6 +71,7 @@ const SpinRouletteWheel = ({
     setIsAnimating(true);
     setShowWinner(false);
     setShowParticles(false);
+    setFinalTransform('');
 
     const { centerIndex, winnerItem, totalSlots } = rouletteData;
 
@@ -85,78 +87,61 @@ const SpinRouletteWheel = ({
     const centerPosition = containerWidth / 2;
     const finalOffset = winnerPosition - centerPosition;
     
-    // Adicionar voltas extras para efeito visual (3 voltas completas)
-    const extraSpins = 3;
+    // Adicionar voltas extras para efeito visual (5 voltas completas)
+    const extraSpins = 5;
     const totalDistance = finalOffset + (extraSpins * trackWidth);
 
     // Expandir a trilha para comportar a animação
     if (trackRef.current) {
+      trackRef.current.style.transition = 'none';
+      trackRef.current.style.transform = `translateX(0px)`;
       trackRef.current.style.width = `${trackWidth * 6}px`;
     }
 
-    // Configuração da animação
-    let startTime: number;
-    const totalDuration = 4500; // 4.5 segundos
-    const phases = {
-      acceleration: 0.15,   // 15% aceleração
-      constant: 0.55,       // 55% velocidade constante  
-      deceleration: 0.3     // 30% desaceleração
-    };
+    // Iniciar animação após um frame
+    requestAnimationFrame(() => {
+      if (trackRef.current) {
+        trackRef.current.style.transition = 'transform 4.5s cubic-bezier(0.25, 1, 0.5, 1)';
+        trackRef.current.style.transform = `translateX(-${totalDistance}px)`;
+      }
+    });
 
     // Controle do som
-    let currentTickInterval = 50;
+    let tickInterval = 50;
     let lastTickTime = 0;
-    startTickLoop(currentTickInterval);
+    startTickLoop(tickInterval);
 
-    // Função de easing suave
-    const easeOutQuart = (x: number) => 1 - Math.pow(1 - x, 4);
-
-    const animate = (timestamp: number) => {
-      if (!startTime) startTime = timestamp;
-      const elapsed = timestamp - startTime;
-      const progress = Math.min(elapsed / totalDuration, 1);
-
-      // Calcular velocidade atual baseada na fase
-      let currentSpeed = 0;
-      let tickInterval = 50;
-
-      if (progress < phases.acceleration) {
-        // Fase de aceleração
-        const accelerationProgress = progress / phases.acceleration;
-        currentSpeed = accelerationProgress * accelerationProgress;
-        tickInterval = 50 - (accelerationProgress * 20);
-      } else if (progress < phases.acceleration + phases.constant) {
-        // Fase de velocidade constante
-        currentSpeed = 1;
-        tickInterval = 30;
-      } else {
-        // Fase de desaceleração
-        const decelerationProgress = (progress - phases.acceleration - phases.constant) / phases.deceleration;
-        currentSpeed = 1 - (decelerationProgress * decelerationProgress * decelerationProgress);
-        tickInterval = 30 + (decelerationProgress * 400); // Som mais lento gradualmente
+    const startTime = performance.now();
+    
+    const monitorTick = (now: number) => {
+      const elapsed = now - startTime;
+      const progress = Math.min(elapsed / 4500, 1);
+      
+      // Calcular velocidade atual para ajustar som
+      let currentSpeed = 1;
+      if (progress < 0.2) {
+        // Aceleração
+        currentSpeed = progress / 0.2;
+      } else if (progress > 0.7) {
+        // Desaceleração
+        const decProgress = (progress - 0.7) / 0.3;
+        currentSpeed = 1 - (decProgress * 0.8);
       }
-
-      // Atualizar velocidade do som
-      if (timestamp - lastTickTime > 100) {
+      
+      // Ajustar intervalo do som baseado na velocidade
+      const newTickInterval = Math.max(30, 300 * (1 - currentSpeed));
+      
+      if (now - lastTickTime >= newTickInterval) {
         stopTickLoop();
-        startTickLoop(Math.floor(Math.max(30, tickInterval)));
-        lastTickTime = timestamp;
+        startTickLoop(Math.floor(newTickInterval));
+        lastTickTime = now;
       }
 
-      // Aplicar easing suave à posição
-      const easeProgress = easeOutQuart(progress);
-      const currentPosition = totalDistance * easeProgress;
-
-      if (trackRef.current) {
-        trackRef.current.style.transform = `translateX(-${currentPosition}px)`;
-      }
-
-      if (progress < 1) {
-        requestAnimationFrame(animate);
-      } else {
+      if (elapsed >= 4500) {
         // Animação completa
         stopTickLoop();
         stopBackgroundMusic();
+        setFinalTransform(`translateX(-${totalDistance}px)`);
         setIsAnimating(false);
 
         // Pequeno delay antes de mostrar o resultado
@@ -178,11 +163,13 @@ const SpinRouletteWheel = ({
           setTimeout(() => {
             onSpinComplete?.(winnerItem);
           }, 1000);
-        }, 300);
+        }, 400);
+      } else {
+        requestAnimationFrame(monitorTick);
       }
     };
 
-    requestAnimationFrame(animate);
+    requestAnimationFrame(monitorTick);
   }, [rouletteData, isAnimating, startBackgroundMusic, stopBackgroundMusic, startTickLoop, stopTickLoop, playRareItemSound, onSpinComplete]);
 
   // Trigger externo para iniciar o giro
@@ -232,34 +219,38 @@ const SpinRouletteWheel = ({
       {/* Container da Roleta */}
       <div className={`relative w-full max-w-4xl mx-auto h-40 overflow-hidden rounded-xl border-4 ${theme.border} ${theme.bg} backdrop-blur-sm`}>
         {/* Trilha dos Itens */}
-        <div 
+        <div
           ref={trackRef}
           className="flex absolute top-0 left-0 h-full"
+          style={{ transform: finalTransform }}
         >
           {/* Criar trilha contínua duplicando os itens 6 vezes */}
-          {Array.from({ length: 6 }, (_, duplicateIndex) => 
-            rouletteSlots.map((item, index) => (
-              <div 
-                key={`${duplicateIndex}-${item.id}-${index}`}
-                className={`
-                  flex-shrink-0 mx-2 my-4 transition-all duration-500
-                  ${showWinner && duplicateIndex === 0 && index === centerIndex ? 'scale-110 z-10' : ''}
-                `}
-                style={{ 
-                  width: `${ITEM_WIDTH - 16}px`,
-                  filter: showWinner && duplicateIndex === 0 && index === centerIndex
-                    ? 'drop-shadow(0 0 16px rgb(251 191 36 / 0.8))' 
-                    : 'none'
-                }}
-              >
-                <ItemCard 
-                  item={item} 
-                  size="md" 
-                  showRarity={false}
-                  className={showWinner && duplicateIndex === 0 && index === centerIndex ? 'border-yellow-400 border-2' : ''}
-                />
-              </div>
-            ))
+          {Array.from({ length: 6 }, (_, duplicateIndex) =>
+            rouletteSlots.map((item, index) => {
+              const isWinningItem = showWinner && duplicateIndex === 0 && index === centerIndex;
+              return (
+                <div
+                  key={`${duplicateIndex}-${item.id}-${index}`}
+                  className={`
+                    flex-shrink-0 mx-2 my-4 transition-all duration-500
+                    ${isWinningItem ? 'scale-125 z-20' : ''}
+                  `}
+                  style={{
+                    width: `${ITEM_WIDTH - 16}px`,
+                    filter: isWinningItem
+                      ? 'drop-shadow(0 0 20px rgba(255, 255, 0, 0.9)) brightness(1.1)'
+                      : 'none'
+                  }}
+                >
+                  <ItemCard
+                    item={item}
+                    size="md"
+                    showRarity={false}
+                    className={isWinningItem ? 'border-yellow-400 border-2' : ''}
+                  />
+                </div>
+              );
+            })
           )}
         </div>
 
