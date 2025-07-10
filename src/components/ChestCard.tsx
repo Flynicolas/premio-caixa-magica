@@ -1,10 +1,12 @@
 
+import { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Sparkles, Lock, Eye, AlertTriangle } from 'lucide-react';
 import { Chest, ChestType } from '@/data/chestData';
 import { useChestItemCount } from '@/hooks/useChestItemCount';
+import ChestOpeningModal from './ChestOpeningModal';
 
 interface ChestCardProps {
   chest: Chest;
@@ -15,9 +17,16 @@ interface ChestCardProps {
 }
 
 const ChestCard = ({ chest, chestType, onOpen, onViewItems, balance }: ChestCardProps) => {
+  const [showOpeningModal, setShowOpeningModal] = useState(false);
   const { itemCount, hasMinimumItems, loading } = useChestItemCount(chestType);
   const canAfford = balance >= chest.price;
   const canPurchase = canAfford && hasMinimumItems;
+
+  const handleOpenChest = () => {
+    if (canPurchase) {
+      setShowOpeningModal(true);
+    }
+  };
   
   const chestColors = {
     silver: 'from-gray-400 to-gray-600',
@@ -159,7 +168,7 @@ const ChestCard = ({ chest, chestType, onOpen, onViewItems, balance }: ChestCard
 
         {/* Action Button */}
         <Button
-          onClick={onOpen}
+          onClick={handleOpenChest}
           disabled={!canPurchase || loading}
           className={`w-full font-bold transition-all duration-300 text-sm ${
             canPurchase 
@@ -180,6 +189,15 @@ const ChestCard = ({ chest, chestType, onOpen, onViewItems, balance }: ChestCard
           </Badge>
         )}
       </CardContent>
+      
+      {/* Chest Opening Modal */}
+      <ChestOpeningModal
+        isOpen={showOpeningModal}
+        onClose={() => setShowOpeningModal(false)}
+        chestType={chestType}
+        chestName={chest.name}
+        chestPrice={chest.price}
+      />
     </Card>
   );
 };
