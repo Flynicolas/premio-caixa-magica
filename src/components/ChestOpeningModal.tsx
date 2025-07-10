@@ -5,6 +5,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/u
 import { X, Sparkles } from 'lucide-react';
 import SpinRouletteWheel from './SpinRouletteWheel';
 import ItemCard from './ItemCard';
+import { SpinItem } from './roulette/types';
 import { useRouletteLogic } from '@/hooks/useRouletteLogic';
 import { useToast } from '@/hooks/use-toast';
 
@@ -16,12 +17,6 @@ interface ChestOpeningModalProps {
   chestPrice: number;
 }
 
-interface SpinItem {
-  id: string;
-  name: string;
-  image_url?: string | null;
-  rarity: 'common' | 'rare' | 'epic' | 'legendary' | 'special';
-}
 
 const ChestOpeningModal = ({ 
   isOpen, 
