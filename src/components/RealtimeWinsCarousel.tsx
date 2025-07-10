@@ -1,26 +1,26 @@
-
 import { useState, useEffect } from 'react';
 import { Radio, Trophy, Gift } from 'lucide-react';
+import ItemCard from './ItemCard';
 
 const prizes = [
-  { name: 'iPhone 16', winner: 'João M.', image: '/lovable-uploads/afe8c6a0-043b-45e3-a2d2-f0016ed54fac.png' },
-  { name: 'Apple Watch', winner: 'Maria S.', image: '/lovable-uploads/e7b617c4-f45a-4596-994a-75c0e3553f78.png' },
-  { name: 'Xiaomi Phone', winner: 'Pedro L.', image: '/lovable-uploads/0d9f41b3-5ac9-4467-9987-5f9f55b48b43.png' },
-  { name: 'Samsung Tablet', winner: 'Ana R.', image: '/lovable-uploads/853054fe-7848-4ab3-9499-041705d241d2.png' },
-  { name: 'Bicicleta', winner: 'Carlos M.', image: '/lovable-uploads/3c51402c-67ee-4d20-8b11-9a334ca0e2db.png' },
-  { name: 'Câmera', winner: 'Lucia F.', image: '/lovable-uploads/24dbf933-dd9b-4ea9-b253-022bd366da2f.png' },
-  { name: 'Dubai', winner: 'Roberto K.', image: '/lovable-uploads/262848fe-da75-4887-bb6d-b88247901100.png' },
-  { name: 'Resort', winner: 'Fernanda G.', image: '/lovable-uploads/b7b47eb2-d95e-46cf-a21c-f76ac2a74d20.png' },
-  { name: 'Viagem', winner: 'Miguel A.', image: '/lovable-uploads/ced3cdc6-a614-4fa0-9afe-f0f73ff917b5.png' },
-  { name: 'Vale Compras', winner: 'Juliana B.', image: '/lovable-uploads/68d2bf66-08db-4fad-8f22-0bbfbbd2f16d.png' },
-  { name: 'MacBook Pro', winner: 'Diego C.', image: '/lovable-uploads/24dbf933-dd9b-4ea9-b253-022bd366da2f.png' },
-  { name: 'AirPods Pro', winner: 'Camila D.', image: '/lovable-uploads/3c51402c-67ee-4d20-8b11-9a334ca0e2db.png' },
-  { name: 'Smart TV', winner: 'Bruno H.', image: '/lovable-uploads/68d2bf66-08db-4fad-8f22-0bbfbbd2f16d.png' },
-  { name: 'PlayStation', winner: 'Larissa P.', image: '/lovable-uploads/70a08625-c438-4292-8356-821b05c265bc.png' },
-  { name: 'PIX R$ 1000', winner: 'Rafael T.', image: '/lovable-uploads/1e75dbed-c6dc-458b-bf5f-867f613d6c3f.png' },
-  { name: 'Notebook', winner: 'Beatriz V.', image: '/lovable-uploads/24dbf933-dd9b-4ea9-b253-022bd366da2f.png' },
-  { name: 'Smartphone', winner: 'Gustavo N.', image: '/lovable-uploads/0d9f41b3-5ac9-4467-9987-5f9f55b48b43.png' },
-  { name: 'Headphone', winner: 'Isabela Q.', image: '/lovable-uploads/3c51402c-67ee-4d20-8b11-9a334ca0e2db.png' }
+  { name: 'iPhone 16', winner: 'João M.', image: '/lovable-uploads/afe8c6a0-043b-45e3-a2d2-f0016ed54fac.png', rarity: 'legendary' },
+  { name: 'Apple Watch', winner: 'Maria S.', image: '/lovable-uploads/e7b617c4-f45a-4596-994a-75c0e3553f78.png', rarity: 'epic' },
+  { name: 'Xiaomi Phone', winner: 'Pedro L.', image: '/lovable-uploads/0d9f41b3-5ac9-4467-9987-5f9f55b48b43.png', rarity: 'rare' },
+  { name: 'Samsung Tablet', winner: 'Ana R.', image: '/lovable-uploads/853054fe-7848-4ab3-9499-041705d241d2.png', rarity: 'rare' },
+  { name: 'Bicicleta', winner: 'Carlos M.', image: '/lovable-uploads/3c51402c-67ee-4d20-8b11-9a334ca0e2db.png', rarity: 'epic' },
+  { name: 'Câmera', winner: 'Lucia F.', image: '/lovable-uploads/24dbf933-dd9b-4ea9-b253-022bd366da2f.png', rarity: 'rare' },
+  { name: 'Dubai', winner: 'Roberto K.', image: '/lovable-uploads/262848fe-da75-4887-bb6d-b88247901100.png', rarity: 'legendary' },
+  { name: 'Resort', winner: 'Fernanda G.', image: '/lovable-uploads/b7b47eb2-d95e-46cf-a21c-f76ac2a74d20.png', rarity: 'epic' },
+  { name: 'Viagem', winner: 'Miguel A.', image: '/lovable-uploads/ced3cdc6-a614-4fa0-9afe-f0f73ff917b5.png', rarity: 'rare' },
+  { name: 'Vale Compras', winner: 'Juliana B.', image: '/lovable-uploads/68d2bf66-08db-4fad-8f22-0bbfbbd2f16d.png', rarity: 'common' },
+  { name: 'MacBook Pro', winner: 'Diego C.', image: '/lovable-uploads/24dbf933-dd9b-4ea9-b253-022bd366da2f.png', rarity: 'legendary' },
+  { name: 'AirPods Pro', winner: 'Camila D.', image: '/lovable-uploads/3c51402c-67ee-4d20-8b11-9a334ca0e2db.png', rarity: 'epic' },
+  { name: 'Smart TV', winner: 'Bruno H.', image: '/lovable-uploads/68d2bf66-08db-4fad-8f22-0bbfbbd2f16d.png', rarity: 'rare' },
+  { name: 'PlayStation', winner: 'Larissa P.', image: '/lovable-uploads/70a08625-c438-4292-8356-821b05c265bc.png', rarity: 'legendary' },
+  { name: 'PIX R$ 1000', winner: 'Rafael T.', image: '/lovable-uploads/1e75dbed-c6dc-458b-bf5f-867f613d6c3f.png', rarity: 'epic' },
+  { name: 'Notebook', winner: 'Beatriz V.', image: '/lovable-uploads/24dbf933-dd9b-4ea9-b253-022bd366da2f.png', rarity: 'rare' },
+  { name: 'Smartphone', winner: 'Gustavo N.', image: '/lovable-uploads/0d9f41b3-5ac9-4467-9987-5f9f55b48b43.png', rarity: 'rare' },
+  { name: 'Headphone', winner: 'Isabela Q.', image: '/lovable-uploads/3c51402c-67ee-4d20-8b11-9a334ca0e2db.png', rarity: 'common' }
 ];
 
 interface RealtimeWinsCarouselProps {
@@ -87,25 +87,29 @@ const RealtimeWinsCarousel = ({ showIcons = true, className = "" }: RealtimeWins
           {currentItems.map((item, index) => (
             <div
               key={`${item.name}-${item.winner}-${nextId}-${index}`}
-              className={`flex-shrink-0 w-24 h-28 bg-gradient-to-b from-card/40 to-card/60 rounded-lg border-2 border-primary/20 flex flex-col items-center justify-center p-3 transition-all duration-500 hover:border-primary/40 hover:shadow-lg hover:shadow-primary/20 ${
-                index === 0 ? 'animate-slide-in-left border-primary/50 shadow-md shadow-primary/30 bg-gradient-to-b from-primary/10 to-card/60' : ''
+              className={`flex-shrink-0 transition-all duration-500 ${
+                index === 0 ? 'animate-slide-in-left' : ''
               } ${
                 index === 11 ? 'animate-fade-out opacity-60' : ''
               }`}
             >
-              <div className="w-12 h-12 rounded-lg overflow-hidden mb-2 flex items-center justify-center bg-white/20 border border-primary/20">
-                <img 
-                  src={item.image} 
-                  alt={item.name}
-                  className="max-w-full max-h-full object-contain"
+              <div className="flex flex-col items-center">
+                <ItemCard
+                  item={{
+                    name: item.name,
+                    image_url: item.image,
+                    rarity: item.rarity as 'common' | 'rare' | 'epic' | 'legendary',
+                  }}
+                  size="sm"
+                  showRarity={false}
+                  className={`${
+                    index === 0 ? 'border-primary/50 shadow-md shadow-primary/30 bg-gradient-to-b from-primary/10 to-card/60' : ''
+                  }`}
                 />
+                <p className="text-xs text-center text-primary/80 font-medium truncate w-full mt-1">
+                  {item.winner} ganhou
+                </p>
               </div>
-              <p className="text-xs text-center text-white/90 font-bold truncate w-full mb-1">
-                {item.name}
-              </p>
-              <p className="text-xs text-center text-primary/80 font-medium truncate w-full">
-                {item.winner} ganhou
-              </p>
               
               {/* Glow effect for new items */}
               {index === 0 && (

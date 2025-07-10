@@ -1,10 +1,10 @@
-
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Sparkles, Lock, Eye, AlertTriangle } from 'lucide-react';
 import { Chest, ChestType } from '@/data/chestData';
 import { useChestItemCount } from '@/hooks/useChestItemCount';
+import ItemCard from './ItemCard';
 
 interface ChestCardProps {
   chest: Chest;
@@ -133,20 +133,23 @@ const ChestCard = ({ chest, chestType, onOpen, onViewItems, balance }: ChestCard
             R$ {chest.price.toFixed(2).replace('.', ',')}
           </div>
 
-
-          {/* Preview of rare items */}
+          {/* Preview of rare items using ItemCard */}
           <div className="mb-3">
             <p className="text-xs text-muted-foreground mb-2">Itens Raros:</p>
             <div className="flex justify-center space-x-1">
               {rareItems.map((item, index) => (
-                <div key={index} className="w-6 h-6 rounded bg-background/50 flex items-center justify-center">
-                  <img 
-                    src={item.image} 
-                    alt={item.name}
-                    className="max-w-full max-h-full object-contain"
-                    title={item.name}
-                  />
-                </div>
+                <ItemCard
+                  key={index}
+                  item={{
+                    name: item.name,
+                    image_url: item.image,
+                    rarity: item.rarity as 'common' | 'rare' | 'epic' | 'legendary',
+                    description: item.description
+                  }}
+                  size="sm"
+                  showRarity={false}
+                  className="hover:transform-none hover:shadow-none"
+                />
               ))}
             </div>
           </div>

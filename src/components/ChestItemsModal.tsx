@@ -3,6 +3,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/u
 import { Badge } from '@/components/ui/badge';
 import { X } from 'lucide-react';
 import { Chest, Prize } from '@/data/chestData';
+import ItemCard from './ItemCard';
 
 interface ChestItemsModalProps {
   isOpen: boolean;
@@ -12,13 +13,6 @@ interface ChestItemsModalProps {
 
 const ChestItemsModal = ({ isOpen, onClose, chest }: ChestItemsModalProps) => {
   if (!chest) return null;
-
-  const rarityColors = {
-    common: 'from-gray-400 to-gray-600',
-    rare: 'from-blue-400 to-blue-600',
-    epic: 'from-purple-400 to-purple-600',
-    legendary: 'from-yellow-400 to-orange-500'
-  };
 
   const rarityLabels = {
     common: 'Comum',
@@ -62,7 +56,12 @@ const ChestItemsModal = ({ isOpen, onClose, chest }: ChestItemsModalProps) => {
               <div key={rarity} className="mb-8">
                 <div className="flex items-center mb-4">
                   <Badge 
-                    className={`bg-gradient-to-r ${rarityColors[rarity]} text-white mr-3`}
+                    className={`mr-3 ${
+                      rarity === 'legendary' ? 'bg-gradient-to-r from-yellow-400 to-orange-500' :
+                      rarity === 'epic' ? 'bg-gradient-to-r from-purple-400 to-purple-600' :
+                      rarity === 'rare' ? 'bg-gradient-to-r from-blue-400 to-blue-600' :
+                      'bg-gradient-to-r from-gray-400 to-gray-600'
+                    } text-white`}
                   >
                     {rarityLabels[rarity]}
                   </Badge>
@@ -71,32 +70,19 @@ const ChestItemsModal = ({ isOpen, onClose, chest }: ChestItemsModalProps) => {
                   </h3>
                 </div>
 
-                <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+                <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4">
                   {prizes.map((prize, index) => (
-                    <div
+                    <ItemCard
                       key={index}
-                      className="bg-secondary/50 rounded-lg p-4 border border-primary/20 hover:border-primary/40 transition-colors text-center"
-                    >
-                      <div className="w-16 h-16 mx-auto mb-3 rounded bg-background/50 flex items-center justify-center">
-                        <img 
-                          src={prize.image} 
-                          alt={prize.name}
-                          className="max-w-full max-h-full object-contain"
-                        />
-                      </div>
-                      
-                      <h4 className="text-sm font-medium text-white mb-1 truncate">
-                        {prize.name}
-                      </h4>
-                      
-                      <p className="text-xs text-muted-foreground mb-2 h-8 line-clamp-2">
-                        {prize.description}
-                      </p>
-                      
-                      <div className="text-sm font-bold text-primary">
-                        {prize.value}
-                      </div>
-                    </div>
+                      item={{
+                        name: prize.name,
+                        image_url: prize.image,
+                        rarity: prize.rarity as 'common' | 'rare' | 'epic' | 'legendary',
+                        description: prize.description
+                      }}
+                      size="md"
+                      showRarity={false}
+                    />
                   ))}
                 </div>
               </div>
