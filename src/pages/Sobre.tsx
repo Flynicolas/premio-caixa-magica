@@ -41,7 +41,7 @@ const Sobre = () => {
           Sobre o Baú Premiado
         </h1>
         <p className="text-xl text-muted-foreground max-w-3xl mx-auto">
-          A plataforma de jogos online mais confiável do Brasil, onde diversão e prêmios reais se encontram!
+          A plataforma de prêmios online mais confiável do Brasil, onde diversão e prêmios reais se encontram!
         </p>
       </div>
 
