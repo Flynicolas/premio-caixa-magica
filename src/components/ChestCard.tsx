@@ -62,6 +62,11 @@ const ChestCard = ({ chest, chestType, onOpen, onViewItems, balance }: ChestCard
     legendary: 'bg-yellow-500/50'
   };
 
+  // Add safety checks with fallbacks
+  const chestColor = chestColors[chestType] || chestColors.silver;
+  const chestBorderColor = chestBorderColors[chestType] || chestBorderColors.silver;
+  const chestImage = chestImages[chestType] || chestImages.silver;
+
   // Get 5 rare items for preview
   const rareItems = chest.prizes.filter(prize => prize.rarity === 'rare' || prize.rarity === 'epic' || prize.rarity === 'legendary').slice(0, 5);
 
@@ -114,13 +119,13 @@ const ChestCard = ({ chest, chestType, onOpen, onViewItems, balance }: ChestCard
   };
 
   return (
-    <Card className={`relative overflow-hidden ${chestBorderColors[chestType]} bg-card/50 hover:bg-card/70 transition-all duration-300 group h-full border-2 aspect-[4/5]`}>
+    <Card className={`relative overflow-hidden ${chestBorderColor} bg-card/50 hover:bg-card/70 transition-all duration-300 group h-full border-2 aspect-[4/5]`}>
       <CardContent className="p-4 flex flex-col h-full">
         {/* Chest Image */}
         <div className="relative mb-4 flex justify-center">
           <div className="w-24 h-24 rounded-lg flex items-center justify-center shadow-lg group-hover:scale-105 transition-transform duration-300">
             <img 
-              src={chestImages[chestType]} 
+              src={chestImage} 
               alt={chest.name}
               className="w-full h-full object-contain drop-shadow-lg"
             />
@@ -129,7 +134,7 @@ const ChestCard = ({ chest, chestType, onOpen, onViewItems, balance }: ChestCard
           {/* View Items Button */}
           <button
             onClick={onViewItems}
-            className={`absolute top-1 right-1 bg-gradient-to-r ${chestColors[chestType]} text-white px-2 py-1 rounded-full text-xs font-medium transition-all duration-200 flex items-center space-x-1 hover:scale-105`}
+            className={`absolute top-1 right-1 bg-gradient-to-r ${chestColor} text-white px-2 py-1 rounded-full text-xs font-medium transition-all duration-200 flex items-center space-x-1 hover:scale-105`}
           >
             <Eye className="w-3 h-3" />
             <span>ver</span>
@@ -172,7 +177,7 @@ const ChestCard = ({ chest, chestType, onOpen, onViewItems, balance }: ChestCard
           disabled={!canPurchase || loading}
           className={`w-full font-bold transition-all duration-300 text-sm ${
             canPurchase 
-              ? `bg-gradient-to-r ${chestColors[chestType]} text-black hover:opacity-90 hover:scale-105` 
+              ? `bg-gradient-to-r ${chestColor} text-black hover:opacity-90 hover:scale-105` 
               : 'bg-gray-600 text-gray-300 cursor-not-allowed'
           }`}
         >

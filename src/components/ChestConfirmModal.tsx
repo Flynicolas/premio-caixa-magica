@@ -82,7 +82,10 @@ const ChestConfirmModal = ({
     premium: '/lovable-uploads/d43f06a5-1532-42ba-8362-5aefb160b408.png'
   };
 
-  const config = chestConfigs[chestType];
+  // Add safety check with fallback to silver config
+  const config = chestConfigs[chestType] || chestConfigs.silver;
+  const chestImage = chestImages[chestType] || chestImages.silver;
+  
   const canAfford = balance >= chestPrice;
   const canAffordUpgrade = nextChestPrice ? balance >= nextChestPrice : false;
   const canPurchase = canAfford && hasMinimumItems;
@@ -110,7 +113,7 @@ const ChestConfirmModal = ({
             <div className="mb-6 flex justify-center">
               <div className={`w-40 h-40 flex items-center justify-center rounded-full bg-white/10 ${config.glow}`}>
                 <img 
-                  src={chestImages[chestType]} 
+                  src={chestImage} 
                   alt={chestName}
                   className="w-32 h-32 object-contain drop-shadow-2xl animate-float"
                 />

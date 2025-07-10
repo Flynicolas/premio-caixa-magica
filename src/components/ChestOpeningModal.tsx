@@ -70,6 +70,7 @@ const ChestOpeningModal = ({
     }
   };
 
+  // Add safety check with fallback to silver config
   const config = chestConfigs[chestType as keyof typeof chestConfigs] || chestConfigs.silver;
 
   const handleOpenChest = async () => {
