@@ -29,9 +29,12 @@ const ChestCard = ({
   return (
     <Card>
       <CardHeader>
-        <CardTitle className="text-lg flex items-center space-x-2">
+        <CardTitle className="text-lg flex items-center justify-between">
           <Badge className={`text-white ${chestType.color}`}>
             {chestType.label}
+          </Badge>
+          <Badge variant="outline" className="text-sm">
+            {probabilities.length} itens
           </Badge>
         </CardTitle>
       </CardHeader>

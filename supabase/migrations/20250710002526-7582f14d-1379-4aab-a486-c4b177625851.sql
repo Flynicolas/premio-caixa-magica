@@ -1,0 +1,46 @@
+
+-- Criar 20 usuários DEMO com 1000 reais cada
+INSERT INTO public.profiles (id, email, full_name, is_demo, simulate_actions, is_active) VALUES
+('demo-user-01', 'demo01@demo.local', 'Demo User 01', true, true, true),
+('demo-user-02', 'demo02@demo.local', 'Demo User 02', true, true, true),
+('demo-user-03', 'demo03@demo.local', 'Demo User 03', true, true, true),
+('demo-user-04', 'demo04@demo.local', 'Demo User 04', true, true, true),
+('demo-user-05', 'demo05@demo.local', 'Demo User 05', true, true, true),
+('demo-user-06', 'demo06@demo.local', 'Demo User 06', true, true, true),
+('demo-user-07', 'demo07@demo.local', 'Demo User 07', true, true, true),
+('demo-user-08', 'demo08@demo.local', 'Demo User 08', true, true, true),
+('demo-user-09', 'demo09@demo.local', 'Demo User 09', true, true, true),
+('demo-user-10', 'demo10@demo.local', 'Demo User 10', true, true, true),
+('demo-user-11', 'demo11@demo.local', 'Demo User 11', true, true, true),
+('demo-user-12', 'demo12@demo.local', 'Demo User 12', true, true, true),
+('demo-user-13', 'demo13@demo.local', 'Demo User 13', true, true, true),
+('demo-user-14', 'demo14@demo.local', 'Demo User 14', true, true, true),
+('demo-user-15', 'demo15@demo.local', 'Demo User 15', true, true, true),
+('demo-user-16', 'demo16@demo.local', 'Demo User 16', true, true, true),
+('demo-user-17', 'demo17@demo.local', 'Demo User 17', true, true, true),
+('demo-user-18', 'demo18@demo.local', 'Demo User 18', true, true, true),
+('demo-user-19', 'demo19@demo.local', 'Demo User 19', true, true, true),
+('demo-user-20', 'demo20@demo.local', 'Demo User 20', true, true, true);
+
+-- Criar carteiras para os usuários DEMO com 1000 reais cada
+INSERT INTO public.user_wallets (user_id, balance, total_deposited) VALUES
+('demo-user-01', 1000.00, 1000.00),
+('demo-user-02', 1000.00, 1000.00),
+('demo-user-03', 1000.00, 1000.00),
+('demo-user-04', 1000.00, 1000.00),
+('demo-user-05', 1000.00, 1000.00),
+('demo-user-06', 1000.00, 1000.00),
+('demo-user-07', 1000.00, 1000.00),
+('demo-user-08', 1000.00, 1000.00),
+('demo-user-09', 1000.00, 1000.00),
+('demo-user-10', 1000.00, 1000.00),
+('demo-user-11', 1000.00, 1000.00),
+('demo-user-12', 1000.00, 1000.00),
+('demo-user-13', 1000.00, 1000.00),
+('demo-user-14', 1000.00, 1000.00),
+('demo-user-15', 1000.00, 1000.00),
+('demo-user-16', 1000.00, 1000.00),
+('demo-user-17', 1000.00, 1000.00),
+('demo-user-18', 1000.00, 1000.00),
+('demo-user-19', 1000.00, 1000.00),
+('demo-user-20', 1000.00, 1000.00);

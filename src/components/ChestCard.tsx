@@ -87,7 +87,7 @@ const ChestCard = ({ chest, chestType, onOpen, onViewItems, balance }: ChestCard
 
   const getStatusMessage = () => {
     if (!hasMinimumItems) {
-      return `Baú indisponível no momento. Aguarde mais itens serem adicionados. (${itemCount}/10 itens)`;
+      return 'Baú indisponível no momento';
     }
 
     if (!canAfford) {
@@ -133,10 +133,6 @@ const ChestCard = ({ chest, chestType, onOpen, onViewItems, balance }: ChestCard
             R$ {chest.price.toFixed(2).replace('.', ',')}
           </div>
 
-          {/* Item count info */}
-          <div className="mb-2 text-xs text-muted-foreground">
-            {loading ? 'Carregando...' : `${itemCount} itens disponíveis`}
-          </div>
 
           {/* Preview of rare items */}
           <div className="mb-3">
