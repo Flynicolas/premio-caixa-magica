@@ -24,22 +24,24 @@ interface SpinRouletteWheelProps {
   onSpinComplete?: (item: SpinItem) => void;
   isSpinning?: boolean;
   className?: string;
+  chestType?: string;
 }
 
 const SpinRouletteWheel = ({ 
   rouletteData, 
   onSpinComplete, 
   isSpinning = false,
-  className = '' 
+  className = '',
+  chestType = 'silver'
 }: SpinRouletteWheelProps) => {
   const [isAnimating, setIsAnimating] = useState(false);
   const [showWinner, setShowWinner] = useState(false);
   const [showParticles, setShowParticles] = useState(false);
   const trackRef = useRef<HTMLDivElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
-  
-  const ITEM_WIDTH = 140; // width + margin
-  
+
+  const ITEM_WIDTH = 140; // Largura fixa para cada item
+
   const {
     audioState,
     startBackgroundMusic,
@@ -50,122 +52,140 @@ const SpinRouletteWheel = ({
     toggleMute
   } = useRouletteAudio();
 
+  // Configurações visuais por tipo de baú
+  const chestThemes = {
+    silver: { border: 'border-gray-400/20', bg: 'bg-gray-900/40', accent: 'text-gray-300' },
+    gold: { border: 'border-yellow-400/20', bg: 'bg-yellow-900/40', accent: 'text-yellow-300' },
+    delas: { border: 'border-pink-400/20', bg: 'bg-pink-900/40', accent: 'text-pink-300' },
+    diamond: { border: 'border-blue-400/20', bg: 'bg-blue-900/40', accent: 'text-blue-300' },
+    ruby: { border: 'border-red-400/20', bg: 'bg-red-900/40', accent: 'text-red-300' },
+    premium: { border: 'border-purple-500/20', bg: 'bg-purple-900/40', accent: 'text-purple-300' }
+  };
+
+  const theme = chestThemes[chestType as keyof typeof chestThemes] || chestThemes.silver;
+
   const startSpin = useCallback(() => {
     if (!rouletteData || isAnimating || !trackRef.current || !containerRef.current) return;
-    
+
     setIsAnimating(true);
     setShowWinner(false);
     setShowParticles(false);
-    
+
     const { centerIndex, winnerItem, totalSlots } = rouletteData;
-    
-    // Start audio effects
+
+    // Iniciar música de fundo
     startBackgroundMusic();
-    
-    // Calculate container and track dimensions
+
+    // Calcular dimensões
     const containerWidth = containerRef.current.offsetWidth;
     const trackWidth = totalSlots * ITEM_WIDTH;
     
-    // Position the track so the winner item ends up in the center
-    const centerPosition = containerWidth / 2;
+    // Calcular posição final exata do item vencedor
     const winnerPosition = centerIndex * ITEM_WIDTH + (ITEM_WIDTH / 2);
+    const centerPosition = containerWidth / 2;
     const finalOffset = winnerPosition - centerPosition;
     
-    // Add extra spins for visual effect (3 full cycles)
+    // Adicionar voltas extras para efeito visual (3 voltas completas)
     const extraSpins = 3;
     const totalDistance = finalOffset + (extraSpins * trackWidth);
-    
-    // Set initial track width to accommodate the spin
+
+    // Expandir a trilha para comportar a animação
     if (trackRef.current) {
-      trackRef.current.style.width = `${trackWidth * 4}px`; // Extend for smooth animation
+      trackRef.current.style.width = `${trackWidth * 6}px`;
     }
-    
-    // Animation setup
+
+    // Configuração da animação
     let startTime: number;
-    const totalDuration = 4000; // 4 seconds
+    const totalDuration = 4500; // 4.5 segundos
     const phases = {
-      acceleration: 0.2,   // 20% acceleration
-      constant: 0.5,       // 50% constant speed  
-      deceleration: 0.3    // 30% deceleration
+      acceleration: 0.15,   // 15% aceleração
+      constant: 0.55,       // 55% velocidade constante  
+      deceleration: 0.3     // 30% desaceleração
     };
-    
-    // Start with fast ticking
+
+    // Controle do som
     let currentTickInterval = 50;
+    let lastTickTime = 0;
     startTickLoop(currentTickInterval);
-    
+
+    // Função de easing suave
+    const easeOutQuart = (x: number) => 1 - Math.pow(1 - x, 4);
+
     const animate = (timestamp: number) => {
       if (!startTime) startTime = timestamp;
       const elapsed = timestamp - startTime;
       const progress = Math.min(elapsed / totalDuration, 1);
-      
-      // Calculate current phase and speed
+
+      // Calcular velocidade atual baseada na fase
       let currentSpeed = 0;
       let tickInterval = 50;
-      
+
       if (progress < phases.acceleration) {
-        // Acceleration phase
+        // Fase de aceleração
         const accelerationProgress = progress / phases.acceleration;
-        currentSpeed = accelerationProgress * accelerationProgress; // Quadratic acceleration
-        tickInterval = 50;
+        currentSpeed = accelerationProgress * accelerationProgress;
+        tickInterval = 50 - (accelerationProgress * 20);
       } else if (progress < phases.acceleration + phases.constant) {
-        // Constant speed phase
+        // Fase de velocidade constante
         currentSpeed = 1;
         tickInterval = 30;
       } else {
-        // Deceleration phase
+        // Fase de desaceleração
         const decelerationProgress = (progress - phases.acceleration - phases.constant) / phases.deceleration;
-        currentSpeed = 1 - (decelerationProgress * decelerationProgress); // Quadratic deceleration
-        tickInterval = 30 + (decelerationProgress * 200); // Slow down tick sound
+        currentSpeed = 1 - (decelerationProgress * decelerationProgress * decelerationProgress);
+        tickInterval = 30 + (decelerationProgress * 400); // Som mais lento gradualmente
       }
-      
-      // Update tick sound speed
-      if (Math.abs(currentTickInterval - tickInterval) > 10) {
-        currentTickInterval = tickInterval;
+
+      // Atualizar velocidade do som
+      if (timestamp - lastTickTime > 100) {
         stopTickLoop();
-        startTickLoop(Math.floor(currentTickInterval));
+        startTickLoop(Math.floor(Math.max(30, tickInterval)));
+        lastTickTime = timestamp;
       }
-      
-      // Apply easing to position
-      const easeProgress = progress < 0.7 
-        ? progress * progress // Ease in for most of the animation
-        : 1 - Math.pow(1 - progress, 4); // Strong ease out at the end
-      
+
+      // Aplicar easing suave à posição
+      const easeProgress = easeOutQuart(progress);
       const currentPosition = totalDistance * easeProgress;
-      
+
       if (trackRef.current) {
         trackRef.current.style.transform = `translateX(-${currentPosition}px)`;
       }
-      
+
       if (progress < 1) {
         requestAnimationFrame(animate);
       } else {
-        // Animation complete
+        // Animação completa
         stopTickLoop();
         stopBackgroundMusic();
         setIsAnimating(false);
-        setShowWinner(true);
-        
-        // Play rare item sound
-        if (['rare', 'epic', 'legendary', 'special'].includes(winnerItem.rarity)) {
-          playRareItemSound(winnerItem.rarity);
-        }
-        
-        // Show particles for rare items
-        if (['epic', 'legendary', 'special'].includes(winnerItem.rarity)) {
-          setShowParticles(true);
-          setTimeout(() => setShowParticles(false), 3000);
-        }
-        
+
+        // Pequeno delay antes de mostrar o resultado
         setTimeout(() => {
-          onSpinComplete?.(winnerItem);
-        }, 1000);
+          setShowWinner(true);
+
+          // Tocar som especial para itens raros
+          if (['rare', 'epic', 'legendary', 'special'].includes(winnerItem.rarity)) {
+            playRareItemSound(winnerItem.rarity);
+          }
+
+          // Mostrar partículas para itens épicos ou superiores
+          if (['epic', 'legendary', 'special'].includes(winnerItem.rarity)) {
+            setShowParticles(true);
+            setTimeout(() => setShowParticles(false), 3000);
+          }
+
+          // Callback do resultado
+          setTimeout(() => {
+            onSpinComplete?.(winnerItem);
+          }, 1000);
+        }, 300);
       }
     };
-    
+
     requestAnimationFrame(animate);
   }, [rouletteData, isAnimating, startBackgroundMusic, stopBackgroundMusic, startTickLoop, stopTickLoop, playRareItemSound, onSpinComplete]);
 
-  // External trigger for spinning
+  // Trigger externo para iniciar o giro
   useEffect(() => {
     if (isSpinning && rouletteData && !isAnimating) {
       startSpin();
@@ -184,7 +204,7 @@ const SpinRouletteWheel = ({
 
   return (
     <div className={`relative ${className}`} ref={containerRef}>
-      {/* Audio Controls */}
+      {/* Controles de Áudio */}
       <div className="absolute top-4 right-4 z-30">
         <Button
           variant="outline"
@@ -196,7 +216,7 @@ const SpinRouletteWheel = ({
         </Button>
       </div>
 
-      {/* Golden Arrow */}
+      {/* Seta Dourada */}
       <div className="absolute -top-8 left-1/2 transform -translate-x-1/2 z-20">
         <div 
           className="text-4xl animate-pulse text-yellow-400"
@@ -209,15 +229,15 @@ const SpinRouletteWheel = ({
         </div>
       </div>
 
-      {/* Roulette Container */}
-      <div className="relative w-full max-w-4xl mx-auto h-40 overflow-hidden rounded-xl border-4 border-white/20 bg-black/40 backdrop-blur-sm">
-        {/* Track */}
+      {/* Container da Roleta */}
+      <div className={`relative w-full max-w-4xl mx-auto h-40 overflow-hidden rounded-xl border-4 ${theme.border} ${theme.bg} backdrop-blur-sm`}>
+        {/* Trilha dos Itens */}
         <div 
           ref={trackRef}
           className="flex absolute top-0 left-0 h-full"
         >
-          {/* Create continuous track by duplicating items */}
-          {Array.from({ length: 4 }, (_, duplicateIndex) => 
+          {/* Criar trilha contínua duplicando os itens 6 vezes */}
+          {Array.from({ length: 6 }, (_, duplicateIndex) => 
             rouletteSlots.map((item, index) => (
               <div 
                 key={`${duplicateIndex}-${item.id}-${index}`}
@@ -243,12 +263,12 @@ const SpinRouletteWheel = ({
           )}
         </div>
 
-        {/* Center Highlight Zone */}
+        {/* Zona de Destaque Central */}
         <div className="absolute top-0 left-1/2 transform -translate-x-1/2 w-32 h-full pointer-events-none">
           <div className="w-full h-full border-2 border-dashed border-yellow-400/30" />
         </div>
 
-        {/* Particles Effect for Rare Items */}
+        {/* Efeito de Partículas para Itens Raros */}
         {showParticles && (
           <div className="absolute inset-0 pointer-events-none overflow-hidden">
             {[...Array(20)].map((_, i) => (
@@ -268,23 +288,29 @@ const SpinRouletteWheel = ({
         )}
       </div>
 
-      {/* Spinning Indicator */}
+      {/* Indicador de Girando */}
       {isAnimating && (
         <div className="absolute inset-0 flex items-center justify-center bg-black/20 backdrop-blur-sm rounded-xl z-10">
-          <div className="text-yellow-400 text-xl font-bold animate-pulse">
+          <div className={`text-xl font-bold animate-pulse ${theme.accent}`}>
             🎰 Girando a roleta...
           </div>
         </div>
       )}
 
-      {/* Winner Announcement */}
+      {/* Anúncio do Vencedor */}
       {showWinner && rouletteData.winnerItem && (
         <div className="absolute -bottom-16 left-1/2 transform -translate-x-1/2 z-20">
           <div className="bg-black/90 backdrop-blur-sm border-2 border-yellow-400 rounded-lg px-6 py-3 animate-scale-in">
             <div className="text-center">
               <div className="text-yellow-400 font-bold text-lg">🎉 Você ganhou!</div>
               <div className="text-white font-semibold">{rouletteData.winnerItem.name}</div>
-              <div className="text-sm text-white/70 capitalize">{rouletteData.winnerItem.rarity}</div>
+              <div className="text-sm text-white/70 capitalize">
+                {rouletteData.winnerItem.rarity === 'common' && 'Comum'}
+                {rouletteData.winnerItem.rarity === 'rare' && 'Raro'}
+                {rouletteData.winnerItem.rarity === 'epic' && 'Épico'}
+                {rouletteData.winnerItem.rarity === 'legendary' && 'Lendário'}
+                {rouletteData.winnerItem.rarity === 'special' && 'Especial'}
+              </div>
             </div>
           </div>
         </div>

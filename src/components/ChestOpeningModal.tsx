@@ -78,7 +78,7 @@ const ChestOpeningModal = ({
       setPhase('spinning');
       
       // Generate roulette data
-      const result = await generateRoulette(chestType);
+      const result = await generateRoulette(chestType, 25); // 25 slots para a roleta
       if (!result) return;
       
       // Start spinning after a short delay
@@ -193,6 +193,7 @@ const ChestOpeningModal = ({
                 rouletteData={rouletteData}
                 isSpinning={isSpinning}
                 onSpinComplete={handleSpinComplete}
+                chestType={chestType}
                 className="mb-8"
               />
             </div>
