@@ -856,6 +856,7 @@ export type Database = {
           balance: number | null
           created_at: string | null
           id: string
+          test_balance: number | null
           total_deposited: number | null
           total_spent: number | null
           total_withdrawn: number | null
@@ -866,6 +867,7 @@ export type Database = {
           balance?: number | null
           created_at?: string | null
           id?: string
+          test_balance?: number | null
           total_deposited?: number | null
           total_spent?: number | null
           total_withdrawn?: number | null
@@ -876,6 +878,7 @@ export type Database = {
           balance?: number | null
           created_at?: string | null
           id?: string
+          test_balance?: number | null
           total_deposited?: number | null
           total_spent?: number | null
           total_withdrawn?: number | null

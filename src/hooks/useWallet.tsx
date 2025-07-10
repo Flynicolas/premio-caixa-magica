@@ -37,6 +37,13 @@ export const useWallet = () => {
     }
 
     try {
+      // Verificar se é admin para usar saldo de teste
+      const { data: profileData } = await supabase
+        .from('profiles')
+        .select('simulate_actions')
+        .eq('id', user.id)
+        .single();
+
       const { data, error } = await supabase
         .from('user_wallets')
         .select('*')
@@ -69,8 +76,12 @@ export const useWallet = () => {
           }
         });
 
+        // Se for admin com simulate_actions, usar test_balance ao invés do balance real
+        const isTestUser = profileData?.simulate_actions;
+        const effectiveBalance = isTestUser ? Number(data.test_balance || 0) : Number(data.balance);
+
         setWalletData({
-          balance: Number(data.balance),
+          balance: effectiveBalance,
           total_deposited: totalDeposited,
           total_withdrawn: totalWithdrawn,
           total_spent: totalSpent
@@ -156,41 +167,65 @@ export const useWallet = () => {
     }
 
     try {
+      // Verificar se é admin com saldo de teste
+      const { data: profileData } = await supabase
+        .from('profiles')
+        .select('simulate_actions')
+        .eq('id', user.id)
+        .single();
+
+      const isTestUser = profileData?.simulate_actions;
+
       // Buscar wallet_id
       const { data: walletInfo } = await supabase
         .from('user_wallets')
-        .select('id')
+        .select('id, test_balance')
         .eq('user_id', user.id)
         .single();
 
       if (!walletInfo) throw new Error('Carteira não encontrada');
 
-      // Criar transação de compra
-      const { error: transactionError } = await supabase
-        .from('transactions')
-        .insert({
-          user_id: user.id,
-          wallet_id: walletInfo.id,
-          type: 'purchase',
-          amount,
-          status: 'completed',
-          description: `Compra de baú ${chestType}`,
-          metadata: { chest_type: chestType }
-        });
+      // Para usuários de teste (admins), não criar transação real
+      if (!isTestUser) {
+        // Criar transação de compra apenas para usuários reais
+        const { error: transactionError } = await supabase
+          .from('transactions')
+          .insert({
+            user_id: user.id,
+            wallet_id: walletInfo.id,
+            type: 'purchase',
+            amount,
+            status: 'completed',
+            description: `Compra de baú ${chestType}`,
+            metadata: { chest_type: chestType }
+          });
 
-      if (transactionError) throw transactionError;
+        if (transactionError) throw transactionError;
 
-      // Atualizar saldo da carteira
-      const newBalance = walletData.balance - amount;
-      const { error: updateError } = await supabase
-        .from('user_wallets')
-        .update({ 
-          balance: newBalance,
-          updated_at: new Date().toISOString()
-        })
-        .eq('user_id', user.id);
+        // Atualizar saldo real da carteira
+        const newBalance = walletData.balance - amount;
+        const { error: updateError } = await supabase
+          .from('user_wallets')
+          .update({ 
+            balance: newBalance,
+            updated_at: new Date().toISOString()
+          })
+          .eq('user_id', user.id);
 
-      if (updateError) throw updateError;
+        if (updateError) throw updateError;
+      } else {
+        // Para admins, atualizar apenas o test_balance
+        const newTestBalance = (walletInfo.test_balance || 0) - amount;
+        const { error: updateError } = await supabase
+          .from('user_wallets')
+          .update({ 
+            test_balance: Math.max(0, newTestBalance), // Não deixar negativo
+            updated_at: new Date().toISOString()
+          })
+          .eq('user_id', user.id);
+
+        if (updateError) throw updateError;
+      }
 
       toast({
         title: "Baú comprado!",
