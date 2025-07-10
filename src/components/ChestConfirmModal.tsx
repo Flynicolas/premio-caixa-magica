@@ -34,13 +34,43 @@ const ChestConfirmModal = ({
 }: ChestConfirmModalProps) => {
   const { itemCount, hasMinimumItems, loading } = useChestItemCount(chestType);
 
-  const chestColors = {
-    silver: 'from-gray-400 to-gray-600',
-    gold: 'from-yellow-400 to-yellow-600',
-    delas: 'from-pink-400 to-rose-500',
-    diamond: 'from-blue-400 to-cyan-400',
-    ruby: 'from-red-400 to-pink-500',
-    premium: 'from-purple-500 to-pink-600'
+  const chestConfigs = {
+    silver: {
+      gradient: 'from-gray-400 to-gray-600',
+      glow: 'shadow-gray-400/50',
+      accent: 'text-gray-300',
+      buttonGlow: 'shadow-gray-400/30'
+    },
+    gold: {
+      gradient: 'from-yellow-400 to-yellow-600',
+      glow: 'shadow-yellow-400/50',
+      accent: 'text-yellow-300',
+      buttonGlow: 'shadow-yellow-400/30'
+    },
+    delas: {
+      gradient: 'from-pink-400 to-rose-500',
+      glow: 'shadow-pink-400/50',
+      accent: 'text-pink-300',
+      buttonGlow: 'shadow-pink-400/30'
+    },
+    diamond: {
+      gradient: 'from-blue-400 to-cyan-400',
+      glow: 'shadow-blue-400/50',
+      accent: 'text-blue-300',
+      buttonGlow: 'shadow-blue-400/30'
+    },
+    ruby: {
+      gradient: 'from-red-400 to-pink-500',
+      glow: 'shadow-red-400/50',
+      accent: 'text-red-300',
+      buttonGlow: 'shadow-red-400/30'
+    },
+    premium: {
+      gradient: 'from-purple-500 to-pink-600',
+      glow: 'shadow-purple-500/50',
+      accent: 'text-purple-300',
+      buttonGlow: 'shadow-purple-500/30'
+    }
   };
 
   const chestImages = {
@@ -52,6 +82,7 @@ const ChestConfirmModal = ({
     premium: '/lovable-uploads/d43f06a5-1532-42ba-8362-5aefb160b408.png'
   };
 
+  const config = chestConfigs[chestType];
   const canAfford = balance >= chestPrice;
   const canAffordUpgrade = nextChestPrice ? balance >= nextChestPrice : false;
   const canPurchase = canAfford && hasMinimumItems;
@@ -59,68 +90,70 @@ const ChestConfirmModal = ({
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
       <DialogContent className="max-w-md p-0 border-0 bg-transparent shadow-none">
-        <div className={`relative rounded-2xl p-8 bg-gradient-to-br ${chestColors[chestType]} shadow-2xl animate-scale-in border-4 border-white/20`}>
+        <div className={`relative rounded-3xl p-8 bg-gradient-to-br ${config.gradient} ${config.glow} shadow-2xl animate-scale-in border-4 border-white/30`}>
           {/* Background overlay */}
-          <div className="absolute inset-0 bg-black/20 rounded-2xl" />
+          <div className="absolute inset-0 bg-black/20 rounded-3xl" />
           
           {/* Floating sparkles */}
           <div className="absolute -top-2 -left-2">
-            <Sparkles className="w-6 h-6 text-yellow-300 animate-pulse" />
+            <Sparkles className={`w-6 h-6 ${config.accent} animate-pulse`} />
           </div>
           <div className="absolute -top-1 -right-3">
-            <Sparkles className="w-4 h-4 text-yellow-300 animate-pulse delay-300" />
+            <Sparkles className={`w-4 h-4 ${config.accent} animate-pulse delay-300`} />
           </div>
           <div className="absolute -bottom-2 -right-2">
-            <Sparkles className="w-5 h-5 text-yellow-300 animate-pulse delay-500" />
+            <Sparkles className={`w-5 h-5 ${config.accent} animate-pulse delay-500`} />
           </div>
           
           <div className="relative z-10 text-center">
             {/* Chest Image */}
             <div className="mb-6 flex justify-center">
-              <div className="w-32 h-32 flex items-center justify-center">
+              <div className={`w-40 h-40 flex items-center justify-center rounded-full bg-white/10 ${config.glow}`}>
                 <img 
                   src={chestImages[chestType]} 
                   alt={chestName}
-                  className="w-full h-full object-contain drop-shadow-2xl animate-float"
+                  className="w-32 h-32 object-contain drop-shadow-2xl animate-float"
                 />
               </div>
             </div>
 
             {/* Question */}
-            <h2 className="text-2xl font-bold text-black mb-2">
+            <h2 className="text-3xl font-bold text-white mb-3 drop-shadow-lg">
               Abrir o {chestName}?
             </h2>
             
-            <p className="text-black/80 mb-2">
-              R$ {chestPrice.toFixed(2).replace('.', ',')}
-            </p>
-            
-            <p className="text-sm text-black/70 mb-2">
-              Saldo: R$ {balance.toFixed(2).replace('.', ',')}
-            </p>
+            <div className="bg-black/30 backdrop-blur-sm rounded-2xl p-4 mb-6 border border-white/20">
+              <p className="text-white font-bold text-xl mb-2">
+                R$ {chestPrice.toFixed(2).replace('.', ',')}
+              </p>
+              
+              <p className="text-white/80 text-sm mb-2">
+                Saldo: R$ {balance.toFixed(2).replace('.', ',')}
+              </p>
 
-            <p className="text-sm text-black/70 mb-6">
-              {loading ? 'Carregando...' : `${itemCount} itens disponíveis`}
-            </p>
+              <p className="text-white/70 text-sm">
+                {loading ? 'Carregando...' : `${itemCount} itens disponíveis`}
+              </p>
+            </div>
 
             {/* Action Buttons */}
-            <div className="space-y-3">
+            <div className="space-y-4">
               {!hasMinimumItems ? (
-                <div className="bg-black/80 text-white font-bold py-3 px-4 rounded text-center">
-                  <AlertTriangle className="w-4 h-4 mx-auto mb-2" />
-                  <p className="text-sm">Baú indisponível no momento</p>
-                  <p className="text-xs">Aguarde mais itens serem adicionados</p>
-                  <p className="text-xs">({itemCount}/10 itens)</p>
+                <div className="bg-black/60 backdrop-blur-sm text-white font-bold py-4 px-6 rounded-xl text-center border border-white/20">
+                  <AlertTriangle className="w-5 h-5 mx-auto mb-2 text-red-400" />
+                  <p className="text-sm">Baú Indisponível</p>
+                  <p className="text-xs text-white/70">Aguarde mais itens serem adicionados</p>
+                  <p className="text-xs text-white/70">({itemCount}/10 itens)</p>
                 </div>
               ) : (
                 <Button
                   onClick={onConfirm}
                   disabled={!canPurchase}
-                  className="w-full bg-black/80 hover:bg-black text-white font-bold py-3 transition-all duration-300 hover:scale-105"
+                  className={`w-full bg-black/60 backdrop-blur-sm hover:bg-black/40 text-white font-bold py-4 px-6 rounded-xl transition-all duration-300 hover:scale-105 border border-white/20 ${config.buttonGlow}`}
                 >
                   {canAfford ? (
                     <>
-                      <Sparkles className="w-4 h-4 mr-2" />
+                      <Sparkles className="w-5 h-5 mr-2" />
                       Sim, Abrir Baú!
                     </>
                   ) : (
@@ -134,17 +167,17 @@ const ChestConfirmModal = ({
                   onClick={onUpgrade}
                   disabled={!canAffordUpgrade}
                   variant="outline"
-                  className="w-full border-black/50 text-black hover:bg-black/10 font-bold py-3 transition-all duration-300 hover:scale-105"
+                  className="w-full border-white/30 bg-white/10 backdrop-blur-sm text-white hover:bg-white/20 font-bold py-4 px-6 rounded-xl transition-all duration-300 hover:scale-105"
                 >
-                  <ArrowUp className="w-4 h-4 mr-2" />
-                  Mais Chances - {nextChestName}
+                  <ArrowUp className="w-5 h-5 mr-2" />
+                  Upgrade - {nextChestName}
                 </Button>
               )}
 
               <Button
                 onClick={onClose}
                 variant="ghost"
-                className="w-full text-black/70 hover:text-black hover:bg-black/10 transition-all duration-300"
+                className="w-full text-white/80 hover:text-white hover:bg-white/10 backdrop-blur-sm rounded-xl py-3 transition-all duration-300"
               >
                 Cancelar
               </Button>

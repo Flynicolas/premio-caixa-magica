@@ -1,3 +1,4 @@
+
 import { useState, useEffect, useRef, useCallback } from 'react';
 
 interface AudioState {
@@ -15,71 +16,64 @@ export const useRouletteAudio = () => {
   const backgroundMusicRef = useRef<HTMLAudioElement | null>(null);
   const rareItemSoundRef = useRef<HTMLAudioElement | null>(null);
   const tickIntervalRef = useRef<NodeJS.Timeout | null>(null);
+  const audioContextRef = useRef<AudioContext | null>(null);
 
-  // Initialize audio elements
+  // Initialize audio context and elements
   useEffect(() => {
-    // Create tick sound (metallic click)
+    // Initialize audio context
+    try {
+      audioContextRef.current = new (window.AudioContext || (window as any).webkitAudioContext)();
+    } catch (error) {
+      console.warn('Audio context not supported:', error);
+    }
+
+    // Create audio elements
     tickAudioRef.current = new Audio();
     tickAudioRef.current.volume = 0.3;
     tickAudioRef.current.preload = 'auto';
     
-    // Create background music
     backgroundMusicRef.current = new Audio();
     backgroundMusicRef.current.volume = 0.2;
     backgroundMusicRef.current.loop = true;
     backgroundMusicRef.current.preload = 'auto';
     
-    // Create rare item sound
     rareItemSoundRef.current = new Audio();
     rareItemSoundRef.current.volume = 0.5;
     rareItemSoundRef.current.preload = 'auto';
-
-    // Since we don't have real audio files, we'll use Web Audio API for synthetic sounds
-    createSyntheticSounds();
 
     return () => {
       // Cleanup
       if (tickIntervalRef.current) {
         clearInterval(tickIntervalRef.current);
       }
+      if (audioContextRef.current) {
+        audioContextRef.current.close();
+      }
     };
   }, []);
 
-  const createSyntheticSounds = () => {
-    // Create synthetic tick sound using Web Audio API
-    const createTickSound = () => {
-      const audioContext = new (window.AudioContext || (window as any).webkitAudioContext)();
-      const oscillator = audioContext.createOscillator();
-      const gainNode = audioContext.createGain();
+  const createTickSound = useCallback((frequency: number = 800, duration: number = 0.1) => {
+    if (!audioContextRef.current || audioState.isMuted) return;
+    
+    try {
+      const oscillator = audioContextRef.current.createOscillator();
+      const gainNode = audioContextRef.current.createGain();
       
       oscillator.connect(gainNode);
-      gainNode.connect(audioContext.destination);
+      gainNode.connect(audioContextRef.current.destination);
       
-      oscillator.frequency.setValueAtTime(800, audioContext.currentTime);
-      oscillator.frequency.exponentialRampToValueAtTime(200, audioContext.currentTime + 0.1);
+      oscillator.frequency.setValueAtTime(frequency, audioContextRef.current.currentTime);
+      oscillator.frequency.exponentialRampToValueAtTime(frequency * 0.3, audioContextRef.current.currentTime + duration);
       
-      gainNode.gain.setValueAtTime(0.3, audioContext.currentTime);
-      gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.1);
+      gainNode.gain.setValueAtTime(0.15, audioContextRef.current.currentTime);
+      gainNode.gain.exponentialRampToValueAtTime(0.001, audioContextRef.current.currentTime + duration);
       
-      oscillator.start(audioContext.currentTime);
-      oscillator.stop(audioContext.currentTime + 0.1);
-    };
-
-    // Replace the tick audio play function
-    if (tickAudioRef.current) {
-      const originalPlay = tickAudioRef.current.play.bind(tickAudioRef.current);
-      tickAudioRef.current.play = () => {
-        if (!audioState.isMuted) {
-          try {
-            createTickSound();
-          } catch (error) {
-            console.warn('Could not play tick sound:', error);
-          }
-        }
-        return Promise.resolve();
-      };
+      oscillator.start(audioContextRef.current.currentTime);
+      oscillator.stop(audioContextRef.current.currentTime + duration);
+    } catch (error) {
+      console.warn('Could not create tick sound:', error);
     }
-  };
+  }, [audioState.isMuted]);
 
   const startBackgroundMusic = useCallback(() => {
     if (backgroundMusicRef.current && !audioState.isMuted) {
@@ -97,19 +91,23 @@ export const useRouletteAudio = () => {
     }
   }, []);
 
-  const playTickSound = useCallback(() => {
-    if (tickAudioRef.current && !audioState.isMuted) {
-      tickAudioRef.current.play().catch(console.warn);
-    }
-  }, [audioState.isMuted]);
+  const playTickSound = useCallback((speed: number = 1) => {
+    // Adjust frequency based on speed - higher frequency for faster speeds
+    const frequency = 600 + (speed * 400);
+    const duration = 0.05 + (0.05 / speed); // Shorter duration for faster speeds
+    createTickSound(frequency, duration);
+  }, [createTickSound]);
 
   const startTickLoop = useCallback((interval: number = 200) => {
     if (tickIntervalRef.current) {
       clearInterval(tickIntervalRef.current);
     }
     
+    // Calculate speed based on interval (shorter interval = higher speed)
+    const speed = Math.max(0.5, 200 / interval);
+    
     tickIntervalRef.current = setInterval(() => {
-      playTickSound();
+      playTickSound(speed);
     }, interval);
   }, [playTickSound]);
 
@@ -121,43 +119,38 @@ export const useRouletteAudio = () => {
   }, []);
 
   const playRareItemSound = useCallback((rarity: string) => {
-    if (rareItemSoundRef.current && !audioState.isMuted) {
+    if (!audioContextRef.current || audioState.isMuted) return;
+    
+    try {
       // Different sounds for different rarities
-      const rarityVolumes = {
-        rare: 0.4,
-        epic: 0.6,
-        legendary: 0.8,
-        special: 1.0
+      const rarityConfigs = {
+        rare: { frequencies: [523, 659], volume: 0.3 },
+        epic: { frequencies: [523, 659, 783], volume: 0.4 },
+        legendary: { frequencies: [523, 659, 783, 1047], volume: 0.5 },
+        special: { frequencies: [523, 659, 783, 1047, 1319], volume: 0.6 }
       };
 
-      rareItemSoundRef.current.volume = rarityVolumes[rarity as keyof typeof rarityVolumes] || 0.3;
+      const config = rarityConfigs[rarity as keyof typeof rarityConfigs] || rarityConfigs.rare;
       
-      // Create synthetic celebration sound
-      try {
-        const audioContext = new (window.AudioContext || (window as any).webkitAudioContext)();
+      // Create a sequence of ascending notes
+      config.frequencies.forEach((freq, index) => {
+        const oscillator = audioContextRef.current!.createOscillator();
+        const gainNode = audioContextRef.current!.createGain();
         
-        // Create a sequence of ascending notes
-        const frequencies = [523, 659, 783, 1047]; // C5, E5, G5, C6
-        frequencies.forEach((freq, index) => {
-          const oscillator = audioContext.createOscillator();
-          const gainNode = audioContext.createGain();
-          
-          oscillator.connect(gainNode);
-          gainNode.connect(audioContext.destination);
-          
-          oscillator.frequency.setValueAtTime(freq, audioContext.currentTime + index * 0.15);
-          oscillator.type = 'sine';
-          
-          const volume = rarityVolumes[rarity as keyof typeof rarityVolumes] || 0.3;
-          gainNode.gain.setValueAtTime(volume, audioContext.currentTime + index * 0.15);
-          gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + index * 0.15 + 0.3);
-          
-          oscillator.start(audioContext.currentTime + index * 0.15);
-          oscillator.stop(audioContext.currentTime + index * 0.15 + 0.3);
-        });
-      } catch (error) {
-        console.warn('Could not play rare item sound:', error);
-      }
+        oscillator.connect(gainNode);
+        gainNode.connect(audioContextRef.current!.destination);
+        
+        oscillator.frequency.setValueAtTime(freq, audioContextRef.current!.currentTime + index * 0.15);
+        oscillator.type = 'sine';
+        
+        gainNode.gain.setValueAtTime(config.volume, audioContextRef.current!.currentTime + index * 0.15);
+        gainNode.gain.exponentialRampToValueAtTime(0.001, audioContextRef.current!.currentTime + index * 0.15 + 0.4);
+        
+        oscillator.start(audioContextRef.current!.currentTime + index * 0.15);
+        oscillator.stop(audioContextRef.current!.currentTime + index * 0.15 + 0.4);
+      });
+    } catch (error) {
+      console.warn('Could not play rare item sound:', error);
     }
   }, [audioState.isMuted]);
 

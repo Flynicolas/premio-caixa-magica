@@ -1,3 +1,4 @@
+
 import { useState, useEffect, useRef, useCallback } from 'react';
 import { Volume2, VolumeX, Sparkles } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -56,63 +57,80 @@ const SpinRouletteWheel = ({
     setShowWinner(false);
     setShowParticles(false);
     
-    const { centerIndex, winnerItem } = rouletteData;
+    const { centerIndex, winnerItem, totalSlots } = rouletteData;
     
     // Start audio effects
     startBackgroundMusic();
     
-    // Calculate positions
+    // Calculate container and track dimensions
     const containerWidth = containerRef.current.offsetWidth;
-    const centerPosition = centerIndex * ITEM_WIDTH;
-    const targetPosition = centerPosition - (containerWidth / 2) + (ITEM_WIDTH / 2);
+    const trackWidth = totalSlots * ITEM_WIDTH;
     
-    // Add extra spins for visual effect
-    const extraSpins = 3; // 3 full spins
-    const fullSpinDistance = rouletteData.totalSlots * ITEM_WIDTH;
-    const totalDistance = targetPosition + (extraSpins * fullSpinDistance);
+    // Position the track so the winner item ends up in the center
+    const centerPosition = containerWidth / 2;
+    const winnerPosition = centerIndex * ITEM_WIDTH + (ITEM_WIDTH / 2);
+    const finalOffset = winnerPosition - centerPosition;
     
-    // Animation phases
+    // Add extra spins for visual effect (3 full cycles)
+    const extraSpins = 3;
+    const totalDistance = finalOffset + (extraSpins * trackWidth);
+    
+    // Set initial track width to accommodate the spin
+    if (trackRef.current) {
+      trackRef.current.style.width = `${trackWidth * 4}px`; // Extend for smooth animation
+    }
+    
+    // Animation setup
     let startTime: number;
-    let startPosition = 0;
-    const totalDuration = 4000; // 4 seconds total
-    const accelerationPhase = 0.2; // 20% acceleration
-    const constantPhase = 0.5; // 50% constant speed
-    const decelerationPhase = 0.3; // 30% deceleration
+    const totalDuration = 4000; // 4 seconds
+    const phases = {
+      acceleration: 0.2,   // 20% acceleration
+      constant: 0.5,       // 50% constant speed  
+      deceleration: 0.3    // 30% deceleration
+    };
     
-    // Start tick loop
-    let tickInterval = 100; // Initial tick interval
-    startTickLoop(tickInterval);
+    // Start with fast ticking
+    let currentTickInterval = 50;
+    startTickLoop(currentTickInterval);
     
     const animate = (timestamp: number) => {
       if (!startTime) startTime = timestamp;
       const elapsed = timestamp - startTime;
       const progress = Math.min(elapsed / totalDuration, 1);
       
+      // Calculate current phase and speed
       let currentSpeed = 0;
+      let tickInterval = 50;
       
-      if (progress < accelerationPhase) {
+      if (progress < phases.acceleration) {
         // Acceleration phase
-        const accelerationProgress = progress / accelerationPhase;
-        currentSpeed = accelerationProgress;
-      } else if (progress < accelerationPhase + constantPhase) {
+        const accelerationProgress = progress / phases.acceleration;
+        currentSpeed = accelerationProgress * accelerationProgress; // Quadratic acceleration
+        tickInterval = 50;
+      } else if (progress < phases.acceleration + phases.constant) {
         // Constant speed phase
         currentSpeed = 1;
+        tickInterval = 30;
       } else {
         // Deceleration phase
-        const decelerationProgress = (progress - accelerationPhase - constantPhase) / decelerationPhase;
-        currentSpeed = 1 - Math.pow(decelerationProgress, 2);
-        
-        // Slow down tick sound
-        const newTickInterval = 100 + (decelerationProgress * 300);
-        startTickLoop(Math.floor(newTickInterval));
+        const decelerationProgress = (progress - phases.acceleration - phases.constant) / phases.deceleration;
+        currentSpeed = 1 - (decelerationProgress * decelerationProgress); // Quadratic deceleration
+        tickInterval = 30 + (decelerationProgress * 200); // Slow down tick sound
       }
       
-      // Apply easing
-      const easeProgress = progress < accelerationPhase + constantPhase 
-        ? progress * progress // Ease in
-        : 1 - Math.pow(1 - progress, 3); // Ease out
+      // Update tick sound speed
+      if (Math.abs(currentTickInterval - tickInterval) > 10) {
+        currentTickInterval = tickInterval;
+        stopTickLoop();
+        startTickLoop(Math.floor(currentTickInterval));
+      }
       
-      const currentPosition = startPosition + (totalDistance * easeProgress);
+      // Apply easing to position
+      const easeProgress = progress < 0.7 
+        ? progress * progress // Ease in for most of the animation
+        : 1 - Math.pow(1 - progress, 4); // Strong ease out at the end
+      
+      const currentPosition = totalDistance * easeProgress;
       
       if (trackRef.current) {
         trackRef.current.style.transform = `translateX(-${currentPosition}px)`;
@@ -157,7 +175,7 @@ const SpinRouletteWheel = ({
   if (!rouletteData) {
     return (
       <div className={`flex items-center justify-center h-40 ${className}`}>
-        <div className="text-muted-foreground">Carregando roleta...</div>
+        <div className="text-white/70">Carregando roleta...</div>
       </div>
     );
   }
@@ -172,7 +190,7 @@ const SpinRouletteWheel = ({
           variant="outline"
           size="sm"
           onClick={toggleMute}
-          className="bg-background/80 backdrop-blur-sm"
+          className="bg-white/10 backdrop-blur-sm border-white/30 text-white hover:bg-white/20"
         >
           {audioState.isMuted ? <VolumeX size={16} /> : <Volume2 size={16} />}
         </Button>
@@ -181,11 +199,10 @@ const SpinRouletteWheel = ({
       {/* Golden Arrow */}
       <div className="absolute -top-8 left-1/2 transform -translate-x-1/2 z-20">
         <div 
-          className="text-4xl animate-pulse"
+          className="text-4xl animate-pulse text-yellow-400"
           style={{ 
-            color: 'hsl(var(--primary))',
-            filter: 'drop-shadow(0 0 8px hsl(var(--primary) / 0.6))',
-            textShadow: '0 0 12px hsl(var(--primary) / 0.8)'
+            filter: 'drop-shadow(0 0 8px rgb(251 191 36 / 0.8))',
+            textShadow: '0 0 12px rgb(251 191 36 / 0.8)'
           }}
         >
           ▼
@@ -193,43 +210,42 @@ const SpinRouletteWheel = ({
       </div>
 
       {/* Roulette Container */}
-      <div className="relative w-full max-w-4xl mx-auto h-40 overflow-hidden rounded-xl border-4 border-border bg-background/90 backdrop-blur-sm">
+      <div className="relative w-full max-w-4xl mx-auto h-40 overflow-hidden rounded-xl border-4 border-white/20 bg-black/40 backdrop-blur-sm">
         {/* Track */}
         <div 
           ref={trackRef}
           className="flex absolute top-0 left-0 h-full"
-          style={{ width: `${ITEM_WIDTH * rouletteData.totalSlots}px` }}
         >
-          {rouletteSlots.map((item, index) => (
-            <div 
-              key={`${item.id}-${index}`}
-              className={`
-                flex-shrink-0 mx-2 my-4 transition-all duration-500
-                ${showWinner && index === centerIndex ? 'scale-110 z-10' : ''}
-              `}
-              style={{ 
-                width: `${ITEM_WIDTH - 16}px`,
-                filter: showWinner && index === centerIndex
-                  ? 'drop-shadow(0 0 16px hsl(var(--primary) / 0.8))' 
-                  : 'none'
-              }}
-            >
-              <ItemCard 
-                item={item} 
-                size="md" 
-                showRarity={false}
-                className={showWinner && index === centerIndex ? 'border-primary' : ''}
-              />
-            </div>
-          ))}
+          {/* Create continuous track by duplicating items */}
+          {Array.from({ length: 4 }, (_, duplicateIndex) => 
+            rouletteSlots.map((item, index) => (
+              <div 
+                key={`${duplicateIndex}-${item.id}-${index}`}
+                className={`
+                  flex-shrink-0 mx-2 my-4 transition-all duration-500
+                  ${showWinner && duplicateIndex === 0 && index === centerIndex ? 'scale-110 z-10' : ''}
+                `}
+                style={{ 
+                  width: `${ITEM_WIDTH - 16}px`,
+                  filter: showWinner && duplicateIndex === 0 && index === centerIndex
+                    ? 'drop-shadow(0 0 16px rgb(251 191 36 / 0.8))' 
+                    : 'none'
+                }}
+              >
+                <ItemCard 
+                  item={item} 
+                  size="md" 
+                  showRarity={false}
+                  className={showWinner && duplicateIndex === 0 && index === centerIndex ? 'border-yellow-400 border-2' : ''}
+                />
+              </div>
+            ))
+          )}
         </div>
 
         {/* Center Highlight Zone */}
         <div className="absolute top-0 left-1/2 transform -translate-x-1/2 w-32 h-full pointer-events-none">
-          <div 
-            className="w-full h-full border-2 border-dashed opacity-30"
-            style={{ borderColor: 'hsl(var(--primary))' }}
-          />
+          <div className="w-full h-full border-2 border-dashed border-yellow-400/30" />
         </div>
 
         {/* Particles Effect for Rare Items */}
@@ -238,7 +254,7 @@ const SpinRouletteWheel = ({
             {[...Array(20)].map((_, i) => (
               <Sparkles
                 key={i}
-                className="absolute animate-ping text-primary"
+                className="absolute animate-ping text-yellow-400"
                 style={{
                   left: `${Math.random() * 100}%`,
                   top: `${Math.random() * 100}%`,
@@ -254,8 +270,8 @@ const SpinRouletteWheel = ({
 
       {/* Spinning Indicator */}
       {isAnimating && (
-        <div className="absolute inset-0 flex items-center justify-center bg-background/20 backdrop-blur-sm rounded-xl z-10">
-          <div className="text-primary text-xl font-bold animate-pulse">
+        <div className="absolute inset-0 flex items-center justify-center bg-black/20 backdrop-blur-sm rounded-xl z-10">
+          <div className="text-yellow-400 text-xl font-bold animate-pulse">
             🎰 Girando a roleta...
           </div>
         </div>
@@ -264,11 +280,11 @@ const SpinRouletteWheel = ({
       {/* Winner Announcement */}
       {showWinner && rouletteData.winnerItem && (
         <div className="absolute -bottom-16 left-1/2 transform -translate-x-1/2 z-20">
-          <div className="bg-background/95 backdrop-blur-sm border-2 border-primary rounded-lg px-6 py-3 animate-scale-in">
+          <div className="bg-black/90 backdrop-blur-sm border-2 border-yellow-400 rounded-lg px-6 py-3 animate-scale-in">
             <div className="text-center">
-              <div className="text-primary font-bold text-lg">🎉 Você ganhou!</div>
-              <div className="text-foreground font-semibold">{rouletteData.winnerItem.name}</div>
-              <div className="text-sm text-muted-foreground capitalize">{rouletteData.winnerItem.rarity}</div>
+              <div className="text-yellow-400 font-bold text-lg">🎉 Você ganhou!</div>
+              <div className="text-white font-semibold">{rouletteData.winnerItem.name}</div>
+              <div className="text-sm text-white/70 capitalize">{rouletteData.winnerItem.rarity}</div>
             </div>
           </div>
         </div>
