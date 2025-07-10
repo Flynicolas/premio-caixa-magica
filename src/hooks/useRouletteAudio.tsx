@@ -52,7 +52,7 @@ export const useRouletteAudio = () => {
     };
   }, []);
 
-  const createTickSound = useCallback((frequency: number = 800, duration: number = 0.1) => {
+  const createTickSound = useCallback((frequency: number = 400, duration: number = 0.05) => {
     if (!audioContextRef.current || audioState.isMuted) return;
     
     try {
@@ -62,10 +62,12 @@ export const useRouletteAudio = () => {
       oscillator.connect(gainNode);
       gainNode.connect(audioContextRef.current.destination);
       
+      // Som mais discreto e grave
       oscillator.frequency.setValueAtTime(frequency, audioContextRef.current.currentTime);
-      oscillator.frequency.exponentialRampToValueAtTime(frequency * 0.3, audioContextRef.current.currentTime + duration);
+      oscillator.type = 'triangle'; // Forma de onda mais suave
       
-      gainNode.gain.setValueAtTime(0.15, audioContextRef.current.currentTime);
+      // Volume muito baixo e fade rápido
+      gainNode.gain.setValueAtTime(0.08, audioContextRef.current.currentTime);
       gainNode.gain.exponentialRampToValueAtTime(0.001, audioContextRef.current.currentTime + duration);
       
       oscillator.start(audioContextRef.current.currentTime);
@@ -92,9 +94,9 @@ export const useRouletteAudio = () => {
   }, []);
 
   const playTickSound = useCallback((speed: number = 1) => {
-    // Adjust frequency based on speed - higher frequency for faster speeds
-    const frequency = 600 + (speed * 400);
-    const duration = 0.05 + (0.05 / speed); // Shorter duration for faster speeds
+    // Som mais discreto - frequência mais baixa e estável
+    const frequency = 300 + (speed * 100); // Frequência menor
+    const duration = 0.03; // Duração muito curta
     createTickSound(frequency, duration);
   }, [createTickSound]);
 
