@@ -1,10 +1,10 @@
+
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Sparkles, Lock, Eye, AlertTriangle } from 'lucide-react';
 import { Chest, ChestType } from '@/data/chestData';
 import { useChestItemCount } from '@/hooks/useChestItemCount';
-import ItemCard from './ItemCard';
 
 interface ChestCardProps {
   chest: Chest;
@@ -44,6 +44,13 @@ const ChestCard = ({ chest, chestType, onOpen, onViewItems, balance }: ChestCard
     diamond: '/lovable-uploads/0ec6f6c5-203f-4fca-855d-59171f78adf3.png',
     ruby: '/lovable-uploads/a7b012cc-0fae-4b69-b2f4-690740a0ba92.png',
     premium: '/lovable-uploads/d43f06a5-1532-42ba-8362-5aefb160b408.png'
+  };
+
+  const rarityStyles = {
+    common: 'bg-gray-500/50',
+    rare: 'bg-blue-500/50',
+    epic: 'bg-purple-500/50',
+    legendary: 'bg-yellow-500/50'
   };
 
   // Get 5 rare items for preview
@@ -118,11 +125,6 @@ const ChestCard = ({ chest, chestType, onOpen, onViewItems, balance }: ChestCard
             <Eye className="w-3 h-3" />
             <span>ver</span>
           </button>
-          
-          {/* Floating sparkles */}
-          <div className="absolute -top-1 -left-1">
-            <Sparkles className="w-4 h-4 text-yellow-400 animate-pulse" />
-          </div>
         </div>
 
         {/* Chest Info */}
@@ -133,23 +135,23 @@ const ChestCard = ({ chest, chestType, onOpen, onViewItems, balance }: ChestCard
             R$ {chest.price.toFixed(2).replace('.', ',')}
           </div>
 
-          {/* Preview of rare items using ItemCard */}
+          {/* Preview of rare items */}
           <div className="mb-3">
-            <p className="text-xs text-muted-foreground mb-2">Itens Raros:</p>
+            <p className="text-xs text-muted-foreground mb-2">Você pode ganhar:</p>
             <div className="flex justify-center space-x-1">
               {rareItems.map((item, index) => (
-                <ItemCard
-                  key={index}
-                  item={{
-                    name: item.name,
-                    image_url: item.image,
-                    rarity: item.rarity as 'common' | 'rare' | 'epic' | 'legendary',
-                    description: item.description
-                  }}
-                  size="sm"
-                  showRarity={false}
-                  className="hover:transform-none hover:shadow-none"
-                />
+                <div key={index} className="relative group/item">
+                  <div className={`w-12 h-12 rounded-lg ${rarityStyles[item.rarity] || rarityStyles.common} flex items-center justify-center transition-all duration-200 hover:scale-105`}>
+                    <img 
+                      src={item.image || '/placeholder.svg'} 
+                      alt={item.name}
+                      className="w-8 h-8 object-contain"
+                    />
+                  </div>
+                  <div className="absolute -bottom-4 left-1/2 transform -translate-x-1/2 text-xs text-white font-medium truncate w-16 text-center opacity-0 group-hover/item:opacity-100 transition-opacity">
+                    {item.name}
+                  </div>
+                </div>
               ))}
             </div>
           </div>

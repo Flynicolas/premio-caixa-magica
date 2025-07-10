@@ -1,7 +1,6 @@
 
 import { DatabaseItem } from '@/types/database';
 import { Badge } from '@/components/ui/badge';
-import { Sparkles } from 'lucide-react';
 
 interface ItemCardProps {
   item: {
@@ -22,6 +21,7 @@ const ItemCard = ({ item, size = 'md', showRarity = true, className = '' }: Item
       bgColor: 'bg-gray-100/10',
       shadowColor: 'shadow-gray-400/20',
       glowColor: 'shadow-gray-400/30',
+      gradientBg: '',
       label: 'Comum',
       textColor: 'text-gray-300'
     },
@@ -30,6 +30,7 @@ const ItemCard = ({ item, size = 'md', showRarity = true, className = '' }: Item
       bgColor: 'bg-blue-100/10',
       shadowColor: 'shadow-blue-400/20',
       glowColor: 'shadow-blue-400/40',
+      gradientBg: '',
       label: 'Raro',
       textColor: 'text-blue-300'
     },
@@ -38,6 +39,7 @@ const ItemCard = ({ item, size = 'md', showRarity = true, className = '' }: Item
       bgColor: 'bg-purple-100/10',
       shadowColor: 'shadow-purple-400/20',
       glowColor: 'shadow-purple-400/40',
+      gradientBg: 'bg-gradient-to-br from-purple-500/20 to-purple-600/20',
       label: 'Épico',
       textColor: 'text-purple-300'
     },
@@ -46,6 +48,7 @@ const ItemCard = ({ item, size = 'md', showRarity = true, className = '' }: Item
       bgColor: 'bg-yellow-100/10',
       shadowColor: 'shadow-yellow-400/20',
       glowColor: 'shadow-yellow-400/50',
+      gradientBg: 'bg-gradient-to-br from-yellow-500/20 to-orange-500/20',
       label: 'Lendário',
       textColor: 'text-yellow-300'
     },
@@ -54,6 +57,7 @@ const ItemCard = ({ item, size = 'md', showRarity = true, className = '' }: Item
       bgColor: 'bg-pink-100/10',
       shadowColor: 'shadow-pink-500/30',
       glowColor: 'shadow-pink-500/60',
+      gradientBg: 'bg-gradient-to-br from-pink-500/20 to-rose-500/20',
       label: 'Especial',
       textColor: 'text-pink-300'
     }
@@ -64,19 +68,22 @@ const ItemCard = ({ item, size = 'md', showRarity = true, className = '' }: Item
       container: 'w-20 h-24',
       image: 'w-12 h-12',
       text: 'text-xs',
-      padding: 'p-2'
+      padding: 'p-2',
+      dot: 'w-2 h-2'
     },
     md: {
       container: 'w-28 h-36',
       image: 'w-16 h-16',
       text: 'text-sm',
-      padding: 'p-3'
+      padding: 'p-3',
+      dot: 'w-3 h-3'
     },
     lg: {
       container: 'w-36 h-44',
       image: 'w-20 h-20',
       text: 'text-base',
-      padding: 'p-4'
+      padding: 'p-4',
+      dot: 'w-4 h-4'
     }
   };
 
@@ -90,6 +97,7 @@ const ItemCard = ({ item, size = 'md', showRarity = true, className = '' }: Item
         flex flex-col items-center justify-center
         border-3 ${rarity.borderColor}
         ${rarity.bgColor}
+        ${rarity.gradientBg}
         backdrop-blur-sm
         rounded-xl
         transition-all duration-200 ease-out
@@ -101,13 +109,13 @@ const ItemCard = ({ item, size = 'md', showRarity = true, className = '' }: Item
         ${className}
       `}
       style={{
-        background: `linear-gradient(135deg, rgba(255,255,255,0.05) 0%, rgba(255,255,255,0.02) 100%)`
+        background: rarity.gradientBg || `linear-gradient(135deg, rgba(255,255,255,0.05) 0%, rgba(255,255,255,0.02) 100%)`
       }}
     >
-      {/* Sparkle effect for rare items */}
+      {/* Animated dot for epic, legendary and special items */}
       {(item.rarity === 'epic' || item.rarity === 'legendary' || item.rarity === 'special') && (
         <div className="absolute -top-1 -right-1">
-          <Sparkles className={`w-3 h-3 ${rarity.textColor} animate-pulse`} />
+          <div className={`${sizing.dot} ${rarity.textColor.replace('text-', 'bg-')} rounded-full animate-pulse`} />
         </div>
       )}
 

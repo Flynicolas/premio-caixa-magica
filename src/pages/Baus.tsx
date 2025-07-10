@@ -10,6 +10,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Sparkles, Crown, Diamond, Heart, Flame, Star, Gift, Eye, ShoppingCart, Radio, Package } from 'lucide-react';
 import { chestData, ChestType } from '@/data/chestData';
 import RealtimeWinsCarousel from '@/components/RealtimeWinsCarousel';
+import ItemCard from '@/components/ItemCard';
 
 const Baus = () => {
   const { user } = useAuth();
@@ -48,13 +49,6 @@ const Baus = () => {
     diamond: '/lovable-uploads/0ec6f6c5-203f-4fca-855d-59171f78adf3.png',
     ruby: '/lovable-uploads/a7b012cc-0fae-4b69-b2f4-690740a0ba92.png',
     premium: '/lovable-uploads/d43f06a5-1532-42ba-8362-5aefb160b408.png'
-  };
-
-  const rarityColors = {
-    common: 'border-gray-400 bg-gray-100',
-    rare: 'border-blue-400 bg-blue-100 shadow-blue-200',
-    epic: 'border-purple-400 bg-purple-100 shadow-purple-200',
-    legendary: 'border-yellow-400 bg-yellow-100 shadow-yellow-200'
   };
 
   if (loading) {
@@ -143,31 +137,26 @@ const Baus = () => {
               ) : (
                 <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
                   {userItems.map((userItem, index) => (
-                    <div key={index} className={`relative p-3 rounded-lg border-2 ${rarityColors[userItem.item?.rarity || 'common']} transition-all duration-300 hover:scale-105`}>
-                      <div className="w-16 h-16 mx-auto mb-2 rounded bg-white/80 flex items-center justify-center">
-                        <img 
-                          src={userItem.item?.image_url || '/placeholder.svg'} 
-                          alt={userItem.item?.name || 'Item'}
-                          className="max-w-full max-h-full object-contain"
-                        />
-                      </div>
-                      <p className="text-xs font-medium text-center truncate mb-1">
-                        {userItem.item?.name || 'Item Desconhecido'}
-                      </p>
-                      <div className="text-center">
+                    <div key={index} className="relative">
+                      <ItemCard
+                        item={{
+                          name: userItem.item?.name || 'Item Desconhecido',
+                          image_url: userItem.item?.image_url,
+                          rarity: (userItem.item?.rarity || 'common') as 'common' | 'rare' | 'epic' | 'legendary',
+                          description: userItem.item?.description
+                        }}
+                        size="sm"
+                        showRarity={true}
+                      />
+                      <div className="absolute -bottom-2 left-1/2 transform -translate-x-1/2">
                         <Badge variant="outline" className="text-xs">
                           {userItem.quantity}x
                         </Badge>
-                        {!userItem.is_claimed && (
-                          <Button size="sm" className="w-full mt-2 text-xs">
-                            Resgatar
-                          </Button>
-                        )}
                       </div>
-                      {(userItem.item?.rarity === 'epic' || userItem.item?.rarity === 'legendary') && (
-                        <div className="absolute -top-1 -right-1">
-                          <Sparkles className={`w-4 h-4 ${userItem.item?.rarity === 'legendary' ? 'text-yellow-500' : 'text-purple-500'} animate-pulse`} />
-                        </div>
+                      {!userItem.is_claimed && (
+                        <Button size="sm" className="w-full mt-2 text-xs">
+                          Resgatar
+                        </Button>
                       )}
                     </div>
                   ))}
@@ -254,21 +243,18 @@ const Baus = () => {
                           <h4 className="text-lg font-bold mb-3 text-primary">Prêmios Disponíveis</h4>
                           <div className="grid grid-cols-4 gap-2 max-h-64 overflow-y-auto">
                             {chestItems.slice(0, 20).map((chestItem, index) => (
-                              <div key={index} className={`relative p-2 rounded border ${rarityColors[chestItem.item?.rarity || 'common']} transition-all duration-300 hover:scale-105`}>
-                                <div className="w-12 h-12 mx-auto mb-1 rounded bg-white/80 flex items-center justify-center">
-                                  <img 
-                                    src={chestItem.item?.image_url || '/placeholder.svg'} 
-                                    alt={chestItem.item?.name || 'Item'}
-                                    className="max-w-full max-h-full object-contain"
-                                    title={chestItem.item?.name}
-                                  />
-                                </div>
-                                <p className="text-xs text-center truncate">{chestItem.item?.name}</p>
-                                {(chestItem.item?.rarity === 'epic' || chestItem.item?.rarity === 'legendary') && (
-                                  <div className="absolute -top-1 -right-1">
-                                    <Sparkles className={`w-3 h-3 ${chestItem.item?.rarity === 'legendary' ? 'text-yellow-500' : 'text-purple-500'} animate-pulse`} />
-                                  </div>
-                                )}
+                              <div key={index} className="flex flex-col items-center">
+                                <ItemCard
+                                  item={{
+                                    name: chestItem.item?.name || 'Item',
+                                    image_url: chestItem.item?.image_url,
+                                    rarity: (chestItem.item?.rarity || 'common') as 'common' | 'rare' | 'epic' | 'legendary',
+                                    description: chestItem.item?.description
+                                  }}
+                                  size="sm"
+                                  showRarity={false}
+                                  className="hover:transform-none hover:shadow-none"
+                                />
                               </div>
                             ))}
                           </div>

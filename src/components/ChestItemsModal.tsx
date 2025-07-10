@@ -1,7 +1,6 @@
 
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Badge } from '@/components/ui/badge';
-import { X } from 'lucide-react';
 import { Chest, Prize } from '@/data/chestData';
 import ItemCard from './ItemCard';
 
@@ -39,12 +38,6 @@ const ChestItemsModal = ({ isOpen, onClose, chest }: ChestItemsModalProps) => {
           <DialogTitle className="text-2xl font-bold text-center text-primary">
             {chest.name} - Conteúdo
           </DialogTitle>
-          <button
-            onClick={onClose}
-            className="absolute top-4 right-4 text-muted-foreground hover:text-white transition-colors"
-          >
-            <X className="w-5 h-5" />
-          </button>
         </DialogHeader>
 
         <div className="py-4">
