@@ -37,103 +37,79 @@ export const useRouletteAnimation = ({
     // Iniciar música de fundo
     startBackgroundMusic();
 
-    // Calcular dimensões exatas
-    const containerWidth = containerRef.current.offsetWidth;
-    const trackWidth = totalSlots * ITEM_WIDTH;
+    // @definir total_slots = tamanho de lista_itens
+    const lista_itens = rouletteData.rouletteSlots;
+    const total_slots = lista_itens.length;
     
-    // Posição exata do centro do container
-    const centerPosition = containerWidth / 2;
+    // @definir indice_item = posição de item_sorteado na lista_itens
+    const indice_item = centerIndex;
     
-    // Posição do item vencedor (centro do item)
-    const winnerItemCenter = centerIndex * ITEM_WIDTH + (ITEM_WIDTH / 2);
+    // @definir graus_por_slot = dividir 360 por total_slots
+    const graus_por_slot = 360 / total_slots;
     
-    // Distância necessária para centralizar o item vencedor
-    const targetOffset = winnerItemCenter - centerPosition;
-    
-    // Adicionar voltas extras (3 voltas completas para suavidade)
-    const extraSpins = 3;
-    const totalDistance = targetOffset + (extraSpins * trackWidth);
+    // @definir destino_final = somar (multiplicar 360 por 5) com (multiplicar indice_item por graus_por_slot)
+    const destino_final = (360 * 5) + (indice_item * graus_por_slot);
 
-    // Configurar trilha inicial
+    // Configurar trilha inicial - resetar completamente
     if (trackRef.current) {
       trackRef.current.style.transition = 'none';
-      trackRef.current.style.transform = `translateX(0px)`;
-      trackRef.current.style.width = `${trackWidth * 4}px`; // Simplicado: 4x ao invés de 6x
+      trackRef.current.style.transform = 'translateX(0px)';
+      trackRef.current.style.width = `${total_slots * ITEM_WIDTH * 4}px`;
     }
 
-    // Parâmetros da animação
-    const totalDuration = 5000; // 5 segundos
-    const startTime = performance.now();
-    let currentPosition = 0;
-    let lastTickTime = 0;
-    let tickSoundActive = false;
+    // Calcular posição final em pixels baseada nos graus
+    const containerWidth = containerRef.current.offsetWidth;
+    const centerPosition = containerWidth / 2;
+    const itemWidth = ITEM_WIDTH;
+    
+    // Conversão dos graus para posição linear da trilha
+    const finalPosition = (destino_final / 360) * (total_slots * itemWidth);
+    const winnerItemCenter = indice_item * itemWidth + (itemWidth / 2);
+    const adjustedFinalPosition = finalPosition - (centerPosition - winnerItemCenter);
 
-    // Função de easing customizada (ease-out-cubic)
-    const easeOutCubic = (t: number): number => 1 - Math.pow(1 - t, 3);
-
-    const animate = (timestamp: number) => {
-      const elapsed = timestamp - startTime;
-      const progress = Math.min(elapsed / totalDuration, 1);
-      
-      // Aplicar easing
-      const easedProgress = easeOutCubic(progress);
-      currentPosition = totalDistance * easedProgress;
-
-      // Atualizar posição visual
+    // @girar elemento roleta para destino_final graus com duração 4s e curva ease-out
+    const duracao = 4000; // 4 segundos
+    
+    // Aplicar animação CSS direta com ease-out
+    setTimeout(() => {
       if (trackRef.current) {
-        trackRef.current.style.transform = `translateX(-${currentPosition}px)`;
+        trackRef.current.style.transition = `transform ${duracao}ms cubic-bezier(0.25, 0.46, 0.45, 0.94)`;
+        trackRef.current.style.transform = `translateX(-${adjustedFinalPosition}px)`;
       }
+    }, 50);
 
-      // Controle do som baseado na velocidade
-      const velocity = (currentPosition - (lastTickTime > 0 ? (totalDistance * easeOutCubic((lastTickTime - startTime) / totalDuration)) : 0)) / (timestamp - (lastTickTime || startTime));
-      const speed = Math.abs(velocity);
+    // Controle de som simplificado
+    startTickLoop(100);
+    
+    // @aguardar 4.2s
+    setTimeout(() => {
+      stopTickLoop();
+      stopBackgroundMusic();
       
-      // Som de tick baseado na velocidade
-      if (speed > 0.1 && !tickSoundActive) {
-        tickSoundActive = true;
-        const tickInterval = Math.max(30, 200 - (speed * 150));
-        startTickLoop(tickInterval);
-        setTimeout(() => {
-          stopTickLoop();
-          tickSoundActive = false;
-        }, tickInterval);
+      // Garantir posição final exata
+      if (trackRef.current) {
+        trackRef.current.style.transition = 'none';
+        trackRef.current.style.transform = `translateX(-${adjustedFinalPosition}px)`;
       }
+      
+      const finalTransform = `translateX(-${adjustedFinalPosition}px)`;
+      onAnimationComplete(finalTransform);
 
-      if (progress < 1) {
-        lastTickTime = timestamp;
-        requestAnimationFrame(animate);
-      } else {
-        // Animação finalizada
-        stopTickLoop();
-        stopBackgroundMusic();
-        
-        // Garantir posição final exata
-        if (trackRef.current) {
-          trackRef.current.style.transform = `translateX(-${totalDistance}px)`;
+      // @mostrar efeito destaque em item_sorteado
+      setTimeout(() => {
+        onShowWinner();
+
+        // Som especial para itens raros
+        if (['rare', 'epic', 'legendary', 'special'].includes(winnerItem.rarity)) {
+          playRareItemSound(winnerItem.rarity);
         }
-        
-        const finalTransform = `translateX(-${totalDistance}px)`;
-        onAnimationComplete(finalTransform);
 
-        // Mostrar resultado com delay
+        // @abrir janela popup_premio com dados de item_sorteado
         setTimeout(() => {
-          onShowWinner();
-
-          // Som especial para itens raros
-          if (['rare', 'epic', 'legendary', 'special'].includes(winnerItem.rarity)) {
-            playRareItemSound(winnerItem.rarity);
-          }
-
-          // Zoom no item e callback
-          setTimeout(() => {
-            onSpinComplete?.(winnerItem);
-          }, 1500); // Mais tempo para apreciar o zoom
-        }, 300);
-      }
-    };
-
-    // Iniciar animação
-    requestAnimationFrame(animate);
+          onSpinComplete?.(winnerItem);
+        }, 800); // Tempo para o efeito de destaque
+      }, 200);
+    }, 4200); // 4.2s exatos
   }, [
     rouletteData,
     isAnimating,
