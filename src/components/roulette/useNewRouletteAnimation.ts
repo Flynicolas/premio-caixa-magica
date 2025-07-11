@@ -64,45 +64,52 @@ export const useNewRouletteAnimation = ({
     // USAR AS MESMAS CONSTANTES DO COMPONENTE NewRouletteTrack
     const duplicateSet = 2; // Terceira repetição (índice 2) - onde para a animação
     
-    // No NewRouletteTrack: width: `${ITEM_WIDTH - 16}px`, mx-2 (8px cada lado)
-    // Então: item real = ITEM_WIDTH - 16, margem total = 16px (8px cada lado)
-    const itemTotalWidth = 140; // ITEM_WIDTH da constante
-    const marginTotal = 16; // mx-2 = 8px cada lado
-    const itemRealWidth = itemTotalWidth - marginTotal; // 124px
+    // Análise exata do CSS do NewRouletteTrack:
+    // - style={{ width: `${ITEM_WIDTH - 16}px` }} = 124px
+    // - className="mx-2" = margin: 0 8px (16px total horizontal)
+    // - Total por item = 124px + 16px = 140px
+    const itemWidth = 140; // ITEM_WIDTH constante
+    const itemRealWidth = 124; // ITEM_WIDTH - 16 (CSS real)
+    const marginHorizontal = 16; // mx-2 = 8px cada lado
     
-    // Posição absoluta do início do slot (incluindo margens)
-    const absoluteSlotStart = (duplicateSet * rouletteSlots.length + centerIndex) * itemTotalWidth;
+    // Posição do item vencedor na terceira repetição
+    const winnerSlotIndex = duplicateSet * rouletteSlots.length + centerIndex;
     
-    // Centro do item real (início do slot + margem esquerda + metade do item real)
-    const itemCenter = absoluteSlotStart + (marginTotal / 2) + (itemRealWidth / 2);
+    // Posição do início do slot (borda esquerda incluindo margem)
+    const slotStartPosition = winnerSlotIndex * itemWidth;
     
-    // Distância para centralizar na seta
-    const targetOffset = itemCenter - centerPosition;
+    // Posição do centro do item real (início + margem esquerda + metade do item)
+    const itemCenterPosition = slotStartPosition + (marginHorizontal / 2) + (itemRealWidth / 2);
+    
+    // Cálculo para centralizar o item na seta (centro do container)
+    const targetOffset = itemCenterPosition - centerPosition;
     
     const fullRotations = 2;
-    const trackWidth = rouletteSlots.length * itemTotalWidth;
+    const trackWidth = rouletteSlots.length * itemWidth;
     const totalDistance = targetOffset + (fullRotations * trackWidth);
 
-    console.log('=== ANÁLISE DETALHADA DA ROLETA ===');
+    console.log('=== ANÁLISE CORRIGIDA DA ROLETA ===');
     console.log('1. Dados básicos:', {
       centerIndex,
       containerWidth,
-      centerPosition: containerWidth / 2,
-      itemTotalWidth,
-      marginTotal,
-      itemRealWidth
+      centerPosition,
+      itemWidth,
+      itemRealWidth,
+      marginHorizontal
     });
     console.log('2. Posicionamento:', {
       duplicateSet,
-      'slots na repetição': rouletteSlots.length,
-      absoluteSlotStart,
-      itemCenter,
+      winnerSlotIndex,
+      slotStartPosition,
+      itemCenterPosition,
       targetOffset,
-      totalDistance
+      totalDistance,
+      trackWidth
     });
     console.log('3. Verificação da seta:');
     console.log('   - Seta está em:', centerPosition + 'px do início do container');
-    console.log('   - Item ficará em:', itemCenter - totalDistance + 'px após animação');
+    console.log('   - Item deve ficar em:', itemCenterPosition - totalDistance + 'px após animação');
+    console.log('   - Diferença final:', Math.abs(centerPosition - (itemCenterPosition - totalDistance)) + 'px');
     
     // Limpar animação anterior
     clearAnimation();
