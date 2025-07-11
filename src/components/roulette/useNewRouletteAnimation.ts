@@ -47,42 +47,32 @@ export const useNewRouletteAnimation = ({
 
     const { centerIndex, rouletteSlots } = rouletteData;
     
-    // SOLUÇÃO EMPÍRICA DIRETA
+    // SOLUÇÃO ULTRA SIMPLES: Parar EXATAMENTE no item certo
     const containerWidth = containerRef.current.offsetWidth;
     const centerPosition = containerWidth / 2;
     
-    // Usar medições fixas baseadas no CSS conhecido
-    const ITEM_SPACING = 140; // ITEM_WIDTH
+    // Cada item ocupa exatamente 140px (ITEM_WIDTH)
+    const ITEM_WIDTH = 140;
     
-    // Calcular quantas rotações completas + posição final
-    const baseRotations = 3; // Rotações base para efeito visual
-    const baseDistance = baseRotations * (rouletteSlots.length * ITEM_SPACING);
+    // Fazer várias rotações completas + posicionar o item vencedor no centro
+    const fullRotations = 3;
+    const fullRotationDistance = fullRotations * (rouletteSlots.length * ITEM_WIDTH);
     
-    // Posição final onde queremos que o item centerIndex pare
-    // Vamos colocar o item vencedor no centro exato da tela
-    const targetItemPosition = centerIndex * ITEM_SPACING;
+    // Calcular onde o item centerIndex deve ficar para estar no centro
+    // O centro do item está a 70px do início (metade de 140px)
+    const itemPosition = centerIndex * ITEM_WIDTH + 70; // 70px = centro do item
     
-    // O centro do item está a 70px do início do slot (8px margin + 62px metade)
-    const itemCenterOffset = 70;
-    const targetItemCenter = targetItemPosition + itemCenterOffset;
+    // Distância total = rotações completas + ajuste para centralizar o item
+    const totalDistance = fullRotationDistance + itemPosition - centerPosition;
     
-    // Distância total = rotações base + ajuste para centralizar
-    const totalDistance = baseDistance + targetItemCenter - centerPosition;
-    
-    // CORREÇÃO EMPÍRICA: Está parando 1 item ANTES, então vamos avançar 1 slot
-    const CORRECTION_OFFSET = 140; // 1 slot completo para frente
-    const finalDistance = totalDistance - CORRECTION_OFFSET;
-    
-    console.log('CORREÇÃO EMPÍRICA:', {
+    console.log('SOLUÇÃO ULTRA SIMPLES:', {
       centerIndex,
       containerWidth,
       centerPosition,
-      targetItemPosition,
-      targetItemCenter,
-      baseDistance,
+      itemPosition,
       totalDistance,
-      correcao: CORRECTION_OFFSET,
-      finalDistance
+      'item final estará em': itemPosition - totalDistance,
+      'deve ser igual ao centro': centerPosition
     });
     
     // Limpar animação anterior
@@ -103,9 +93,9 @@ export const useNewRouletteAnimation = ({
     animationRef.current = window.setTimeout(() => {
       if (trackRef.current) {
         trackRef.current.style.transition = 'transform 4000ms cubic-bezier(0.25, 0.1, 0.25, 1)';
-        trackRef.current.style.transform = `translateX(-${finalDistance}px)`;
+        trackRef.current.style.transform = `translateX(-${totalDistance}px)`;
         
-        console.log('🚀 Animação aplicada com correção:', `translateX(-${finalDistance}px)`);
+        console.log('🚀 Animação ultra simples aplicada:', `translateX(-${totalDistance}px)`);
         
         // Após 4 segundos, parar sons e mostrar winner
         animationRef.current = window.setTimeout(() => {
