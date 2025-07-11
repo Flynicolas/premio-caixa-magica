@@ -378,6 +378,80 @@ export type Database = {
         }
         Relationships: []
       }
+      entregas: {
+        Row: {
+          bairro: string
+          cep: string
+          cidade: string
+          codigo_rastreio: string | null
+          complemento: string | null
+          cpf: string
+          created_at: string
+          email: string
+          estado: string
+          id: string
+          item_id: string | null
+          item_nome: string
+          nome_completo: string
+          numero: string
+          rua: string
+          status: string
+          telefone: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          bairro: string
+          cep: string
+          cidade: string
+          codigo_rastreio?: string | null
+          complemento?: string | null
+          cpf: string
+          created_at?: string
+          email: string
+          estado: string
+          id?: string
+          item_id?: string | null
+          item_nome: string
+          nome_completo: string
+          numero: string
+          rua: string
+          status?: string
+          telefone: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          bairro?: string
+          cep?: string
+          cidade?: string
+          codigo_rastreio?: string | null
+          complemento?: string | null
+          cpf?: string
+          created_at?: string
+          email?: string
+          estado?: string
+          id?: string
+          item_id?: string | null
+          item_nome?: string
+          nome_completo?: string
+          numero?: string
+          rua?: string
+          status?: string
+          telefone?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "entregas_item_id_fkey"
+            columns: ["item_id"]
+            isOneToOne: false
+            referencedRelation: "items"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       item_change_log: {
         Row: {
           action_type: string

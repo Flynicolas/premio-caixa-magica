@@ -1,10 +1,12 @@
 
+import { useState } from 'react';
 import { Dialog, DialogContent } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { Package } from 'lucide-react';
+import { Package, Truck } from 'lucide-react';
 import { DatabaseItem } from '@/types/database';
 import { useNavigate } from 'react-router-dom';
+import { DeliveryFormModal } from './DeliveryFormModal';
 
 interface WinModalProps {
   isOpen: boolean;
@@ -15,6 +17,7 @@ interface WinModalProps {
 
 const WinModal = ({ isOpen, onClose, prize, onCollect }: WinModalProps) => {
   const navigate = useNavigate();
+  const [showDeliveryForm, setShowDeliveryForm] = useState(false);
 
   if (!prize) return null;
 
@@ -37,6 +40,12 @@ const WinModal = ({ isOpen, onClose, prize, onCollect }: WinModalProps) => {
     navigate('/perfil');
   };
 
+  const handleDeliveryRequest = () => {
+    setShowDeliveryForm(true);
+  };
+
+  const isPhysicalItem = prize.delivery_type === 'physical';
+
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
       <DialogContent className="max-w-md bg-gradient-to-br from-card via-card to-card/90 border-primary/30 backdrop-blur-sm">
@@ -56,6 +65,16 @@ const WinModal = ({ isOpen, onClose, prize, onCollect }: WinModalProps) => {
 
           {/* Action Buttons */}
           <div className="space-y-3">
+            {isPhysicalItem && (
+              <Button 
+                onClick={handleDeliveryRequest}
+                className="w-full bg-gradient-to-r from-green-500 to-green-600 text-white font-bold hover:opacity-90 py-3"
+              >
+                <Truck className="w-4 h-4 mr-2" />
+                Solicitar Entrega
+              </Button>
+            )}
+            
             <Button 
               onClick={handleViewInventory}
               className="w-full bg-gradient-to-r from-blue-500 to-blue-600 text-white font-bold hover:opacity-90 py-3"
@@ -73,6 +92,15 @@ const WinModal = ({ isOpen, onClose, prize, onCollect }: WinModalProps) => {
             </Button>
           </div>
         </div>
+
+        {/* Delivery Form Modal */}
+        {prize && (
+          <DeliveryFormModal
+            isOpen={showDeliveryForm}
+            onClose={() => setShowDeliveryForm(false)}
+            item={{ id: prize.id, name: prize.name }}
+          />
+        )}
       </DialogContent>
     </Dialog>
   );
