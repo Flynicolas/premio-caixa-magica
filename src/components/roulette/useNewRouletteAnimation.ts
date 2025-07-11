@@ -62,10 +62,12 @@ export const useNewRouletteAnimation = ({
     const itemWidth = 140; // ITEM_WIDTH
     const centerPosition = containerWidth / 2;
     
-    // Simplificar cálculo - usar menos voltas para evitar overflow extremo
-    const duplicateSet = 2; // Terceira repetição (índice 2) - menos voltas, mais estável
+    // Corrigir posição: o item deve estar ANTES do centro para parar no centro
+    const duplicateSet = 2; // Terceira repetição (índice 2)
     const actualItemPosition = (duplicateSet * rouletteSlots.length * itemWidth) + (centerIndex * itemWidth);
-    const winnerItemCenterPosition = actualItemPosition + (itemWidth / 2);
+    // O item precisa estar um slot antes para compensar o movimento
+    const adjustedPosition = actualItemPosition - itemWidth;
+    const winnerItemCenterPosition = adjustedPosition + (itemWidth / 2);
     const targetOffset = winnerItemCenterPosition - centerPosition;
     const fullRotations = 2; // Reduzir voltas para 2
     const trackWidth = rouletteSlots.length * itemWidth;

@@ -60,11 +60,6 @@ const SpinRouletteWheel = ({
 
   return (
     <div className={`relative ${className}`} ref={containerRef}>
-      {/* Controles de Áudio */}
-      <RouletteControls 
-        isMuted={audioState.isMuted} 
-        onToggleMute={toggleMute} 
-      />
 
       {/* Seta Dourada */}
       <div className="absolute -top-8 left-1/2 transform -translate-x-1/2 z-20">
@@ -98,14 +93,6 @@ const SpinRouletteWheel = ({
         <RouletteParticles show={state === 'winner' && rouletteData?.winnerItem && ['epic', 'legendary', 'special'].includes(rouletteData.winnerItem.rarity)} />
       </div>
 
-      {/* Indicador de Girando */}
-      {isAnimating && (
-        <div className="absolute inset-0 flex items-center justify-center bg-black/20 backdrop-blur-sm rounded-xl z-5">
-          <div className={`text-xl font-bold animate-pulse ${theme.accent}`}>
-            🎰 Girando a roleta...
-          </div>
-        </div>
-      )}
 
       {/* Anúncio do Vencedor */}
       {state === 'winner' && winnerItem && (

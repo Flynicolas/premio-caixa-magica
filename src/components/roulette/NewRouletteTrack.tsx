@@ -35,7 +35,7 @@ export const NewRouletteTrack = forwardRef<HTMLDivElement, NewRouletteTrackProps
           const originalIndex = globalIndex % rouletteSlots.length;
           const duplicateIndex = Math.floor(globalIndex / rouletteSlots.length);
           
-          // Item vencedor está na posição onde a animação para (quinta repetição)
+          // Item vencedor está na posição onde a animação para (terceira repetição)
           const isWinningItem = state === 'winner' && duplicateIndex === 2 && originalIndex === centerIndex;
 
           return (
@@ -43,12 +43,12 @@ export const NewRouletteTrack = forwardRef<HTMLDivElement, NewRouletteTrackProps
               key={item.uniqueKey}
               className={`
                 flex-shrink-0 mx-2 my-4 transition-all duration-500 ease-out
-                ${isWinningItem ? 'scale-125 z-50' : 'scale-100 z-20'}
+                ${isWinningItem ? 'scale-110 z-50' : 'scale-100 z-20'}
               `}
               style={{
                 width: `${ITEM_WIDTH - 16}px`,
                 filter: isWinningItem
-                  ? 'drop-shadow(0 0 30px rgba(255, 215, 0, 1)) drop-shadow(0 0 60px rgba(255, 255, 0, 0.8)) brightness(1.3) saturate(1.5)'
+                  ? 'drop-shadow(0 0 20px rgba(255, 215, 0, 0.8)) brightness(1.2)'
                   : 'none',
                 transformOrigin: 'center center'
               }}
