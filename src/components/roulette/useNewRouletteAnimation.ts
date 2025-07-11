@@ -2,7 +2,6 @@ import { useRef, useCallback } from 'react';
 import { RouletteData } from './types';
 import { useRouletteAudio } from '@/hooks/useRouletteAudio';
 import { useRouletteState } from './useRouletteState';
-import { useRoulettePositioning } from './useRoulettePositioning';
 
 interface UseNewRouletteAnimationProps {
   rouletteData: RouletteData | null;
@@ -18,12 +17,6 @@ export const useNewRouletteAnimation = ({
   const animationRef = useRef<number | null>(null);
 
   const { state, setState, isAnimating, canSpin, reset } = useRouletteState();
-
-  const containerWidth = containerRef.current?.offsetWidth || 0;
-  const { calculations, getTransform } = useRoulettePositioning({
-    rouletteData,
-    containerWidth
-  });
 
   const {
     startBackgroundMusic,
@@ -48,12 +41,41 @@ export const useNewRouletteAnimation = ({
   }, []);
 
   const startSpin = useCallback(() => {
-    if (!rouletteData || !canSpin || !calculations || !trackRef.current) {
-      console.log('Não pode iniciar animação:', { rouletteData: !!rouletteData, canSpin, calculations: !!calculations });
+    if (!rouletteData || !canSpin || !trackRef.current || !containerRef.current) {
+      console.log('Não pode iniciar animação:', { 
+        rouletteData: !!rouletteData, 
+        canSpin, 
+        trackRef: !!trackRef.current,
+        containerRef: !!containerRef.current 
+      });
       return;
     }
 
+    // Calcular posicionamento no momento da animação
+    const containerWidth = containerRef.current.offsetWidth;
+    if (containerWidth === 0) {
+      console.log('Container width é 0, aguardando...');
+      return;
+    }
+
+    const { centerIndex, rouletteSlots } = rouletteData;
+    const itemWidth = 140; // ITEM_WIDTH
+    const centerPosition = containerWidth / 2;
+    const winnerItemCenterPosition = (centerIndex * itemWidth) + (itemWidth / 2);
+    const targetOffset = winnerItemCenterPosition - centerPosition;
+    const fullRotations = 5;
+    const trackWidth = rouletteSlots.length * itemWidth;
+    const totalDistance = targetOffset + (fullRotations * trackWidth);
+
     console.log('Iniciando nova animação da roleta');
+    console.log('Cálculos da animação:', {
+      centerIndex,
+      containerWidth,
+      centerPosition,
+      winnerItemCenterPosition,
+      targetOffset,
+      totalDistance
+    });
     
     // Limpar animação anterior
     clearAnimation();
@@ -71,11 +93,11 @@ export const useNewRouletteAnimation = ({
 
     // Aplicar animação após um pequeno delay
     animationRef.current = window.setTimeout(() => {
-      if (trackRef.current && state !== 'idle') {
+      if (trackRef.current) {
         trackRef.current.style.transition = 'transform 4000ms cubic-bezier(0.25, 0.1, 0.25, 1)';
-        trackRef.current.style.transform = getTransform(calculations.totalDistance);
+        trackRef.current.style.transform = `translateX(-${totalDistance}px)`;
         
-        console.log('Animação aplicada:', getTransform(calculations.totalDistance));
+        console.log('Animação aplicada:', `translateX(-${totalDistance}px)`);
         
         // Após 4 segundos, parar sons e mostrar winner
         animationRef.current = window.setTimeout(() => {
@@ -107,7 +129,6 @@ export const useNewRouletteAnimation = ({
   }, [
     rouletteData,
     canSpin,
-    calculations,
     setState,
     clearAnimation,
     resetTrack,
@@ -116,9 +137,7 @@ export const useNewRouletteAnimation = ({
     stopTickLoop,
     stopBackgroundMusic,
     playRareItemSound,
-    onSpinComplete,
-    getTransform,
-    state
+    onSpinComplete
   ]);
 
   const resetRoulette = useCallback(() => {

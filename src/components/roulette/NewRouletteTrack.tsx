@@ -12,8 +12,8 @@ interface NewRouletteTrackProps {
 
 export const NewRouletteTrack = forwardRef<HTMLDivElement, NewRouletteTrackProps>(
   ({ rouletteSlots, centerIndex, state }, ref) => {
-    // Criar trilha com repetições suficientes para o loop visual (3x é suficiente)
-    const repeatedSlots = Array.from({ length: 3 }, (_, duplicateIndex) =>
+    // Criar trilha com repetições para permitir loop visual contínuo (6x para garantir animação suave)
+    const repeatedSlots = Array.from({ length: 6 }, (_, duplicateIndex) =>
       rouletteSlots.map((item, index) => ({
         ...item,
         uniqueKey: `${duplicateIndex}-${item.id}-${index}`
@@ -25,7 +25,7 @@ export const NewRouletteTrack = forwardRef<HTMLDivElement, NewRouletteTrackProps
         ref={ref}
         className="flex absolute top-0 left-0 h-full"
         style={{ 
-          width: `${rouletteSlots.length * ITEM_WIDTH * 3}px`,
+          width: `${rouletteSlots.length * ITEM_WIDTH * 6}px`,
           willChange: 'transform'
         }}
       >
@@ -33,20 +33,20 @@ export const NewRouletteTrack = forwardRef<HTMLDivElement, NewRouletteTrackProps
           const originalIndex = globalIndex % rouletteSlots.length;
           const duplicateIndex = Math.floor(globalIndex / rouletteSlots.length);
           
-          // Item vencedor está na primeira repetição (duplicateIndex === 0) e no centerIndex correto
-          const isWinningItem = state === 'winner' && duplicateIndex === 0 && originalIndex === centerIndex;
+          // Item vencedor está na posição onde a animação para (quinta repetição)
+          const isWinningItem = state === 'winner' && duplicateIndex === 4 && originalIndex === centerIndex;
 
           return (
             <div
               key={item.uniqueKey}
               className={`
-                flex-shrink-0 mx-2 my-4 transition-all duration-300 ease-out
+                flex-shrink-0 mx-2 my-4 transition-all duration-500 ease-out
                 ${isWinningItem ? 'scale-125 z-30' : 'scale-100 z-10'}
               `}
               style={{
                 width: `${ITEM_WIDTH - 16}px`,
                 filter: isWinningItem
-                  ? 'drop-shadow(0 0 20px rgba(255, 215, 0, 0.9)) drop-shadow(0 0 40px rgba(255, 255, 0, 0.6)) brightness(1.2) saturate(1.3)'
+                  ? 'drop-shadow(0 0 30px rgba(255, 215, 0, 1)) drop-shadow(0 0 60px rgba(255, 255, 0, 0.8)) brightness(1.3) saturate(1.5)'
                   : 'none',
                 transformOrigin: 'center center'
               }}
@@ -55,7 +55,7 @@ export const NewRouletteTrack = forwardRef<HTMLDivElement, NewRouletteTrackProps
                 item={item}
                 size="md"
                 showRarity={false}
-                className={isWinningItem ? 'border-yellow-400 border-2 shadow-2xl' : ''}
+                className={isWinningItem ? 'border-yellow-400 border-4 shadow-2xl' : ''}
               />
             </div>
           );
