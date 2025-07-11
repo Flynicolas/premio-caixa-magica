@@ -89,20 +89,13 @@ const ChestProbabilityItem = ({
         <div className="flex items-center justify-between">
           <Button
             size="sm"
-            variant={probability.liberado_manual ? "secondary" : "outline"}
+            variant="outline"
             onClick={() => onManualRelease(probability.id, probability.item?.name || '')}
-            disabled={probability.liberado_manual}
             className="text-xs"
           >
             <Gift className="w-3 h-3 mr-1" />
-            {probability.liberado_manual ? 'Inserido' : 'Inserir no Sorteio'}
+            Inserir no Sorteio
           </Button>
-          
-          {probability.sorteado_em && (
-            <span className="text-xs text-green-600">
-              Sorteado
-            </span>
-          )}
         </div>
       </div>
     </div>
