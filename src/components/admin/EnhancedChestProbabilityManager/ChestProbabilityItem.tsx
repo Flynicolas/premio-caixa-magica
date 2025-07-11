@@ -32,8 +32,11 @@ const ChestProbabilityItem = ({
     }
   };
 
+  const currentValue = editingValue ?? probability.probability_weight;
+  const isExcludedFromDraw = currentValue === 0;
+
   return (
-    <div className="border rounded-lg p-3 space-y-2">
+    <div className={`border rounded-lg p-3 space-y-2 ${isExcludedFromDraw ? 'border-orange-300 bg-orange-50' : ''}`}>
       <div className="flex items-center justify-between">
         <div className="flex items-center space-x-2">
           {probability.item?.image_url && (
@@ -44,10 +47,21 @@ const ChestProbabilityItem = ({
             />
           )}
           <div>
-            <div className="font-medium text-sm">{probability.item?.name}</div>
-            <Badge className={`text-white ${getRarityColor(probability.item?.rarity || 'common')} text-xs`}>
-              {probability.item?.rarity}
-            </Badge>
+            <div className="flex items-center space-x-2">
+              <div className="font-medium text-sm">{probability.item?.name}</div>
+              <Badge className={`text-white ${getRarityColor(probability.item?.rarity || 'common')} text-xs`}>
+                {probability.item?.rarity}
+              </Badge>
+              {isExcludedFromDraw && (
+                <Badge variant="outline" className="text-orange-600 border-orange-600 text-xs">
+                  Apenas Visual
+                </Badge>
+              )}
+            </div>
+            <div className="text-xs text-muted-foreground">
+              R$ {probability.item?.base_value.toFixed(2)} • 
+              {isExcludedFromDraw ? 'Excluído do sorteio' : `${currentValue}% chance`}
+            </div>
           </div>
         </div>
         <Button
@@ -65,11 +79,12 @@ const ChestProbabilityItem = ({
           <Label className="text-xs">Probabilidade (%):</Label>
           <Input
             type="number"
-            min="1"
+            min="0"
             max="100"
-            value={editingValue ?? probability.probability_weight}
-            onChange={(e) => onProbabilityChange(probability.id, parseInt(e.target.value) || 1)}
+            value={currentValue}
+            onChange={(e) => onProbabilityChange(probability.id, parseInt(e.target.value) || 0)}
             className="w-16 h-6 text-xs"
+            placeholder="0-100"
           />
         </div>
         
