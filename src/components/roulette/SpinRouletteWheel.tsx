@@ -100,7 +100,7 @@ const SpinRouletteWheel = ({
 
       {/* Indicador de Girando */}
       {isAnimating && (
-        <div className="absolute inset-0 flex items-center justify-center bg-black/20 backdrop-blur-sm rounded-xl z-10">
+        <div className="absolute inset-0 flex items-center justify-center bg-black/20 backdrop-blur-sm rounded-xl z-5">
           <div className={`text-xl font-bold animate-pulse ${theme.accent}`}>
             🎰 Girando a roleta...
           </div>

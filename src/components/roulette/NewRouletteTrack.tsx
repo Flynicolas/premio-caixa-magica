@@ -41,7 +41,7 @@ export const NewRouletteTrack = forwardRef<HTMLDivElement, NewRouletteTrackProps
               key={item.uniqueKey}
               className={`
                 flex-shrink-0 mx-2 my-4 transition-all duration-500 ease-out
-                ${isWinningItem ? 'scale-125 z-30' : 'scale-100 z-10'}
+                ${isWinningItem ? 'scale-125 z-50' : 'scale-100 z-20'}
               `}
               style={{
                 width: `${ITEM_WIDTH - 16}px`,
