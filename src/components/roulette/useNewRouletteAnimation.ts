@@ -45,119 +45,43 @@ export const useNewRouletteAnimation = ({
       return;
     }
 
-    console.log('🎯 INÍCIO DA ANÁLISE DETALHADA DA ROLETA');
-    
-    // 1. MEDIÇÃO DO CONTAINER
-    const containerRect = containerRef.current.getBoundingClientRect();
-    console.log('📏 Container:', {
-      width: containerRect.width,
-      height: containerRect.height,
-      left: containerRect.left,
-      top: containerRect.top
-    });
-
-    // 2. MEDIÇÃO DA SETA
-    const arrowElement = document.querySelector('.absolute.-top-8.left-1\\/2') as HTMLElement;
-    let arrowCenterX = containerRect.width / 2;
-    
-    if (arrowElement) {
-      const arrowRect = arrowElement.getBoundingClientRect();
-      const arrowCenterGlobal = arrowRect.left + arrowRect.width / 2;
-      arrowCenterX = arrowCenterGlobal - containerRect.left;
-      console.log('🎯 Seta medida:', {
-        elemento: arrowElement,
-        left: arrowRect.left,
-        width: arrowRect.width,
-        centerGlobal: arrowCenterGlobal,
-        centerRelativo: arrowCenterX
-      });
-    } else {
-      console.log('⚠️ Seta não encontrada, usando centro do container');
-    }
-
     const { centerIndex, rouletteSlots } = rouletteData;
-    console.log('🎲 Dados da roleta:', { centerIndex, totalSlots: rouletteSlots.length });
-
-    // 3. MEDIÇÃO DOS ITENS REAIS
-    const allItems = trackRef.current.querySelectorAll('[data-item-index]');
-    console.log('🔍 Itens encontrados:', allItems.length);
     
-    let itemWidth = 124;
-    let itemSpacing = 140;
-    let marginLeft = 8;
+    // SOLUÇÃO DEFINITIVA: Cálculo simples e direto
+    const containerWidth = containerRef.current.offsetWidth;
+    const centerPosition = containerWidth / 2; // Posição da seta = centro do container
     
-    if (allItems.length > 0) {
-      const firstItem = allItems[0] as HTMLElement;
-      const firstItemRect = firstItem.getBoundingClientRect();
-      const computedStyle = window.getComputedStyle(firstItem);
-      
-      itemWidth = firstItemRect.width;
-      marginLeft = parseFloat(computedStyle.marginLeft) || 8;
-      const marginRight = parseFloat(computedStyle.marginRight) || 8;
-      itemSpacing = itemWidth + marginLeft + marginRight;
-      
-      console.log('📐 Item medido:', {
-        width: itemWidth,
-        marginLeft,
-        marginRight,
-        spacing: itemSpacing,
-        computedStyle: {
-          marginLeft: computedStyle.marginLeft,
-          marginRight: computedStyle.marginRight,
-          width: computedStyle.width
-        }
-      });
-    }
-
-    // 4. CÁLCULO DA POSIÇÃO DO ITEM VENCEDOR
-    const duplicateIndex = 2; // Terceira repetição
-    const winnerAbsoluteIndex = duplicateIndex * rouletteSlots.length + centerIndex;
-    const slotLeftEdge = winnerAbsoluteIndex * itemSpacing;
-    const itemCenterPosition = slotLeftEdge + marginLeft + (itemWidth / 2);
+    // Constantes do CSS (confirmadas nos logs anteriores)
+    const ITEM_SPACING = 140; // Total por item (ITEM_WIDTH)
+    const MARGIN_LEFT = 8; // mx-2
+    const ITEM_WIDTH = 124; // width real do item
     
-    console.log('🎯 Posicionamento do item vencedor:', {
-      duplicateIndex,
-      winnerAbsoluteIndex,
-      slotLeftEdge,
-      itemCenterPosition,
-      marginLeft,
-      itemWidth
+    // Posição onde queremos que o item pare (centro do item = centro da seta)
+    const itemCenterInSlot = MARGIN_LEFT + (ITEM_WIDTH / 2); // 8 + 62 = 70px
+    
+    // Vamos colocar o item vencedor no meio da track (sem assumir terceira repetição)
+    // Total de slots = 6 repetições × slots por repetição
+    const totalSlots = rouletteSlots.length * 6;
+    const middlePosition = Math.floor(totalSlots / 2); // Posição central da track
+    
+    // Colocar o item vencedor na posição central + seu índice
+    const targetSlotPosition = middlePosition + centerIndex;
+    
+    // Posição absoluta onde o item estará
+    const targetItemCenter = targetSlotPosition * ITEM_SPACING + itemCenterInSlot;
+    
+    // Distância para mover para alinhar com a seta
+    const totalDistance = targetItemCenter - centerPosition;
+    
+    console.log('SOLUÇÃO DEFINITIVA:', {
+      containerWidth,
+      centerPosition,
+      centerIndex,
+      targetSlotPosition,
+      targetItemCenter,
+      totalDistance,
+      verificacao: `Item em ${targetItemCenter - totalDistance}px = Seta em ${centerPosition}px`
     });
-
-    // 5. CÁLCULO FINAL
-    const targetOffset = itemCenterPosition - arrowCenterX;
-    const extraRotations = 2;
-    const trackWidth = rouletteSlots.length * itemSpacing;
-    const totalDistance = targetOffset + (extraRotations * trackWidth);
-    
-    console.log('⚡ Cálculo final:', {
-      targetOffset,
-      extraRotations,
-      trackWidth,
-      totalDistance
-    });
-
-    // 6. VERIFICAÇÃO FINAL
-    const finalItemPosition = itemCenterPosition - totalDistance;
-    const diferenca = Math.abs(arrowCenterX - finalItemPosition);
-    
-    console.log('✅ Verificação final:', {
-      setaEm: arrowCenterX + 'px',
-      itemFinalEm: finalItemPosition + 'px',
-      diferenca: diferenca + 'px',
-      perfeito: diferenca < 1 ? '✅ SIM' : '❌ NÃO'
-    });
-
-    // AJUSTE FINO se necessário
-    let adjustedDistance = totalDistance;
-    if (diferenca > 1) {
-      const ajuste = finalItemPosition - arrowCenterX;
-      adjustedDistance = totalDistance + ajuste;
-      console.log('🔧 Aplicando ajuste fino:', {
-        ajusteNecessario: ajuste,
-        novaDistancia: adjustedDistance
-      });
-    }
     
     // Limpar animação anterior
     clearAnimation();
@@ -177,9 +101,9 @@ export const useNewRouletteAnimation = ({
     animationRef.current = window.setTimeout(() => {
       if (trackRef.current) {
         trackRef.current.style.transition = 'transform 4000ms cubic-bezier(0.25, 0.1, 0.25, 1)';
-        trackRef.current.style.transform = `translateX(-${adjustedDistance}px)`;
+        trackRef.current.style.transform = `translateX(-${totalDistance}px)`;
         
-        console.log('🚀 Animação aplicada:', `translateX(-${adjustedDistance}px)`, diferenca > 1 ? '(com ajuste fino)' : '(sem ajuste)');
+        console.log('🚀 Animação aplicada:', `translateX(-${totalDistance}px)`);
         
         // Após 4 segundos, parar sons e mostrar winner
         animationRef.current = window.setTimeout(() => {
