@@ -1,3 +1,4 @@
+
 import { useCallback, useRef } from 'react';
 import { RouletteData } from './types';
 import { ITEM_WIDTH } from './constants';
@@ -20,6 +21,7 @@ export const useRouletteAnimation = ({
 }: UseRouletteAnimationProps) => {
   const trackRef = useRef<HTMLDivElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
+  const animationRef = useRef<number | null>(null);
 
   const {
     startBackgroundMusic,
@@ -33,6 +35,12 @@ export const useRouletteAnimation = ({
     if (!rouletteData || isAnimating || !trackRef.current || !containerRef.current) return;
 
     const { centerIndex, winnerItem, totalSlots } = rouletteData;
+
+    // Cancel any existing animation
+    if (animationRef.current) {
+      cancelAnimationFrame(animationRef.current);
+      animationRef.current = null;
+    }
 
     // Iniciar música de fundo
     startBackgroundMusic();
@@ -50,60 +58,52 @@ export const useRouletteAnimation = ({
     // Distância necessária para centralizar o item vencedor
     const targetOffset = winnerItemCenter - centerPosition;
     
-    // Adicionar voltas extras (3 voltas completas para suavidade)
-    const extraSpins = 3;
+    // Adicionar voltas extras (4 voltas completas para suavidade)
+    const extraSpins = 4;
     const totalDistance = targetOffset + (extraSpins * trackWidth);
 
     // Configurar trilha inicial
     if (trackRef.current) {
       trackRef.current.style.transition = 'none';
       trackRef.current.style.transform = `translateX(0px)`;
-      trackRef.current.style.width = `${trackWidth * 4}px`; // Simplicado: 4x ao invés de 6x
+      trackRef.current.style.width = `${trackWidth * 4}px`;
     }
 
-    // Parâmetros da animação
-    const totalDuration = 5000; // 5 segundos
+    // Parâmetros da animação melhorados
+    const totalDuration = 6000; // 6 segundos para mais suavidade
     const startTime = performance.now();
-    let currentPosition = 0;
-    let lastTickTime = 0;
-    let tickSoundActive = false;
+    let isComplete = false;
 
-    // Função de easing customizada (ease-out-cubic)
-    const easeOutCubic = (t: number): number => 1 - Math.pow(1 - t, 3);
+    // Função de easing customizada mais suave
+    const easeOutQuart = (t: number): number => 1 - Math.pow(1 - t, 4);
 
     const animate = (timestamp: number) => {
+      if (isComplete) return;
+
       const elapsed = timestamp - startTime;
       const progress = Math.min(elapsed / totalDuration, 1);
       
       // Aplicar easing
-      const easedProgress = easeOutCubic(progress);
-      currentPosition = totalDistance * easedProgress;
+      const easedProgress = easeOutQuart(progress);
+      const currentPosition = totalDistance * easedProgress;
 
       // Atualizar posição visual
       if (trackRef.current) {
         trackRef.current.style.transform = `translateX(-${currentPosition}px)`;
       }
 
-      // Controle do som baseado na velocidade
-      const velocity = (currentPosition - (lastTickTime > 0 ? (totalDistance * easeOutCubic((lastTickTime - startTime) / totalDuration)) : 0)) / (timestamp - (lastTickTime || startTime));
-      const speed = Math.abs(velocity);
-      
-      // Som de tick baseado na velocidade
-      if (speed > 0.1 && !tickSoundActive) {
-        tickSoundActive = true;
-        const tickInterval = Math.max(30, 200 - (speed * 150));
-        startTickLoop(tickInterval);
-        setTimeout(() => {
-          stopTickLoop();
-          tickSoundActive = false;
-        }, tickInterval);
+      // Som de tick baseado na velocidade (simplificado)
+      const velocity = progress < 0.8 ? 1 - progress : 0;
+      if (velocity > 0.3 && Math.random() < 0.1) {
+        startTickLoop(100);
+        setTimeout(() => stopTickLoop(), 50);
       }
 
       if (progress < 1) {
-        lastTickTime = timestamp;
-        requestAnimationFrame(animate);
+        animationRef.current = requestAnimationFrame(animate);
       } else {
         // Animação finalizada
+        isComplete = true;
         stopTickLoop();
         stopBackgroundMusic();
         
@@ -124,16 +124,16 @@ export const useRouletteAnimation = ({
             playRareItemSound(winnerItem.rarity);
           }
 
-          // Zoom no item e callback
+          // Callback final
           setTimeout(() => {
             onSpinComplete?.(winnerItem);
-          }, 1500); // Mais tempo para apreciar o zoom
-        }, 300);
+          }, 1000);
+        }, 500);
       }
     };
 
     // Iniciar animação
-    requestAnimationFrame(animate);
+    animationRef.current = requestAnimationFrame(animate);
   }, [
     rouletteData,
     isAnimating,
@@ -147,9 +147,20 @@ export const useRouletteAnimation = ({
     onSpinComplete
   ]);
 
+  // Cleanup na desmontagem
+  const cleanup = useCallback(() => {
+    if (animationRef.current) {
+      cancelAnimationFrame(animationRef.current);
+      animationRef.current = null;
+    }
+    stopTickLoop();
+    stopBackgroundMusic();
+  }, [stopTickLoop, stopBackgroundMusic]);
+
   return {
     trackRef,
     containerRef,
-    startSpin
+    startSpin,
+    cleanup
   };
 };

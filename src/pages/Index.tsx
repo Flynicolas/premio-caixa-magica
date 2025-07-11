@@ -1,3 +1,4 @@
+
 import { useState } from 'react';
 import { useAuth } from '@/hooks/useAuth';
 import { useWallet } from '@/hooks/useWallet';
@@ -11,6 +12,7 @@ import ChestItemsModal from '@/components/ChestItemsModal';
 import ChestConfirmModal from '@/components/ChestConfirmModal';
 import SpinCarousel from '@/components/carousel/SpinCarousel';
 import WinModal from '@/components/WinModal';
+import AdBanner from '@/components/AdBanner';
 import { chestData, ChestType, Chest } from '@/data/chestData';
 import { DatabaseItem } from '@/types/database';
 
@@ -134,9 +136,12 @@ const Index = () => {
           </div>
         </section>
 
+        {/* Ad Banner */}
+        <AdBanner />
+
         {/* Call to Action - only show for non-authenticated users */}
         {!user && (
-          <section className="text-center py-16 bg-gradient-to-r from-primary/10 to-secondary/10 rounded-3xl border border-primary/20">
+          <section className="text-center py-16 bg-gradient-to-r from-primary/10 to-secondary/10 rounded-3xl border border-primary/20 mt-16">
             <h2 className="text-4xl font-bold mb-6 text-primary">
               Pronto para Ganhar?
             </h2>
