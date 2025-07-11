@@ -69,10 +69,9 @@ export const useNewRouletteAnimation = ({
     // Distância total = rotações base + ajuste para centralizar
     const totalDistance = baseDistance + targetItemCenter - centerPosition;
     
-    // CORREÇÃO EMPÍRICA: Se está caindo "próximo", vamos ajustar
-    // Baseado na observação de que está ligeiramente desalinhado
-    const CORRECTION_OFFSET = -35; // Ajuste empírico em pixels
-    const finalDistance = totalDistance + CORRECTION_OFFSET;
+    // CORREÇÃO EMPÍRICA: Está parando 1 item ANTES, então vamos avançar 1 slot
+    const CORRECTION_OFFSET = 140; // 1 slot completo para frente
+    const finalDistance = totalDistance - CORRECTION_OFFSET;
     
     console.log('CORREÇÃO EMPÍRICA:', {
       centerIndex,
