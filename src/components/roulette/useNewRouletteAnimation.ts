@@ -42,74 +42,64 @@ export const useNewRouletteAnimation = ({
 
   const startSpin = useCallback(() => {
     if (!rouletteData || !canSpin || !trackRef.current || !containerRef.current) {
-      console.log('Não pode iniciar animação:', { 
-        rouletteData: !!rouletteData, 
-        canSpin, 
-        trackRef: !!trackRef.current,
-        containerRef: !!containerRef.current 
-      });
       return;
     }
 
-    // Calcular posicionamento no momento da animação
+    // MEDIÇÃO EXATA DOS ELEMENTOS RENDERIZADOS
     const containerWidth = containerRef.current.offsetWidth;
-    if (containerWidth === 0) {
-      console.log('Container width é 0, aguardando...');
-      return;
-    }
+    const centerPosition = containerWidth / 2; // Posição da seta
 
     const { centerIndex, rouletteSlots } = rouletteData;
-    const centerPosition = containerWidth / 2;
     
-    // USAR AS MESMAS CONSTANTES DO COMPONENTE NewRouletteTrack
-    const duplicateSet = 2; // Terceira repetição (índice 2) - onde para a animação
+    // ANÁLISE REAL DO CSS DO NewRouletteTrack:
+    // Cada item tem: mx-2 (8px cada lado) + width real (124px) = 140px total
+    const SLOT_WIDTH = 140; // Total spacing per item (matches ITEM_WIDTH)
     
-    // Análise exata do CSS do NewRouletteTrack:
-    // - style={{ width: `${ITEM_WIDTH - 16}px` }} = 124px
-    // - className="mx-2" = margin: 0 8px (16px total horizontal)
-    // - Total por item = 124px + 16px = 140px
-    const itemWidth = 140; // ITEM_WIDTH constante
-    const itemRealWidth = 124; // ITEM_WIDTH - 16 (CSS real)
-    const marginHorizontal = 16; // mx-2 = 8px cada lado
+    // O item vencedor está na terceira repetição (index 2)
+    const duplicateIndex = 2;
+    const winnerAbsoluteIndex = duplicateIndex * rouletteSlots.length + centerIndex;
     
-    // Posição do item vencedor na terceira repetição
-    const winnerSlotIndex = duplicateSet * rouletteSlots.length + centerIndex;
+    // Posição onde o slot começa
+    const slotLeftEdge = winnerAbsoluteIndex * SLOT_WIDTH;
     
-    // Posição do início do slot (borda esquerda incluindo margem)
-    const slotStartPosition = winnerSlotIndex * itemWidth;
+    // EXATO conforme o CSS: mx-2 = 8px margem esquerda + 124px item + 8px margem direita
+    const marginLeft = 8;
+    const itemRealWidth = 124; // ITEM_WIDTH - 16 do CSS
+    const itemCenterInSlot = marginLeft + (itemRealWidth / 2); // 8 + 62 = 70px
     
-    // Posição do centro do item real (início + margem esquerda + metade do item)
-    const itemCenterPosition = slotStartPosition + (marginHorizontal / 2) + (itemRealWidth / 2);
+    // Posição absoluta do centro do item
+    const itemCenterPosition = slotLeftEdge + itemCenterInSlot;
     
-    // Cálculo para centralizar o item na seta (centro do container)
+    // Distância para mover o item para a posição da seta
     const targetOffset = itemCenterPosition - centerPosition;
     
-    const fullRotations = 2;
-    const trackWidth = rouletteSlots.length * itemWidth;
-    const totalDistance = targetOffset + (fullRotations * trackWidth);
+    // Rotações extras para efeito visual
+    const extraRotations = 2;
+    const trackWidth = rouletteSlots.length * SLOT_WIDTH;
+    const totalDistance = targetOffset + (extraRotations * trackWidth);
 
-    console.log('=== ANÁLISE CORRIGIDA DA ROLETA ===');
+    console.log('=== CÁLCULO EXATO DO ALINHAMENTO ===');
     console.log('1. Dados básicos:', {
       centerIndex,
       containerWidth,
       centerPosition,
-      itemWidth,
+      SLOT_WIDTH,
       itemRealWidth,
-      marginHorizontal
+      marginLeft
     });
     console.log('2. Posicionamento:', {
-      duplicateSet,
-      winnerSlotIndex,
-      slotStartPosition,
+      duplicateIndex,
+      winnerAbsoluteIndex,
+      slotLeftEdge,
+      itemCenterInSlot,
       itemCenterPosition,
       targetOffset,
-      totalDistance,
-      trackWidth
+      totalDistance
     });
-    console.log('3. Verificação da seta:');
-    console.log('   - Seta está em:', centerPosition + 'px do início do container');
-    console.log('   - Item deve ficar em:', itemCenterPosition - totalDistance + 'px após animação');
-    console.log('   - Diferença final:', Math.abs(centerPosition - (itemCenterPosition - totalDistance)) + 'px');
+    console.log('3. Verificação final:');
+    console.log('   - Seta posição:', centerPosition + 'px');
+    console.log('   - Item final:', (itemCenterPosition - totalDistance) + 'px');
+    console.log('   - Alinhamento perfeito?', Math.abs(centerPosition - (itemCenterPosition - totalDistance)) < 1 ? 'SIM' : 'NÃO');
     
     // Limpar animação anterior
     clearAnimation();
