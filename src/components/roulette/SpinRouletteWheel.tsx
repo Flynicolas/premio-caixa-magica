@@ -1,3 +1,4 @@
+
 import { useEffect } from 'react';
 import { useRouletteAudio } from '@/hooks/useRouletteAudio';
 import { useNewRouletteAnimation } from './useNewRouletteAnimation';
@@ -60,7 +61,6 @@ const SpinRouletteWheel = ({
 
   return (
     <div className={`relative ${className}`} ref={containerRef}>
-
       {/* Seta Dourada */}
       <div className="absolute -top-8 left-1/2 transform -translate-x-1/2 z-20">
         <div 
@@ -76,7 +76,7 @@ const SpinRouletteWheel = ({
 
       {/* Container da Roleta */}
       <div className={`relative w-full max-w-4xl mx-auto h-40 rounded-xl border-4 ${theme.border} ${theme.bg} backdrop-blur-sm`} style={{ overflow: 'hidden' }}>
-        {/* Trilha dos Itens */}
+        {/* Trilha dos Itens - Mostra TODOS os itens (incluindo os com probabilidade 0) */}
         <NewRouletteTrack 
           ref={trackRef}
           rouletteSlots={rouletteSlots}
@@ -92,7 +92,6 @@ const SpinRouletteWheel = ({
         {/* Efeito de Partículas para Itens Raros */}
         <RouletteParticles show={state === 'winner' && rouletteData?.winnerItem && ['epic', 'legendary', 'special'].includes(rouletteData.winnerItem.rarity)} />
       </div>
-
 
       {/* Anúncio do Vencedor */}
       {state === 'winner' && winnerItem && (

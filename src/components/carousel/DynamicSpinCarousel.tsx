@@ -1,4 +1,3 @@
-
 import { useState, useRef, useEffect } from 'react';
 import { DatabaseItem } from '@/types/database';
 import { supabase } from '@/integrations/supabase/client';
@@ -40,7 +39,7 @@ const DynamicSpinCarousel = ({
       try {
         setLoading(true);
         
-        // Buscar itens com suas probabilidades do baú específico
+        // Buscar TODOS os itens do baú (incluindo os com probabilidade 0 para visualização)
         const { data: probabilities, error } = await supabase
           .from('chest_item_probabilities')
           .select(`
@@ -52,8 +51,8 @@ const DynamicSpinCarousel = ({
 
         if (error) throw error;
 
-        // Expandir itens baseado no peso de probabilidade
-        const expandedItems: DatabaseItem[] = [];
+        // Criar lista de itens para exibição (incluindo itens com probabilidade 0)
+        const allItems: DatabaseItem[] = [];
         
         probabilities?.forEach(prob => {
           if (prob.item) {
@@ -63,15 +62,22 @@ const DynamicSpinCarousel = ({
               delivery_type: prob.item.delivery_type as 'digital' | 'physical'
             } as DatabaseItem;
             
-            // Adicionar o item baseado no peso de probabilidade
-            for (let i = 0; i < prob.probability_weight; i++) {
-              expandedItems.push(item);
+            // Para exibição visual, adicionar o item pelo menos uma vez
+            // Se tiver probabilidade > 0, adicionar baseado no peso
+            if (prob.probability_weight > 0) {
+              // Adicionar baseado no peso de probabilidade
+              for (let i = 0; i < prob.probability_weight; i++) {
+                allItems.push(item);
+              }
+            } else {
+              // Adicionar apenas uma vez para visualização (não participará do sorteio real)
+              allItems.push({ ...item, isVisualOnly: true } as any);
             }
           }
         });
 
         // Se não há itens, usar itens padrão
-        if (expandedItems.length === 0) {
+        if (allItems.length === 0) {
           const { data: defaultItems } = await supabase
             .from('items')
             .select('*')
@@ -79,7 +85,7 @@ const DynamicSpinCarousel = ({
             .limit(10);
             
           if (defaultItems) {
-            expandedItems.push(...defaultItems.map(item => ({
+            allItems.push(...defaultItems.map(item => ({
               ...item,
               rarity: item.rarity as 'common' | 'rare' | 'epic' | 'legendary',
               delivery_type: item.delivery_type as 'digital' | 'physical'
@@ -87,7 +93,7 @@ const DynamicSpinCarousel = ({
           }
         }
         
-        setChestItems(expandedItems);
+        setChestItems(allItems);
       } catch (error: any) {
         console.error('Erro ao buscar itens do baú:', error);
         toast({
@@ -113,31 +119,23 @@ const DynamicSpinCarousel = ({
     setSpinPhase('spinning');
 
     try {
-      // Usar Edge Function para sorteio
+      // Usar Edge Function para sorteio - que já filtra apenas itens com probabilidade > 0
       const { data, error } = await supabase.functions.invoke('draw-item-from-chest', {
         body: { chestType }
       });
 
       if (error) throw error;
 
-      // Buscar dados completos do item sorteado
-      const { data: wonPrize, error: itemError } = await supabase
-        .from('items')
-        .select('*')
-        .eq('id', data.itemId)
-        .single();
-
-      if (itemError) throw itemError;
-
       const typedPrize = {
-        ...wonPrize,
-        rarity: wonPrize.rarity as 'common' | 'rare' | 'epic' | 'legendary',
-        delivery_type: wonPrize.delivery_type as 'digital' | 'physical'
+        ...data.item,
+        rarity: data.item.rarity as 'common' | 'rare' | 'epic' | 'legendary',
+        delivery_type: data.item.delivery_type as 'digital' | 'physical'
       } as DatabaseItem;
 
-      // Encontrar o índice do item na lista de itens da roleta
-      const prizeIndex = chestItems.findIndex(item => item.id === typedPrize.id);
-      const targetIndex = prizeIndex >= 0 ? prizeIndex : Math.floor(Math.random() * chestItems.length);
+      // Encontrar o índice do item sorteado na lista visual (que pode incluir itens com prob 0)
+      const eligibleItems = chestItems.filter(item => !(item as any).isVisualOnly);
+      const prizeIndex = eligibleItems.findIndex(item => item.id === typedPrize.id);
+      const targetIndex = prizeIndex >= 0 ? prizeIndex : Math.floor(Math.random() * eligibleItems.length);
 
       const carousel = carouselRef.current;
       const itemWidth = 154;

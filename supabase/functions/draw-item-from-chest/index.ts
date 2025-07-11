@@ -22,7 +22,7 @@ serve(async (req) => {
     
     console.log(`Sorteando item do baú ${chestType} para usuário ${userId}`)
 
-    // Buscar itens disponíveis no baú com probabilidade > 0 (apenas itens no sorteio)
+    // Buscar APENAS itens disponíveis no baú com probabilidade > 0 (que participam do sorteio)
     const { data: availableItems, error: itemsError } = await supabase
       .from('chest_item_probabilities')
       .select(`
@@ -31,7 +31,7 @@ serve(async (req) => {
       `)
       .eq('chest_type', chestType)
       .eq('is_active', true)
-      .gt('probability_weight', 0) // Apenas itens com probabilidade > 0 participam do sorteio
+      .gt('probability_weight', 0) // APENAS itens com probabilidade > 0 participam do sorteio
 
     if (itemsError) {
       console.error('Erro ao buscar itens:', itemsError)
@@ -39,7 +39,7 @@ serve(async (req) => {
     }
 
     if (!availableItems || availableItems.length === 0) {
-      console.log('Nenhum item disponível para sorteio neste baú')
+      console.log('Nenhum item disponível para sorteio neste baú (apenas itens com probabilidade > 0)')
       return new Response(
         JSON.stringify({ error: 'Nenhum item disponível para sorteio neste baú' }),
         { 
@@ -68,7 +68,7 @@ serve(async (req) => {
       selectedItem = availableItems[availableItems.length - 1] // Fallback
     }
 
-    console.log(`Item sorteado: ${selectedItem.item.name}`)
+    console.log(`Item sorteado: ${selectedItem.item.name} (probabilidade: ${selectedItem.probability_weight}%)`)
 
     // Registrar o sorteio
     const { error: updateError } = await supabase

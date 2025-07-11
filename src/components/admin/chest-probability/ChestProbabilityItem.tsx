@@ -1,5 +1,5 @@
 
-import React from 'react';
+import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -19,6 +19,8 @@ export const ChestProbabilityItem = ({
   onUpdateWeight,
   onRemove
 }: ChestProbabilityItemProps) => {
+  const [editingWeight, setEditingWeight] = useState<number>(probability.probability_weight);
+
   const getRarityColor = (rarity: string) => {
     switch (rarity) {
       case 'common': return 'bg-gray-500';
@@ -29,8 +31,20 @@ export const ChestProbabilityItem = ({
     }
   };
 
+  const handleWeightChange = (value: number) => {
+    // Garantir que o valor esteja entre 0 e 100
+    const clampedValue = Math.max(0, Math.min(100, value));
+    setEditingWeight(clampedValue);
+  };
+
+  const handleSave = () => {
+    onUpdateWeight(probability.id, editingWeight);
+  };
+
+  const isExcludedFromDraw = editingWeight === 0;
+
   return (
-    <div className="flex items-center justify-between p-3 border rounded">
+    <div className={`flex items-center justify-between p-3 border rounded ${isExcludedFromDraw ? 'border-orange-300 bg-orange-50' : ''}`}>
       <div className="flex items-center space-x-3">
         {probability.item?.image_url && (
           <img
@@ -45,31 +59,43 @@ export const ChestProbabilityItem = ({
             <Badge className={`text-white text-xs ${getRarityColor(probability.item?.rarity || 'common')}`}>
               {probability.item?.rarity}
             </Badge>
+            {isExcludedFromDraw && (
+              <Badge variant="outline" className="text-orange-600 border-orange-600 text-xs">
+                Apenas Visual
+              </Badge>
+            )}
           </div>
           <div className="text-xs text-muted-foreground">
             R$ {probability.item?.base_value.toFixed(2)} • 
-            {probabilityPercentage}% chance
+            {isExcludedFromDraw ? 'Excluído do sorteio' : `${probabilityPercentage}% chance`}
           </div>
         </div>
       </div>
       <div className="flex items-center space-x-2">
-        <Label className="text-xs">Peso:</Label>
+        <Label className="text-xs">%:</Label>
         <Input
           type="number"
-          min="1"
+          min="0"
           max="100"
-          value={probability.probability_weight}
-          onChange={(e) => {
-            const newWeight = parseInt(e.target.value) || 1;
-            onUpdateWeight(probability.id, newWeight);
-          }}
+          value={editingWeight}
+          onChange={(e) => handleWeightChange(parseInt(e.target.value) || 0)}
           className="w-16 h-8"
+          placeholder="0-100"
         />
         <Button
           variant="outline"
           size="sm"
+          onClick={handleSave}
+          className="h-8 text-xs"
+          disabled={editingWeight === probability.probability_weight}
+        >
+          Salvar
+        </Button>
+        <Button
+          variant="outline"
+          size="sm"
           onClick={() => onRemove(probability.id)}
-          className="h-8"
+          className="h-8 text-red-600 hover:text-red-700"
         >
           ✕
         </Button>
