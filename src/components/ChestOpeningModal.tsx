@@ -73,11 +73,16 @@ const ChestOpeningModal = ({
       setPhase('spinning');
       
       // Generate roulette data
+      console.log('=== INICIANDO GERAÇÃO DA ROLETA ===');
+      console.log('chestType:', chestType);
       const result = await generateRoulette(chestType, 25); // 25 slots para a roleta
+      console.log('Resultado da geração:', result);
+      console.log('rouletteData após geração:', rouletteData);
       if (!result) return;
       
       // Start spinning after a short delay
       setTimeout(() => {
+        console.log('Iniciando animação com isSpinning=true');
         setIsSpinning(true);
       }, 1000);
       
