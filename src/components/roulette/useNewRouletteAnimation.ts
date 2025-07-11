@@ -61,23 +61,26 @@ export const useNewRouletteAnimation = ({
     const { centerIndex, rouletteSlots } = rouletteData;
     const centerPosition = containerWidth / 2;
     
-    // Simplificar cálculo: item vencedor deve ficar exatamente no centro da seta
-    const duplicateSet = 2; // Usar a terceira repetição (índice 2)
-    const itemWidth = 140; // Largura total do item
-    const itemSpacing = 16; // Margem total (8px cada lado)
-    const itemRealWidth = itemWidth - itemSpacing; // Largura real do item (124px)
+    // USAR AS MESMAS CONSTANTES DO COMPONENTE NewRouletteTrack
+    const duplicateSet = 2; // Terceira repetição (índice 2) - onde para a animação
     
-    // Posição absoluta do item vencedor na trilha (início do item)
-    const absoluteItemStart = (duplicateSet * rouletteSlots.length + centerIndex) * itemWidth;
+    // No NewRouletteTrack: width: `${ITEM_WIDTH - 16}px`, mx-2 (8px cada lado)
+    // Então: item real = ITEM_WIDTH - 16, margem total = 16px (8px cada lado)
+    const itemTotalWidth = 140; // ITEM_WIDTH da constante
+    const marginTotal = 16; // mx-2 = 8px cada lado
+    const itemRealWidth = itemTotalWidth - marginTotal; // 124px
     
-    // Centro real do item (início + metade da largura real + margem esquerda)
-    const realItemCenter = absoluteItemStart + (itemSpacing / 2) + (itemRealWidth / 2);
+    // Posição absoluta do início do slot (incluindo margens)
+    const absoluteSlotStart = (duplicateSet * rouletteSlots.length + centerIndex) * itemTotalWidth;
     
-    // Distância necessária para centralizar na seta
-    const targetOffset = realItemCenter - centerPosition;
+    // Centro do item real (início do slot + margem esquerda + metade do item real)
+    const itemCenter = absoluteSlotStart + (marginTotal / 2) + (itemRealWidth / 2);
+    
+    // Distância para centralizar na seta
+    const targetOffset = itemCenter - centerPosition;
     
     const fullRotations = 2;
-    const trackWidth = rouletteSlots.length * itemWidth;
+    const trackWidth = rouletteSlots.length * itemTotalWidth;
     const totalDistance = targetOffset + (fullRotations * trackWidth);
 
     console.log('Iniciando nova animação da roleta');
@@ -85,8 +88,8 @@ export const useNewRouletteAnimation = ({
       centerIndex,
       containerWidth,
       centerPosition,
-      absoluteItemStart,
-      realItemCenter,
+      absoluteSlotStart,
+      itemCenter,
       targetOffset,
       totalDistance
     });
