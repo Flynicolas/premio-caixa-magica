@@ -4,7 +4,7 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Trash2, Unlock } from 'lucide-react';
+import { Trash2, Gift, Eye } from 'lucide-react';
 import { ChestItemProbability } from '@/types/database';
 
 interface ChestProbabilityItemProps {
@@ -36,7 +36,7 @@ const ChestProbabilityItem = ({
   const isExcludedFromDraw = currentValue === 0;
 
   return (
-    <div className={`border rounded-lg p-3 space-y-2 ${isExcludedFromDraw ? 'border-orange-300 bg-orange-50' : ''}`}>
+    <div className="border rounded-lg p-3 space-y-2">
       <div className="flex items-center justify-between">
         <div className="flex items-center space-x-2">
           {probability.item?.image_url && (
@@ -53,14 +53,12 @@ const ChestProbabilityItem = ({
                 {probability.item?.rarity}
               </Badge>
               {isExcludedFromDraw && (
-                <Badge variant="outline" className="text-orange-600 border-orange-600 text-xs">
-                  Apenas Visual
-                </Badge>
+                <Eye className="w-4 h-4 text-muted-foreground" />
               )}
             </div>
             <div className="text-xs text-muted-foreground">
               R$ {probability.item?.base_value.toFixed(2)} • 
-              {isExcludedFromDraw ? 'Excluído do sorteio' : `${currentValue}% chance`}
+              {isExcludedFromDraw ? 'Apenas visual' : `${currentValue}% chance`}
             </div>
           </div>
         </div>
@@ -96,8 +94,8 @@ const ChestProbabilityItem = ({
             disabled={probability.liberado_manual}
             className="text-xs"
           >
-            <Unlock className="w-3 h-3 mr-1" />
-            {probability.liberado_manual ? 'Liberado' : 'Liberar'}
+            <Gift className="w-3 h-3 mr-1" />
+            {probability.liberado_manual ? 'Inserido' : 'Inserir no Sorteio'}
           </Button>
           
           {probability.sorteado_em && (
