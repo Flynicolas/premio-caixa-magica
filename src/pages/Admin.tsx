@@ -10,9 +10,10 @@ import CollaboratorManagement from '@/components/admin/CollaboratorManagement';
 import WalletControlPanel from '@/components/admin/WalletControlPanel';
 import ItemManagementTab from '@/components/admin/ItemManagementTab';
 import EnhancedChestProbabilityManager from '@/components/admin/EnhancedChestProbabilityManager';
+import DeliveryManagementTab from '@/components/admin/DeliveryManagementTab';
 import UsersManagement from '@/components/admin/UsersManagement';
 import ChestGoalsManager from '@/components/admin/ChestGoalsManager';
-import { Shield, Package, Settings, Users, Wallet, Target } from 'lucide-react';
+import { Shield, Package, Settings, Users, Wallet, Target, Truck } from 'lucide-react';
 
 const Admin = () => {
   const { user } = useAuth();
@@ -68,11 +69,11 @@ const Admin = () => {
     <div className="container mx-auto px-4 py-8">
       <div className="mb-8">
         <h1 className="text-3xl font-bold mb-2">Painel Administrativo</h1>
-        <p className="text-muted-foreground">Gerencie o sistema de baús, itens e usuários</p>
+        <p className="text-muted-foreground">Gerencie o sistema de baús, itens, entregas e usuários</p>
       </div>
 
       <Tabs defaultValue="items" className="space-y-6">
-        <TabsList className="grid w-full grid-cols-5">
+        <TabsList className="grid w-full grid-cols-6">
           <TabsTrigger value="items" className="flex items-center gap-2">
             <Package className="w-4 h-4" />
             Itens
@@ -80,6 +81,10 @@ const Admin = () => {
           <TabsTrigger value="chests" className="flex items-center gap-2">
             <Settings className="w-4 h-4" />
             Baús
+          </TabsTrigger>
+          <TabsTrigger value="deliveries" className="flex items-center gap-2">
+            <Truck className="w-4 h-4" />
+            Entregas
           </TabsTrigger>
           <TabsTrigger value="wallet" className="flex items-center gap-2">
             <Wallet className="w-4 h-4" />
@@ -104,6 +109,10 @@ const Admin = () => {
             items={items.filter(item => item.is_active)} 
             onRefresh={refreshItems} 
           />
+        </TabsContent>
+
+        <TabsContent value="deliveries">
+          <DeliveryManagementTab />
         </TabsContent>
 
         <TabsContent value="wallet">

@@ -13,86 +13,105 @@ serve(async (req) => {
   }
 
   try {
-    const supabaseClient = createClient(
+    const supabase = createClient(
       Deno.env.get('SUPABASE_URL') ?? '',
       Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
     )
 
-    const { chestType } = await req.json()
+    const { chestType, userId, chestPrice } = await req.json()
+    
+    console.log(`Sorteando item do baú ${chestType} para usuário ${userId}`)
 
-    // Buscar itens do baú específico com suas probabilidades, apenas itens ativos
-    const { data: probabilities, error: probError } = await supabaseClient
+    // Buscar itens disponíveis no baú com probabilidade > 0 (apenas itens no sorteio)
+    const { data: availableItems, error: itemsError } = await supabase
       .from('chest_item_probabilities')
       .select(`
         *,
-        item:items!inner(*)
+        item:items(*)
       `)
       .eq('chest_type', chestType)
       .eq('is_active', true)
-      .eq('item.is_active', true)
+      .gt('probability_weight', 0) // Apenas itens com probabilidade > 0 participam do sorteio
 
-    if (probError) throw probError
+    if (itemsError) {
+      console.error('Erro ao buscar itens:', itemsError)
+      throw itemsError
+    }
 
-    if (!probabilities || probabilities.length === 0) {
-      // Se não há itens configurados para este baú, buscar itens ativos gerais
-      console.log(`Nenhum item específico encontrado para o baú ${chestType}, usando itens gerais ativos`)
-      
-      const { data: generalItems, error: generalError } = await supabaseClient
-        .from('items')
-        .select('*')
-        .eq('is_active', true)
-
-      if (generalError) throw generalError
-
-      if (!generalItems || generalItems.length === 0) {
-        throw new Error(`Nenhum item ativo encontrado no sistema`)
-      }
-
-      // Sortear item aleatório dos itens gerais ativos
-      const randomIndex = Math.floor(Math.random() * generalItems.length)
-      const drawnItem = generalItems[randomIndex]
-
-      console.log(`Sorteio realizado (itens gerais): Baú ${chestType}, Item ID: ${drawnItem.id}`)
-
+    if (!availableItems || availableItems.length === 0) {
+      console.log('Nenhum item disponível para sorteio neste baú')
       return new Response(
-        JSON.stringify({ itemId: drawnItem.id }),
-        { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+        JSON.stringify({ error: 'Nenhum item disponível para sorteio neste baú' }),
+        { 
+          status: 400, 
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+        }
       )
     }
 
-    // Criar array ponderado baseado nos pesos de probabilidade
-    const weightedItems: string[] = []
-    
-    probabilities.forEach(prob => {
-      if (prob.item && prob.item.is_active) {
-        // Adicionar o ID do item N vezes baseado no peso
-        for (let i = 0; i < prob.probability_weight; i++) {
-          weightedItems.push(prob.item.id)
-        }
-      }
-    })
+    // Calcular probabilidades e fazer o sorteio
+    const totalWeight = availableItems.reduce((sum, item) => sum + item.probability_weight, 0)
+    const random = Math.random() * totalWeight
 
-    if (weightedItems.length === 0) {
-      throw new Error(`Nenhum item ativo encontrado para o baú ${chestType}`)
+    let currentWeight = 0
+    let selectedItem = null
+
+    for (const item of availableItems) {
+      currentWeight += item.probability_weight
+      if (random <= currentWeight) {
+        selectedItem = item
+        break
+      }
     }
 
-    // Sortear item aleatório do array ponderado
-    const randomIndex = Math.floor(Math.random() * weightedItems.length)
-    const drawnItemId = weightedItems[randomIndex]
+    if (!selectedItem) {
+      selectedItem = availableItems[availableItems.length - 1] // Fallback
+    }
 
-    // Log do sorteio para auditoria
-    console.log(`Sorteio realizado: Baú ${chestType}, Item ID: ${drawnItemId}`)
+    console.log(`Item sorteado: ${selectedItem.item.name}`)
+
+    // Registrar o sorteio
+    const { error: updateError } = await supabase
+      .from('chest_item_probabilities')
+      .update({ 
+        sorteado_em: new Date().toISOString()
+      })
+      .eq('id', selectedItem.id)
+
+    if (updateError) {
+      console.error('Erro ao registrar sorteio:', updateError)
+    }
+
+    // Chamar função para atualizar metas dos baús
+    try {
+      const { error: goalsError } = await supabase.functions.invoke('update-chest-goals', {
+        body: { chestType, chestPrice }
+      })
+      
+      if (goalsError) {
+        console.error('Erro ao atualizar metas:', goalsError)
+      }
+    } catch (error) {
+      console.error('Erro na função de metas:', error)
+    }
 
     return new Response(
-      JSON.stringify({ itemId: drawnItemId }),
+      JSON.stringify({
+        item: selectedItem.item,
+        probability: selectedItem.probability_weight,
+        totalWeight
+      }),
       { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
     )
 
   } catch (error) {
-    console.error('Erro no sorteio:', error)
+    console.error('Erro na função:', error)
     return new Response(
       JSON.stringify({ error: error.message }),
-      { headers: { ...corsHeaders, 'Content-Type': 'application/json' }, status: 500 }
+      { 
+        status: 500, 
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+      }
     )
   }
 })
