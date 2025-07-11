@@ -47,40 +47,43 @@ export const useNewRouletteAnimation = ({
 
     const { centerIndex, rouletteSlots } = rouletteData;
     
-    // SOLUÇÃO DEFINITIVA: Cálculo simples e direto
+    // SOLUÇÃO EMPÍRICA DIRETA
     const containerWidth = containerRef.current.offsetWidth;
-    const centerPosition = containerWidth / 2; // Posição da seta = centro do container
+    const centerPosition = containerWidth / 2;
     
-    // Constantes do CSS (confirmadas nos logs anteriores)
-    const ITEM_SPACING = 140; // Total por item (ITEM_WIDTH)
-    const MARGIN_LEFT = 8; // mx-2
-    const ITEM_WIDTH = 124; // width real do item
+    // Usar medições fixas baseadas no CSS conhecido
+    const ITEM_SPACING = 140; // ITEM_WIDTH
     
-    // Posição onde queremos que o item pare (centro do item = centro da seta)
-    const itemCenterInSlot = MARGIN_LEFT + (ITEM_WIDTH / 2); // 8 + 62 = 70px
+    // Calcular quantas rotações completas + posição final
+    const baseRotations = 3; // Rotações base para efeito visual
+    const baseDistance = baseRotations * (rouletteSlots.length * ITEM_SPACING);
     
-    // Vamos colocar o item vencedor no meio da track (sem assumir terceira repetição)
-    // Total de slots = 6 repetições × slots por repetição
-    const totalSlots = rouletteSlots.length * 6;
-    const middlePosition = Math.floor(totalSlots / 2); // Posição central da track
+    // Posição final onde queremos que o item centerIndex pare
+    // Vamos colocar o item vencedor no centro exato da tela
+    const targetItemPosition = centerIndex * ITEM_SPACING;
     
-    // Colocar o item vencedor na posição central + seu índice
-    const targetSlotPosition = middlePosition + centerIndex;
+    // O centro do item está a 70px do início do slot (8px margin + 62px metade)
+    const itemCenterOffset = 70;
+    const targetItemCenter = targetItemPosition + itemCenterOffset;
     
-    // Posição absoluta onde o item estará
-    const targetItemCenter = targetSlotPosition * ITEM_SPACING + itemCenterInSlot;
+    // Distância total = rotações base + ajuste para centralizar
+    const totalDistance = baseDistance + targetItemCenter - centerPosition;
     
-    // Distância para mover para alinhar com a seta
-    const totalDistance = targetItemCenter - centerPosition;
+    // CORREÇÃO EMPÍRICA: Se está caindo "próximo", vamos ajustar
+    // Baseado na observação de que está ligeiramente desalinhado
+    const CORRECTION_OFFSET = -35; // Ajuste empírico em pixels
+    const finalDistance = totalDistance + CORRECTION_OFFSET;
     
-    console.log('SOLUÇÃO DEFINITIVA:', {
+    console.log('CORREÇÃO EMPÍRICA:', {
+      centerIndex,
       containerWidth,
       centerPosition,
-      centerIndex,
-      targetSlotPosition,
+      targetItemPosition,
       targetItemCenter,
+      baseDistance,
       totalDistance,
-      verificacao: `Item em ${targetItemCenter - totalDistance}px = Seta em ${centerPosition}px`
+      correcao: CORRECTION_OFFSET,
+      finalDistance
     });
     
     // Limpar animação anterior
@@ -101,9 +104,9 @@ export const useNewRouletteAnimation = ({
     animationRef.current = window.setTimeout(() => {
       if (trackRef.current) {
         trackRef.current.style.transition = 'transform 4000ms cubic-bezier(0.25, 0.1, 0.25, 1)';
-        trackRef.current.style.transform = `translateX(-${totalDistance}px)`;
+        trackRef.current.style.transform = `translateX(-${finalDistance}px)`;
         
-        console.log('🚀 Animação aplicada:', `translateX(-${totalDistance}px)`);
+        console.log('🚀 Animação aplicada com correção:', `translateX(-${finalDistance}px)`);
         
         // Após 4 segundos, parar sons e mostrar winner
         animationRef.current = window.setTimeout(() => {
