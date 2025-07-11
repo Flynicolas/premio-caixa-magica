@@ -41,6 +41,9 @@ export const NewRouletteTrack = forwardRef<HTMLDivElement, NewRouletteTrackProps
           return (
             <div
               key={item.uniqueKey}
+              data-item-index={globalIndex}
+              data-original-index={originalIndex}
+              data-duplicate-index={duplicateIndex}
               className={`
                 flex-shrink-0 mx-2 my-4 transition-all duration-500 ease-out
                 ${isWinningItem ? 'scale-110 z-50' : 'scale-100 z-20'}

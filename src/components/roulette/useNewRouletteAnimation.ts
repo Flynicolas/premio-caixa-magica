@@ -45,61 +45,65 @@ export const useNewRouletteAnimation = ({
       return;
     }
 
-    // MEDIÇÃO EXATA DOS ELEMENTOS RENDERIZADOS
-    const containerWidth = containerRef.current.offsetWidth;
-    const centerPosition = containerWidth / 2; // Posição da seta
+    // MEDIÇÃO REAL DOS ELEMENTOS NO DOM
+    const containerRect = containerRef.current.getBoundingClientRect();
+    const containerWidth = containerRect.width;
+    
+    // Encontrar a seta real no DOM para medir sua posição exata
+    const arrow = containerRef.current.parentElement?.querySelector('.absolute.-top-8') as HTMLElement;
+    let arrowCenterX = containerWidth / 2; // Fallback
+    
+    if (arrow) {
+      const arrowRect = arrow.getBoundingClientRect();
+      arrowCenterX = arrowRect.left + arrowRect.width / 2 - containerRect.left;
+      console.log('Posição real da seta medida:', arrowCenterX, 'px do início do container');
+    }
 
     const { centerIndex, rouletteSlots } = rouletteData;
     
-    // ANÁLISE REAL DO CSS DO NewRouletteTrack:
-    // Cada item tem: mx-2 (8px cada lado) + width real (124px) = 140px total
-    const SLOT_WIDTH = 140; // Total spacing per item (matches ITEM_WIDTH)
+    // Medição real dos itens no DOM
+    const firstItem = trackRef.current.querySelector('[data-item-index="0"]') as HTMLElement;
+    let itemSpacing = 140; // Fallback
+    let itemWidth = 124; // Fallback
+    let marginLeft = 8; // Fallback
     
-    // O item vencedor está na terceira repetição (index 2)
+    if (firstItem) {
+      const itemRect = firstItem.getBoundingClientRect();
+      itemWidth = itemRect.width;
+      const computedStyle = window.getComputedStyle(firstItem);
+      marginLeft = parseFloat(computedStyle.marginLeft);
+      itemSpacing = itemWidth + marginLeft + parseFloat(computedStyle.marginRight);
+      console.log('Medições reais do item:', { itemWidth, marginLeft, itemSpacing });
+    }
+    
+    // O item vencedor está na terceira repetição
     const duplicateIndex = 2;
     const winnerAbsoluteIndex = duplicateIndex * rouletteSlots.length + centerIndex;
     
-    // Posição onde o slot começa
-    const slotLeftEdge = winnerAbsoluteIndex * SLOT_WIDTH;
+    // Calcular posição exata baseada nas medições reais
+    const slotLeftEdge = winnerAbsoluteIndex * itemSpacing;
+    const itemCenterPosition = slotLeftEdge + marginLeft + (itemWidth / 2);
     
-    // EXATO conforme o CSS: mx-2 = 8px margem esquerda + 124px item + 8px margem direita
-    const marginLeft = 8;
-    const itemRealWidth = 124; // ITEM_WIDTH - 16 do CSS
-    const itemCenterInSlot = marginLeft + (itemRealWidth / 2); // 8 + 62 = 70px
+    // Distância para alinhar com a posição real da seta
+    const targetOffset = itemCenterPosition - arrowCenterX;
     
-    // Posição absoluta do centro do item
-    const itemCenterPosition = slotLeftEdge + itemCenterInSlot;
-    
-    // Distância para mover o item para a posição da seta
-    const targetOffset = itemCenterPosition - centerPosition;
-    
-    // Rotações extras para efeito visual
+    // Rotações extras
     const extraRotations = 2;
-    const trackWidth = rouletteSlots.length * SLOT_WIDTH;
+    const trackWidth = rouletteSlots.length * itemSpacing;
     const totalDistance = targetOffset + (extraRotations * trackWidth);
 
-    console.log('=== CÁLCULO EXATO DO ALINHAMENTO ===');
-    console.log('1. Dados básicos:', {
-      centerIndex,
-      containerWidth,
-      centerPosition,
-      SLOT_WIDTH,
-      itemRealWidth,
-      marginLeft
-    });
-    console.log('2. Posicionamento:', {
-      duplicateIndex,
-      winnerAbsoluteIndex,
-      slotLeftEdge,
-      itemCenterInSlot,
-      itemCenterPosition,
-      targetOffset,
-      totalDistance
-    });
-    console.log('3. Verificação final:');
-    console.log('   - Seta posição:', centerPosition + 'px');
-    console.log('   - Item final:', (itemCenterPosition - totalDistance) + 'px');
-    console.log('   - Alinhamento perfeito?', Math.abs(centerPosition - (itemCenterPosition - totalDistance)) < 1 ? 'SIM' : 'NÃO');
+    console.log('=== MEDIÇÃO REAL DO DOM ===');
+    console.log('Container width:', containerWidth);
+    console.log('Posição real da seta:', arrowCenterX);
+    console.log('Item spacing medido:', itemSpacing);
+    console.log('Item width medido:', itemWidth);
+    console.log('Margin left medido:', marginLeft);
+    console.log('Winner index:', centerIndex, 'na posição absoluta:', winnerAbsoluteIndex);
+    console.log('Slot left edge:', slotLeftEdge);
+    console.log('Item center position:', itemCenterPosition);
+    console.log('Target offset:', targetOffset);
+    console.log('Total distance:', totalDistance);
+    console.log('Verificação: item final em', (itemCenterPosition - totalDistance), 'vs seta em', arrowCenterX);
     
     // Limpar animação anterior
     clearAnimation();
