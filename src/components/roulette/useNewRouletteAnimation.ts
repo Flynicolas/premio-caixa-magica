@@ -62,13 +62,12 @@ export const useNewRouletteAnimation = ({
     const itemWidth = 140; // ITEM_WIDTH
     const centerPosition = containerWidth / 2;
     
-    // Calcular posição correta: centerIndex é o índice na lista original
-    // Precisamos encontrar onde esse item estará na trilha duplicada (quinta repetição)
-    const duplicateSet = 4; // Quinta repetição (índice 4)
+    // Simplificar cálculo - usar menos voltas para evitar overflow extremo
+    const duplicateSet = 2; // Terceira repetição (índice 2) - menos voltas, mais estável
     const actualItemPosition = (duplicateSet * rouletteSlots.length * itemWidth) + (centerIndex * itemWidth);
     const winnerItemCenterPosition = actualItemPosition + (itemWidth / 2);
     const targetOffset = winnerItemCenterPosition - centerPosition;
-    const fullRotations = 5;
+    const fullRotations = 2; // Reduzir voltas para 2
     const trackWidth = rouletteSlots.length * itemWidth;
     const totalDistance = targetOffset + (fullRotations * trackWidth);
 

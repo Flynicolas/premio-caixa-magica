@@ -80,7 +80,7 @@ const SpinRouletteWheel = ({
       </div>
 
       {/* Container da Roleta */}
-      <div className={`relative w-full max-w-4xl mx-auto h-40 overflow-hidden rounded-xl border-4 ${theme.border} ${theme.bg} backdrop-blur-sm`}>
+      <div className={`relative w-full max-w-4xl mx-auto h-40 rounded-xl border-4 ${theme.border} ${theme.bg} backdrop-blur-sm`} style={{ overflow: 'hidden' }}>
         {/* Trilha dos Itens */}
         <NewRouletteTrack 
           ref={trackRef}

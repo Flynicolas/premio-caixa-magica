@@ -26,7 +26,9 @@ export const NewRouletteTrack = forwardRef<HTMLDivElement, NewRouletteTrackProps
         className="flex absolute top-0 left-0 h-full"
         style={{ 
           width: `${rouletteSlots.length * ITEM_WIDTH * 6}px`,
-          willChange: 'transform'
+          willChange: 'transform',
+          backfaceVisibility: 'hidden',
+          transform: 'translateZ(0)'
         }}
       >
         {repeatedSlots.map((item, globalIndex) => {
@@ -34,7 +36,7 @@ export const NewRouletteTrack = forwardRef<HTMLDivElement, NewRouletteTrackProps
           const duplicateIndex = Math.floor(globalIndex / rouletteSlots.length);
           
           // Item vencedor está na posição onde a animação para (quinta repetição)
-          const isWinningItem = state === 'winner' && duplicateIndex === 4 && originalIndex === centerIndex;
+          const isWinningItem = state === 'winner' && duplicateIndex === 2 && originalIndex === centerIndex;
 
           return (
             <div
