@@ -83,16 +83,26 @@ export const useNewRouletteAnimation = ({
     const trackWidth = rouletteSlots.length * itemTotalWidth;
     const totalDistance = targetOffset + (fullRotations * trackWidth);
 
-    console.log('Iniciando nova animação da roleta');
-    console.log('Cálculos da animação:', {
+    console.log('=== ANÁLISE DETALHADA DA ROLETA ===');
+    console.log('1. Dados básicos:', {
       centerIndex,
       containerWidth,
-      centerPosition,
+      centerPosition: containerWidth / 2,
+      itemTotalWidth,
+      marginTotal,
+      itemRealWidth
+    });
+    console.log('2. Posicionamento:', {
+      duplicateSet,
+      'slots na repetição': rouletteSlots.length,
       absoluteSlotStart,
       itemCenter,
       targetOffset,
       totalDistance
     });
+    console.log('3. Verificação da seta:');
+    console.log('   - Seta está em:', centerPosition + 'px do início do container');
+    console.log('   - Item ficará em:', itemCenter - totalDistance + 'px após animação');
     
     // Limpar animação anterior
     clearAnimation();
