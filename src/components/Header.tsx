@@ -28,7 +28,8 @@ import {
   Trophy,
   Shield,
   Grid3X3,
-  Wallet
+  Wallet,
+  Truck
 } from 'lucide-react';
 
 const Header = () => {
@@ -179,6 +180,12 @@ const Header = () => {
                         </Link>
                       </DropdownMenuItem>
                       <DropdownMenuItem asChild>
+                        <Link to="/entregas" className="flex items-center text-gray-300 hover:text-white">
+                          <Truck className="mr-2 h-4 w-4" />
+                          <span>Minhas Entregas</span>
+                        </Link>
+                      </DropdownMenuItem>
+                      <DropdownMenuItem asChild>
                         <Link to="/configuracoes" className="flex items-center text-gray-300 hover:text-white">
                           <Settings className="mr-2 h-4 w-4" />
                           <span>Configurações</span>
@@ -299,6 +306,14 @@ const Header = () => {
                       >
                         <User className="w-4 h-4" />
                         <span>Perfil</span>
+                      </Link>
+                      <Link
+                        to="/entregas"
+                        onClick={() => setIsMenuOpen(false)}
+                        className="flex items-center space-x-3 px-3 py-2 rounded-lg text-sm font-medium text-gray-300 hover:text-white hover:bg-gray-800"
+                      >
+                        <Truck className="w-4 h-4" />
+                        <span>Minhas Entregas</span>
                       </Link>
                       <button
                         onClick={() => {
