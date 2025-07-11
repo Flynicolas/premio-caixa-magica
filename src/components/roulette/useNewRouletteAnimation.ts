@@ -59,24 +59,22 @@ export const useNewRouletteAnimation = ({
     }
 
     const { centerIndex, rouletteSlots } = rouletteData;
-    const itemWidth = 140; // ITEM_WIDTH
     const centerPosition = containerWidth / 2;
     
-    // Corrigir posição: calcular exatamente onde o item deve parar para ficar na seta
-    const duplicateSet = 2; // Terceira repetição (índice 2)
-    const targetItemIndex = centerIndex; // O item que queremos na seta
+    // Simplificar cálculo: item vencedor deve ficar exatamente no centro da seta
+    const duplicateSet = 2; // Usar a terceira repetição (índice 2)
+    const itemWidth = 140; // Largura total do item
+    const itemSpacing = 16; // Margem total (8px cada lado)
+    const itemRealWidth = itemWidth - itemSpacing; // Largura real do item (124px)
     
-    // Posição absoluta do item vencedor na trilha (incluindo as repetições)
-    const absoluteItemPosition = (duplicateSet * rouletteSlots.length + targetItemIndex) * itemWidth;
+    // Posição absoluta do item vencedor na trilha (início do item)
+    const absoluteItemStart = (duplicateSet * rouletteSlots.length + centerIndex) * itemWidth;
     
-    // Centro do item (considerando margem de 8px de cada lado = 16px total)
-    const itemCenterOffset = (itemWidth - 16) / 2 + 8; // 8px é a margem esquerda
+    // Centro real do item (início + metade da largura real + margem esquerda)
+    const realItemCenter = absoluteItemStart + (itemSpacing / 2) + (itemRealWidth / 2);
     
-    // Posição do centro do item vencedor
-    const itemCenterPosition = absoluteItemPosition + itemCenterOffset;
-    
-    // Distância total necessária para centralizar o item na seta
-    const targetOffset = itemCenterPosition - centerPosition;
+    // Distância necessária para centralizar na seta
+    const targetOffset = realItemCenter - centerPosition;
     
     const fullRotations = 2;
     const trackWidth = rouletteSlots.length * itemWidth;
@@ -87,7 +85,8 @@ export const useNewRouletteAnimation = ({
       centerIndex,
       containerWidth,
       centerPosition,
-      itemCenterPosition,
+      absoluteItemStart,
+      realItemCenter,
       targetOffset,
       totalDistance
     });
