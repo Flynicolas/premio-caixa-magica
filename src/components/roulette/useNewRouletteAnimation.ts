@@ -62,14 +62,20 @@ export const useNewRouletteAnimation = ({
     const itemWidth = 140; // ITEM_WIDTH
     const centerPosition = containerWidth / 2;
     
-    // Corrigir posição: o item deve estar ANTES do centro para parar no centro
+    // Corrigir posição: calcular exatamente onde o item deve parar para ficar na seta
     const duplicateSet = 2; // Terceira repetição (índice 2)
-    const actualItemPosition = (duplicateSet * rouletteSlots.length * itemWidth) + (centerIndex * itemWidth);
-    // O item precisa estar um slot antes para compensar o movimento
-    const adjustedPosition = actualItemPosition - itemWidth;
-    const winnerItemCenterPosition = adjustedPosition + (itemWidth / 2);
-    const targetOffset = winnerItemCenterPosition - centerPosition;
-    const fullRotations = 2; // Reduzir voltas para 2
+    const targetItemIndex = centerIndex; // O item que queremos na seta
+    
+    // Posição base do item na trilha (sem considerar rotações extras)
+    const baseItemPosition = (duplicateSet * rouletteSlots.length + targetItemIndex) * itemWidth;
+    
+    // Centro do item (metade da largura do item)
+    const itemCenterOffset = itemWidth / 2;
+    
+    // Distância total necessária para centralizar o item na seta
+    const targetOffset = baseItemPosition + itemCenterOffset - centerPosition;
+    
+    const fullRotations = 2;
     const trackWidth = rouletteSlots.length * itemWidth;
     const totalDistance = targetOffset + (fullRotations * trackWidth);
 
@@ -78,7 +84,7 @@ export const useNewRouletteAnimation = ({
       centerIndex,
       containerWidth,
       centerPosition,
-      winnerItemCenterPosition,
+      baseItemPosition,
       targetOffset,
       totalDistance
     });
