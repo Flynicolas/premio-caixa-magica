@@ -47,32 +47,50 @@ export const useNewRouletteAnimation = ({
 
     const { centerIndex, rouletteSlots } = rouletteData;
     
-    // SOLUÇÃO ULTRA SIMPLES: Parar EXATAMENTE no item certo
-    const containerWidth = containerRef.current.offsetWidth;
-    const centerPosition = containerWidth / 2;
+    // MEDIR EXATAMENTE ONDE A SETA ESTÁ
+    const containerRect = containerRef.current.getBoundingClientRect();
+    const setaElement = document.querySelector('.absolute.-top-8.left-1\\/2') as HTMLElement;
     
-    // Cada item ocupa exatamente 140px (ITEM_WIDTH)
+    let setaPosicao = containerRect.width / 2; // fallback
+    if (setaElement) {
+      const setaRect = setaElement.getBoundingClientRect();
+      setaPosicao = setaRect.left + setaRect.width / 2 - containerRect.left;
+    }
+    
+    // MEDIR EXATAMENTE ONDE O QUADRADO PONTILHADO ESTÁ
+    const quadradoElement = document.querySelector('.absolute.top-0.left-1\\/2.transform.-translate-x-1\\/2.w-32') as HTMLElement;
+    let quadradoPosicao = containerRect.width / 2; // fallback
+    if (quadradoElement) {
+      const quadradoRect = quadradoElement.getBoundingClientRect();
+      quadradoPosicao = quadradoRect.left + quadradoRect.width / 2 - containerRect.left;
+    }
+    
+    console.log('🎯 POSIÇÕES REAIS:', {
+      setaPosicao: setaPosicao + 'px',
+      quadradoPosicao: quadradoPosicao + 'px',
+      diferenca: Math.abs(setaPosicao - quadradoPosicao) + 'px'
+    });
+    
+    // USAR A POSIÇÃO DO QUADRADO PONTILHADO COMO REFERÊNCIA
+    const alvoFinal = quadradoPosicao;
+    
+    // Calcular onde o centro do item vencedor deve ficar
     const ITEM_WIDTH = 140;
+    const rotacoes = 3;
+    const distanciaRotacoes = rotacoes * (rouletteSlots.length * ITEM_WIDTH);
     
-    // Fazer várias rotações completas + posicionar o item vencedor no centro
-    const fullRotations = 3;
-    const fullRotationDistance = fullRotations * (rouletteSlots.length * ITEM_WIDTH);
+    // Posição onde o item centerIndex estará depois das rotações
+    const posicaoItem = centerIndex * ITEM_WIDTH + 70; // centro do item
     
-    // Calcular onde o item centerIndex deve ficar para estar no centro
-    // O centro do item está a 70px do início (metade de 140px)
-    const itemPosition = centerIndex * ITEM_WIDTH + 70; // 70px = centro do item
+    // Distância para o item ficar EXATAMENTE no quadrado pontilhado
+    const distanciaTotal = distanciaRotacoes + posicaoItem - alvoFinal;
     
-    // Distância total = rotações completas + ajuste para centralizar o item
-    const totalDistance = fullRotationDistance + itemPosition - centerPosition;
-    
-    console.log('SOLUÇÃO ULTRA SIMPLES:', {
+    console.log('🎯 CÁLCULO DIRETO:', {
       centerIndex,
-      containerWidth,
-      centerPosition,
-      itemPosition,
-      totalDistance,
-      'item final estará em': itemPosition - totalDistance,
-      'deve ser igual ao centro': centerPosition
+      alvoFinal,
+      posicaoItem,
+      distanciaTotal,
+      verificacao: `Item ficará em ${posicaoItem - distanciaTotal}px = Alvo em ${alvoFinal}px`
     });
     
     // Limpar animação anterior
@@ -93,9 +111,9 @@ export const useNewRouletteAnimation = ({
     animationRef.current = window.setTimeout(() => {
       if (trackRef.current) {
         trackRef.current.style.transition = 'transform 4000ms cubic-bezier(0.25, 0.1, 0.25, 1)';
-        trackRef.current.style.transform = `translateX(-${totalDistance}px)`;
+        trackRef.current.style.transform = `translateX(-${distanciaTotal}px)`;
         
-        console.log('🚀 Animação ultra simples aplicada:', `translateX(-${totalDistance}px)`);
+        console.log('🚀 Animação aplicada medindo posições reais:', `translateX(-${distanciaTotal}px)`);
         
         // Após 4 segundos, parar sons e mostrar winner
         animationRef.current = window.setTimeout(() => {
