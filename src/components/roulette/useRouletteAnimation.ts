@@ -34,54 +34,55 @@ export const useRouletteAnimation = ({
 
     const { centerIndex, winnerItem, totalSlots } = rouletteData;
 
-    // Iniciar música de fundo
-    startBackgroundMusic();
-
-    // @definir total_slots = tamanho de lista_itens
-    const lista_itens = rouletteData.rouletteSlots;
-    const total_slots = lista_itens.length;
-    
-    // @definir indice_item = posição de item_sorteado na lista_itens
-    const indice_item = centerIndex;
-    
-    // @definir graus_por_slot = dividir 360 por total_slots
-    const graus_por_slot = 360 / total_slots;
-    
-    // @definir destino_final = somar (multiplicar 360 por 5) com (multiplicar indice_item por graus_por_slot)
-    const destino_final = (360 * 5) + (indice_item * graus_por_slot);
-
-    // Configurar trilha inicial - resetar completamente
+    // Limpar qualquer animação anterior
     if (trackRef.current) {
       trackRef.current.style.transition = 'none';
       trackRef.current.style.transform = 'translateX(0px)';
-      trackRef.current.style.width = `${total_slots * ITEM_WIDTH * 4}px`;
     }
 
-    // Calcular posição final em pixels baseada nos graus
+    // Iniciar música de fundo
+    startBackgroundMusic();
+    startTickLoop(50);
+
+    // Calcular posição exata do item vencedor
     const containerWidth = containerRef.current.offsetWidth;
     const centerPosition = containerWidth / 2;
     const itemWidth = ITEM_WIDTH;
+    const trackWidth = totalSlots * itemWidth;
     
-    // Conversão dos graus para posição linear da trilha
-    const finalPosition = (destino_final / 360) * (total_slots * itemWidth);
-    const winnerItemCenter = indice_item * itemWidth + (itemWidth / 2);
-    const adjustedFinalPosition = finalPosition - (centerPosition - winnerItemCenter);
+    // Posição do item vencedor (centro do item)
+    const winnerItemPosition = centerIndex * itemWidth + (itemWidth / 2);
+    
+    // Distância para centralizar o item vencedor na seta
+    const targetOffset = winnerItemPosition - centerPosition;
+    
+    // Adicionar voltas extras para efeito visual (3-5 voltas)
+    const extraSpins = 4;
+    const totalDistance = targetOffset + (extraSpins * trackWidth);
 
-    // @girar elemento roleta para destino_final graus com duração 4s e curva ease-out
-    const duracao = 4000; // 4 segundos
-    
-    // Aplicar animação CSS direta com ease-out
+    // Configurar largura da trilha para permitir as voltas extras
+    if (trackRef.current) {
+      trackRef.current.style.width = `${trackWidth * 6}px`;
+    }
+
+    console.log('Iniciando animação:', {
+      centerIndex,
+      winnerItem: winnerItem.name,
+      targetOffset,
+      totalDistance,
+      trackWidth
+    });
+
+    // Aplicar animação com timing personalizado
     setTimeout(() => {
       if (trackRef.current) {
-        trackRef.current.style.transition = `transform ${duracao}ms cubic-bezier(0.25, 0.46, 0.45, 0.94)`;
-        trackRef.current.style.transform = `translateX(-${adjustedFinalPosition}px)`;
+        // Animação de 4 segundos com curva ease-out realista
+        trackRef.current.style.transition = 'transform 4000ms cubic-bezier(0.25, 0.1, 0.25, 1)';
+        trackRef.current.style.transform = `translateX(-${totalDistance}px)`;
       }
-    }, 50);
+    }, 100);
 
-    // Controle de som simplificado
-    startTickLoop(100);
-    
-    // @aguardar 4.2s
+    // Parar sons e mostrar resultado após 4.2s
     setTimeout(() => {
       stopTickLoop();
       stopBackgroundMusic();
@@ -89,14 +90,17 @@ export const useRouletteAnimation = ({
       // Garantir posição final exata
       if (trackRef.current) {
         trackRef.current.style.transition = 'none';
-        trackRef.current.style.transform = `translateX(-${adjustedFinalPosition}px)`;
+        trackRef.current.style.transform = `translateX(-${totalDistance}px)`;
       }
+
+      console.log('Animação finalizada, posição final:', totalDistance);
       
-      const finalTransform = `translateX(-${adjustedFinalPosition}px)`;
+      const finalTransform = `translateX(-${totalDistance}px)`;
       onAnimationComplete(finalTransform);
 
-      // @mostrar efeito destaque em item_sorteado
+      // Mostrar efeito de destaque no item após 300ms
       setTimeout(() => {
+        console.log('Mostrando item vencedor:', winnerItem.name);
         onShowWinner();
 
         // Som especial para itens raros
@@ -104,12 +108,13 @@ export const useRouletteAnimation = ({
           playRareItemSound(winnerItem.rarity);
         }
 
-        // @abrir janela popup_premio com dados de item_sorteado
+        // Abrir popup após efeito de destaque (1.5s)
         setTimeout(() => {
+          console.log('Abrindo popup do prêmio');
           onSpinComplete?.(winnerItem);
-        }, 800); // Tempo para o efeito de destaque
-      }, 200);
-    }, 4200); // 4.2s exatos
+        }, 1500);
+      }, 300);
+    }, 4200);
   }, [
     rouletteData,
     isAnimating,

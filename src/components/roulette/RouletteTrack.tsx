@@ -26,14 +26,15 @@ export const RouletteTrack = forwardRef<HTMLDivElement, RouletteTrackProps>(
               <div
                 key={`${duplicateIndex}-${item.id}-${index}`}
                 className={`
-                  flex-shrink-0 mx-2 my-4 transition-all duration-500
-                  ${isWinningItem ? 'scale-125 z-20' : ''}
+                  flex-shrink-0 mx-2 my-4 transition-all duration-1000 ease-out
+                  ${isWinningItem ? 'scale-150 z-30 -translate-y-2' : 'scale-100'}
                 `}
                 style={{
                   width: `${ITEM_WIDTH - 16}px`,
                   filter: isWinningItem
-                    ? 'drop-shadow(0 0 20px rgba(255, 255, 0, 0.9)) brightness(1.1)'
-                    : 'none'
+                    ? 'drop-shadow(0 0 30px rgba(255, 215, 0, 1)) drop-shadow(0 0 50px rgba(255, 255, 0, 0.8)) brightness(1.3) saturate(1.2)'
+                    : 'none',
+                  transformOrigin: 'center center'
                 }}
               >
                 <ItemCard

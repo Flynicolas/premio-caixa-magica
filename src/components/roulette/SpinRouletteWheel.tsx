@@ -42,16 +42,19 @@ const SpinRouletteWheel = ({
     onSpinComplete
   });
 
-  // Trigger externo para iniciar o giro
+  // Trigger externo para iniciar o giro - com proteção contra reinicialização
   useEffect(() => {
-    if (isSpinning && rouletteData && !isAnimating) {
+    if (isSpinning && rouletteData && !isAnimating && !showWinner) {
+      console.log('Iniciando nova animação da roleta');
       setIsAnimating(true);
       setShowWinner(false);
       setShowParticles(false);
       setFinalTransform('');
       startSpin();
+    } else if (isSpinning && (isAnimating || showWinner)) {
+      console.log('Ignorando tentativa de reiniciar roleta - animação em andamento ou já finalizada');
     }
-  }, [isSpinning, rouletteData, isAnimating, startSpin]);
+  }, [isSpinning, rouletteData, isAnimating, showWinner, startSpin]);
 
   if (!rouletteData) {
     return (
