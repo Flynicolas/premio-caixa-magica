@@ -1,14 +1,12 @@
 
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Sparkles, Lock, Eye, AlertTriangle } from 'lucide-react';
 import { Chest, ChestType } from '@/data/chestData';
 import { useChestItemCount } from '@/hooks/useChestItemCount';
-import { useRealtimeItems } from '@/hooks/useRealtimeItems';
 import ChestOpeningModal from './ChestOpeningModal';
-import ItemCard from './ItemCard';
 
 interface ChestCardProps {
   chest: Chest;
@@ -20,19 +18,9 @@ interface ChestCardProps {
 
 const ChestCard = ({ chest, chestType, onOpen, onViewItems, balance }: ChestCardProps) => {
   const [showOpeningModal, setShowOpeningModal] = useState(false);
-  const [chestItems, setChestItems] = useState<any[]>([]);
   const { itemCount, hasMinimumItems, loading } = useChestItemCount(chestType);
-  const { items: realtimeItems } = useRealtimeItems();
   const canAfford = balance >= chest.price;
   const canPurchase = canAfford && hasMinimumItems;
-
-  // Filtrar itens em tempo real para este baú específico
-  useEffect(() => {
-    const filteredItems = realtimeItems.filter(item => 
-      item.chest_types?.includes(chestType as any) && item.is_active
-    );
-    setChestItems(filteredItems);
-  }, [realtimeItems, chestType]);
 
   const handleOpenChest = () => {
     if (canPurchase) {
@@ -67,22 +55,20 @@ const ChestCard = ({ chest, chestType, onOpen, onViewItems, balance }: ChestCard
     premium: '/lovable-uploads/d43f06a5-1532-42ba-8362-5aefb160b408.png'
   };
 
+  const rarityStyles = {
+    common: 'bg-gray-500/50',
+    rare: 'bg-blue-500/50',
+    epic: 'bg-purple-500/50',
+    legendary: 'bg-yellow-500/50'
+  };
+
   // Add safety checks with fallbacks
   const chestColor = chestColors[chestType] || chestColors.silver;
   const chestBorderColor = chestBorderColors[chestType] || chestBorderColors.silver;
   const chestImage = chestImages[chestType] || chestImages.silver;
 
-  // Get premium items for preview (epic, legendary, special)
-  const premiumItems = chestItems
-    .filter(item => ['epic', 'legendary', 'special'].includes(item.rarity))
-    .slice(0, 3);
-  
-  // Get regular items to fill the rest
-  const regularItems = chestItems
-    .filter(item => !['epic', 'legendary', 'special'].includes(item.rarity))
-    .slice(0, 5 - premiumItems.length);
-
-  const previewItems = [...premiumItems, ...regularItems].slice(0, 5);
+  // Get 5 rare items for preview
+  const rareItems = chest.prizes.filter(prize => prize.rarity === 'rare' || prize.rarity === 'epic' || prize.rarity === 'legendary').slice(0, 5);
 
   const getButtonContent = () => {
     if (loading) {
@@ -133,11 +119,11 @@ const ChestCard = ({ chest, chestType, onOpen, onViewItems, balance }: ChestCard
   };
 
   return (
-    <Card className={`relative overflow-hidden ${chestBorderColor} bg-card/50 hover:bg-card/70 transition-all duration-300 group h-full border-2`}>
-      <CardContent className="p-6 flex flex-col h-full">
-        {/* Chest Image - Increased size */}
-        <div className="relative mb-6 flex justify-center">
-          <div className="w-32 h-32 rounded-lg flex items-center justify-center shadow-lg group-hover:scale-105 transition-transform duration-300">
+    <Card className={`relative overflow-hidden ${chestBorderColor} bg-card/50 hover:bg-card/70 transition-all duration-300 group h-full border-2 aspect-[4/5]`}>
+      <CardContent className="p-4 flex flex-col h-full">
+        {/* Chest Image */}
+        <div className="relative mb-4 flex justify-center">
+          <div className="w-24 h-24 rounded-lg flex items-center justify-center shadow-lg group-hover:scale-105 transition-transform duration-300">
             <img 
               src={chestImage} 
               alt={chest.name}
@@ -148,7 +134,7 @@ const ChestCard = ({ chest, chestType, onOpen, onViewItems, balance }: ChestCard
           {/* View Items Button */}
           <button
             onClick={onViewItems}
-            className={`absolute top-1 right-1 bg-gradient-to-r ${chestColor} text-white px-3 py-2 rounded-full text-xs font-medium transition-all duration-200 flex items-center space-x-1 hover:scale-105`}
+            className={`absolute top-1 right-1 bg-gradient-to-r ${chestColor} text-white px-2 py-1 rounded-full text-xs font-medium transition-all duration-200 flex items-center space-x-1 hover:scale-105`}
           >
             <Eye className="w-3 h-3" />
             <span>ver</span>
@@ -156,45 +142,32 @@ const ChestCard = ({ chest, chestType, onOpen, onViewItems, balance }: ChestCard
         </div>
 
         {/* Chest Info */}
-        <div className="text-center mb-4 flex-grow">
-          <h3 className="text-xl font-bold text-primary mb-2">{chest.name}</h3>
+        <div className="text-center mb-3 flex-grow">
+          <h3 className="text-lg font-bold text-primary mb-1">{chest.name}</h3>
           
-          <div className="text-2xl font-bold text-white mb-4">
+          <div className="text-xl font-bold text-white mb-3">
             R$ {chest.price.toFixed(2).replace('.', ',')}
           </div>
 
-          {/* Items count */}
-          <div className="mb-4">
-            <Badge variant="outline" className="text-primary border-primary mb-2">
-              {chestItems.length} itens disponíveis
-            </Badge>
-          </div>
-
-          {/* Preview of items - Improved layout */}
-          <div className="mb-4">
-            <p className="text-sm text-muted-foreground mb-3 font-medium">Você pode ganhar:</p>
-            <div className="grid grid-cols-5 gap-2">
-              {previewItems.map((item, index) => (
-                <div key={index} className="flex flex-col items-center">
-                  <ItemCard 
-                    item={{
-                      name: item.name,
-                      image_url: item.image_url,
-                      rarity: item.rarity as 'common' | 'rare' | 'epic' | 'legendary' | 'special',
-                      description: item.description
-                    }}
-                    size="sm"
-                    showRarity={false}
-                    className="hover:transform-none hover:scale-105 transition-transform duration-200"
-                  />
+          {/* Preview of rare items */}
+          <div className="mb-3">
+            <p className="text-xs text-muted-foreground mb-2">Você pode ganhar:</p>
+            <div className="flex justify-center space-x-1">
+              {rareItems.map((item, index) => (
+                <div key={index} className="relative group/item">
+                  <div className={`w-12 h-12 rounded-lg ${rarityStyles[item.rarity] || rarityStyles.common} flex items-center justify-center transition-all duration-200 hover:scale-105`}>
+                    <img 
+                      src={item.image || '/placeholder.svg'} 
+                      alt={item.name}
+                      className="w-8 h-8 object-contain"
+                    />
+                  </div>
+                  <div className="absolute -bottom-4 left-1/2 transform -translate-x-1/2 text-xs text-white font-medium truncate w-16 text-center opacity-0 group-hover/item:opacity-100 transition-opacity">
+                    {item.name}
+                  </div>
                 </div>
               ))}
             </div>
-            {chestItems.length > 5 && (
-              <p className="text-xs text-muted-foreground mt-2">
-                +{chestItems.length - 5} itens adicionais
-              </p>
-            )}
           </div>
         </div>
 
@@ -202,7 +175,7 @@ const ChestCard = ({ chest, chestType, onOpen, onViewItems, balance }: ChestCard
         <Button
           onClick={handleOpenChest}
           disabled={!canPurchase || loading}
-          className={`w-full font-bold transition-all duration-300 text-base py-3 ${
+          className={`w-full font-bold transition-all duration-300 text-sm ${
             canPurchase 
               ? `bg-gradient-to-r ${chestColor} text-black hover:opacity-90 hover:scale-105` 
               : 'bg-gray-600 text-gray-300 cursor-not-allowed'
@@ -215,7 +188,7 @@ const ChestCard = ({ chest, chestType, onOpen, onViewItems, balance }: ChestCard
         {getStatusMessage() && (
           <Badge 
             variant="destructive" 
-            className="mt-2 text-xs text-center w-full"
+            className="mt-1 text-xs text-center w-full"
           >
             {getStatusMessage()}
           </Badge>

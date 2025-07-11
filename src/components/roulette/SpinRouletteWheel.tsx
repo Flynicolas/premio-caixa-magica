@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { useRouletteAudio } from '@/hooks/useRouletteAudio';
 import { useRouletteAnimation } from './useRouletteAnimation';
@@ -24,7 +23,7 @@ const SpinRouletteWheel = ({
   const { audioState, toggleMute } = useRouletteAudio();
   const theme = chestThemes[chestType as keyof typeof chestThemes] || chestThemes.silver;
 
-  const { trackRef, containerRef, startSpin, cleanup } = useRouletteAnimation({
+  const { trackRef, containerRef, startSpin } = useRouletteAnimation({
     rouletteData,
     isAnimating,
     onAnimationComplete: (transform) => {
@@ -53,11 +52,6 @@ const SpinRouletteWheel = ({
       startSpin();
     }
   }, [isSpinning, rouletteData, isAnimating, startSpin]);
-
-  // Cleanup na desmontagem
-  useEffect(() => {
-    return cleanup;
-  }, [cleanup]);
 
   if (!rouletteData) {
     return (
