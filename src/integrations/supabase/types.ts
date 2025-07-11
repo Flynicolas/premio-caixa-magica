@@ -657,6 +657,36 @@ export type Database = {
           },
         ]
       }
+      metas_baus: {
+        Row: {
+          created_at: string
+          id: string
+          meta_valor: number
+          nome_bau: string
+          notificacao_enviada: boolean
+          updated_at: string
+          valor_atual: number
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          meta_valor?: number
+          nome_bau: string
+          notificacao_enviada?: boolean
+          updated_at?: string
+          valor_atual?: number
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          meta_valor?: number
+          nome_bau?: string
+          notificacao_enviada?: boolean
+          updated_at?: string
+          valor_atual?: number
+        }
+        Relationships: []
+      }
       profiles: {
         Row: {
           achievements: Json | null

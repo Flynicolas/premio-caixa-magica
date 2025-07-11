@@ -1,12 +1,15 @@
 
-import React from 'react';
+import React, { useState } from 'react';
 import { TableCell, TableRow } from '@/components/ui/table';
 import { Badge } from '@/components/ui/badge';
 import { Switch } from '@/components/ui/switch';
 import { Button } from '@/components/ui/button';
-import { Edit, Trash2, Image } from 'lucide-react';
+import { Input } from '@/components/ui/input';
+import { Edit, Trash2, Image, Save } from 'lucide-react';
 import { DatabaseItem } from '@/types/database';
 import ItemChestAssignment from '../ItemChestAssignment';
+import { supabase } from '@/integrations/supabase/client';
+import { toast } from 'sonner';
 
 interface ItemTableRowProps {
   item: DatabaseItem;
@@ -17,6 +20,35 @@ interface ItemTableRowProps {
 }
 
 const ItemTableRow = ({ item, onEdit, onDelete, onToggleActive, onUpdate }: ItemTableRowProps) => {
+  const [probability, setProbability] = useState(item.probability_weight || 0);
+  const [isSaving, setIsSaving] = useState(false);
+
+  const handleProbabilityChange = (value: string) => {
+    const numValue = parseInt(value) || 0;
+    if (numValue >= 0 && numValue <= 100) {
+      setProbability(numValue);
+    }
+  };
+
+  const saveProbability = async () => {
+    setIsSaving(true);
+    try {
+      const { error } = await supabase
+        .from('items')
+        .update({ probability_weight: probability })
+        .eq('id', item.id);
+
+      if (error) throw error;
+      
+      toast.success('Probabilidade atualizada!');
+      onUpdate();
+    } catch (error) {
+      console.error('Erro ao atualizar probabilidade:', error);
+      toast.error('Erro ao atualizar probabilidade');
+    } finally {
+      setIsSaving(false);
+    }
+  };
   const getRarityColor = (rarity: string) => {
     switch (rarity) {
       case 'common': return 'bg-gray-500';
@@ -55,6 +87,26 @@ const ItemTableRow = ({ item, onEdit, onDelete, onToggleActive, onUpdate }: Item
         <Badge className={`text-white ${getRarityColor(item.rarity)}`}>
           {item.rarity}
         </Badge>
+      </TableCell>
+      <TableCell>
+        <div className="flex items-center space-x-2">
+          <Input
+            type="number"
+            min="0"
+            max="100"
+            value={probability}
+            onChange={(e) => handleProbabilityChange(e.target.value)}
+            className="w-20"
+          />
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={saveProbability}
+            disabled={isSaving || probability === item.probability_weight}
+          >
+            <Save className="w-4 h-4" />
+          </Button>
+        </div>
       </TableCell>
       <TableCell>
         <ItemChestAssignment 
