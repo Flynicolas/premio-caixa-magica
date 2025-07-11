@@ -1,8 +1,8 @@
-import { useState, useEffect } from 'react';
+import { useEffect } from 'react';
 import { useRouletteAudio } from '@/hooks/useRouletteAudio';
-import { useRouletteAnimation } from './useRouletteAnimation';
+import { useNewRouletteAnimation } from './useNewRouletteAnimation';
 import { RouletteControls } from './RouletteControls';
-import { RouletteTrack } from './RouletteTrack';
+import { NewRouletteTrack } from './NewRouletteTrack';
 import { RouletteParticles } from './RouletteParticles';
 import { WinnerDisplay } from './WinnerDisplay';
 import { SpinRouletteWheelProps } from './types';
@@ -15,46 +15,38 @@ const SpinRouletteWheel = ({
   className = '',
   chestType = 'silver'
 }: SpinRouletteWheelProps) => {
-  const [isAnimating, setIsAnimating] = useState(false);
-  const [showWinner, setShowWinner] = useState(false);
-  const [showParticles, setShowParticles] = useState(false);
-  const [finalTransform, setFinalTransform] = useState('');
-
   const { audioState, toggleMute } = useRouletteAudio();
   const theme = chestThemes[chestType as keyof typeof chestThemes] || chestThemes.silver;
 
-  const { trackRef, containerRef, startSpin } = useRouletteAnimation({
-    rouletteData,
+  const { 
+    trackRef, 
+    containerRef, 
+    startSpin, 
+    resetRoulette,
+    state,
     isAnimating,
-    onAnimationComplete: (transform) => {
-      setFinalTransform(transform);
-      setIsAnimating(false);
-    },
-    onShowWinner: () => {
-      setShowWinner(true);
-      
-      // Mostrar partículas para itens épicos ou superiores
-      if (rouletteData?.winnerItem && ['epic', 'legendary', 'special'].includes(rouletteData.winnerItem.rarity)) {
-        setShowParticles(true);
-        setTimeout(() => setShowParticles(false), 3000);
-      }
-    },
+    canSpin
+  } = useNewRouletteAnimation({
+    rouletteData,
     onSpinComplete
   });
 
-  // Trigger externo para iniciar o giro - com proteção contra reinicialização
+  // Trigger externo para iniciar o giro
   useEffect(() => {
-    if (isSpinning && rouletteData && !isAnimating && !showWinner) {
+    if (isSpinning && rouletteData && canSpin) {
       console.log('Iniciando nova animação da roleta');
-      setIsAnimating(true);
-      setShowWinner(false);
-      setShowParticles(false);
-      setFinalTransform('');
       startSpin();
-    } else if (isSpinning && (isAnimating || showWinner)) {
-      console.log('Ignorando tentativa de reiniciar roleta - animação em andamento ou já finalizada');
+    } else if (isSpinning && !canSpin) {
+      console.log('Ignorando tentativa de reiniciar roleta - animação em andamento');
     }
-  }, [isSpinning, rouletteData, isAnimating, showWinner, startSpin]);
+  }, [isSpinning, rouletteData, canSpin, startSpin]);
+
+  // Reset quando rouletteData muda
+  useEffect(() => {
+    if (!isSpinning) {
+      resetRoulette();
+    }
+  }, [rouletteData, isSpinning, resetRoulette]);
 
   if (!rouletteData) {
     return (
@@ -90,12 +82,11 @@ const SpinRouletteWheel = ({
       {/* Container da Roleta */}
       <div className={`relative w-full max-w-4xl mx-auto h-40 overflow-hidden rounded-xl border-4 ${theme.border} ${theme.bg} backdrop-blur-sm`}>
         {/* Trilha dos Itens */}
-        <RouletteTrack 
+        <NewRouletteTrack 
           ref={trackRef}
           rouletteSlots={rouletteSlots}
           centerIndex={centerIndex}
-          showWinner={showWinner}
-          finalTransform={finalTransform}
+          state={state}
         />
 
         {/* Zona de Destaque Central */}
@@ -104,7 +95,7 @@ const SpinRouletteWheel = ({
         </div>
 
         {/* Efeito de Partículas para Itens Raros */}
-        <RouletteParticles show={showParticles} />
+        <RouletteParticles show={state === 'winner' && rouletteData?.winnerItem && ['epic', 'legendary', 'special'].includes(rouletteData.winnerItem.rarity)} />
       </div>
 
       {/* Indicador de Girando */}
@@ -117,8 +108,8 @@ const SpinRouletteWheel = ({
       )}
 
       {/* Anúncio do Vencedor */}
-      {showWinner && winnerItem && (
-        <WinnerDisplay winnerItem={winnerItem} show={showWinner} />
+      {state === 'winner' && winnerItem && (
+        <WinnerDisplay winnerItem={winnerItem} show={true} />
       )}
     </div>
   );
