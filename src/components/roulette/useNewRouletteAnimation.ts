@@ -1,3 +1,4 @@
+
 import { useRef, useCallback } from 'react';
 import { RouletteData } from './types';
 import { useRouletteAudio } from '@/hooks/useRouletteAudio';
@@ -40,6 +41,47 @@ export const useNewRouletteAnimation = ({
     }
   }, []);
 
+  // Função para medir dinamicamente as posições reais dos elementos
+  const measureRealPositions = useCallback(() => {
+    if (!containerRef.current) return null;
+
+    const containerRect = containerRef.current.getBoundingClientRect();
+    
+    // Medir posição da seta
+    const arrowElement = document.querySelector('.absolute.-top-8.left-1\\/2.transform.-translate-x-1\\/2') as HTMLElement;
+    let arrowCenterX = containerRect.width / 2; // fallback
+    
+    if (arrowElement) {
+      const arrowRect = arrowElement.getBoundingClientRect();
+      arrowCenterX = arrowRect.left + arrowRect.width / 2 - containerRect.left;
+    }
+
+    // Medir posição do quadrado pontilhado (zona de destaque)
+    const targetZoneElement = document.querySelector('.absolute.top-0.left-1\\/2.transform.-translate-x-1\\/2.w-32') as HTMLElement;
+    let targetCenterX = containerRect.width / 2; // fallback
+    
+    if (targetZoneElement) {
+      const targetRect = targetZoneElement.getBoundingClientRect();
+      targetCenterX = targetRect.left + targetRect.width / 2 - containerRect.left;
+    }
+
+    // Medir largura real de um item
+    const itemElement = trackRef.current?.querySelector('[data-item-index="0"]') as HTMLElement;
+    let realItemWidth = 140; // fallback
+    
+    if (itemElement) {
+      const itemRect = itemElement.getBoundingClientRect();
+      realItemWidth = itemRect.width + 16; // incluindo margin
+    }
+
+    return {
+      containerWidth: containerRect.width,
+      arrowCenterX,
+      targetCenterX,
+      realItemWidth
+    };
+  }, []);
+
   const startSpin = useCallback(() => {
     if (!rouletteData || !canSpin || !trackRef.current || !containerRef.current) {
       return;
@@ -47,50 +89,38 @@ export const useNewRouletteAnimation = ({
 
     const { centerIndex, rouletteSlots } = rouletteData;
     
-    // MEDIR EXATAMENTE ONDE A SETA ESTÁ
-    const containerRect = containerRef.current.getBoundingClientRect();
-    const setaElement = document.querySelector('.absolute.-top-8.left-1\\/2') as HTMLElement;
+    // Medir posições reais dinamicamente
+    const measurements = measureRealPositions();
+    if (!measurements) return;
+
+    const { targetCenterX, realItemWidth } = measurements;
     
-    let setaPosicao = containerRect.width / 2; // fallback
-    if (setaElement) {
-      const setaRect = setaElement.getBoundingClientRect();
-      setaPosicao = setaRect.left + setaRect.width / 2 - containerRect.left;
-    }
-    
-    // MEDIR EXATAMENTE ONDE O QUADRADO PONTILHADO ESTÁ
-    const quadradoElement = document.querySelector('.absolute.top-0.left-1\\/2.transform.-translate-x-1\\/2.w-32') as HTMLElement;
-    let quadradoPosicao = containerRect.width / 2; // fallback
-    if (quadradoElement) {
-      const quadradoRect = quadradoElement.getBoundingClientRect();
-      quadradoPosicao = quadradoRect.left + quadradoRect.width / 2 - containerRect.left;
-    }
-    
-    console.log('🎯 POSIÇÕES REAIS:', {
-      setaPosicao: setaPosicao + 'px',
-      quadradoPosicao: quadradoPosicao + 'px',
-      diferenca: Math.abs(setaPosicao - quadradoPosicao) + 'px'
-    });
-    
-    // USAR A POSIÇÃO DO QUADRADO PONTILHADO COMO REFERÊNCIA
-    const alvoFinal = quadradoPosicao;
-    
-    // Calcular onde o centro do item vencedor deve ficar
-    const ITEM_WIDTH = 140;
-    const rotacoes = 3;
-    const distanciaRotacoes = rotacoes * (rouletteSlots.length * ITEM_WIDTH);
-    
-    // Posição onde o item centerIndex estará depois das rotações
-    const posicaoItem = centerIndex * ITEM_WIDTH + 70; // centro do item
-    
-    // Distância para o item ficar EXATAMENTE no quadrado pontilhado
-    const distanciaTotal = distanciaRotacoes + posicaoItem - alvoFinal;
-    
-    console.log('🎯 CÁLCULO DIRETO:', {
+    console.log('🎯 MEDIÇÕES DINÂMICAS:', {
+      targetCenterX: targetCenterX + 'px',
+      realItemWidth: realItemWidth + 'px',
       centerIndex,
-      alvoFinal,
-      posicaoItem,
-      distanciaTotal,
-      verificacao: `Item ficará em ${posicaoItem - distanciaTotal}px = Alvo em ${alvoFinal}px`
+      totalSlots: rouletteSlots.length
+    });
+
+    // Calcular posicionamento preciso
+    const rotations = 3; // número de voltas completas
+    const trackTotalWidth = rouletteSlots.length * realItemWidth;
+    const distanciaRotacoes = rotations * trackTotalWidth;
+    
+    // Posição onde o centro do item vencedor estará (considerando que usamos 3 repetições da trilha)
+    const targetDuplicateIndex = 2; // terceira repetição onde o item deve parar
+    const itemPositionInTrack = (targetDuplicateIndex * trackTotalWidth) + (centerIndex * realItemWidth) + (realItemWidth / 2);
+    
+    // Distância total para o item ficar exatamente no centro da zona de destaque
+    const totalDistance = itemPositionInTrack - targetCenterX;
+    
+    console.log('🚀 CÁLCULO PRECISO:', {
+      rotations,
+      trackTotalWidth,
+      itemPositionInTrack,
+      targetCenterX,
+      totalDistance,
+      verificacao: `Item ficará em ${itemPositionInTrack - totalDistance}px = Target em ${targetCenterX}px`
     });
     
     // Limpar animação anterior
@@ -111,9 +141,9 @@ export const useNewRouletteAnimation = ({
     animationRef.current = window.setTimeout(() => {
       if (trackRef.current) {
         trackRef.current.style.transition = 'transform 4000ms cubic-bezier(0.25, 0.1, 0.25, 1)';
-        trackRef.current.style.transform = `translateX(-${distanciaTotal}px)`;
+        trackRef.current.style.transform = `translateX(-${totalDistance}px)`;
         
-        console.log('🚀 Animação aplicada medindo posições reais:', `translateX(-${distanciaTotal}px)`);
+        console.log('🎰 Animação aplicada com medições dinâmicas:', `translateX(-${totalDistance}px)`);
         
         // Após 4 segundos, parar sons e mostrar winner
         animationRef.current = window.setTimeout(() => {
@@ -121,10 +151,26 @@ export const useNewRouletteAnimation = ({
           stopBackgroundMusic();
           setState('stopping');
 
-          console.log('Parando animação, mostrando winner');
+          console.log('🏆 Parando animação, verificando posicionamento final');
 
-          // Mostrar efeito de winner
+          // Verificar posicionamento final e fazer micro-ajuste se necessário
           animationRef.current = window.setTimeout(() => {
+            const finalMeasurements = measureRealPositions();
+            if (finalMeasurements && trackRef.current) {
+              const currentTransform = trackRef.current.style.transform;
+              const currentDistance = parseFloat(currentTransform.replace('translateX(-', '').replace('px)', ''));
+              
+              // Calcular se precisa de micro-ajuste
+              const itemFinalPosition = itemPositionInTrack - currentDistance;
+              const offset = finalMeasurements.targetCenterX - itemFinalPosition;
+              
+              if (Math.abs(offset) > 2) { // Se o offset for maior que 2px, fazer micro-ajuste
+                const adjustedDistance = currentDistance + offset;
+                trackRef.current.style.transform = `translateX(-${adjustedDistance}px)`;
+                console.log('🔧 Micro-ajuste aplicado:', offset + 'px');
+              }
+            }
+
             setState('winner');
             
             // Som especial para itens raros
@@ -135,7 +181,7 @@ export const useNewRouletteAnimation = ({
             // Abrir popup após efeito de destaque
             animationRef.current = window.setTimeout(() => {
               setState('complete');
-              console.log('Abrindo popup do prêmio');
+              console.log('🎉 Abrindo popup do prêmio');
               onSpinComplete?.(rouletteData.winnerItem);
             }, 1500);
           }, 300);
@@ -153,7 +199,8 @@ export const useNewRouletteAnimation = ({
     stopTickLoop,
     stopBackgroundMusic,
     playRareItemSound,
-    onSpinComplete
+    onSpinComplete,
+    measureRealPositions
   ]);
 
   const resetRoulette = useCallback(() => {
@@ -162,7 +209,7 @@ export const useNewRouletteAnimation = ({
     stopBackgroundMusic();
     resetTrack();
     reset();
-    console.log('Roleta resetada');
+    console.log('🔄 Roleta resetada');
   }, [clearAnimation, stopTickLoop, stopBackgroundMusic, resetTrack, reset]);
 
   return {
