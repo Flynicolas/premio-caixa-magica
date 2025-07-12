@@ -191,7 +191,6 @@ const ItemManagementTab = () => {
                     <TableHead>Nome</TableHead>
                     <TableHead>Preço</TableHead>
                     <TableHead>Raridade</TableHead>
-                    <TableHead>Probabilidade (0-100)</TableHead>
                     <TableHead>Baús Atribuídos</TableHead>
                     <TableHead>Status</TableHead>
                     <TableHead>Ações</TableHead>

@@ -4,6 +4,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Progress } from '@/components/ui/progress';
 import { useWalletAdmin } from '@/hooks/useWalletAdmin';
+import ChestGoalsWidget from './ChestGoalsWidget';
 import { 
   DollarSign, 
   TrendingUp, 
@@ -40,6 +41,9 @@ const WalletControlPanel = () => {
 
   return (
     <div className="space-y-6">
+      {/* Widget de Metas */}
+      <ChestGoalsWidget />
+      
       {/* Métricas Principais */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
         <Card>
