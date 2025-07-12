@@ -341,26 +341,42 @@ export const useProfile = () => {
   useEffect(() => {
     if (user) {
       const loadData = async () => {
-        setLoading(true);
-        await Promise.all([
-          fetchProfile(),
-          fetchAllLevels(),
-          fetchAchievements()
-        ]);
-        setLoading(false);
+        try {
+          setLoading(true);
+          await Promise.all([
+            fetchProfile(),
+            fetchAllLevels(),
+            fetchAchievements()
+          ]);
+        } catch (error) {
+          console.error('Error loading profile data:', error);
+        } finally {
+          setLoading(false);
+        }
       };
       loadData();
+    } else {
+      setLoading(false);
     }
   }, [user]);
 
   useEffect(() => {
     if (profile) {
-      fetchUserLevel();
-      fetchUserAchievements();
-      fetchActivities();
-      checkAchievements();
+      const loadProfileData = async () => {
+        try {
+          await Promise.all([
+            fetchUserLevel(),
+            fetchUserAchievements(),
+            fetchActivities()
+          ]);
+          await checkAchievements();
+        } catch (error) {
+          console.error('Error loading profile specific data:', error);
+        }
+      };
+      loadProfileData();
     }
-  }, [profile, achievements]);
+  }, [profile]);
 
   return {
     profile,

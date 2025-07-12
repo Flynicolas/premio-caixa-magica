@@ -40,12 +40,12 @@ const Perfil = () => {
     return allLevels.find(level => level.level === userLevel.level + 1);
   };
 
-  if (loading || !profile || !userLevel) {
+  if (loading) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-gray-900 via-black to-gray-900">
         <div className="container mx-auto px-4 py-8 text-center">
-        <div className="w-12 h-12 border-4 border-primary border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
-        <p className="text-lg">Carregando seu perfil...</p>
+          <div className="w-12 h-12 border-4 border-primary border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
+          <p className="text-lg">Carregando perfil...</p>
         </div>
       </div>
     );
@@ -55,7 +55,18 @@ const Perfil = () => {
     return (
       <div className="min-h-screen bg-gradient-to-br from-gray-900 via-black to-gray-900">
         <div className="container mx-auto px-4 py-8 text-center">
-        <p className="text-lg text-muted-foreground">Você precisa estar logado para ver seu perfil.</p>
+          <p className="text-lg text-muted-foreground">Você precisa estar logado para ver seu perfil.</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (!profile) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-gray-900 via-black to-gray-900">
+        <div className="container mx-auto px-4 py-8 text-center">
+          <div className="w-12 h-12 border-4 border-primary border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
+          <p className="text-lg">Carregando dados do perfil...</p>
         </div>
       </div>
     );
@@ -82,10 +93,10 @@ const Perfil = () => {
               <p className="text-muted-foreground">{profile.email}</p>
               <div className="flex items-center space-x-3">
                 <Badge variant="outline" className="flex items-center space-x-1">
-                  <span className="text-lg">{userLevel.icon}</span>
-                  <span>Nível {userLevel.level}</span>
+                  <span className="text-lg">{userLevel?.icon || '🎯'}</span>
+                  <span>Nível {userLevel?.level || 1}</span>
                 </Badge>
-                <Badge variant="secondary">{userLevel.name}</Badge>
+                <Badge variant="secondary">{userLevel?.name || 'Iniciante'}</Badge>
                 {profile.username && (
                   <Badge variant="outline">@{profile.username}</Badge>
                 )}
@@ -136,18 +147,20 @@ const Perfil = () => {
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
             <div className="lg:col-span-2 space-y-6">
               {/* Level Progress */}
-              <LevelProgressCard 
-                currentLevel={{
-                  ...userLevel,
-                  min_experience: allLevels.find(l => l.level === userLevel.level)?.min_experience || 0,
-                  max_experience: allLevels.find(l => l.level === userLevel.level)?.max_experience
-                }}
-                nextLevel={getNextLevel() ? {
-                  ...getNextLevel()!,
-                  benefits: getNextLevel()!.benefits
-                } : undefined}
-                experience={profile.experience_points}
-              />
+              {userLevel && (
+                <LevelProgressCard 
+                  currentLevel={{
+                    ...userLevel,
+                    min_experience: allLevels.find(l => l.level === userLevel.level)?.min_experience || 0,
+                    max_experience: allLevels.find(l => l.level === userLevel.level)?.max_experience
+                  }}
+                  nextLevel={getNextLevel() ? {
+                    ...getNextLevel()!,
+                    benefits: getNextLevel()!.benefits
+                  } : undefined}
+                  experience={profile.experience_points}
+                />
+              )}
               
               {/* Recent Achievements */}
               <Card>
