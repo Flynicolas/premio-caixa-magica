@@ -1,4 +1,3 @@
-
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -43,10 +42,10 @@ const PaymentModal = ({
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="max-w-full sm:max-w-md w-full mx-4 sm:mx-auto bg-card border-primary/20">
+      <DialogContent className="max-w-md bg-card border-primary/20">
         <DialogHeader>
           <div className="flex items-center justify-between">
-            <DialogTitle className="flex items-center text-lg sm:text-xl text-primary">
+            <DialogTitle className="flex items-center text-xl text-primary">
               <div className="w-6 h-6 mr-2 rounded flex items-center justify-center">
                 <img 
                   src="/lovable-uploads/1b23f313-78a7-4d82-9c0a-1c992d7be9c0.png" 
@@ -60,17 +59,16 @@ const PaymentModal = ({
               variant="ghost"
               size="sm"
               onClick={onClose}
-              className="h-8 w-8 p-0 touch-manipulation"
-              style={{ minHeight: '44px', minWidth: '44px' }}
+              className="h-8 w-8 p-0"
             >
               <X className="h-4 w-4" />
             </Button>
           </div>
         </DialogHeader>
 
-        <div className="space-y-6 py-4">
+        <div className="space-y-6">
           <div className="text-center">
-            <p className="text-sm sm:text-base text-muted-foreground mb-4">
+            <p className="text-muted-foreground mb-4">
               {description}
             </p>
             
@@ -91,20 +89,20 @@ const PaymentModal = ({
                 placeholder="0,00"
                 value={amount}
                 onChange={(e) => setAmount(e.target.value)}
-                className="text-center text-lg font-bold bg-secondary border-primary/20 focus:border-primary h-12 w-full"
+                className="text-center text-lg font-bold bg-secondary border-primary/20 focus:border-primary"
                 min="1"
                 step="0.01"
               />
             </div>
 
-            <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
+            <div className="grid grid-cols-3 gap-2">
               {quickAmounts.map(quickAmount => (
                 <Button
                   key={quickAmount}
                   variant="outline"
                   size="sm"
                   onClick={() => handleQuickAmount(quickAmount)}
-                  className="border-primary/20 hover:border-primary hover:bg-primary/10 h-12 text-sm sm:text-base touch-manipulation"
+                  className="border-primary/20 hover:border-primary hover:bg-primary/10"
                 >
                   R$ {quickAmount}
                 </Button>
@@ -116,7 +114,7 @@ const PaymentModal = ({
             <Button
               onClick={handlePayment}
               disabled={!amount || parseFloat(amount) <= 0 || loading}
-              className="w-full gold-gradient text-black font-bold hover:opacity-90 h-12 sm:h-14 text-sm sm:text-base touch-manipulation"
+              className="w-full gold-gradient text-black font-bold hover:opacity-90 h-12"
             >
               {loading ? (
                 "Processando..."

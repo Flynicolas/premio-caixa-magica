@@ -35,69 +35,6 @@
     @apply bg-background text-foreground font-medium;
     background: radial-gradient(ellipse at center, hsl(0 0% 5%) 0%, hsl(0 0% 2%) 100%);
     min-height: 100vh;
-    /* Responsive typography */
-    font-size: clamp(14px, 2.5vw, 18px);
-  }
-
-  /* Mobile-first responsive containers */
-  .container {
-    width: 100%;
-    margin-left: auto;
-    margin-right: auto;
-    padding-left: max(1rem, 4vw);
-    padding-right: max(1rem, 4vw);
-  }
-
-  /* Responsive headings */
-  h1 { font-size: clamp(1.75rem, 5vw, 3.5rem); }
-  h2 { font-size: clamp(1.5rem, 4vw, 2.5rem); }
-  h3 { font-size: clamp(1.25rem, 3vw, 2rem); }
-  h4 { font-size: clamp(1.125rem, 2.5vw, 1.5rem); }
-  h5 { font-size: clamp(1rem, 2vw, 1.25rem); }
-  h6 { font-size: clamp(0.875rem, 1.5vw, 1.125rem); }
-
-  /* Responsive spacing */
-  .space-y-responsive > * + * {
-    margin-top: clamp(0.5rem, 2vw, 1.5rem);
-  }
-
-  .space-x-responsive > * + * {
-    margin-left: clamp(0.5rem, 2vw, 1.5rem);
-  }
-
-  /* Touch-friendly interactive elements */
-  button, a, input[type="button"], input[type="submit"] {
-    min-height: 44px;
-    min-width: 44px;
-  }
-
-  /* Prevent horizontal scroll */
-  html, body {
-    overflow-x: hidden;
-    max-width: 100vw;
-  }
-
-  /* Mobile-optimized images */
-  img {
-    max-width: 100%;
-    height: auto;
-  }
-
-  /* Mobile-friendly tables */
-  .table-responsive {
-    overflow-x: auto;
-    -webkit-overflow-scrolling: touch;
-  }
-
-  /* Mobile form elements */
-  input, textarea, select {
-    font-size: 16px; /* Prevents zoom on iOS */
-  }
-
-  @media (max-width: 768px) {
-    input, textarea, select {
-      width: 100%;
-    }
   }
 }
 
@@ -130,30 +67,6 @@
   
   .spin-slow {
     animation: spin 3s linear infinite;
-  }
-
-  /* Mobile utilities */
-  .touch-manipulation {
-    touch-action: manipulation;
-  }
-
-  .mobile-full {
-    @apply w-full;
-  }
-
-  @media (max-width: 768px) {
-    .mobile-full {
-      width: 100% !important;
-    }
-    
-    .mobile-center {
-      text-align: center !important;
-    }
-    
-    .mobile-stack > * {
-      width: 100% !important;
-      margin-bottom: 1rem !important;
-    }
   }
 }
 

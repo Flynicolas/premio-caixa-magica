@@ -43,7 +43,7 @@ const HeroSlider = () => {
   };
 
   return (
-    <div className="relative h-48 sm:h-64 md:h-80 lg:h-96 overflow-hidden rounded-lg bg-gradient-to-r from-primary/10 to-secondary/10">
+    <div className="relative h-96 overflow-hidden rounded-lg bg-gradient-to-r from-primary/10 to-secondary/10">
       {slides.map((slide, index) => (
         <div
           key={slide.id}
@@ -58,48 +58,33 @@ const HeroSlider = () => {
           }}
         >
           <div className="absolute inset-0 bg-black/20" />
-          
-          {/* Slide Content */}
-          <div className="absolute inset-0 flex items-center justify-center p-4 sm:p-6 md:p-8">
-            <div className="text-center text-white max-w-lg">
-              <h2 className="text-xl sm:text-2xl md:text-3xl lg:text-4xl font-bold mb-2 sm:mb-4">
-                {slide.title}
-              </h2>
-              <p className="text-sm sm:text-base md:text-lg opacity-90">
-                {slide.subtitle}
-              </p>
-            </div>
-          </div>
         </div>
       ))}
 
       {/* Navigation Arrows */}
       <button
         onClick={prevSlide}
-        className="absolute left-2 sm:left-4 top-1/2 transform -translate-y-1/2 bg-black/50 hover:bg-black/70 text-white p-2 sm:p-3 rounded-full transition-colors touch-manipulation"
-        style={{ minHeight: '44px', minWidth: '44px' }}
+        className="absolute left-4 top-1/2 transform -translate-y-1/2 bg-black/50 hover:bg-black/70 text-white p-2 rounded-full transition-colors"
       >
-        <ChevronLeft className="w-4 h-4 sm:w-6 sm:h-6" />
+        <ChevronLeft className="w-6 h-6" />
       </button>
 
       <button
         onClick={nextSlide}
-        className="absolute right-2 sm:right-4 top-1/2 transform -translate-y-1/2 bg-black/50 hover:bg-black/70 text-white p-2 sm:p-3 rounded-full transition-colors touch-manipulation"
-        style={{ minHeight: '44px', minWidth: '44px' }}
+        className="absolute right-4 top-1/2 transform -translate-y-1/2 bg-black/50 hover:bg-black/70 text-white p-2 rounded-full transition-colors"
       >
-        <ChevronRight className="w-4 h-4 sm:w-6 sm:h-6" />
+        <ChevronRight className="w-6 h-6" />
       </button>
 
       {/* Dots Indicator */}
-      <div className="absolute bottom-2 sm:bottom-4 left-1/2 transform -translate-x-1/2 flex space-x-2">
+      <div className="absolute bottom-4 left-1/2 transform -translate-x-1/2 flex space-x-2">
         {slides.map((_, index) => (
           <button
             key={index}
             onClick={() => setCurrentSlide(index)}
-            className={`w-3 h-3 sm:w-4 sm:h-4 rounded-full transition-colors touch-manipulation ${
+            className={`w-3 h-3 rounded-full transition-colors ${
               index === currentSlide ? 'bg-primary' : 'bg-white/50'
             }`}
-            style={{ minHeight: '44px', minWidth: '44px' }}
           />
         ))}
       </div>
