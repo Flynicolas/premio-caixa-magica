@@ -106,23 +106,28 @@ const Perfil = () => {
 
   if (loading || !profile || !userLevel) {
     return (
-      <div className="container mx-auto px-4 py-8 text-center">
+      <div className="min-h-screen bg-gradient-to-br from-gray-900 via-black to-gray-900">
+        <div className="container mx-auto px-4 py-8 text-center">
         <div className="w-12 h-12 border-4 border-primary border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
         <p className="text-lg">Carregando seu perfil...</p>
+        </div>
       </div>
     );
   }
 
   if (!user) {
     return (
-      <div className="container mx-auto px-4 py-8 text-center">
+      <div className="min-h-screen bg-gradient-to-br from-gray-900 via-black to-gray-900">
+        <div className="container mx-auto px-4 py-8 text-center">
         <p className="text-lg text-muted-foreground">Você precisa estar logado para ver seu perfil.</p>
+        </div>
       </div>
     );
   }
 
   return (
-    <div className="container mx-auto px-4 py-8 max-w-7xl">
+    <div className="min-h-screen bg-gradient-to-br from-gray-900 via-black to-gray-900">
+      <div className="container mx-auto px-4 py-8 max-w-7xl">
       {/* Header com informações básicas */}
       <div className="mb-8">
         <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-6">
@@ -245,6 +250,7 @@ const Perfil = () => {
             <ActivityTimeline activities={activities.slice(0, 10)} />
           </div>
         </div>
+      </div>
       </div>
     </div>
   );

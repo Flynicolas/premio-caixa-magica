@@ -22,7 +22,8 @@ const Admin = () => {
 
   if (!user) {
     return (
-      <div className="container mx-auto px-4 py-8">
+      <div className="min-h-screen bg-gradient-to-br from-gray-900 via-black to-gray-900">
+        <div className="container mx-auto px-4 py-8">
         <Card>
           <CardContent className="flex items-center justify-center py-8">
             <div className="text-center">
@@ -32,18 +33,21 @@ const Admin = () => {
             </div>
           </CardContent>
         </Card>
+        </div>
       </div>
     );
   }
 
   if (loading) {
     return (
-      <div className="container mx-auto px-4 py-8">
+      <div className="min-h-screen bg-gradient-to-br from-gray-900 via-black to-gray-900">
+        <div className="container mx-auto px-4 py-8">
         <div className="flex items-center justify-center">
           <div className="text-center">
             <div className="w-8 h-8 border-4 border-primary border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
             <p>Verificando permissões...</p>
           </div>
+        </div>
         </div>
       </div>
     );
@@ -51,7 +55,8 @@ const Admin = () => {
 
   if (!isAdmin) {
     return (
-      <div className="container mx-auto px-4 py-8">
+      <div className="min-h-screen bg-gradient-to-br from-gray-900 via-black to-gray-900">
+        <div className="container mx-auto px-4 py-8">
         <Card>
           <CardContent className="flex items-center justify-center py-8">
             <div className="text-center">
@@ -61,12 +66,14 @@ const Admin = () => {
             </div>
           </CardContent>
         </Card>
+        </div>
       </div>
     );
   }
 
   return (
-    <div className="container mx-auto px-4 py-8">
+    <div className="min-h-screen bg-gradient-to-br from-gray-900 via-black to-gray-900">
+      <div className="container mx-auto px-4 py-8">
       <div className="mb-8">
         <h1 className="text-3xl font-bold mb-2">Painel Administrativo</h1>
         <p className="text-muted-foreground">Gerencie o sistema de baús, itens, entregas e usuários</p>
@@ -145,6 +152,7 @@ const Admin = () => {
           <CollaboratorManagement />
         </TabsContent>
       </Tabs>
+      </div>
     </div>
   );
 };
