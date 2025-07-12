@@ -167,19 +167,19 @@ const ChestCard = ({ chest, chestType, onOpen, onViewItems, balance }: ChestCard
   };
 
   return (
-    <Card className={`relative overflow-hidden ${chestBorderColor} bg-card/50 hover:bg-card/70 transition-all duration-300 group h-full border-2 aspect-[4/5]`}>
-      <CardContent className="p-6 flex flex-col h-full">
-        {/* Header com nome e preço */}
-        <div className="text-center mb-6">
-          <h3 className="text-xl font-bold text-primary mb-2">{chest.name}</h3>
-          <div className="text-2xl font-bold text-white">
+    <Card className={`relative overflow-hidden ${chestBorderColor} bg-card/50 hover:bg-card/70 transition-all duration-300 group h-full border-2`}>
+      <CardContent className="p-8 flex flex-col h-full min-h-[520px]">
+        {/* Header com nome e preço - Mais espaçoso */}
+        <div className="text-center mb-8">
+          <h3 className="text-2xl font-bold text-primary mb-3">{chest.name}</h3>
+          <div className="text-3xl font-bold text-white">
             R$ {chest.price.toFixed(2).replace('.', ',')}
           </div>
         </div>
 
-        {/* Chest Image - Maior e mais destacada */}
-        <div className="relative mb-6 flex justify-center">
-          <div className="w-32 h-32 rounded-xl flex items-center justify-center shadow-2xl group-hover:scale-110 transition-transform duration-300 bg-gradient-to-br from-white/10 to-white/5 backdrop-blur-sm">
+        {/* Chest Image - Maior e centralizada */}
+        <div className="relative mb-8 flex justify-center">
+          <div className="w-40 h-40 rounded-xl flex items-center justify-center shadow-2xl group-hover:scale-110 transition-transform duration-300 bg-gradient-to-br from-white/10 to-white/5 backdrop-blur-sm">
             <img 
               src={chestImage} 
               alt={chest.name}
@@ -187,24 +187,26 @@ const ChestCard = ({ chest, chestType, onOpen, onViewItems, balance }: ChestCard
             />
           </div>
           
-          {/* View Items Button - Reposicionado */}
+          {/* View Items Button - Melhor posicionado */}
           <button
             onClick={onViewItems}
-            className={`absolute -top-2 -right-2 bg-gradient-to-r ${chestColor} text-white px-3 py-2 rounded-full text-sm font-medium transition-all duration-200 flex items-center space-x-2 hover:scale-105 shadow-lg`}
+            className={`absolute -top-3 -right-3 bg-gradient-to-r ${chestColor} text-white px-4 py-3 rounded-full text-sm font-medium transition-all duration-200 flex items-center space-x-2 hover:scale-105 shadow-lg`}
           >
             <Eye className="w-4 h-4" />
             <span>Ver Itens</span>
           </button>
         </div>
 
-        {/* Preview of items - Mais diagramado */}
-        <div className="mb-6 flex-grow">
-          <p className="text-sm text-muted-foreground mb-4 text-center font-medium">
-            🎁 Você pode ganhar:
-          </p>
+        {/* Preview of items - Mais organizado */}
+        <div className="mb-8 flex-grow">
+          <div className="text-center mb-6">
+            <p className="text-lg text-muted-foreground font-medium">
+              🎁 Você pode ganhar:
+            </p>
+          </div>
           
           {chestItems.length > 0 ? (
-            <div className="grid grid-cols-5 gap-2">
+            <div className="grid grid-cols-5 gap-3 justify-items-center">
               {chestItems.map((item, index) => (
                 <div key={item.id} className="relative group/item">
                   <ItemCard
@@ -216,45 +218,48 @@ const ChestCard = ({ chest, chestType, onOpen, onViewItems, balance }: ChestCard
                     }}
                     size="sm"
                     showRarity={false}
-                    className="hover:scale-105 transition-transform duration-200"
+                    className="hover:scale-110 transition-transform duration-200"
                   />
                   
-                  {/* Tooltip com nome do item */}
-                  <div className="absolute -bottom-8 left-1/2 transform -translate-x-1/2 text-xs text-white font-medium truncate w-20 text-center opacity-0 group-hover/item:opacity-100 transition-opacity bg-black/80 px-2 py-1 rounded z-10">
+                  {/* Tooltip com nome do item - Melhor posicionado */}
+                  <div className="absolute -bottom-10 left-1/2 transform -translate-x-1/2 text-xs text-white font-medium w-24 text-center opacity-0 group-hover/item:opacity-100 transition-opacity bg-black/90 px-3 py-2 rounded-lg z-10 truncate">
                     {item.name}
                   </div>
                 </div>
               ))}
             </div>
           ) : (
-            <div className="text-center text-muted-foreground text-sm">
+            <div className="text-center text-muted-foreground text-sm py-8">
               Carregando itens...
             </div>
           )}
         </div>
 
-        {/* Action Button */}
-        <Button
-          onClick={handleOpenChest}
-          disabled={!canPurchase || loading}
-          className={`w-full font-bold transition-all duration-300 text-lg py-6 ${
-            canPurchase 
-              ? `bg-gradient-to-r ${chestColor} text-black hover:opacity-90 hover:scale-105 shadow-lg` 
-              : 'bg-gray-600 text-gray-300 cursor-not-allowed'
-          }`}
-        >
-          {getButtonContent()}
-        </Button>
-
-        {/* Status Message */}
-        {getStatusMessage() && (
-          <Badge 
-            variant="destructive" 
-            className="mt-3 text-sm text-center w-full py-2"
+        {/* Espaço para garantir que o botão não fique apertado */}
+        <div className="mt-auto pt-6">
+          {/* Action Button - Mais espaçoso e visível */}
+          <Button
+            onClick={handleOpenChest}
+            disabled={!canPurchase || loading}
+            className={`w-full font-bold transition-all duration-300 text-xl py-8 ${
+              canPurchase 
+                ? `bg-gradient-to-r ${chestColor} text-black hover:opacity-90 hover:scale-105 shadow-lg` 
+                : 'bg-gray-600 text-gray-300 cursor-not-allowed'
+            }`}
           >
-            {getStatusMessage()}
-          </Badge>
-        )}
+            {getButtonContent()}
+          </Button>
+
+          {/* Status Message */}
+          {getStatusMessage() && (
+            <Badge 
+              variant="destructive" 
+              className="mt-4 text-sm text-center w-full py-3"
+            >
+              {getStatusMessage()}
+            </Badge>
+          )}
+        </div>
       </CardContent>
       
       {/* Chest Opening Modal */}
