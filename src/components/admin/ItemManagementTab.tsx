@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -114,8 +115,9 @@ const ItemManagementTab = () => {
     }
   };
 
-  const handleDelete = async (itemId: string, itemName: string) => {
-    if (confirm(`Tem certeza que deseja excluir o item "${itemName}"?`)) {
+  const handleDelete = async (itemId: string) => {
+    const item = items.find(i => i.id === itemId);
+    if (confirm(`Tem certeza que deseja excluir o item "${item?.name}"?`)) {
       try {
         await deleteItem(itemId);
         setTimeout(() => {
@@ -183,17 +185,18 @@ const ItemManagementTab = () => {
               </p>
             </div>
           ) : (
-            <div className="rounded-md border">
+            <div className="rounded-md border overflow-x-auto">
               <Table>
                 <TableHeader>
                   <TableRow>
-                    <TableHead>Imagem</TableHead>
-                    <TableHead>Nome</TableHead>
-                    <TableHead>Preço</TableHead>
-                    <TableHead>Raridade</TableHead>
-                    <TableHead>Baús Atribuídos</TableHead>
-                    <TableHead>Status</TableHead>
-                    <TableHead>Ações</TableHead>
+                    <TableHead className="min-w-[80px]">Imagem</TableHead>
+                    <TableHead className="min-w-[150px]">Nome</TableHead>
+                    <TableHead className="hidden md:table-cell min-w-[100px]">Categoria</TableHead>
+                    <TableHead className="min-w-[100px]">Raridade</TableHead>
+                    <TableHead className="min-w-[100px]">Preço</TableHead>
+                    <TableHead className="hidden lg:table-cell min-w-[100px]">Tipo Entrega</TableHead>
+                    <TableHead className="hidden sm:table-cell min-w-[80px]">Status</TableHead>
+                    <TableHead className="min-w-[120px]">Ações</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
@@ -203,8 +206,7 @@ const ItemManagementTab = () => {
                       item={item}
                       onEdit={handleEdit}
                       onDelete={handleDelete}
-                      onToggleActive={handleToggleActive}
-                      onUpdate={refetchItems}
+                      onUpdate={updateItem}
                     />
                   ))}
                 </TableBody>

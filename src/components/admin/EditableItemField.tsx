@@ -10,19 +10,23 @@ import { useToast } from '@/hooks/use-toast';
 interface EditableItemFieldProps {
   value: string | number;
   onSave: (newValue: any) => Promise<void>;
-  type: 'text' | 'number' | 'select';
+  type?: 'text' | 'number' | 'select';
   selectOptions?: { value: string; label: string }[];
-  fieldName: string;
+  fieldName?: string;
   disabled?: boolean;
+  className?: string;
+  prefix?: string;
 }
 
 const EditableItemField: React.FC<EditableItemFieldProps> = ({
   value,
   onSave,
-  type,
+  type = 'text',
   selectOptions,
-  fieldName,
-  disabled = false
+  fieldName = 'Campo',
+  disabled = false,
+  className = '',
+  prefix = ''
 }) => {
   const [isEditing, setIsEditing] = useState(false);
   const [tempValue, setTempValue] = useState(value);
@@ -103,8 +107,8 @@ const EditableItemField: React.FC<EditableItemFieldProps> = ({
 
   if (!isEditing) {
     return (
-      <div className="flex items-center justify-between group">
-        <span className="flex-1">{String(value)}</span>
+      <div className={`flex items-center justify-between group ${className}`}>
+        <span className="flex-1">{prefix}{String(value)}</span>
         {!disabled && (
           <Button
             variant="ghost"

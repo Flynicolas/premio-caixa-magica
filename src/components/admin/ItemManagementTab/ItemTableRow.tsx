@@ -71,6 +71,7 @@ const ItemTableRow: React.FC<ItemTableRowProps> = ({
           value={item.name}
           onSave={(value) => handleUpdate('name', value)}
           disabled={isUpdating}
+          fieldName="Nome"
           className="font-medium truncate"
         />
       </TableCell>
@@ -96,6 +97,7 @@ const ItemTableRow: React.FC<ItemTableRowProps> = ({
           onSave={(value) => handleUpdate('base_value', parseFloat(value))}
           disabled={isUpdating}
           type="number"
+          fieldName="Preço"
           className="text-right"
           prefix="R$ "
         />
