@@ -1,18 +1,15 @@
-
 import React, { useState, useEffect } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { Textarea } from '@/components/ui/textarea';
-import { Switch } from '@/components/ui/switch';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Save, X, Upload, AlertCircle } from 'lucide-react';
+import { Save, X } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { DatabaseItem } from '@/types/database';
 import { useImageUpload } from '@/hooks/useImageUpload';
 import ItemChestAssignment from './ItemChestAssignment';
-import { Alert, AlertDescription } from '@/components/ui/alert';
+import ItemBasicInfoForm from './EnhancedItemEditDialog/ItemBasicInfoForm';
+import ItemImageUploadForm from './EnhancedItemEditDialog/ItemImageUploadForm';
+import ItemDeliveryForm from './EnhancedItemEditDialog/ItemDeliveryForm';
+import SaveConfirmationAlert from './EnhancedItemEditDialog/SaveConfirmationAlert';
 
 interface EnhancedItemEditDialogProps {
   item: DatabaseItem | null;
@@ -49,7 +46,6 @@ const EnhancedItemEditDialog = ({
 
   const fileInputRef = React.useRef<HTMLInputElement>(null);
 
-  // Atualizar formData quando o item mudar
   useEffect(() => {
     if (item) {
       setFormData({
@@ -66,7 +62,6 @@ const EnhancedItemEditDialog = ({
         delivery_instructions: item.delivery_instructions || ''
       });
     } else {
-      // Resetar para valores padrão quando criar novo item
       setFormData({
         name: '',
         description: '',
@@ -91,6 +86,10 @@ const EnhancedItemEditDialog = ({
         setFormData(prev => ({ ...prev, image_url: imageUrl }));
       }
     }
+  };
+
+  const handleFormDataChange = (updates: Partial<typeof formData>) => {
+    setFormData(prev => ({ ...prev, ...updates }));
   };
 
   const handleSaveConfirm = async () => {
@@ -148,160 +147,45 @@ const EnhancedItemEditDialog = ({
           </DialogTitle>
         </DialogHeader>
 
-        {showConfirmation && (
-          <Alert>
-            <AlertCircle className="h-4 w-4" />
-            <AlertDescription>
-              Tem certeza que deseja salvar as alterações? Esta ação atualizará o item no banco de dados.
-              <div className="flex space-x-2 mt-3">
-                <Button size="sm" onClick={handleSaveConfirm} disabled={saving}>
-                  {saving ? 'Salvando...' : 'Confirmar'}
-                </Button>
-                <Button size="sm" variant="outline" onClick={() => setShowConfirmation(false)}>
-                  Cancelar
-                </Button>
-              </div>
-            </AlertDescription>
-          </Alert>
-        )}
+        <SaveConfirmationAlert
+          isVisible={showConfirmation}
+          saving={saving}
+          onConfirm={handleSaveConfirm}
+          onCancel={() => setShowConfirmation(false)}
+        />
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          <div className="space-y-4">
-            <div className="space-y-2">
-              <Label htmlFor="name">Nome do Item *</Label>
-              <Input
-                id="name"
-                value={formData.name}
-                onChange={(e) => setFormData(prev => ({ ...prev, name: e.target.value }))}
-                placeholder="Digite o nome do item"
-              />
-              <p className="text-xs text-gray-500">Nome que aparecerá para os usuários</p>
-            </div>
-
-            <div className="space-y-2">
-              <Label htmlFor="base_value">Valor Base (R$) *</Label>
-              <Input
-                id="base_value"
-                type="number"
-                step="0.01"
-                value={formData.base_value}
-                onChange={(e) => setFormData(prev => ({ ...prev, base_value: e.target.value }))}
-                placeholder="0.00"
-              />
-              <p className="text-xs text-gray-500">Valor do item em reais</p>
-            </div>
-
-            <div className="space-y-2">
-              <Label htmlFor="rarity">Raridade</Label>
-              <Select value={formData.rarity} onValueChange={(value) => setFormData(prev => ({ ...prev, rarity: value as any }))}>
-                <SelectTrigger>
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="common">Comum</SelectItem>
-                  <SelectItem value="rare">Raro</SelectItem>
-                  <SelectItem value="epic">Épico</SelectItem>
-                  <SelectItem value="legendary">Lendário</SelectItem>
-                </SelectContent>
-              </Select>
-              <p className="text-xs text-gray-500">Define a raridade e cor do item</p>
-            </div>
-
-            <div className="space-y-2">
-              <Label htmlFor="category">Categoria</Label>
-              <Select value={formData.category} onValueChange={(value) => setFormData(prev => ({ ...prev, category: value }))}>
-                <SelectTrigger>
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="product">Produto</SelectItem>
-                  <SelectItem value="money">Dinheiro</SelectItem>
-                  <SelectItem value="voucher">Voucher</SelectItem>
-                </SelectContent>
-              </Select>
-              <p className="text-xs text-gray-500">Tipo de item para organização</p>
-            </div>
-          </div>
+          <ItemBasicInfoForm
+            formData={{
+              name: formData.name,
+              description: formData.description,
+              base_value: formData.base_value,
+              rarity: formData.rarity,
+              category: formData.category
+            }}
+            onFormDataChange={handleFormDataChange}
+          />
 
           <div className="space-y-4">
-            <div className="space-y-2">
-              <Label htmlFor="image">Imagem do Item</Label>
-              <div className="flex items-center space-x-4">
-                <input
-                  ref={fileInputRef}
-                  type="file"
-                  accept="image/*"
-                  onChange={handleImageChange}
-                  className="hidden"
-                />
-                <Button
-                  type="button"
-                  variant="outline"
-                  onClick={() => fileInputRef.current?.click()}
-                  disabled={uploading}
-                >
-                  <Upload className="w-4 h-4 mr-2" />
-                  {uploading ? 'Enviando...' : 'Upload Imagem'}
-                </Button>
-                {formData.image_url && (
-                  <img
-                    src={formData.image_url}
-                    alt="Preview"
-                    className="w-16 h-16 object-cover rounded"
-                  />
-                )}
-              </div>
-              <p className="text-xs text-gray-500">Imagem que será exibida no item</p>
-            </div>
+            <ItemImageUploadForm
+              imageUrl={formData.image_url}
+              uploading={uploading}
+              onImageChange={handleImageChange}
+              fileInputRef={fileInputRef}
+            />
 
-            <div className="space-y-2">
-              <Label>Tipo de Entrega</Label>
-              <Select value={formData.delivery_type} onValueChange={(value) => setFormData(prev => ({ ...prev, delivery_type: value as any }))}>
-                <SelectTrigger>
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="digital">Digital</SelectItem>
-                  <SelectItem value="physical">Físico</SelectItem>
-                </SelectContent>
-              </Select>
-              <p className="text-xs text-gray-500">Como o item será entregue ao usuário</p>
-            </div>
-
-            <div className="flex items-center space-x-2">
-              <Switch
-                id="is_active"
-                checked={formData.is_active}
-                onCheckedChange={(checked) => setFormData(prev => ({ ...prev, is_active: checked }))}
-              />
-              <Label htmlFor="is_active">Item Ativo</Label>
-              <p className="text-xs text-gray-500">Se desabilitado, não aparecerá nos baús</p>
-            </div>
-
-            <div className="flex items-center space-x-2">
-              <Switch
-                id="requires_address"
-                checked={formData.requires_address}
-                onCheckedChange={(checked) => setFormData(prev => ({ ...prev, requires_address: checked }))}
-              />
-              <Label htmlFor="requires_address">Requer Endereço</Label>
-              <p className="text-xs text-gray-500">Para itens físicos que precisam de entrega</p>
-            </div>
+            <ItemDeliveryForm
+              formData={{
+                delivery_type: formData.delivery_type,
+                is_active: formData.is_active,
+                requires_address: formData.requires_address,
+                requires_document: formData.requires_document
+              }}
+              onFormDataChange={handleFormDataChange}
+            />
           </div>
 
-          <div className="md:col-span-2 space-y-4">
-            <div className="space-y-2">
-              <Label htmlFor="description">Descrição</Label>
-              <Textarea
-                id="description"
-                value={formData.description}
-                onChange={(e) => setFormData(prev => ({ ...prev, description: e.target.value }))}
-                placeholder="Descrição detalhada do item..."
-                rows={3}
-              />
-              <p className="text-xs text-gray-500">Descrição que aparecerá para os usuários</p>
-            </div>
-
+          <div className="md:col-span-2">
             {item && (
               <ItemChestAssignment itemId={item.id} />
             )}
