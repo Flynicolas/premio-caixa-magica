@@ -1,258 +1,238 @@
 
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Button } from '@/components/ui/button';
-import { Card } from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
-import { Wallet, Plus, Trophy, Gift, Clock, CreditCard } from 'lucide-react';
-import { Prize, ChestType } from '@/data/chestData';
 import { useState } from 'react';
-import PaymentModal from './PaymentModal';
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Badge } from '@/components/ui/badge';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { 
+  Wallet, 
+  Plus, 
+  TrendingUp, 
+  CreditCard, 
+  History, 
+  DollarSign,
+  ArrowUpRight,
+  ArrowDownLeft,
+  X
+} from 'lucide-react';
 import { useWallet } from '@/hooks/useWallet';
+import PaymentModal from './PaymentModal';
 
 interface WalletPanelProps {
   isOpen: boolean;
   onClose: () => void;
-  balance: number;
-  prizes: (Prize & { chestType: ChestType, timestamp: Date })[];
-  onAddBalance?: (amount: number) => void;
 }
 
-const WalletPanel = ({ isOpen, onClose, balance, prizes }: WalletPanelProps) => {
+const WalletPanel = ({ isOpen, onClose }: WalletPanelProps) => {
+  const { walletData, transactions } = useWallet();
   const [showPaymentModal, setShowPaymentModal] = useState(false);
-  const { transactions } = useWallet();
 
-  const quickAmounts = [10, 25, 50, 100, 200];
-
-  const handleAddBalance = (amount: number) => {
-    setShowPaymentModal(true);
-  };
-
-  const rarityColors = {
-    common: 'from-gray-400 to-gray-600',
-    rare: 'from-blue-400 to-blue-600',
-    epic: 'from-purple-400 to-purple-600',
-    legendary: 'from-yellow-400 to-orange-500'
-  };
-
-  const chestColors = {
-    silver: 'text-gray-400',
-    gold: 'text-yellow-500',
-    diamond: 'text-cyan-400',
-    ruby: 'text-red-400',
-    premium: 'text-purple-400'
-  };
-
-  const getTransactionTypeColor = (type: string) => {
-    switch (type) {
-      case 'deposit': return 'text-green-500';
-      case 'withdrawal': return 'text-red-500';
-      case 'purchase': return 'text-orange-500';
-      case 'prize': return 'text-purple-500';
-      default: return 'text-muted-foreground';
-    }
+  const formatCurrency = (value: number) => {
+    return new Intl.NumberFormat('pt-BR', {
+      style: 'currency',
+      currency: 'BRL'
+    }).format(value);
   };
 
   const getTransactionIcon = (type: string) => {
-    switch (type) {
-      case 'deposit': return '+';
-      case 'withdrawal': return '-';
-      case 'purchase': return '🛒';
-      case 'prize': return '🏆';
-      default: return '•';
-    }
+    return type === 'deposit' ? (
+      <ArrowUpRight className="w-4 h-4 text-green-500" />
+    ) : (
+      <ArrowDownLeft className="w-4 h-4 text-red-500" />
+    );
+  };
+
+  const getTransactionColor = (type: string) => {
+    return type === 'deposit' ? 'text-green-500' : 'text-red-500';
   };
 
   return (
     <>
       <Dialog open={isOpen} onOpenChange={onClose}>
-        <DialogContent className="max-w-3xl max-h-[85vh] overflow-hidden bg-gradient-to-br from-card via-card/95 to-card/90 border-2 border-primary/30 shadow-2xl">
-          <DialogHeader className="pb-6 border-b border-primary/20">
-            <DialogTitle className="flex items-center text-3xl gold-gradient bg-clip-text text-transparent">
-              <div className="w-10 h-10 gold-gradient rounded-full flex items-center justify-center mr-3 shadow-lg">
-                <Wallet className="w-6 h-6 text-black" />
+        <DialogContent className="max-w-full sm:max-w-2xl lg:max-w-4xl w-full mx-4 sm:mx-auto max-h-[90vh] overflow-y-auto bg-gradient-to-br from-card via-card/95 to-card/90 border-primary/20 backdrop-blur-sm">
+          <DialogHeader className="flex flex-row items-center justify-between space-y-0 pb-4 border-b border-primary/20">
+            <DialogTitle className="flex items-center text-xl sm:text-2xl text-primary font-bold">
+              <div className="w-8 h-8 sm:w-10 sm:h-10 mr-3 rounded-full bg-gradient-to-br from-primary/20 to-primary/10 flex items-center justify-center">
+                <Wallet className="w-4 h-4 sm:w-5 sm:h-5 text-primary" />
               </div>
-              Minha Carteira Premium
+              Minha Carteira
             </DialogTitle>
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={onClose}
+              className="h-8 w-8 p-0 sm:h-10 sm:w-10"
+            >
+              <X className="h-4 w-4 sm:h-5 sm:w-5" />
+            </Button>
           </DialogHeader>
 
-          <Tabs defaultValue="balance" className="w-full mt-6">
-            <TabsList className="grid w-full grid-cols-3 bg-gradient-to-r from-secondary to-secondary/80 p-1 rounded-xl border border-primary/20">
-              <TabsTrigger value="balance" className="flex items-center data-[state=active]:bg-gradient-to-r data-[state=active]:from-primary data-[state=active]:to-primary/80 data-[state=active]:text-white rounded-lg transition-all duration-200">
-                <CreditCard className="w-4 h-4 mr-2" />
-                Saldo
-              </TabsTrigger>
-              <TabsTrigger value="prizes" className="flex items-center data-[state=active]:bg-gradient-to-r data-[state=active]:from-primary data-[state=active]:to-primary/80 data-[state=active]:text-white rounded-lg transition-all duration-200">
-                <Trophy className="w-4 h-4 mr-2" />
-                Prêmios ({prizes.length})
-              </TabsTrigger>
-              <TabsTrigger value="history" className="flex items-center data-[state=active]:bg-gradient-to-r data-[state=active]:from-primary data-[state=active]:to-primary/80 data-[state=active]:text-white rounded-lg transition-all duration-200">
-                <Clock className="w-4 h-4 mr-2" />
-                Histórico
-              </TabsTrigger>
-            </TabsList>
-
-            {/* Balance Tab */}
-            <TabsContent value="balance" className="space-y-6 mt-6">
-              <Card className="p-8 bg-gradient-to-br from-primary/10 via-secondary/50 to-primary/5 border-2 border-primary/30 shadow-xl relative overflow-hidden">
-                <div className="absolute inset-0 bg-gradient-to-br from-transparent via-primary/5 to-transparent"></div>
-                <div className="relative text-center">
-                  <div className="w-20 h-20 gold-gradient rounded-full flex items-center justify-center mx-auto mb-6 shadow-2xl ring-4 ring-primary/20">
-                    <Wallet className="w-10 h-10 text-black" />
+          <div className="space-y-6 sm:space-y-8 py-4 sm:py-6">
+            {/* Balance Cards */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
+              <Card className="bg-gradient-to-br from-green-500/10 to-green-600/5 border-green-500/20 hover:shadow-lg transition-all duration-200">
+                <CardHeader className="pb-3">
+                  <CardTitle className="text-sm sm:text-base font-medium text-green-400 flex items-center">
+                    <DollarSign className="w-4 h-4 mr-2" />
+                    Saldo Atual
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="text-2xl sm:text-3xl lg:text-4xl font-bold text-green-500">
+                    {formatCurrency(walletData?.balance || 0)}
                   </div>
-                  <h3 className="text-4xl font-bold gold-gradient bg-clip-text text-transparent mb-3">
-                    R$ {balance.toFixed(2)}
-                  </h3>
-                  <p className="text-muted-foreground text-lg">Saldo Disponível</p>
-                  <div className="mt-4 px-4 py-2 bg-primary/10 rounded-full inline-block">
-                    <span className="text-sm text-primary font-medium">💰 Carteira Premium Ativa</span>
-                  </div>
-                </div>
+                  <p className="text-xs sm:text-sm text-muted-foreground mt-2">
+                    Disponível para usar
+                  </p>
+                </CardContent>
               </Card>
 
-              <div className="space-y-6">
-                <div className="text-center">
-                  <h4 className="font-bold text-xl mb-2">Recarregar Carteira</h4>
-                  <p className="text-muted-foreground">Escolha um valor rápido ou personalize</p>
-                </div>
-                
-                <div className="grid grid-cols-5 gap-3">
-                  {quickAmounts.map(amount => (
-                    <Button
-                      key={amount}
-                      variant="outline"
-                      onClick={() => handleAddBalance(amount)}
-                      className="h-12 border-2 border-primary/30 hover:border-primary hover:bg-gradient-to-r hover:from-primary/10 hover:to-primary/20 transition-all duration-200 font-semibold"
-                    >
-                      R$ {amount}
-                    </Button>
-                  ))}
-                </div>
-
-                <Button 
-                  onClick={() => setShowPaymentModal(true)}
-                  className="w-full gold-gradient text-black font-bold hover:opacity-90 h-14 text-lg shadow-lg transition-all duration-200 hover:shadow-xl"
-                >
-                  <Plus className="w-5 h-5 mr-2" />
-                  Valor Personalizado
-                </Button>
-
-                <div className="bg-gradient-to-r from-secondary/50 to-secondary/30 p-4 rounded-xl border border-primary/20">
-                  <p className="text-sm text-center font-medium">
-                    🔒 Pagamento 100% Seguro
-                  </p>
-                  <p className="text-xs text-muted-foreground text-center mt-1">
-                    PIX instantâneo • Cartão • Boleto via Mercado Pago
-                  </p>
-                </div>
-              </div>
-            </TabsContent>
-
-            {/* Prizes Tab */}
-            <TabsContent value="prizes" className="space-y-4">
-              <div className="max-h-96 overflow-y-auto space-y-3">
-                {prizes.length === 0 ? (
-                  <div className="text-center py-12">
-                    <Gift className="w-16 h-16 mx-auto text-muted-foreground mb-4" />
-                    <h3 className="text-lg font-semibold mb-2">Nenhum prêmio ainda</h3>
-                    <p className="text-muted-foreground">
-                      Abra baús para conquistar prêmios incríveis!
-                    </p>
+              <Card className="bg-gradient-to-br from-blue-500/10 to-blue-600/5 border-blue-500/20 hover:shadow-lg transition-all duration-200">
+                <CardHeader className="pb-3">
+                  <CardTitle className="text-sm sm:text-base font-medium text-blue-400 flex items-center">
+                    <TrendingUp className="w-4 h-4 mr-2" />
+                    Total Depositado
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="text-2xl sm:text-3xl lg:text-4xl font-bold text-blue-500">
+                    {formatCurrency(walletData?.total_deposited || 0)}
                   </div>
-                ) : (
-                  prizes.map((prize, index) => (
-                    <Card key={index} className="p-4 bg-secondary/30 border-primary/10">
-                      <div className="flex items-center space-x-4">
-                        <img 
-                          src={prize.image} 
-                          alt={prize.name}
-                          className="w-12 h-12 rounded-lg object-cover"
-                        />
-                        <div className="flex-1">
-                          <div className="flex items-center space-x-2 mb-1">
-                            <h4 className="font-semibold">{prize.name}</h4>
-                            <Badge 
-                              variant="secondary" 
-                              className={`bg-gradient-to-r ${rarityColors[prize.rarity]} text-white text-xs`}
-                            >
-                              {prize.rarity}
-                            </Badge>
-                          </div>
-                          <p className="text-sm text-muted-foreground mb-1">
-                            {prize.description}
-                          </p>
+                  <p className="text-xs sm:text-sm text-muted-foreground mt-2">
+                    Valor total adicionado
+                  </p>
+                </CardContent>
+              </Card>
+
+              <Card className="bg-gradient-to-br from-purple-500/10 to-purple-600/5 border-purple-500/20 hover:shadow-lg transition-all duration-200 sm:col-span-2 lg:col-span-1">
+                <CardHeader className="pb-3">
+                  <CardTitle className="text-sm sm:text-base font-medium text-purple-400 flex items-center">
+                    <ArrowDownLeft className="w-4 h-4 mr-2" />
+                    Total Gasto
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="text-2xl sm:text-3xl lg:text-4xl font-bold text-purple-500">
+                    {formatCurrency(walletData?.total_spent || 0)}
+                  </div>
+                  <p className="text-xs sm:text-sm text-muted-foreground mt-2">
+                    Investido em baús
+                  </p>
+                </CardContent>
+              </Card>
+            </div>
+
+            {/* Action Button */}
+            <div className="flex justify-center">
+              <Button
+                onClick={() => setShowPaymentModal(true)}
+                className="w-full sm:w-auto gold-gradient text-black font-bold hover:opacity-90 h-12 sm:h-14 px-6 sm:px-8 text-base sm:text-lg touch-manipulation"
+              >
+                <Plus className="w-5 h-5 mr-2" />
+                Adicionar Saldo
+              </Button>
+            </div>
+
+            {/* Transactions */}
+            <Tabs defaultValue="transactions" className="w-full">
+              <TabsList className="grid grid-cols-1 sm:grid-cols-2 w-full mb-6">
+                <TabsTrigger value="transactions" className="h-12 text-sm sm:text-base">
+                  <History className="w-4 h-4 mr-2" />
+                  Histórico
+                </TabsTrigger>
+                <TabsTrigger value="stats" className="h-12 text-sm sm:text-base">
+                  <TrendingUp className="w-4 h-4 mr-2" />
+                  Estatísticas
+                </TabsTrigger>
+              </TabsList>
+
+              <TabsContent value="transactions" className="space-y-4">
+                <div className="max-h-60 sm:max-h-80 overflow-y-auto space-y-3">
+                  {transactions && transactions.length > 0 ? (
+                    transactions.slice(0, 10).map((transaction) => (
+                      <Card key={transaction.id} className="bg-secondary/20 border-secondary/30 hover:bg-secondary/30 transition-colors">
+                        <CardContent className="p-3 sm:p-4">
                           <div className="flex items-center justify-between">
-                            <span className="text-sm text-primary font-medium">
-                              {prize.value}
-                            </span>
-                            <span className={`text-xs ${chestColors[prize.chestType]}`}>
-                              Baú {prize.chestType}
-                            </span>
-                          </div>
-                        </div>
-                        <Button 
-                          size="sm" 
-                          className="gold-gradient text-black font-bold hover:opacity-90"
-                        >
-                          Resgatar
-                        </Button>
-                      </div>
-                    </Card>
-                  ))
-                )}
-              </div>
-            </TabsContent>
-
-            {/* History Tab */}
-            <TabsContent value="history" className="space-y-4">
-              <div className="max-h-96 overflow-y-auto space-y-3">
-                {transactions.length === 0 ? (
-                  <div className="text-center py-12">
-                    <Clock className="w-16 h-16 mx-auto text-muted-foreground mb-4" />
-                    <h3 className="text-lg font-semibold mb-2">Sem histórico</h3>
-                    <p className="text-muted-foreground">
-                      Suas transações aparecerão aqui
-                    </p>
-                  </div>
-                ) : (
-                  transactions.map((transaction) => (
-                    <Card key={transaction.id} className="p-4 bg-secondary/20 border-primary/10">
-                      <div className="flex items-center justify-between">
-                        <div className="flex items-center space-x-3">
-                          <div className={`w-10 h-10 rounded-full flex items-center justify-center text-lg ${
-                            transaction.type === 'deposit' ? 'bg-green-500/20' :
-                            transaction.type === 'purchase' ? 'bg-orange-500/20' :
-                            'bg-gray-500/20'
-                          }`}>
-                            <span className={getTransactionTypeColor(transaction.type)}>
+                            <div className="flex items-center space-x-3">
                               {getTransactionIcon(transaction.type)}
-                            </span>
+                              <div className="min-w-0 flex-1">
+                                <p className="text-sm sm:text-base font-medium text-foreground truncate">
+                                  {transaction.description || 
+                                    (transaction.type === 'deposit' ? 'Depósito' : 'Pagamento')}
+                                </p>
+                                <p className="text-xs sm:text-sm text-muted-foreground">
+                                  {new Date(transaction.created_at).toLocaleDateString('pt-BR', {
+                                    day: '2-digit',
+                                    month: '2-digit',
+                                    year: 'numeric',
+                                    hour: '2-digit',
+                                    minute: '2-digit'
+                                  })}
+                                </p>
+                              </div>
+                            </div>
+                            <div className="text-right">
+                              <p className={`text-sm sm:text-base font-bold ${getTransactionColor(transaction.type)}`}>
+                                {transaction.type === 'deposit' ? '+' : '-'}
+                                {formatCurrency(Math.abs(transaction.amount))}
+                              </p>
+                              <Badge variant="outline" className="text-xs">
+                                {transaction.status}
+                              </Badge>
+                            </div>
                           </div>
-                          <div>
-                            <h4 className="font-medium">{transaction.description}</h4>
-                            <p className="text-sm text-muted-foreground">
-                              {new Date(transaction.created_at).toLocaleDateString()} às {new Date(transaction.created_at).toLocaleTimeString()}
-                            </p>
-                            <Badge 
-                              variant={transaction.status === 'completed' ? 'default' : 'secondary'}
-                              className="text-xs mt-1"
-                            >
-                              {transaction.status}
-                            </Badge>
-                          </div>
-                        </div>
-                        <div className="text-right">
-                          <span className={`font-bold ${getTransactionTypeColor(transaction.type)}`}>
-                            {transaction.type === 'deposit' ? '+' : '-'}R$ {transaction.amount.toFixed(2)}
-                          </span>
-                        </div>
-                      </div>
+                        </CardContent>
+                      </Card>
+                    ))
+                  ) : (
+                    <Card className="bg-secondary/10 border-secondary/20">
+                      <CardContent className="p-6 sm:p-8 text-center">
+                        <CreditCard className="w-12 h-12 mx-auto mb-4 text-muted-foreground" />
+                        <p className="text-sm sm:text-base text-muted-foreground">
+                          Nenhuma transação encontrada
+                        </p>
+                      </CardContent>
                     </Card>
-                  ))
-                )}
-              </div>
-            </TabsContent>
-          </Tabs>
+                  )}
+                </div>
+              </TabsContent>
+
+              <TabsContent value="stats" className="space-y-4">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  <Card className="bg-gradient-to-br from-orange-500/10 to-orange-600/5 border-orange-500/20">
+                    <CardHeader>
+                      <CardTitle className="text-base sm:text-lg text-orange-400">
+                        Média por Transação
+                      </CardTitle>
+                    </CardHeader>
+                    <CardContent>
+                      <div className="text-xl sm:text-2xl font-bold text-orange-500">
+                        {formatCurrency(
+                          transactions && transactions.length > 0
+                            ? transactions.reduce((sum, t) => sum + Math.abs(t.amount), 0) / transactions.length
+                            : 0
+                        )}
+                      </div>
+                    </CardContent>
+                  </Card>
+
+                  <Card className="bg-gradient-to-br from-cyan-500/10 to-cyan-600/5 border-cyan-500/20">
+                    <CardHeader>
+                      <CardTitle className="text-base sm:text-lg text-cyan-400">
+                        Total de Transações
+                      </CardTitle>
+                    </CardHeader>
+                    <CardContent>
+                      <div className="text-xl sm:text-2xl font-bold text-cyan-500">
+                        {transactions?.length || 0}
+                      </div>
+                    </CardContent>
+                  </Card>
+                </div>
+              </TabsContent>
+            </Tabs>
+          </div>
         </DialogContent>
       </Dialog>
 
