@@ -9,7 +9,7 @@ import EditableItemField from '../EditableItemField';
 
 interface ItemTableRowProps {
   item: DatabaseItem;
-  onUpdate: (id: string, updates: Partial<DatabaseItem>) => Promise<void>;
+  onUpdate: (id: string, updates: Partial<DatabaseItem>) => Promise<DatabaseItem>;
   onDelete: (id: string) => Promise<void>;
   onEdit: (item: DatabaseItem) => void;
 }
@@ -55,7 +55,7 @@ const ItemTableRow: React.FC<ItemTableRowProps> = ({
             <img
               src={item.image_url}
               alt={item.name}
-              className="w-full h-full object-cover"
+              className="w-full h-full object-cover max-w-full"
             />
           ) : (
             <div className="text-xs text-muted-foreground text-center">
@@ -117,8 +117,7 @@ const ItemTableRow: React.FC<ItemTableRowProps> = ({
           size="sm"
           onClick={handleToggleActive}
           disabled={isUpdating}
-          className="h-8 w-8 p-0 touch-manipulation"
-          style={{ minHeight: '44px', minWidth: '44px' }}
+          className="h-11 w-11 p-0 touch-manipulation min-h-[44px] min-w-[44px]"
         >
           {item.is_active ? (
             <Eye className="h-4 w-4 text-green-600" />
@@ -135,8 +134,7 @@ const ItemTableRow: React.FC<ItemTableRowProps> = ({
             variant="outline"
             size="sm"
             onClick={() => onEdit(item)}
-            className="h-8 w-8 p-0 touch-manipulation"
-            style={{ minHeight: '44px', minWidth: '44px' }}
+            className="h-11 w-11 p-0 touch-manipulation min-h-[44px] min-w-[44px]"
           >
             <Edit className="h-4 w-4" />
           </Button>
@@ -144,8 +142,7 @@ const ItemTableRow: React.FC<ItemTableRowProps> = ({
             variant="outline"
             size="sm"
             onClick={() => onDelete(item.id)}
-            className="h-8 w-8 p-0 text-red-600 hover:text-red-700 hover:bg-red-50 touch-manipulation"
-            style={{ minHeight: '44px', minWidth: '44px' }}
+            className="h-11 w-11 p-0 text-red-600 hover:text-red-700 hover:bg-red-50 touch-manipulation min-h-[44px] min-w-[44px]"
           >
             <Trash2 className="h-4 w-4" />
           </Button>
