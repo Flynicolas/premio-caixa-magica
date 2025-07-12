@@ -41,133 +41,137 @@ export const useNewRouletteAnimation = ({
     }
   }, []);
 
-  // Função para medir dinamicamente as posições reais dos elementos
-  const measureRealPositions = useCallback(() => {
-    if (!containerRef.current) return null;
+  // Função para medir posições de forma mais precisa
+  const measurePrecisePositions = useCallback(() => {
+    if (!containerRef.current || !trackRef.current) return null;
 
-    const containerRect = containerRef.current.getBoundingClientRect();
+    const container = containerRef.current;
+    const containerRect = container.getBoundingClientRect();
     
-    // Medir posição da seta
-    const arrowElement = document.querySelector('.absolute.-top-8.left-1\\/2.transform.-translate-x-1\\/2') as HTMLElement;
-    let arrowCenterX = containerRect.width / 2; // fallback
-    
-    if (arrowElement) {
-      const arrowRect = arrowElement.getBoundingClientRect();
-      arrowCenterX = arrowRect.left + arrowRect.width / 2 - containerRect.left;
-    }
+    // Aguardar um frame para garantir que o DOM está atualizado
+    return new Promise<{
+      containerCenter: number;
+      realItemWidth: number;
+      trackWidth: number;
+    }>((resolve) => {
+      requestAnimationFrame(() => {
+        // Centro exato do container (onde a seta aponta)
+        const containerCenter = containerRect.width / 2;
+        
+        // Medir largura real do primeiro item visível
+        const firstItem = trackRef.current?.querySelector('[data-item-index="0"]') as HTMLElement;
+        let realItemWidth = 140; // fallback
+        
+        if (firstItem) {
+          const itemRect = firstItem.getBoundingClientRect();
+          const itemStyle = window.getComputedStyle(firstItem);
+          const marginLeft = parseFloat(itemStyle.marginLeft) || 0;
+          const marginRight = parseFloat(itemStyle.marginRight) || 0;
+          realItemWidth = itemRect.width + marginLeft + marginRight;
+        }
 
-    // Medir posição do quadrado pontilhado (zona de destaque)
-    const targetZoneElement = document.querySelector('.absolute.top-0.left-1\\/2.transform.-translate-x-1\\/2.w-32') as HTMLElement;
-    let targetCenterX = containerRect.width / 2; // fallback
-    
-    if (targetZoneElement) {
-      const targetRect = targetZoneElement.getBoundingClientRect();
-      targetCenterX = targetRect.left + targetRect.width / 2 - containerRect.left;
-    }
+        const trackWidth = (rouletteData?.rouletteSlots.length || 25) * realItemWidth;
 
-    // Medir largura real de um item
-    const itemElement = trackRef.current?.querySelector('[data-item-index="0"]') as HTMLElement;
-    let realItemWidth = 140; // fallback
-    
-    if (itemElement) {
-      const itemRect = itemElement.getBoundingClientRect();
-      realItemWidth = itemRect.width + 16; // incluindo margin
-    }
+        console.log('🎯 MEDIÇÕES PRECISAS:', {
+          containerCenter,
+          realItemWidth,
+          trackWidth,
+          containerWidth: containerRect.width
+        });
 
-    return {
-      containerWidth: containerRect.width,
-      arrowCenterX,
-      targetCenterX,
-      realItemWidth
-    };
-  }, []);
+        resolve({
+          containerCenter,
+          realItemWidth,
+          trackWidth
+        });
+      });
+    });
+  }, [rouletteData]);
 
-  const startSpin = useCallback(() => {
+  const startSpin = useCallback(async () => {
     if (!rouletteData || !canSpin || !trackRef.current || !containerRef.current) {
       return;
     }
 
     const { centerIndex, rouletteSlots } = rouletteData;
     
-    // Medir posições reais dinamicamente
-    const measurements = measureRealPositions();
+    // Medir posições com mais precisão
+    const measurements = await measurePrecisePositions();
     if (!measurements) return;
 
-    const { targetCenterX, realItemWidth } = measurements;
-    
-    console.log('🎯 MEDIÇÕES DINÂMICAS:', {
-      targetCenterX: targetCenterX + 'px',
-      realItemWidth: realItemWidth + 'px',
-      centerIndex,
-      totalSlots: rouletteSlots.length
-    });
-
-    // Calcular posicionamento preciso
-    const rotations = 3; // número de voltas completas
-    const trackTotalWidth = rouletteSlots.length * realItemWidth;
-    const distanciaRotacoes = rotations * trackTotalWidth;
-    
-    // Posição onde o centro do item vencedor estará (considerando que usamos 3 repetições da trilha)
-    const targetDuplicateIndex = 2; // terceira repetição onde o item deve parar
-    const itemPositionInTrack = (targetDuplicateIndex * trackTotalWidth) + (centerIndex * realItemWidth) + (realItemWidth / 2);
-    
-    // Distância total para o item ficar exatamente no centro da zona de destaque
-    const totalDistance = itemPositionInTrack - targetCenterX;
-    
-    console.log('🚀 CÁLCULO PRECISO:', {
-      rotations,
-      trackTotalWidth,
-      itemPositionInTrack,
-      targetCenterX,
-      totalDistance,
-      verificacao: `Item ficará em ${itemPositionInTrack - totalDistance}px = Target em ${targetCenterX}px`
-    });
+    const { containerCenter, realItemWidth, trackWidth } = measurements;
     
     // Limpar animação anterior
     clearAnimation();
     resetTrack();
-
-    // Atualizar estado
     setState('spinning');
+
+    // Aguardar um frame para garantir reset
+    await new Promise(resolve => requestAnimationFrame(resolve));
+
+    // Calcular posição onde o item vencedor deve parar
+    // O item vencedor está na posição centerIndex
+    const winnerItemCenterPosition = (centerIndex * realItemWidth) + (realItemWidth / 2);
+    
+    // Para garantir que pare no centro, calculamos a distância total
+    const extraRotations = 3; // número de voltas completas
+    const baseDistance = extraRotations * trackWidth;
+    
+    // A distância final deve posicionar o centro do item vencedor
+    // exatamente no centro do container
+    const finalDistance = baseDistance + winnerItemCenterPosition - containerCenter;
+    
+    console.log('🚀 CÁLCULO FINAL:', {
+      centerIndex,
+      winnerItemCenterPosition,
+      containerCenter,
+      baseDistance,
+      finalDistance,
+      verificacao: `Item center at: ${winnerItemCenterPosition}px, Container center: ${containerCenter}px`
+    });
 
     // Iniciar sons
     startBackgroundMusic();
     startTickLoop(50);
 
-    // Forçar reflow antes da animação
-    trackRef.current.offsetHeight;
-
-    // Aplicar animação após um pequeno delay
+    // Aplicar animação
     animationRef.current = window.setTimeout(() => {
       if (trackRef.current) {
         trackRef.current.style.transition = 'transform 4000ms cubic-bezier(0.25, 0.1, 0.25, 1)';
-        trackRef.current.style.transform = `translateX(-${totalDistance}px)`;
+        trackRef.current.style.transform = `translateX(-${finalDistance}px)`;
         
-        console.log('🎰 Animação aplicada com medições dinâmicas:', `translateX(-${totalDistance}px)`);
+        console.log('🎰 Animação iniciada:', `translateX(-${finalDistance}px)`);
         
-        // Após 4 segundos, parar sons e mostrar winner
+        // Parar animação após 4 segundos
         animationRef.current = window.setTimeout(() => {
           stopTickLoop();
           stopBackgroundMusic();
           setState('stopping');
 
-          console.log('🏆 Parando animação, verificando posicionamento final');
-
-          // Verificar posicionamento final e fazer micro-ajuste se necessário
-          animationRef.current = window.setTimeout(() => {
-            const finalMeasurements = measureRealPositions();
+          // Verificação final de posicionamento
+          animationRef.current = window.setTimeout(async () => {
+            // Re-medir para verificar posição final
+            const finalMeasurements = await measurePrecisePositions();
             if (finalMeasurements && trackRef.current) {
               const currentTransform = trackRef.current.style.transform;
-              const currentDistance = parseFloat(currentTransform.replace('translateX(-', '').replace('px)', ''));
+              const currentOffset = parseFloat(currentTransform.replace('translateX(-', '').replace('px)', ''));
               
-              // Calcular se precisa de micro-ajuste
-              const itemFinalPosition = itemPositionInTrack - currentDistance;
-              const offset = finalMeasurements.targetCenterX - itemFinalPosition;
+              // Calcular onde o item realmente está
+              const actualItemPosition = winnerItemCenterPosition - currentOffset;
+              const centerOffset = finalMeasurements.containerCenter - actualItemPosition;
               
-              if (Math.abs(offset) > 2) { // Se o offset for maior que 2px, fazer micro-ajuste
-                const adjustedDistance = currentDistance + offset;
-                trackRef.current.style.transform = `translateX(-${adjustedDistance}px)`;
-                console.log('🔧 Micro-ajuste aplicado:', offset + 'px');
+              console.log('🔍 VERIFICAÇÃO FINAL:', {
+                currentOffset,
+                actualItemPosition,
+                targetCenter: finalMeasurements.containerCenter,
+                centerOffset
+              });
+              
+              // Se houver desvio maior que 2px, fazer correção
+              if (Math.abs(centerOffset) > 2) {
+                const correctedDistance = currentOffset + centerOffset;
+                trackRef.current.style.transform = `translateX(-${correctedDistance}px)`;
+                console.log('🔧 CORREÇÃO APLICADA:', centerOffset + 'px');
               }
             }
 
@@ -178,10 +182,10 @@ export const useNewRouletteAnimation = ({
               playRareItemSound(rouletteData.winnerItem.rarity);
             }
 
-            // Abrir popup após efeito de destaque
+            // Abrir popup após efeito
             animationRef.current = window.setTimeout(() => {
               setState('complete');
-              console.log('🎉 Abrindo popup do prêmio');
+              console.log('🎉 Popup do prêmio aberto');
               onSpinComplete?.(rouletteData.winnerItem);
             }, 1500);
           }, 300);
@@ -200,7 +204,7 @@ export const useNewRouletteAnimation = ({
     stopBackgroundMusic,
     playRareItemSound,
     onSpinComplete,
-    measureRealPositions
+    measurePrecisePositions
   ]);
 
   const resetRoulette = useCallback(() => {
