@@ -11,7 +11,7 @@ export interface DatabaseItem {
   category: string;
   rarity: string; // Changed from union type to string to match Supabase
   base_value: number;
-  delivery_type: 'digital' | 'physical';
+  delivery_type: string; // Changed from union type to string to match Supabase
   delivery_instructions: string | null;
   requires_address: boolean;
   requires_document: boolean;
