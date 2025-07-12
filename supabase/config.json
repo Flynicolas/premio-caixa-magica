@@ -1,0 +1,7 @@
+{
+  "functions": {
+    "mercadopago-webhook": {
+      "verify_jwt": false
+    }
+  }
+}
