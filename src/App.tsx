@@ -14,6 +14,7 @@ import Ranking from "./pages/Ranking";
 import Perfil from "./pages/Perfil";
 import Admin from "./pages/Admin";
 import MinhasEntregas from "./pages/MinhasEntregas";
+import Configuracoes from "./pages/Configuracoes";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -35,6 +36,7 @@ const App = () => (
                 <Route path="/ranking" element={<Ranking />} />
                 <Route path="/perfil" element={<Perfil />} />
                 <Route path="/entregas" element={<MinhasEntregas />} />
+                <Route path="/configuracoes" element={<Configuracoes />} />
                 <Route path="/admin" element={<Admin />} />
                 <Route path="*" element={<NotFound />} />
               </Routes>
