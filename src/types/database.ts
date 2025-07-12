@@ -9,7 +9,7 @@ export interface DatabaseItem {
   description: string | null;
   image_url: string | null;
   category: string;
-  rarity: 'common' | 'rare' | 'epic' | 'legendary';
+  rarity: string; // Changed from union type to string to match Supabase
   base_value: number;
   delivery_type: 'digital' | 'physical';
   delivery_instructions: string | null;
