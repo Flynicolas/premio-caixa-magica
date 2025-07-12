@@ -919,6 +919,91 @@ export type Database = {
           },
         ]
       }
+      user_chests: {
+        Row: {
+          chest_type: string
+          created_at: string
+          id: string
+          item_won_id: string | null
+          opened_at: string | null
+          purchased_at: string
+          status: string
+          user_id: string
+        }
+        Insert: {
+          chest_type: string
+          created_at?: string
+          id?: string
+          item_won_id?: string | null
+          opened_at?: string | null
+          purchased_at?: string
+          status?: string
+          user_id: string
+        }
+        Update: {
+          chest_type?: string
+          created_at?: string
+          id?: string
+          item_won_id?: string | null
+          opened_at?: string | null
+          purchased_at?: string
+          status?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "user_chests_item_won_id_fkey"
+            columns: ["item_won_id"]
+            isOneToOne: false
+            referencedRelation: "items"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      user_inventory: {
+        Row: {
+          chest_type: string
+          created_at: string
+          id: string
+          is_redeemed: boolean
+          item_id: string
+          rarity: string
+          redeemed_at: string | null
+          user_id: string
+          won_at: string
+        }
+        Insert: {
+          chest_type: string
+          created_at?: string
+          id?: string
+          is_redeemed?: boolean
+          item_id: string
+          rarity: string
+          redeemed_at?: string | null
+          user_id: string
+          won_at?: string
+        }
+        Update: {
+          chest_type?: string
+          created_at?: string
+          id?: string
+          is_redeemed?: boolean
+          item_id?: string
+          rarity?: string
+          redeemed_at?: string | null
+          user_id?: string
+          won_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "user_inventory_item_id_fkey"
+            columns: ["item_id"]
+            isOneToOne: false
+            referencedRelation: "items"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       user_levels: {
         Row: {
           benefits: Json | null
@@ -991,11 +1076,59 @@ export type Database = {
         }
         Relationships: []
       }
+      wallet_transactions: {
+        Row: {
+          amount: number
+          chest_type: string | null
+          created_at: string
+          description: string
+          id: string
+          metadata: Json | null
+          type: string
+          user_id: string
+          wallet_id: string
+        }
+        Insert: {
+          amount: number
+          chest_type?: string | null
+          created_at?: string
+          description: string
+          id?: string
+          metadata?: Json | null
+          type: string
+          user_id: string
+          wallet_id: string
+        }
+        Update: {
+          amount?: number
+          chest_type?: string | null
+          created_at?: string
+          description?: string
+          id?: string
+          metadata?: Json | null
+          type?: string
+          user_id?: string
+          wallet_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "wallet_transactions_wallet_id_fkey"
+            columns: ["wallet_id"]
+            isOneToOne: false
+            referencedRelation: "user_wallets"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
     }
     Views: {
       [_ in never]: never
     }
     Functions: {
+      add_wallet_balance: {
+        Args: { p_user_id: string; p_amount: number; p_description?: string }
+        Returns: boolean
+      }
       calculate_user_level: {
         Args: { experience: number }
         Returns: {
@@ -1063,6 +1196,10 @@ export type Database = {
           errors: string[]
         }[]
       }
+      open_chest: {
+        Args: { p_user_id: string; p_chest_id: string; p_item_id: string }
+        Returns: boolean
+      }
       process_excel_import: {
         Args: { import_id: string; excel_data: Json; column_mapping: Json }
         Returns: boolean
@@ -1075,6 +1212,10 @@ export type Database = {
           p_webhook_data: Json
         }
         Returns: boolean
+      }
+      purchase_chest: {
+        Args: { p_user_id: string; p_chest_type: string; p_price: number }
+        Returns: string
       }
     }
     Enums: {
