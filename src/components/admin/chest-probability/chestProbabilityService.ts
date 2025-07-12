@@ -1,6 +1,6 @@
 
 import { supabase } from '@/integrations/supabase/client';
-import { ChestItemProbability } from '@/types/database';
+import { ChestItemProbability } from '@/types/items';
 
 export const chestProbabilityService = {
   async fetchProbabilities(): Promise<ChestItemProbability[]> {
@@ -21,8 +21,8 @@ export const chestProbabilityService = {
       chest_type: prob.chest_type as 'silver' | 'gold' | 'delas' | 'diamond' | 'ruby' | 'premium',
       item: prob.item ? {
         ...prob.item,
-        rarity: prob.item.rarity as 'common' | 'rare' | 'epic' | 'legendary',
-        delivery_type: prob.item.delivery_type as 'digital' | 'physical'
+        rarity: prob.item.rarity as string,
+        delivery_type: prob.item.delivery_type as string
       } : undefined
     }));
   },

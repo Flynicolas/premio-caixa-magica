@@ -2,7 +2,7 @@
 import React from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { ChestItemProbability } from '@/types/database';
+import { ChestItemProbability } from '@/types/items';
 import ChestProbabilityItem from './ChestProbabilityItem';
 
 interface ChestCardProps {
