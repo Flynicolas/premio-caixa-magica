@@ -1,99 +1,133 @@
-import { serve } from "https://deno.land/std@0.168.0/http/server.ts"
-import { createClient } from 'https://esm.sh/@supabase/supabase-js@2'
+import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
+import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
-  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
-}
+  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type'
+};
 
 serve(async (req) => {
-  // Preflight request (CORS)
   if (req.method === 'OPTIONS') {
-    return new Response(null, { headers: corsHeaders })
+    return new Response(null, { headers: corsHeaders });
   }
 
   try {
-    console.log('📥 Webhook recebido - Método:', req.method)
-    console.log('📨 Headers:', Object.fromEntries(req.headers))
-
     const supabase = createClient(
       Deno.env.get('SUPABASE_URL') ?? '',
       Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
-    )
+    );
 
     if (req.method === 'POST') {
-      const body = await req.json()
-      console.log('📦 Payload recebido:', JSON.stringify(body, null, 2))
+      const url = new URL(req.url);
+      const dataId = url.searchParams.get('data.id') || '';
+      const headers = Object.fromEntries(req.headers);
+      const signatureHeader = headers['x-signature'] || '';
+      const requestId = headers['x-request-id'] || '';
+      const secret = Deno.env.get("MERCADOPAGO_WEBHOOK_SECRET") || '';
 
-      // Verifica tipo da notificação
+      if (!signatureHeader || !requestId || !dataId) {
+        console.error("Faltando dados obrigatórios: signature, request-id ou data.id");
+        return new Response("Unauthorized", { status: 401, headers: corsHeaders });
+      }
+
+      const [tsPart, v1Part] = signatureHeader.split(',');
+      const ts = tsPart.split('=')[1]?.trim();
+      const receivedSignature = v1Part.split('=')[1]?.trim();
+
+      if (!ts || !receivedSignature) {
+        console.error("Assinatura inválida: não foi possível extrair ts ou v1");
+        return new Response("Unauthorized", { status: 401, headers: corsHeaders });
+      }
+
+      const template = `id:${dataId};request-id:${requestId};ts:${ts};`;
+
+      const encoder = new TextEncoder();
+      const key = await crypto.subtle.importKey(
+        "raw",
+        encoder.encode(secret),
+        { name: "HMAC", hash: "SHA-256" },
+        false,
+        ["sign"]
+      );
+
+      const signatureBuffer = await crypto.subtle.sign(
+        "HMAC",
+        key,
+        encoder.encode(template)
+      );
+
+      const signatureHex = Array.from(new Uint8Array(signatureBuffer))
+        .map((b) => b.toString(16).padStart(2, "0"))
+        .join("");
+
+      console.log("Assinatura template:", template);
+      console.log("Assinatura calculada:", signatureHex);
+      console.log("Assinatura recebida:", receivedSignature);
+
+      if (signatureHex !== receivedSignature) {
+        console.error("Webhook com assinatura inválida");
+        return new Response("Unauthorized", { status: 401, headers: corsHeaders });
+      }
+
+      const rawBodyText = await req.text();
+      const body = JSON.parse(rawBodyText);
+      console.log('Payload recebido:', JSON.stringify(body, null, 2));
+
       if (body.type === 'payment') {
-        const paymentId = body.data?.id
-        console.log('💳 Tipo de notificação: payment')
-        console.log('🔍 Payment ID recebido:', paymentId)
-
+        const paymentId = body.data?.id;
         if (!paymentId) {
-          console.error('❌ Payment ID não encontrado no body.data.id')
-          return new Response('Payment ID missing', { status: 400, headers: corsHeaders })
+          console.error('Payment ID não encontrado no body.data.id');
+          return new Response('Payment ID missing', { status: 400, headers: corsHeaders });
         }
 
-        // Recupera token do Mercado Pago
-        const accessToken = Deno.env.get('MERCADOPAGO_ACCESS_TOKEN')
+        const accessToken = Deno.env.get('MERCADOPAGO_ACCESS_TOKEN');
         if (!accessToken) {
-          console.error('❌ Access token do Mercado Pago não configurado')
-          return new Response('Configuration error', { status: 500, headers: corsHeaders })
+          console.error('Access token do Mercado Pago não configurado');
+          return new Response('Configuration error', { status: 500, headers: corsHeaders });
         }
 
-        console.log('🌐 Consultando detalhes do pagamento na API do Mercado Pago...')
         const paymentResponse = await fetch(`https://api.mercadopago.com/v1/payments/${paymentId}`, {
           headers: {
             'Authorization': `Bearer ${accessToken}`,
             'Content-Type': 'application/json'
           }
-        })
-
-        console.log('🔁 Status da resposta da API do Mercado Pago:', paymentResponse.status)
+        });
 
         if (!paymentResponse.ok) {
-          const errText = await paymentResponse.text()
-          console.error('❌ Erro ao buscar pagamento:', errText)
-          return new Response('Payment fetch error', { status: 500, headers: corsHeaders })
+          const errText = await paymentResponse.text();
+          console.error('Erro ao buscar pagamento:', errText);
+          return new Response('Payment fetch error', { status: 500, headers: corsHeaders });
         }
 
-        const paymentData = await paymentResponse.json()
-        console.log('✅ Dados detalhados do pagamento recebidos:', JSON.stringify(paymentData, null, 2))
-
-        const preferenceId = paymentData.external_reference || paymentData.metadata?.preference_id
-        console.log('🔑 Preference ID extraído:', preferenceId)
+        const paymentData = await paymentResponse.json();
+        const preferenceId = paymentData.external_reference || paymentData.metadata?.preference_id;
 
         if (!preferenceId) {
-          console.error('❌ Preference ID não encontrado em external_reference nem metadata')
-          return new Response('Preference ID missing', { status: 400, headers: corsHeaders })
+          console.error('Preference ID não encontrado');
+          return new Response('Preference ID missing', { status: 400, headers: corsHeaders });
         }
-
-        console.log('🛠️ Chamando RPC process_mercadopago_webhook com os dados...')
 
         const { data: result, error } = await supabase.rpc('process_mercadopago_webhook', {
           p_preference_id: preferenceId,
           p_payment_id: paymentId.toString(),
           p_payment_status: paymentData.status,
           p_webhook_data: paymentData
-        })
+        });
 
         if (error) {
-          console.error('❌ Erro ao processar o webhook no Supabase RPC:', error)
-          return new Response('Processing error', { status: 500, headers: corsHeaders })
+          console.error('Erro ao processar o webhook:', error);
+          return new Response('Processing error', { status: 500, headers: corsHeaders });
         }
 
-        console.log('✅ Webhook processado com sucesso. Resultado da RPC:', result)
-        return new Response('OK', { status: 200, headers: corsHeaders })
-      } else {
-        console.warn('⚠️ Tipo de notificação não tratado:', body.type)
+        return new Response('OK', { status: 200, headers: corsHeaders });
       }
+
+      return new Response('Tipo não tratado', { status: 200, headers: corsHeaders });
     }
 
-    return new Response('Method not allowed', { status: 405, headers: corsHeaders })
+    return new Response('Method not allowed', { status: 405, headers: corsHeaders });
   } catch (error) {
-    console.error('🔥 Erro inesperado no webhook handler:', error)
-    return new Response('Internal error', { status: 500, headers: corsHeaders })
+    console.error('Erro inesperado:', error);
+    return new Response('Internal error', { status: 500, headers: corsHeaders });
   }
-})
+});
