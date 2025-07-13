@@ -7,6 +7,7 @@ import ChestOpeningModal from './ChestOpeningModal';
 import ChestImageDisplay from './ChestCard/ChestImageDisplay';
 import ChestItemPreview from './ChestCard/ChestItemPreview';
 import ChestActionButton from './ChestCard/ChestActionButton';
+import { DatabaseItem } from '@/types/database';
 
 interface ChestCardProps {
   chest: Chest;
@@ -14,16 +15,23 @@ interface ChestCardProps {
   onOpen: () => void;
   onViewItems: () => void;
   balance: number;
+  onPrizeWon?: (prize: DatabaseItem) => void;
 }
 
 
-const ChestCard = ({ chest, chestType, onOpen, onViewItems, balance }: ChestCardProps) => {
+const ChestCard = ({ chest, chestType, onOpen, onViewItems, balance, onPrizeWon }: ChestCardProps) => {
   const [showOpeningModal, setShowOpeningModal] = useState(false);
   const { hasMinimumItems, loading } = useChestItemCount(chestType);
 
   const handleOpenChest = () => {
     if (balance >= chest.price && hasMinimumItems) {
       setShowOpeningModal(true);
+    }
+  };
+
+  const handlePrizeWon = (prize: DatabaseItem) => {
+    if (onPrizeWon) {
+      onPrizeWon(prize);
     }
   };
   
@@ -74,6 +82,7 @@ const ChestCard = ({ chest, chestType, onOpen, onViewItems, balance }: ChestCard
         chestType={chestType}
         chestName={chest.name}
         chestPrice={chest.price}
+        onPrizeWon={handlePrizeWon}
       />
     </Card>
   );

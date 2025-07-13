@@ -61,6 +61,13 @@ const Index = () => {
     refreshData();
   };
 
+  const handleDirectChestOpening = (prize: DatabaseItem) => {
+    setWonPrize(prize);
+    setShowWinModal(true);
+    // Atualizar dados da carteira após a abertura
+    refreshData();
+  };
+
   const getUpgradeChest = (currentType: ChestType): { type: ChestType; chest: Chest } | null => {
     const chestOrder: ChestType[] = ['silver', 'gold', 'delas', 'diamond', 'ruby', 'premium'];
     const currentIndex = chestOrder.indexOf(currentType);
@@ -102,6 +109,7 @@ const Index = () => {
                   onOpen={() => handleChestOpen(chestType)}
                   onViewItems={() => handleChestViewItems(chestType)}
                   balance={walletData?.balance || 0}
+                  onPrizeWon={handleDirectChestOpening}
                 />
               </div>
             ))}

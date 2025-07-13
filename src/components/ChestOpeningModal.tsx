@@ -164,14 +164,16 @@ const ChestOpeningModal = ({
     setIsSpinning(false);
     setPhase('result');
     
-    // Converter SpinItem para DatabaseItem
+    // Convert SpinItem to DatabaseItem and map special to legendary
+    const mappedRarity = item.rarity === 'special' ? 'legendary' : item.rarity as 'common' | 'rare' | 'epic' | 'legendary';
+    
     const databaseItem: DatabaseItem = {
       id: item.id,
       name: item.name,
       description: null,
       image_url: item.image_url,
       category: 'product',
-      rarity: item.rarity,
+      rarity: mappedRarity,
       base_value: 0,
       delivery_type: 'digital',
       delivery_instructions: null,
@@ -311,7 +313,8 @@ const ChestOpeningModal = ({
                              wonItem.rarity === 'rare' ? '#3B82F6' :
                              wonItem.rarity === 'epic' ? '#8B5CF6' :
                              wonItem.rarity === 'legendary' ? '#F59E0B' :
-                             '#EC4899'
+                             wonItem.rarity === 'special' ? '#EC4899' :
+                             '#9CA3AF'
                     }}>
                       {wonItem.rarity === 'common' && 'Comum'}
                       {wonItem.rarity === 'rare' && 'Raro'}
