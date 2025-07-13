@@ -1143,6 +1143,26 @@ export type Database = {
         Args: Record<PropertyKey, never>
         Returns: undefined
       }
+      get_user_ranking_position: {
+        Args: { user_id_input: string }
+        Returns: {
+          id: string
+          full_name: string | null
+          total_spent: number
+          total_prizes_won: number
+          rank: number
+        }[]
+      }
+      get_ranking_top10: {
+        Args: Record<string, never>;
+        Returns: Array<{
+          id: string;
+          full_name: string;
+          total_spent: number;
+          total_prizes_won: number;
+        }>;
+      }
+
       clear_items_table: {
         Args: Record<PropertyKey, never>
         Returns: {

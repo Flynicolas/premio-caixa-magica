@@ -63,8 +63,8 @@ const UserStatsCards = ({ stats, className = "" }: UserStatsCardsProps) => {
       tooltip: 'Valor total gasto em baús e itens'
     },
     {
-      title: 'Prêmios Ganhos',
-      value: stats.total_prizes_won.toString(),
+      title: 'Prêmios Resgatados ',
+      value: 0,
       icon: Gift,
       color: 'text-purple-500',
       bgColor: 'bg-purple-500/10',
@@ -72,7 +72,7 @@ const UserStatsCards = ({ stats, className = "" }: UserStatsCardsProps) => {
     },
     {
       title: 'Baús Abertos',
-      value: stats.chests_opened.toString(),
+      value: stats.total_prizes_won.toString(),
       icon: Trophy,
       color: 'text-blue-500',
       bgColor: 'bg-blue-500/10',
