@@ -1,133 +1,229 @@
-import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
-import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
+
+import { serve } from "https://deno.land/std@0.168.0/http/server.ts"
+import { createClient } from 'https://esm.sh/@supabase/supabase-js@2'
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
-  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type'
-};
+  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
+}
 
 serve(async (req) => {
   if (req.method === 'OPTIONS') {
-    return new Response(null, { headers: corsHeaders });
+    return new Response('ok', { headers: corsHeaders })
   }
 
   try {
     const supabase = createClient(
       Deno.env.get('SUPABASE_URL') ?? '',
       Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
-    );
+    )
 
-    if (req.method === 'POST') {
-      const url = new URL(req.url);
-      const dataId = url.searchParams.get('data.id') || '';
-      const headers = Object.fromEntries(req.headers);
-      const signatureHeader = headers['x-signature'] || '';
-      const requestId = headers['x-request-id'] || '';
-      const secret = Deno.env.get("MERCADOPAGO_WEBHOOK_SECRET") || '';
+    const { chestType, userId, chestPrice } = await req.json()
+    
+    console.log(`=== DRAW ITEM FROM CHEST ===`)
+    console.log(`Usuário: ${userId}`)
+    console.log(`Tipo do baú: ${chestType}`)
+    console.log(`Preço: R$ ${chestPrice}`)
 
-      if (!signatureHeader || !requestId || !dataId) {
-        console.error("Faltando dados obrigatórios: signature, request-id ou data.id");
-        return new Response("Unauthorized", { status: 401, headers: corsHeaders });
-      }
+    // 1. VERIFICAR SALDO DO USUÁRIO
+    const { data: walletData, error: walletError } = await supabase
+      .from('user_wallets')
+      .select('*')
+      .eq('user_id', userId)
+      .single()
 
-      const [tsPart, v1Part] = signatureHeader.split(',');
-      const ts = tsPart.split('=')[1]?.trim();
-      const receivedSignature = v1Part.split('=')[1]?.trim();
-
-      if (!ts || !receivedSignature) {
-        console.error("Assinatura inválida: não foi possível extrair ts ou v1");
-        return new Response("Unauthorized", { status: 401, headers: corsHeaders });
-      }
-
-      const template = `id:${dataId};request-id:${requestId};ts:${ts};`;
-
-      const encoder = new TextEncoder();
-      const key = await crypto.subtle.importKey(
-        "raw",
-        encoder.encode(secret),
-        { name: "HMAC", hash: "SHA-256" },
-        false,
-        ["sign"]
-      );
-
-      const signatureBuffer = await crypto.subtle.sign(
-        "HMAC",
-        key,
-        encoder.encode(template)
-      );
-
-      const signatureHex = Array.from(new Uint8Array(signatureBuffer))
-        .map((b) => b.toString(16).padStart(2, "0"))
-        .join("");
-
-      console.log("Assinatura template:", template);
-      console.log("Assinatura calculada:", signatureHex);
-      console.log("Assinatura recebida:", receivedSignature);
-
-      if (signatureHex !== receivedSignature) {
-        console.error("Webhook com assinatura inválida");
-        return new Response("Unauthorized", { status: 401, headers: corsHeaders });
-      }
-
-      const rawBodyText = await req.text();
-      const body = JSON.parse(rawBodyText);
-      console.log('Payload recebido:', JSON.stringify(body, null, 2));
-
-      if (body.type === 'payment') {
-        const paymentId = body.data?.id;
-        if (!paymentId) {
-          console.error('Payment ID não encontrado no body.data.id');
-          return new Response('Payment ID missing', { status: 400, headers: corsHeaders });
-        }
-
-        const accessToken = Deno.env.get('MERCADOPAGO_ACCESS_TOKEN');
-        if (!accessToken) {
-          console.error('Access token do Mercado Pago não configurado');
-          return new Response('Configuration error', { status: 500, headers: corsHeaders });
-        }
-
-        const paymentResponse = await fetch(`https://api.mercadopago.com/v1/payments/${paymentId}`, {
-          headers: {
-            'Authorization': `Bearer ${accessToken}`,
-            'Content-Type': 'application/json'
-          }
-        });
-
-        if (!paymentResponse.ok) {
-          const errText = await paymentResponse.text();
-          console.error('Erro ao buscar pagamento:', errText);
-          return new Response('Payment fetch error', { status: 500, headers: corsHeaders });
-        }
-
-        const paymentData = await paymentResponse.json();
-        const preferenceId = paymentData.external_reference || paymentData.metadata?.preference_id;
-
-        if (!preferenceId) {
-          console.error('Preference ID não encontrado');
-          return new Response('Preference ID missing', { status: 400, headers: corsHeaders });
-        }
-
-        const { data: result, error } = await supabase.rpc('process_mercadopago_webhook', {
-          p_preference_id: preferenceId,
-          p_payment_id: paymentId.toString(),
-          p_payment_status: paymentData.status,
-          p_webhook_data: paymentData
-        });
-
-        if (error) {
-          console.error('Erro ao processar o webhook:', error);
-          return new Response('Processing error', { status: 500, headers: corsHeaders });
-        }
-
-        return new Response('OK', { status: 200, headers: corsHeaders });
-      }
-
-      return new Response('Tipo não tratado', { status: 200, headers: corsHeaders });
+    if (walletError) {
+      console.error('Erro ao buscar carteira:', walletError)
+      throw new Error('Carteira não encontrada')
     }
 
-    return new Response('Method not allowed', { status: 405, headers: corsHeaders });
+    // Verificar se é usuário de teste (admin)
+    const { data: profileData } = await supabase
+      .from('profiles')
+      .select('simulate_actions')
+      .eq('id', userId)
+      .single()
+
+    const isTestUser = profileData?.simulate_actions
+    const currentBalance = isTestUser ? (walletData.test_balance || 0) : walletData.balance
+
+    if (currentBalance < chestPrice) {
+      console.log(`Saldo insuficiente: ${currentBalance} < ${chestPrice}`)
+      return new Response(
+        JSON.stringify({ error: 'Saldo insuficiente' }),
+        { 
+          status: 400, 
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+        }
+      )
+    }
+
+    // 2. DEDUZIR SALDO
+    if (isTestUser) {
+      // Para usuários de teste, atualizar test_balance
+      const { error: updateError } = await supabase
+        .from('user_wallets')
+        .update({ 
+          test_balance: Math.max(0, currentBalance - chestPrice),
+          updated_at: new Date().toISOString()
+        })
+        .eq('user_id', userId)
+
+      if (updateError) {
+        console.error('Erro ao atualizar test_balance:', updateError)
+        throw updateError
+      }
+    } else {
+      // Para usuários reais, atualizar balance e criar transação
+      const { error: updateError } = await supabase
+        .from('user_wallets')
+        .update({ 
+          balance: currentBalance - chestPrice,
+          total_spent: (walletData.total_spent || 0) + chestPrice,
+          updated_at: new Date().toISOString()
+        })
+        .eq('user_id', userId)
+
+      if (updateError) {
+        console.error('Erro ao atualizar carteira:', updateError)
+        throw updateError
+      }
+
+      // Criar transação
+      const { error: transactionError } = await supabase
+        .from('transactions')
+        .insert({
+          user_id: userId,
+          wallet_id: walletData.id,
+          type: 'purchase',
+          amount: chestPrice,
+          status: 'completed',
+          description: `Compra de baú ${chestType}`,
+          metadata: { chest_type: chestType }
+        })
+
+      if (transactionError) {
+        console.error('Erro ao criar transação:', transactionError)
+        // Não falhar por causa da transação, mas logar o erro
+      }
+    }
+
+    console.log(`Saldo deduzido: R$ ${chestPrice}`)
+
+    // 3. SORTEAR ITEM DO BAÚ
+    const { data: availableItems, error: itemsError } = await supabase
+      .from('chest_item_probabilities')
+      .select(`
+        *,
+        item:items(*)
+      `)
+      .eq('chest_type', chestType)
+      .eq('is_active', true)
+      .gt('probability_weight', 0)
+
+    if (itemsError) {
+      console.error('Erro ao buscar itens:', itemsError)
+      throw itemsError
+    }
+
+    if (!availableItems || availableItems.length === 0) {
+      console.log('Nenhum item disponível para sorteio neste baú')
+      return new Response(
+        JSON.stringify({ error: 'Nenhum item disponível para sorteio neste baú' }),
+        { 
+          status: 400, 
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+        }
+      )
+    }
+
+    // Calcular probabilidades e fazer sorteio
+    const totalWeight = availableItems.reduce((sum, item) => sum + item.probability_weight, 0)
+    const random = Math.random() * totalWeight
+
+    let currentWeight = 0
+    let selectedItem = null
+
+    for (const item of availableItems) {
+      currentWeight += item.probability_weight
+      if (random <= currentWeight) {
+        selectedItem = item
+        break
+      }
+    }
+
+    if (!selectedItem) {
+      selectedItem = availableItems[availableItems.length - 1] // Fallback
+    }
+
+    console.log(`Item sorteado: ${selectedItem.item.name} (probabilidade: ${selectedItem.probability_weight}%)`)
+
+    // 4. ADICIONAR ITEM AO INVENTÁRIO
+    const { error: inventoryError } = await supabase
+      .from('user_inventory')
+      .insert({
+        user_id: userId,
+        item_id: selectedItem.item.id,
+        chest_type: chestType,
+        rarity: selectedItem.item.rarity,
+        won_at: new Date().toISOString()
+      })
+
+    if (inventoryError) {
+      console.error('Erro ao adicionar item ao inventário:', inventoryError)
+      throw inventoryError
+    }
+
+    console.log('Item adicionado ao inventário com sucesso')
+
+    // 5. ATUALIZAR ESTATÍSTICAS DO PERFIL
+    const { error: profileError } = await supabase
+      .from('profiles')
+      .update({ 
+        chests_opened: supabase.raw('chests_opened + 1'),
+        total_prizes_won: supabase.raw('total_prizes_won + 1'),
+        updated_at: new Date().toISOString()
+      })
+      .eq('id', userId)
+
+    if (profileError) {
+      console.error('Erro ao atualizar perfil:', profileError)
+      // Não falha por causa disso
+    }
+
+    // 6. REGISTRAR QUANDO O ITEM FOI SORTEADO
+    const { error: updateError } = await supabase
+      .from('chest_item_probabilities')
+      .update({ 
+        sorteado_em: new Date().toISOString()
+      })
+      .eq('id', selectedItem.id)
+
+    if (updateError) {
+      console.error('Erro ao registrar sorteio:', updateError)
+      // Não falha por causa disso
+    }
+
+    console.log('=== PROCESSO CONCLUÍDO COM SUCESSO ===')
+
+    return new Response(
+      JSON.stringify({
+        item: selectedItem.item,
+        probability: selectedItem.probability_weight,
+        totalWeight,
+        balanceAfter: currentBalance - chestPrice
+      }),
+      { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+    )
+
   } catch (error) {
-    console.error('Erro inesperado:', error);
-    return new Response('Internal error', { status: 500, headers: corsHeaders });
+    console.error('Erro na função:', error)
+    return new Response(
+      JSON.stringify({ error: error.message }),
+      { 
+        status: 500, 
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+      }
+    )
   }
-});
+})
