@@ -80,7 +80,7 @@ export const useNewRouletteAnimation = ({
     const distanciaRotacoes = rotacoes * (rouletteSlots.length * ITEM_WIDTH);
     
     // Posição onde o item centerIndex estará depois das rotações
-    const posicaoItem = centerIndex * ITEM_WIDTH + 172; // centro do item
+    const posicaoItem = centerIndex * ITEM_WIDTH + 70; // centro do item
     
     // Distância para o item ficar EXATAMENTE no quadrado pontilhado
     const distanciaTotal = distanciaRotacoes + posicaoItem - alvoFinal;
