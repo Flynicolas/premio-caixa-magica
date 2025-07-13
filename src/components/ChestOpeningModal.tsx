@@ -1,5 +1,5 @@
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { X, Sparkles } from 'lucide-react';
@@ -8,6 +8,9 @@ import ItemCard from './ItemCard';
 import { SpinItem } from './roulette/types';
 import { useRouletteLogic } from '@/hooks/useRouletteLogic';
 import { useToast } from '@/hooks/use-toast';
+import { useAuth } from '@/hooks/useAuth';
+import { supabase } from '@/integrations/supabase/client';
+import { DatabaseItem } from '@/types/database';
 
 interface ChestOpeningModalProps {
   isOpen: boolean;
@@ -15,22 +18,35 @@ interface ChestOpeningModalProps {
   chestType: string;
   chestName: string;
   chestPrice: number;
+  onPrizeWon: (prize: DatabaseItem) => void;
 }
-
 
 const ChestOpeningModal = ({ 
   isOpen, 
   onClose, 
   chestType, 
   chestName, 
-  chestPrice 
+  chestPrice,
+  onPrizeWon
 }: ChestOpeningModalProps) => {
   const [phase, setPhase] = useState<'preview' | 'spinning' | 'result'>('preview');
   const [wonItem, setWonItem] = useState<SpinItem | null>(null);
   const [isSpinning, setIsSpinning] = useState(false);
+  const [isProcessing, setIsProcessing] = useState(false);
   
   const { generateRoulette, rouletteData, isLoading } = useRouletteLogic();
   const { toast } = useToast();
+  const { user } = useAuth();
+
+  // Reset modal state when opening/closing
+  useEffect(() => {
+    if (isOpen) {
+      setPhase('preview');
+      setWonItem(null);
+      setIsSpinning(false);
+      setIsProcessing(false);
+    }
+  }, [isOpen]);
 
   const chestConfigs = {
     silver: {
@@ -65,42 +81,114 @@ const ChestOpeningModal = ({
     }
   };
 
-  // Add safety check with fallback to silver config
   const config = chestConfigs[chestType as keyof typeof chestConfigs] || chestConfigs.silver;
 
   const handleOpenChest = async () => {
+    if (!user) {
+      toast({
+        title: "Erro",
+        description: "Você precisa estar logado para abrir baús.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    setIsProcessing(true);
     try {
+      console.log('=== INICIANDO PROCESSO DE ABERTURA DO BAÚ ===');
+      console.log('Usuário:', user.id);
+      console.log('Tipo do baú:', chestType);
+      console.log('Preço do baú:', chestPrice);
+
+      // Chamar a função edge que faz tudo: compra, sorteia e registra
+      const { data: result, error } = await supabase.functions.invoke('draw-item-from-chest', {
+        body: { 
+          chestType, 
+          userId: user.id, 
+          chestPrice: chestPrice,
+          chestId: null // Será criado pela função
+        }
+      });
+
+      if (error) {
+        console.error('Erro na função draw-item-from-chest:', error);
+        throw error;
+      }
+
+      console.log('Item sorteado:', result);
+
+      if (!result?.item) {
+        throw new Error('Nenhum item foi retornado');
+      }
+
+      // Gerar dados da roleta para animação
       setPhase('spinning');
+      const rouletteResult = await generateRoulette(chestType, 25);
       
-      // Generate roulette data
-      console.log('=== INICIANDO GERAÇÃO DA ROLETA ===');
-      console.log('chestType:', chestType);
-      const result = await generateRoulette(chestType, 25); // 25 slots para a roleta
-      console.log('Resultado da geração:', result);
-      console.log('rouletteData após geração:', rouletteData);
-      if (!result) return;
-      
-      // Start spinning after a short delay
-      setTimeout(() => {
-        console.log('Iniciando animação com isSpinning=true');
-        setIsSpinning(true);
-      }, 1000);
-      
-    } catch (error) {
+      if (rouletteResult) {
+        // Substituir o item vencedor na roleta pelo item real sorteado
+        rouletteResult.winnerItem = {
+          id: result.item.id,
+          name: result.item.name,
+          image_url: result.item.image_url,
+          rarity: result.item.rarity
+        };
+
+        // Atualizar o slot central com o item correto
+        if (rouletteResult.rouletteSlots && rouletteResult.centerIndex !== undefined) {
+          rouletteResult.rouletteSlots[rouletteResult.centerIndex] = rouletteResult.winnerItem;
+        }
+
+        // Iniciar animação
+        setTimeout(() => {
+          setIsSpinning(true);
+        }, 1000);
+      }
+
+    } catch (error: any) {
       console.error('Erro ao abrir baú:', error);
       toast({
         title: "Erro",
-        description: "Falha ao abrir o baú. Tente novamente.",
+        description: error.message || "Falha ao abrir o baú. Tente novamente.",
         variant: "destructive",
       });
       setPhase('preview');
+    } finally {
+      setIsProcessing(false);
     }
   };
 
   const handleSpinComplete = (item: SpinItem) => {
+    console.log('Animação da roleta completa, item:', item);
     setWonItem(item);
     setIsSpinning(false);
     setPhase('result');
+    
+    // Converter SpinItem para DatabaseItem
+    const databaseItem: DatabaseItem = {
+      id: item.id,
+      name: item.name,
+      description: null,
+      image_url: item.image_url,
+      category: 'product',
+      rarity: item.rarity,
+      base_value: 0,
+      delivery_type: 'digital',
+      delivery_instructions: null,
+      requires_address: false,
+      requires_document: false,
+      is_active: true,
+      chest_types: null,
+      probability_weight: null,
+      import_source: null,
+      tags: null,
+      notes: null,
+      created_at: new Date().toISOString(),
+      updated_at: new Date().toISOString(),
+    };
+
+    // Chamar callback para notificar o componente pai
+    onPrizeWon(databaseItem);
     
     toast({
       title: "🎉 Parabéns!",
@@ -168,10 +256,10 @@ const ChestOpeningModal = ({
                 </Button>
                 <Button 
                   onClick={handleOpenChest} 
-                  disabled={isLoading}
+                  disabled={isLoading || isProcessing}
                   className={`bg-white/20 backdrop-blur-sm hover:bg-white/30 text-white font-bold border border-white/30 ${config.glow}`}
                 >
-                  {isLoading ? 'Preparando...' : `🎲 Girar Roleta`}
+                  {isLoading || isProcessing ? 'Processando...' : `🎲 Girar Roleta`}
                 </Button>
               </div>
             </div>

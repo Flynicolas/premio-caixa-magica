@@ -18,35 +18,99 @@ serve(async (req) => {
       Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
     )
 
-    const { chestType, userId, chestPrice, chestId } = await req.json()
+    const { chestType, userId, chestPrice } = await req.json()
     
-    console.log(`Sorteando item do baú ${chestType} para usuário ${userId}`)
+    console.log(`=== DRAW ITEM FROM CHEST ===`)
+    console.log(`Usuário: ${userId}`)
+    console.log(`Tipo do baú: ${chestType}`)
+    console.log(`Preço: R$ ${chestPrice}`)
 
-    // 1. VERIFICAR SE O USUÁRIO TEM SALDO E O BAÚU É VÁLIDO
-    if (chestPrice && chestPrice > 0) {
-      // Se o preço foi passado, significa que é uma compra nova
-      console.log(`Comprando baú ${chestType} por R$ ${chestPrice}`)
-      
-      const { data: chestId, error: purchaseError } = await supabase
-        .rpc('purchase_chest', {
-          p_user_id: userId,
-          p_chest_type: chestType,
-          p_price: chestPrice
+    // 1. VERIFICAR SALDO DO USUÁRIO
+    const { data: walletData, error: walletError } = await supabase
+      .from('user_wallets')
+      .select('*')
+      .eq('user_id', userId)
+      .single()
+
+    if (walletError) {
+      console.error('Erro ao buscar carteira:', walletError)
+      throw new Error('Carteira não encontrada')
+    }
+
+    // Verificar se é usuário de teste (admin)
+    const { data: profileData } = await supabase
+      .from('profiles')
+      .select('simulate_actions')
+      .eq('id', userId)
+      .single()
+
+    const isTestUser = profileData?.simulate_actions
+    const currentBalance = isTestUser ? (walletData.test_balance || 0) : walletData.balance
+
+    if (currentBalance < chestPrice) {
+      console.log(`Saldo insuficiente: ${currentBalance} < ${chestPrice}`)
+      return new Response(
+        JSON.stringify({ error: 'Saldo insuficiente' }),
+        { 
+          status: 400, 
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+        }
+      )
+    }
+
+    // 2. DEDUZIR SALDO
+    if (isTestUser) {
+      // Para usuários de teste, atualizar test_balance
+      const { error: updateError } = await supabase
+        .from('user_wallets')
+        .update({ 
+          test_balance: Math.max(0, currentBalance - chestPrice),
+          updated_at: new Date().toISOString()
+        })
+        .eq('user_id', userId)
+
+      if (updateError) {
+        console.error('Erro ao atualizar test_balance:', updateError)
+        throw updateError
+      }
+    } else {
+      // Para usuários reais, atualizar balance e criar transação
+      const { error: updateError } = await supabase
+        .from('user_wallets')
+        .update({ 
+          balance: currentBalance - chestPrice,
+          total_spent: (walletData.total_spent || 0) + chestPrice,
+          updated_at: new Date().toISOString()
+        })
+        .eq('user_id', userId)
+
+      if (updateError) {
+        console.error('Erro ao atualizar carteira:', updateError)
+        throw updateError
+      }
+
+      // Criar transação
+      const { error: transactionError } = await supabase
+        .from('transactions')
+        .insert({
+          user_id: userId,
+          wallet_id: walletData.id,
+          type: 'purchase',
+          amount: chestPrice,
+          status: 'completed',
+          description: `Compra de baú ${chestType}`,
+          metadata: { chest_type: chestType }
         })
 
-      if (purchaseError) {
-        console.error('Erro ao comprar baú:', purchaseError)
-        return new Response(
-          JSON.stringify({ error: purchaseError.message }),
-          { 
-            status: 400, 
-            headers: { ...corsHeaders, 'Content-Type': 'application/json' }
-          }
-        )
+      if (transactionError) {
+        console.error('Erro ao criar transação:', transactionError)
+        // Não falhar por causa da transação, mas logar o erro
       }
     }
 
-    // 2. BUSCAR APENAS ITENS DISPONÍVEIS NO BAÚ COM PROBABILIDADE > 0
+    console.log(`Saldo deduzido: R$ ${chestPrice}`)
+
+    // 3. SORTEAR ITEM DO BAÚ
     const { data: availableItems, error: itemsError } = await supabase
       .from('chest_item_probabilities')
       .select(`
@@ -55,7 +119,7 @@ serve(async (req) => {
       `)
       .eq('chest_type', chestType)
       .eq('is_active', true)
-      .gt('probability_weight', 0) // APENAS itens com probabilidade > 0 participam do sorteio
+      .gt('probability_weight', 0)
 
     if (itemsError) {
       console.error('Erro ao buscar itens:', itemsError)
@@ -63,7 +127,7 @@ serve(async (req) => {
     }
 
     if (!availableItems || availableItems.length === 0) {
-      console.log('Nenhum item disponível para sorteio neste baú (apenas itens com probabilidade > 0)')
+      console.log('Nenhum item disponível para sorteio neste baú')
       return new Response(
         JSON.stringify({ error: 'Nenhum item disponível para sorteio neste baú' }),
         { 
@@ -73,7 +137,7 @@ serve(async (req) => {
       )
     }
 
-    // 3. CALCULAR PROBABILIDADES E FAZER O SORTEIO
+    // Calcular probabilidades e fazer sorteio
     const totalWeight = availableItems.reduce((sum, item) => sum + item.probability_weight, 0)
     const random = Math.random() * totalWeight
 
@@ -94,28 +158,40 @@ serve(async (req) => {
 
     console.log(`Item sorteado: ${selectedItem.item.name} (probabilidade: ${selectedItem.probability_weight}%)`)
 
-    // 4. ABRIR O BAÚ E REGISTRAR O ITEM NO INVENTÁRIO
-    if (chestId) {
-      const { error: openError } = await supabase
-        .rpc('open_chest', {
-          p_user_id: userId,
-          p_chest_id: chestId,
-          p_item_id: selectedItem.item.id
-        })
+    // 4. ADICIONAR ITEM AO INVENTÁRIO
+    const { error: inventoryError } = await supabase
+      .from('user_inventory')
+      .insert({
+        user_id: userId,
+        item_id: selectedItem.item.id,
+        chest_type: chestType,
+        rarity: selectedItem.item.rarity,
+        won_at: new Date().toISOString()
+      })
 
-      if (openError) {
-        console.error('Erro ao abrir baú:', openError)
-        return new Response(
-          JSON.stringify({ error: openError.message }),
-          { 
-            status: 500, 
-            headers: { ...corsHeaders, 'Content-Type': 'application/json' }
-          }
-        )
-      }
+    if (inventoryError) {
+      console.error('Erro ao adicionar item ao inventário:', inventoryError)
+      throw inventoryError
     }
 
-    // 5. REGISTRAR QUANDO O ITEM FOI SORTEADO
+    console.log('Item adicionado ao inventário com sucesso')
+
+    // 5. ATUALIZAR ESTATÍSTICAS DO PERFIL
+    const { error: profileError } = await supabase
+      .from('profiles')
+      .update({ 
+        chests_opened: supabase.raw('chests_opened + 1'),
+        total_prizes_won: supabase.raw('total_prizes_won + 1'),
+        updated_at: new Date().toISOString()
+      })
+      .eq('id', userId)
+
+    if (profileError) {
+      console.error('Erro ao atualizar perfil:', profileError)
+      // Não falha por causa disso
+    }
+
+    // 6. REGISTRAR QUANDO O ITEM FOI SORTEADO
     const { error: updateError } = await supabase
       .from('chest_item_probabilities')
       .update({ 
@@ -125,26 +201,17 @@ serve(async (req) => {
 
     if (updateError) {
       console.error('Erro ao registrar sorteio:', updateError)
+      // Não falha por causa disso
     }
 
-    // Chamar função para atualizar metas dos baús
-    try {
-      const { error: goalsError } = await supabase.functions.invoke('update-chest-goals', {
-        body: { chestType, chestPrice }
-      })
-      
-      if (goalsError) {
-        console.error('Erro ao atualizar metas:', goalsError)
-      }
-    } catch (error) {
-      console.error('Erro na função de metas:', error)
-    }
+    console.log('=== PROCESSO CONCLUÍDO COM SUCESSO ===')
 
     return new Response(
       JSON.stringify({
         item: selectedItem.item,
         probability: selectedItem.probability_weight,
-        totalWeight
+        totalWeight,
+        balanceAfter: currentBalance - chestPrice
       }),
       { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
     )

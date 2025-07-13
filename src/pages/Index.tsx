@@ -1,3 +1,4 @@
+
 import { useState } from 'react';
 import { useAuth } from '@/hooks/useAuth';
 import { useWallet } from '@/hooks/useWallet';
@@ -9,19 +10,19 @@ import AuthModal from '@/components/AuthModal';
 import WalletPanel from '@/components/WalletPanel';
 import ChestItemsModal from '@/components/ChestItemsModal';
 import ChestConfirmModal from '@/components/ChestConfirmModal';
-import SpinCarousel from '@/components/carousel/SpinCarousel';
+import ChestOpeningModal from '@/components/ChestOpeningModal';
 import WinModal from '@/components/WinModal';
 import { chestData, ChestType, Chest } from '@/data/chestData';
 import { DatabaseItem } from '@/types/database';
 
 const Index = () => {
   const { user } = useAuth();
-  const { walletData, purchaseChest, PaymentModalComponent } = useWallet();
+  const { walletData, refreshData } = useWallet();
   const [showAuthModal, setShowAuthModal] = useState(false);
   const [showWalletPanel, setShowWalletPanel] = useState(false);
   const [showItemsModal, setShowItemsModal] = useState(false);
   const [showConfirmModal, setShowConfirmModal] = useState(false);
-  const [showSpinCarousel, setShowSpinCarousel] = useState(false);
+  const [showChestOpening, setShowChestOpening] = useState(false);
   const [showWinModal, setShowWinModal] = useState(false);
   const [selectedChest, setSelectedChest] = useState<{ chest: Chest; type: ChestType } | null>(null);
   const [wonPrize, setWonPrize] = useState<DatabaseItem | null>(null);
@@ -48,18 +49,16 @@ const Index = () => {
   const handleConfirmPurchase = async () => {
     if (!selectedChest) return;
     
-    const result = await purchaseChest(selectedChest.type, selectedChest.chest.price);
-    if (!result.error) {
-      setShowConfirmModal(false);
-      // Open spin carousel
-      setShowSpinCarousel(true);
-    }
+    setShowConfirmModal(false);
+    setShowChestOpening(true);
   };
 
-  const handlePrizeWon = (prize: DatabaseItem) => {
+  const handleChestOpeningComplete = (prize: DatabaseItem) => {
     setWonPrize(prize);
-    setShowSpinCarousel(false);
+    setShowChestOpening(false);
     setShowWinModal(true);
+    // Atualizar dados da carteira após a abertura
+    refreshData();
   };
 
   const getUpgradeChest = (currentType: ChestType): { type: ChestType; chest: Chest } | null => {
@@ -70,31 +69,6 @@ const Index = () => {
       return { type: nextType, chest: chestData[nextType] };
     }
     return null;
-  };
-
-  // Convert Prize array to DatabaseItem array for compatibility
-  const convertPrizesToDatabaseItems = (prizes: any[]): DatabaseItem[] => {
-    return prizes.map((prize, index) => ({
-      id: `prize-${index}`,
-      name: prize.name,
-      description: prize.description || null,
-      image_url: prize.image || null,
-      category: 'product',
-      rarity: prize.rarity || 'common',
-      base_value: prize.value || 0,
-      delivery_type: 'digital',
-      delivery_instructions: null,
-      requires_address: false,
-      requires_document: false,
-      is_active: true,
-      chest_types: null,
-      probability_weight: null,
-      import_source: null,
-      tags: null,
-      notes: null,
-      created_at: new Date().toISOString(),
-      updated_at: new Date().toISOString(),
-    } as DatabaseItem));
   };
 
   return (
@@ -190,12 +164,13 @@ const Index = () => {
         nextChestPrice={getUpgradeChest(selectedChest?.type!)?.chest.price}
       />
 
-      <SpinCarousel
-        isOpen={showSpinCarousel}
-        onClose={() => setShowSpinCarousel(false)}
-        prizes={selectedChest?.chest.prizes ? convertPrizesToDatabaseItems(selectedChest.chest.prizes) : []}
-        onPrizeWon={handlePrizeWon}
+      <ChestOpeningModal
+        isOpen={showChestOpening}
+        onClose={() => setShowChestOpening(false)}
+        chestType={selectedChest?.type || 'silver'}
         chestName={selectedChest?.chest.name || ''}
+        chestPrice={selectedChest?.chest.price || 0}
+        onPrizeWon={handleChestOpeningComplete}
       />
 
       <WinModal
@@ -208,8 +183,6 @@ const Index = () => {
           setSelectedChest(null);
         }}
       />
-
-      <PaymentModalComponent />
     </div>
   );
 };
