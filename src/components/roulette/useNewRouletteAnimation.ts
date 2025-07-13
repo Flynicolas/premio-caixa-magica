@@ -2,7 +2,6 @@ import { useRef, useCallback } from 'react';
 import { RouletteData } from './types';
 import { useRouletteAudio } from '@/hooks/useRouletteAudio';
 import { useRouletteState } from './useRouletteState';
-    const ITEM_WIDTH = 140;
 
 interface UseNewRouletteAnimationProps {
   rouletteData: RouletteData | null;
@@ -76,19 +75,15 @@ export const useNewRouletteAnimation = ({
     const alvoFinal = quadradoPosicao;
     
     // Calcular onde o centro do item vencedor deve ficar
+    const ITEM_WIDTH = 140;
     const rotacoes = 3;
     const distanciaRotacoes = rotacoes * (rouletteSlots.length * ITEM_WIDTH);
     
     // Posição onde o item centerIndex estará depois das rotações
-const posicaoItem = centerIndex * ITEM_WIDTH + ITEM_WIDTH / 2;
+    const posicaoItem = centerIndex * ITEM_WIDTH + 172; // centro do item
     
     // Distância para o item ficar EXATAMENTE no quadrado pontilhado
-   const estiloAtual = getComputedStyle(trackRef.current);
-const matriz = new WebKitCSSMatrix(estiloAtual.transform);
-const posicaoAtual = Math.abs(matriz.m41); // posição X atual em px
-
-const distanciaTotal = distanciaRotacoes + posicaoItem - alvoFinal - posicaoAtual;
-
+    const distanciaTotal = distanciaRotacoes + posicaoItem - alvoFinal;
     
     console.log('🎯 CÁLCULO DIRETO:', {
       centerIndex,
@@ -160,33 +155,15 @@ const distanciaTotal = distanciaRotacoes + posicaoItem - alvoFinal - posicaoAtua
     playRareItemSound,
     onSpinComplete
   ]);
-const resetRoulette = useCallback(() => {
-  clearAnimation();
-  stopTickLoop();
-  stopBackgroundMusic();
-  reset();
 
-  if (!rouletteData || !trackRef.current || !containerRef.current) {
-    return;
-  }
-
-  const { centerIndex } = rouletteData;
-
-  // Cálculo de centralização do item premiado
-  const containerWidth = containerRef.current.offsetWidth;
-  const initialOffset = centerIndex * ITEM_WIDTH - (containerWidth / 2) + (ITEM_WIDTH / 2);
-
-  trackRef.current.style.transition = 'none';
-  trackRef.current.style.transform = `translateX(-${initialOffset}px)`;
-
-  console.log('🎯 Roleta resetada com item centralizado:', {
-    containerWidth,
-    centerIndex,
-    ITEM_WIDTH,
-    initialOffset,
-    transform: `translateX(-${initialOffset}px)`
-  });
-}, [clearAnimation, stopTickLoop, stopBackgroundMusic, reset, rouletteData]);
+  const resetRoulette = useCallback(() => {
+    clearAnimation();
+    stopTickLoop();
+    stopBackgroundMusic();
+    resetTrack();
+    reset();
+    console.log('Roleta resetada');
+  }, [clearAnimation, stopTickLoop, stopBackgroundMusic, resetTrack, reset]);
 
   return {
     trackRef,
