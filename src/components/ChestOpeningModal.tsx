@@ -11,6 +11,8 @@ import { useToast } from '@/hooks/use-toast';
 import { useAuth } from '@/hooks/useAuth';
 import { supabase } from '@/integrations/supabase/client';
 import { DatabaseItem } from '@/types/database';
+import { useInventory } from '@/hooks/useInventory';
+import { useWallet  } from '@/hooks/useWalletProvider';
 
 interface ChestOpeningModalProps {
   isOpen: boolean;
@@ -33,7 +35,9 @@ const ChestOpeningModal = ({
   const [wonItem, setWonItem] = useState<SpinItem | null>(null);
   const [isSpinning, setIsSpinning] = useState(false);
   const [isProcessing, setIsProcessing] = useState(false);
-  
+  const { refreshInventory } = useInventory();
+  const { refreshData } = useWallet();
+
   const { generateRoulette, rouletteData, isLoading } = useRouletteLogic();
   const { toast } = useToast();
   const { user } = useAuth();
@@ -139,6 +143,9 @@ const ChestOpeningModal = ({
           rouletteResult.rouletteSlots[rouletteResult.centerIndex] = rouletteResult.winnerItem;
         }
 
+      await refreshData();
+
+
         // Iniciar animação
         setTimeout(() => {
           setIsSpinning(true);
@@ -158,15 +165,14 @@ const ChestOpeningModal = ({
     }
   };
 
-  const handleSpinComplete = (item: SpinItem) => {
+  const handleSpinComplete = async (item: SpinItem) => {
     console.log('Animação da roleta completa, item:', item);
     setWonItem(item);
     setIsSpinning(false);
     setPhase('result');
-    
-    // Convert SpinItem to DatabaseItem and map special to legendary
+  
     const mappedRarity = item.rarity === 'special' ? 'legendary' : item.rarity as 'common' | 'rare' | 'epic' | 'legendary';
-    
+  
     const databaseItem: DatabaseItem = {
       id: item.id,
       name: item.name,
@@ -188,15 +194,20 @@ const ChestOpeningModal = ({
       created_at: new Date().toISOString(),
       updated_at: new Date().toISOString(),
     };
-
-    // Chamar callback para notificar o componente pai
+  
+    // Chamar callback para o pai
     onPrizeWon(databaseItem);
-    
+  
+    // Atualiza inventário (refresca prêmios no header)
+    await refreshInventory();
+  
+
     toast({
       title: "🎉 Parabéns!",
       description: `Você ganhou: ${item.name}`,
     });
   };
+
 
   const handleClose = () => {
     setPhase('preview');

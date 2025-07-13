@@ -3,7 +3,7 @@ import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from './useAuth';
 import { useToast } from '@/hooks/use-toast';
-import { DatabaseItem, UserChestInventory, UserItemInventory, ChestItemProbability } from '@/types/database';
+import { DatabaseItem, UserChestInventory, UserInventory, ChestItemProbability } from '@/types/database';
 
 // ==============================================
 // HOOK PARA GERENCIAR INVENTÁRIO DO USUÁRIO
@@ -15,7 +15,8 @@ export const useInventory = () => {
   
   // Estados do inventário
   const [userChests, setUserChests] = useState<UserChestInventory[]>([]);
-  const [userItems, setUserItems] = useState<UserItemInventory[]>([]);
+  const [userItems, setUserItems] = useState<UserInventory[]>([]);
+
   const [availableItems, setAvailableItems] = useState<DatabaseItem[]>([]);
   const [loading, setLoading] = useState(true);
 
@@ -38,25 +39,30 @@ export const useInventory = () => {
   };
 
   // Buscar itens do usuário
-  const fetchUserItems = async () => {
-    if (!user) return;
-    
-    try {
-      const { data, error } = await (supabase as any)
-        .from('user_item_inventory')
-        .select(`
-          *,
-          item:items(*)
-        `)
-        .eq('user_id', user.id)
-        .order('created_at', { ascending: false });
+const fetchUserItems = async () => {
+  if (!user) return;
+  console.log("estou sendo chamado")
+  try {
+    const { data, error } = await supabase
+      .from('user_inventory')
+      .select(`
+        *,
+        item:items(*)
+      `)
+      .eq('user_id', user.id)
+      .order('won_at', { ascending: false });
 
-      if (error) throw error;
-      setUserItems(data || []);
-    } catch (error) {
-      console.error('Erro ao buscar itens:', error);
-    }
-  };
+    if (error) throw error;
+
+    const allowedRarities = ['common', 'rare', 'epic', 'legendary'];
+    const safeData = (data || []).filter(item => allowedRarities.includes(item.rarity));
+    setUserItems(safeData as UserInventory[]);
+
+  } catch (error) {
+    console.error('Erro ao buscar prêmios:', error);
+  }
+};
+
 
   // Buscar todos os itens disponíveis
   const fetchAvailableItems = async () => {
@@ -228,7 +234,7 @@ export const useInventory = () => {
       if (!acc[category]) acc[category] = [];
       acc[category].push(userItem);
       return acc;
-    }, {} as Record<string, UserItemInventory[]>);
+    }, {} as Record<string, UserInventory[]>);
   };
 
   // Carregar dados iniciais

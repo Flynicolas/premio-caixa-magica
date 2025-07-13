@@ -288,11 +288,12 @@ export const useWallet = () => {
     purchaseChest,
     showPaymentModalForAmount,
     PaymentModalComponent,
-    refreshData: () => {
-      fetchWalletData();
+    refreshData: async () => {
+      await fetchWalletData();
       if (user) {
-        fetchTransactions();
+        await fetchTransactions();
       }
-    }
+    },
+
   };
 };

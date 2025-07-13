@@ -6,7 +6,7 @@ import { Card } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Wallet, Plus, Trophy, Gift, Clock, CreditCard } from 'lucide-react';
 import { Prize, ChestType } from '@/data/chestData';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import PaymentModal from './PaymentModal';
 import { useWallet } from '@/hooks/useWallet';
 
@@ -100,8 +100,8 @@ const WalletPanel = ({ isOpen, onClose, balance, prizes }: WalletPanelProps) => 
                   <div className="w-20 h-20 gold-gradient rounded-full flex items-center justify-center mx-auto mb-6 shadow-2xl ring-4 ring-primary/20">
                     <Wallet className="w-10 h-10 text-black" />
                   </div>
-                  <h3 className="text-4xl font-bold gold-gradient bg-clip-text text-transparent mb-3">
-                    R$ {balance.toFixed(2)}
+                  <h3 className="text-4xl font-bold bg-clip-text text-yellow-400 mb-3">
+                    {balance.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}
                   </h3>
                   <p className="text-muted-foreground text-lg">Saldo Disponível</p>
                   <div className="mt-4 px-4 py-2 bg-primary/10 rounded-full inline-block">

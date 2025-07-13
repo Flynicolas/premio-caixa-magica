@@ -1,5 +1,5 @@
 
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useAuth } from '@/hooks/useAuth';
 import { useWallet } from '@/hooks/useWallet';
 import { Button } from '@/components/ui/button';
@@ -14,6 +14,7 @@ import ChestOpeningModal from '@/components/ChestOpeningModal';
 import WinModal from '@/components/WinModal';
 import { chestData, ChestType, Chest } from '@/data/chestData';
 import { DatabaseItem } from '@/types/database';
+import { useInventory } from '@/hooks/useInventory';
 
 const Index = () => {
   const { user } = useAuth();
@@ -26,6 +27,7 @@ const Index = () => {
   const [showWinModal, setShowWinModal] = useState(false);
   const [selectedChest, setSelectedChest] = useState<{ chest: Chest; type: ChestType } | null>(null);
   const [wonPrize, setWonPrize] = useState<DatabaseItem | null>(null);
+  const { userItems } = useInventory();
 
   // Definir ordem específica dos baús
   const chestOrder: ChestType[] = ['silver', 'gold', 'diamond', 'ruby', 'premium', 'delas'];
@@ -77,6 +79,19 @@ const Index = () => {
     }
     return null;
   };
+
+  const mappedPrizes = userItems.map((entry) => ({
+    name: entry.item?.name || 'Prêmio desconhecido',
+    description: entry.item?.description || '',
+    image: entry.item?.image_url || '',
+    rarity: entry.item?.rarity || 'common',
+    value: entry.item?.base_value !== undefined
+  ? entry.item.base_value.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })
+  : 'R$ 0,00',
+    chestType: entry.chest_type as ChestType, // <=== aqui
+    timestamp: new Date(entry.won_at),
+  }));
+
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-background via-secondary to-background">
@@ -144,8 +159,9 @@ const Index = () => {
         isOpen={showWalletPanel}
         onClose={() => setShowWalletPanel(false)}
         balance={walletData?.balance || 0}
-        prizes={[]}
+        prizes={mappedPrizes}
       />
+
 
       <ChestItemsModal
         isOpen={showItemsModal}

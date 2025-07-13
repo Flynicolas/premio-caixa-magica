@@ -1,5 +1,5 @@
 
-import React, { useState } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -13,7 +13,6 @@ import {
 } from '@/components/ui/dropdown-menu';
 import { useAuth } from '@/hooks/useAuth';
 import { useAdminCheck } from '@/hooks/useAdminCheck';
-import { useWallet } from '@/hooks/useWallet';
 import WalletPanel from './WalletPanel';
 import AuthModal from './AuthModal';
 import { 
@@ -31,11 +30,16 @@ import {
   Wallet,
   Truck
 } from 'lucide-react';
+import { ChestType } from '@/data/chestData';
+import { useInventory } from '@/hooks/useInventory';
+import { useWallet  } from '@/hooks/useWalletProvider';
 
 const Header = () => {
   const { user, signOut } = useAuth();
   const { isAdmin } = useAdminCheck();
-  const { walletData } = useWallet();
+  const { userItems, refreshInventory } = useInventory();
+  const { walletData, refreshData } = useWallet();
+
   const location = useLocation();
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [showAuth, setShowAuth] = useState(false);
@@ -47,6 +51,10 @@ const Header = () => {
     { name: 'Ranking', href: '/ranking', icon: Trophy },
     { name: 'Sobre', href: '/sobre', icon: Info },
   ];
+
+  useEffect(() => {
+    console.log("walletData", walletData)
+  }, [walletData])
 
   const adminNavigation = [
     { name: 'Admin', href: '/admin', icon: Shield },
@@ -61,6 +69,25 @@ const Header = () => {
     console.log('Adicionando saldo:', amount);
   };
 
+  
+const mappedPrizes = useMemo(() => {
+  return userItems.map(item => ({
+    name: item.item?.name || 'Prêmio desconhecido',
+    description: item.item?.description || '',
+    image: item.item?.image_url || '',
+    rarity: item.item?.rarity || 'common',
+    value: `R$ ${item.item?.base_value?.toFixed(2) || '0.00'}`,
+    chestType: item.chest_type as ChestType,
+    timestamp: new Date(item.won_at),
+  }));
+}, [userItems]);
+
+  
+  const handleOpenWallet = async () => {
+    console.log("AQUI")
+    await refreshInventory();
+    setShowWallet(true)
+  }
   return (
     <>
       <header className="bg-black/95 backdrop-blur-sm border-b border-gray-800 sticky top-0 z-50">
@@ -137,13 +164,17 @@ const Header = () => {
                   {/* Wallet Balance */}
                   <div className="flex items-center space-x-2 bg-gray-800 px-4 py-2 rounded-lg border border-gray-700">
                     <Wallet className="w-4 h-4 text-yellow-400" />
-                    <span className="font-bold text-yellow-400">
-                      R$ {walletData?.balance?.toFixed(2) || '0,00'}
+                    <span key={walletData?.balance} className="font-bold text-yellow-400">
+                      {walletData?.balance !== undefined
+  ? walletData.balance.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })
+  : 'R$ 0,00'}
+
                     </span>
+
                   </div>
                   
                   <Button 
-                    onClick={() => setShowWallet(true)}
+                    onClick={handleOpenWallet}
                     className="bg-gradient-to-r from-yellow-400 to-orange-500 text-black font-bold hover:from-yellow-500 hover:to-orange-600 transition-all"
                   >
                     Carteira
@@ -285,12 +316,14 @@ const Header = () => {
                         <div className="flex items-center space-x-2 bg-gray-800 px-4 py-2 rounded-lg border border-gray-700">
                           <Wallet className="w-4 h-4 text-yellow-400" />
                           <span className="font-bold text-yellow-400">
-                            R$ {walletData?.balance?.toFixed(2) || '0,00'}
+                            {walletData?.balance !== undefined
+                            ? walletData.balance.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })
+                            : 'R$ 0,00'}
                           </span>
                         </div>
                         
                         <Button 
-                          onClick={() => setShowWallet(true)}
+                          onClick={handleOpenWallet}
                           className="bg-gradient-to-r from-yellow-400 to-orange-500 text-black font-bold hover:from-yellow-500 hover:to-orange-600"
                         >
                           Carteira
@@ -356,13 +389,14 @@ const Header = () => {
         onClose={() => setShowAuth(false)} 
       />
 
-      <WalletPanel
-        isOpen={showWallet}
-        onClose={() => setShowWallet(false)}
-        balance={walletData?.balance || 0}
-        prizes={[]}
-        onAddBalance={handleAddBalance}
-      />
+<WalletPanel
+  key={userItems.length} // força re-render ao atualizar inventário
+  isOpen={showWallet}
+  onClose={() => setShowWallet(false)}
+  balance={walletData?.balance || 0}
+  prizes={mappedPrizes}
+  onAddBalance={handleAddBalance}
+/>
     </>
   );
 };

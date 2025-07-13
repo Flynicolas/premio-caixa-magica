@@ -16,12 +16,14 @@ import Admin from "./pages/Admin";
 import MinhasEntregas from "./pages/MinhasEntregas";
 import Configuracoes from "./pages/Configuracoes";
 import NotFound from "./pages/NotFound";
+import { WalletProvider } from "@/hooks/useWalletProvider";
 
 const queryClient = new QueryClient();
 
 const App = () => (
   <QueryClientProvider client={queryClient}>
     <AuthProvider>
+       <WalletProvider>
       <TooltipProvider>
         <Toaster />
         <Sonner />
@@ -45,6 +47,7 @@ const App = () => (
           </div>
         </BrowserRouter>
       </TooltipProvider>
+      </WalletProvider>
     </AuthProvider>
   </QueryClientProvider>
 );

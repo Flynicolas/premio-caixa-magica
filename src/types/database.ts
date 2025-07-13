@@ -50,17 +50,20 @@ export interface UserChestInventory {
   updated_at: string;
 }
 
-export interface UserItemInventory {
+export interface UserInventory {
   id: string;
   user_id: string;
   item_id: string;
-  quantity: number;
-  chest_opening_id: string | null;
-  is_claimed: boolean;
-  claimed_at: string | null;
+  item?: DatabaseItem;
+  chest_type: string;
+  rarity: string; 
+  won_at: string;
+  is_redeemed: boolean;
+  redeemed_at: string | null;
   created_at: string;
-  item?: DatabaseItem; // Join com a tabela items
 }
+
+
 
 export interface UserAddress {
   id: string;
