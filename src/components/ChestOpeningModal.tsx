@@ -1,18 +1,24 @@
-
-import { useState, useEffect } from 'react';
-import { Button } from '@/components/ui/button';
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
-import { X, Sparkles } from 'lucide-react';
-import SpinRouletteWheel from './SpinRouletteWheel';
-import ItemCard from './ItemCard';
-import { SpinItem } from './roulette/types';
-import { useRouletteLogic } from '@/hooks/useRouletteLogic';
-import { useToast } from '@/hooks/use-toast';
-import { useAuth } from '@/hooks/useAuth';
-import { supabase } from '@/integrations/supabase/client';
-import { DatabaseItem } from '@/types/database';
-import { useInventory } from '@/hooks/useInventory';
-import { useWallet  } from '@/hooks/useWalletProvider';
+import { useState, useEffect } from "react";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
+import { Button } from "@/components/ui/button";
+import { X, Sparkles } from "lucide-react";
+import { useToast } from "@/hooks/use-toast";
+import { useAuth } from "@/hooks/useAuth";
+import { supabase } from "@/integrations/supabase/client";
+import { useInventory } from "@/hooks/useInventory";
+import { useWallet } from "@/hooks/useWalletProvider";
+import { useRouletteLogic } from "@/hooks/useRouletteLogic";
+import ItemCard from "./ItemCard";
+import RouletteDisplay from "@/components/roulette/RouletteDisplay";
+import { DatabaseItem } from "@/types/database";
+import { SpinItem } from "./roulette/types";
+import "react-roulette-pro/dist/index.css";
+import confetti from "canvas-confetti";
 
 interface ChestOpeningModalProps {
   isOpen: boolean;
@@ -23,69 +29,87 @@ interface ChestOpeningModalProps {
   onPrizeWon: (prize: DatabaseItem) => void;
 }
 
-const ChestOpeningModal = ({ 
-  isOpen, 
-  onClose, 
-  chestType, 
-  chestName, 
+const ChestOpeningModal = ({
+  isOpen,
+  onClose,
+  chestType,
+  chestName,
   chestPrice,
-  onPrizeWon
+  onPrizeWon,
 }: ChestOpeningModalProps) => {
-  const [phase, setPhase] = useState<'preview' | 'spinning' | 'result'>('preview');
+  const [phase, setPhase] = useState<"preview" | "spinning" | "result">(
+    "preview",
+  );
   const [wonItem, setWonItem] = useState<SpinItem | null>(null);
   const [isSpinning, setIsSpinning] = useState(false);
   const [isProcessing, setIsProcessing] = useState(false);
-  const { refreshInventory } = useInventory();
-  const { refreshData } = useWallet();
 
-  const { generateRoulette, rouletteData, isLoading } = useRouletteLogic();
   const { toast } = useToast();
   const { user } = useAuth();
+  const { refreshData } = useWallet();
+  const { generateRoulette, rouletteData, isLoading } = useRouletteLogic();
 
-  // Reset modal state when opening/closing
+  const config =
+    {
+      silver: {
+        gradient: "from-gray-400 to-gray-600",
+        glow: "shadow-gray-400/30",
+        accent: "text-gray-300",
+      },
+      gold: {
+        gradient: "from-yellow-400 to-yellow-600",
+        glow: "shadow-yellow-400/30",
+        accent: "text-yellow-300",
+      },
+      delas: {
+        gradient: "from-[#f72585] via-[#b5179e] to-[#7209b7]",
+        glow: "shadow-pink-500/30",
+        accent: "text-pink-100",
+      },
+      diamond: {
+        gradient: "from-blue-400 to-cyan-400",
+        glow: "shadow-blue-400/30",
+        accent: "text-blue-300",
+      },
+      ruby: {
+        gradient: "from-red-400 to-pink-500",
+        glow: "shadow-red-400/30",
+        accent: "text-red-300",
+      },
+      premium: {
+        gradient: "from-purple-500 to-pink-600",
+        glow: "shadow-purple-500/30",
+        accent: "text-purple-300",
+      },
+    }[chestType] || config.silver;
+
   useEffect(() => {
     if (isOpen) {
-      setPhase('preview');
+      setPhase("preview");
       setWonItem(null);
       setIsSpinning(false);
       setIsProcessing(false);
     }
   }, [isOpen]);
 
-  const chestConfigs = {
-    silver: {
-      gradient: 'from-gray-400 to-gray-600',
-      glow: 'shadow-gray-400/30',
-      accent: 'text-gray-300'
-    },
-    gold: {
-      gradient: 'from-yellow-400 to-yellow-600',
-      glow: 'shadow-yellow-400/30',
-      accent: 'text-yellow-300'
-    },
-    delas: {
-      gradient: 'from-pink-400 to-rose-500',
-      glow: 'shadow-pink-400/30',
-      accent: 'text-pink-300'
-    },
-    diamond: {
-      gradient: 'from-blue-400 to-cyan-400',
-      glow: 'shadow-blue-400/30',
-      accent: 'text-blue-300'
-    },
-    ruby: {
-      gradient: 'from-red-400 to-pink-500',
-      glow: 'shadow-red-400/30',
-      accent: 'text-red-300'
-    },
-    premium: {
-      gradient: 'from-purple-500 to-pink-600',
-      glow: 'shadow-purple-500/30',
-      accent: 'text-purple-300'
-    }
-  };
+  useEffect(() => {
+    if (phase === "result") {
+      // Áudio de vitória
+      const winAudio = new Audio("/sounds/win.mp3");
+      winAudio.volume = 0.6;
+      winAudio.play();
 
-  const config = chestConfigs[chestType as keyof typeof chestConfigs] || chestConfigs.silver;
+      // Confetes animados
+      confetti({
+        particleCount: 180,
+        spread: 100,
+        origin: { y: 0.6 },
+        scalar: 1.2,
+        zIndex: 9999,
+        colors: ["#FFD700", "#FF69B4", "#8A2BE2"],
+      });
+    }
+  }, [phase]);
 
   const handleOpenChest = async () => {
     if (!user) {
@@ -96,92 +120,53 @@ const ChestOpeningModal = ({
       });
       return;
     }
+    console.log("[BOTÃO] Girar clicado");
 
     setIsProcessing(true);
     try {
-      console.log('=== INICIANDO PROCESSO DE ABERTURA DO BAÚ ===');
-      console.log('Usuário:', user.id);
-      console.log('Tipo do baú:', chestType);
-      console.log('Preço do baú:', chestPrice);
+      const { data: result, error } = await supabase.functions.invoke(
+        "draw-item-from-chest",
+        {
+          body: { chestType, userId: user.id, chestPrice },
+        },
+      );
 
-      // Chamar a função edge que faz tudo: compra, sorteia e registra
-      const { data: result, error } = await supabase.functions.invoke('draw-item-from-chest', {
-        body: { 
-          chestType, 
-          userId: user.id, 
-          chestPrice: chestPrice,
-          chestId: null // Será criado pela função
-        }
-      });
+      if (error || !result?.item)
+        throw error || new Error("Nenhum item foi retornado");
 
-      if (error) {
-        console.error('Erro na função draw-item-from-chest:', error);
-        throw error;
-      }
-
-      console.log('Item sorteado:', result);
-
-      if (!result?.item) {
-        throw new Error('Nenhum item foi retornado');
-      }
-
-      // Gerar dados da roleta para animação
-      setPhase('spinning');
-      const rouletteResult = await generateRoulette(chestType, 25);
-      
-      if (rouletteResult) {
-        // Substituir o item vencedor na roleta pelo item real sorteado
-        rouletteResult.winnerItem = {
-          id: result.item.id,
-          name: result.item.name,
-          image_url: result.item.image_url,
-          rarity: result.item.rarity
-        };
-
-        // Atualizar o slot central com o item correto
-        if (rouletteResult.rouletteSlots && rouletteResult.centerIndex !== undefined) {
-          rouletteResult.rouletteSlots[rouletteResult.centerIndex] = rouletteResult.winnerItem;
-        }
-
+      const winner = result.item;
+      setPhase("spinning");
+      const rouletteResult = await generateRoulette(chestType, 25, winner.id);
+      if (!rouletteResult) throw new Error("Erro ao gerar roleta");
       await refreshData();
-
-
-        // Iniciar animação
-        setTimeout(() => {
-          setIsSpinning(true);
-        }, 1000);
-      }
-
-    } catch (error: any) {
-      console.error('Erro ao abrir baú:', error);
+      setTimeout(() => setIsSpinning(true), 200);
+    } catch (err: any) {
+      console.error("Erro ao abrir baú:", err);
       toast({
         title: "Erro",
-        description: error.message || "Falha ao abrir o baú. Tente novamente.",
+        description: err.message || "Falha ao abrir o baú.",
         variant: "destructive",
       });
-      setPhase('preview');
+      setPhase("preview");
     } finally {
       setIsProcessing(false);
     }
   };
 
   const handleSpinComplete = async (item: SpinItem) => {
-    console.log('Animação da roleta completa, item:', item);
     setWonItem(item);
+    setPhase("result");
     setIsSpinning(false);
-    setPhase('result');
-  
-    const mappedRarity = item.rarity === 'special' ? 'legendary' : item.rarity as 'common' | 'rare' | 'epic' | 'legendary';
-  
+
     const databaseItem: DatabaseItem = {
       id: item.id,
       name: item.name,
       description: null,
       image_url: item.image_url,
-      category: 'product',
-      rarity: mappedRarity,
+      category: "product",
+      rarity: item.rarity as any,
       base_value: 0,
-      delivery_type: 'digital',
+      delivery_type: "digital",
       delivery_instructions: null,
       requires_address: false,
       requires_document: false,
@@ -194,156 +179,173 @@ const ChestOpeningModal = ({
       created_at: new Date().toISOString(),
       updated_at: new Date().toISOString(),
     };
-  
-    // Chamar callback para o pai
-    onPrizeWon(databaseItem);
-  
-    // Atualiza inventário (refresca prêmios no header)
-    await refreshInventory();
-  
 
-    toast({
-      title: "🎉 Parabéns!",
-      description: `Você ganhou: ${item.name}`,
-    });
+    onPrizeWon(databaseItem);
+    toast({ title: "🎉 Parabéns!", description: `Você ganhou: ${item.name}` });
   };
 
-
   const handleClose = () => {
-    setPhase('preview');
+    setPhase("preview");
     setWonItem(null);
     setIsSpinning(false);
     onClose();
   };
 
-  const handleOpenAnother = () => {
-    setPhase('preview');
-    setWonItem(null);
-    setIsSpinning(false);
+  const getRarityClass = (rarity: string | null | undefined) => {
+    switch (rarity) {
+      case "common":
+        return "bg-gray-500";
+      case "uncommon":
+        return "bg-green-500";
+      case "rare":
+        return "bg-blue-600";
+      case "epic":
+        return "bg-purple-600";
+      case "legendary":
+        return "bg-yellow-500 text-black";
+      case "special":
+        return "bg-pink-600";
+      default:
+        return "bg-white/20";
+    }
   };
 
   return (
     <Dialog open={isOpen} onOpenChange={handleClose}>
-      <DialogContent className={`max-w-6xl max-h-[90vh] p-0 bg-gradient-to-br ${config.gradient} border-0`}>
+      <DialogContent
+        className={`max-w-6xl max-h-[90vh] p-0 bg-gradient-to-br ${config.gradient} border-0 shadow-2xl shadow-black/40`}
+      >
         <div className="absolute inset-0 bg-black/20 rounded-lg" />
-        
         <DialogHeader className="relative z-10 p-6 pb-0">
           <div className="flex items-center justify-between">
-            <DialogTitle className={`text-2xl font-bold text-white drop-shadow-lg ${config.accent}`}>
-              {phase === 'preview' && (
+            <DialogTitle
+              className={`text-2xl font-bold text-white drop-shadow-lg ${config.accent}`}
+            >
+              {phase === "preview" && (
                 <>
-                  <Sparkles className="inline w-6 h-6 mr-2" />
+                  <Sparkles className="inline w-6 h-6 mr-2 animate-pulse" />{" "}
                   Abrir {chestName}
                 </>
               )}
-              {phase === 'spinning' && '🎰 Girando a Roleta'}
-              {phase === 'result' && '🎉 Resultado do Sorteio'}
+              {phase === "spinning" && "🎰 Girando a Roleta"}
+              {phase === "result" && "🎉 Resultado do Sorteio"}
             </DialogTitle>
-            <Button variant="ghost" size="sm" onClick={handleClose} className="text-white hover:bg-white/20">
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={handleClose}
+              className="text-white hover:bg-white/20"
+            >
               <X size={20} />
             </Button>
           </div>
         </DialogHeader>
 
-        <div className="relative z-10 p-6">
-          {/* Preview Phase */}
-          {phase === 'preview' && (
-            <div className="text-center space-y-6">
-              <div className="space-y-4">
-                <div className={`inline-block p-4 rounded-2xl bg-white/10 backdrop-blur-sm border border-white/20 ${config.glow}`}>
-                  <h3 className="text-xl font-semibold text-white mb-2">
-                    Prepare-se para o sorteio!
-                  </h3>
-                  <p className="text-white/80 text-lg">
-                    Custo: <span className="font-bold text-white">R$ {chestPrice.toFixed(2)}</span>
-                  </p>
+        <div className="relative z-10 p-6 pb-10 text-center">
+          {phase === "preview" && (
+            <>
+              <div className="relative inline-block px-8 py-10 rounded-3xl bg-white/10 backdrop-blur-sm border border-white/20 shadow-[0_0_30px_rgba(255,255,255,0.15)]">
+                <div className="absolute top-[-30px] left-1/2 transform -translate-x-1/2">
+                  <Sparkles className="w-12 h-12 text-yellow-300 animate-ping-slow drop-shadow-xl" />
                 </div>
-                <p className="text-white/70 text-sm max-w-md mx-auto">
-                  A roleta irá girar e revelar seu prêmio. Boa sorte!
+                <h3 className="text-3xl font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-yellow-300 via-pink-300 to-purple-400 mb-4 drop-shadow-lg text-center">
+                  Prepare-se para o sorteio!
+                </h3>
+
+                <p className="text-white/90 text-lg text-center mb-6">
+                  Custo do baú:{" "}
+                  <span className="font-bold text-white">
+                    R$ {chestPrice.toFixed(2)}
+                  </span>
+                </p>
+
+                <p className="text-sm text-white/70 text-center max-w-md mx-auto">
+                  A roleta mágica está pronta para girar e revelar o seu prêmio.
+                  Você está com sorte hoje?
                 </p>
               </div>
-              
-              <div className="flex justify-center gap-4">
-                <Button variant="outline" onClick={handleClose} className="border-white/30 text-white hover:bg-white/10">
+
+              <div className="flex justify-center gap-4 mt-8">
+                <Button
+                  variant="outline"
+                  onClick={handleClose}
+                  className="border-white/30 text-white hover:bg-white/10"
+                >
                   Cancelar
                 </Button>
-                <Button 
-                  onClick={handleOpenChest} 
+                <Button
+                  onClick={handleOpenChest}
                   disabled={isLoading || isProcessing}
-                  className={`bg-white/20 backdrop-blur-sm hover:bg-white/30 text-white font-bold border border-white/30 ${config.glow}`}
+                  className={`bg-gradient-to-r from-yellow-400 via-yellow-300 to-yellow-500 text-black font-bold hover:brightness-110 border border-yellow-300 px-6 py-3 rounded-xl transition-all duration-300 shadow-md hover:scale-105 ${config.glow}`}
                 >
-                  {isLoading || isProcessing ? 'Processando...' : `🎲 Girar Roleta`}
+                  {isLoading || isProcessing
+                    ? "Processando..."
+                    : "🎲 Girar Roleta"}
                 </Button>
               </div>
-            </div>
+            </>
           )}
 
-          {/* Spinning Phase */}
-          {phase === 'spinning' && rouletteData && (
-            <div className="space-y-8">
-              <div className="text-center">
-                <div className={`inline-block p-4 rounded-2xl bg-white/10 backdrop-blur-sm border border-white/20 ${config.glow}`}>
-                  <p className="text-lg font-semibold mb-2 text-white">🎰 Girando a roleta...</p>
-                  <p className="text-sm text-white/80">
-                    Aguarde o resultado!
-                  </p>
-                </div>
-              </div>
-              
-              <SpinRouletteWheel
-                rouletteData={rouletteData}
-                isSpinning={isSpinning}
-                onSpinComplete={handleSpinComplete}
-                chestType={chestType}
-                className="mb-8"
-              />
-            </div>
+          {phase === "spinning" && rouletteData && (
+            <RouletteDisplay
+              prizes={rouletteData.prizes}
+              prizeIndex={rouletteData.prizeIndex}
+              start={isSpinning}
+              onPrizeDefined={() => handleSpinComplete(rouletteData.winnerItem)}
+            />
           )}
 
-          {/* Result Phase */}
-          {phase === 'result' && wonItem && (
-            <div className="text-center space-y-6">
-              <div className="space-y-4">
-                <div className={`inline-block p-6 rounded-2xl bg-white/10 backdrop-blur-sm border border-white/20 ${config.glow}`}>
-                  <h3 className="text-3xl font-bold text-white mb-4">🎉 Parabéns!</h3>
-                  <p className="text-xl text-white/90 mb-4">Você ganhou:</p>
-                  
-                  <div className="flex justify-center mb-4">
-                    <ItemCard 
-                      item={wonItem} 
-                      size="lg" 
-                      showRarity={true}
-                      className="animate-scale-in"
-                    />
-                  </div>
-                  
-                  <div className="space-y-2">
-                    <h4 className="text-2xl font-bold text-white">{wonItem.name}</h4>
-                    <p className="text-lg capitalize font-semibold" style={{
-                      color: wonItem.rarity === 'common' ? '#9CA3AF' :
-                             wonItem.rarity === 'rare' ? '#3B82F6' :
-                             wonItem.rarity === 'epic' ? '#8B5CF6' :
-                             wonItem.rarity === 'legendary' ? '#F59E0B' :
-                             wonItem.rarity === 'special' ? '#EC4899' :
-                             '#9CA3AF'
-                    }}>
-                      {wonItem.rarity === 'common' && 'Comum'}
-                      {wonItem.rarity === 'rare' && 'Raro'}
-                      {wonItem.rarity === 'epic' && 'Épico'}
-                      {wonItem.rarity === 'legendary' && 'Lendário'}
-                      {wonItem.rarity === 'special' && 'Especial'}
-                    </p>
+          {phase === "result" && wonItem && (
+            <div className="flex flex-col items-center justify-center gap-6 animate-fade-in">
+              <div
+                className={`bg-white/10 p-8 rounded-3xl backdrop-blur-md border border-white/20 shadow-xl max-w-xl w-full ${config.glow}`}
+              >
+                <h2 className="text-5xl font-extrabold text-white text-center mb-2 animate-pulse">
+                  🎉 Parabéns!
+                </h2>
+                <p className="text-lg text-white/80 text-center mb-6">
+                  Você ganhou um item {wonItem.rarity?.toUpperCase()}:
+                </p>
+
+                <div className="flex flex-col items-center gap-4">
+                  <img
+                    src={wonItem.image_url}
+                    alt={wonItem.name}
+                    className="w-40 h-40 object-contain rounded-xl shadow-lg border-4 border-white/10"
+                  />
+
+                  <h3 className="text-2xl font-bold text-white text-center">
+                    {wonItem.name}
+                  </h3>
+
+                  <div
+                    className={`px-4 py-1 rounded-full text-sm font-medium text-white ${getRarityClass(wonItem.rarity)}`}
+                  >
+                    {wonItem.rarity?.toUpperCase()}
                   </div>
                 </div>
               </div>
-              
-              <div className="flex justify-center gap-4">
-                <Button variant="outline" onClick={handleClose} className="border-white/30 text-white hover:bg-white/10">
+
+              <div className="flex flex-wrap justify-center gap-4">
+                <Button
+                  variant="outline"
+                  onClick={handleClose}
+                  className="border-white/30 text-white hover:bg-white/10"
+                >
                   Fechar
                 </Button>
-                <Button 
-                  onClick={handleOpenAnother}
+                <Button
                   className={`bg-white/20 backdrop-blur-sm hover:bg-white/30 text-white font-bold border border-white/30 ${config.glow}`}
+                  onClick={() => (window.location.href = "/baus")}
+                >
+                  Ver Inventário
+                </Button>
+                <Button
+                  className="bg-gradient-to-r from-indigo-400 to-pink-400 text-white font-bold shadow-md hover:scale-105 transition-transform"
+                  onClick={() => {
+                    setPhase("preview");
+                    setWonItem(null);
+                  }}
                 >
                   Abrir Outro Baú
                 </Button>

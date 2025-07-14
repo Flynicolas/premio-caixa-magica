@@ -1,19 +1,18 @@
-import { useState, useCallback } from 'react';
-import { supabase } from '@/integrations/supabase/client';
-import { useToast } from '@/hooks/use-toast';
+import { useState, useCallback } from "react";
+import { supabase } from "@/integrations/supabase/client";
+import { useToast } from "@/hooks/use-toast";
 
-interface RouletteItem {
+interface PrizeItem {
   id: string;
-  name: string;
-  image_url?: string | null;
-  rarity: 'common' | 'rare' | 'epic' | 'legendary' | 'special';
+  image: string;
+  text?: string;
 }
 
 interface RouletteResult {
-  rouletteSlots: RouletteItem[];
-  winnerItem: RouletteItem;
+  prizes: PrizeItem[];
+  prizeIndex: number;
+  winnerItem: any;
   centerIndex: number;
-  totalSlots: number;
 }
 
 export const useRouletteLogic = () => {
@@ -21,38 +20,80 @@ export const useRouletteLogic = () => {
   const [rouletteData, setRouletteData] = useState<RouletteResult | null>(null);
   const { toast } = useToast();
 
-  const generateRoulette = useCallback(async (chestType: string, slotsCount: number = 25) => {
-    setIsLoading(true);
-    try {
-      const { data, error } = await supabase.functions.invoke('generate-roulette', {
-        body: { chestType, slotsCount }
-      });
+  const reproduceArray = <T,>(array: T[], length: number): T[] => [
+    ...Array(length)
+      .fill("_")
+      .map(() => array[Math.floor(Math.random() * array.length)]),
+  ];
 
-      if (error) throw error;
+  const generateRoulette = useCallback(
+    async (chestType: string, slotsCount = 25, forcedItemId?: string) => {
+      setIsLoading(true);
+      try {
+        const { data, error } = await supabase.functions.invoke(
+          "generate-roulette",
+          {
+            body: { chestType, slotsCount, forcedItemId },
+          },
+        );
 
-      setRouletteData(data);
-      return data;
-    } catch (error) {
-      console.error('Erro ao gerar roleta:', error);
-      toast({
-        title: "Erro",
-        description: "Falha ao gerar a roleta. Tente novamente.",
-        variant: "destructive",
-      });
-      return null;
-    } finally {
-      setIsLoading(false);
-    }
-  }, [toast]);
+        if (error) throw error;
 
-  const resetRoulette = useCallback(() => {
-    setRouletteData(null);
-  }, []);
+        const { rouletteSlots, winnerItem } = data;
+
+        const extendedStart = reproduceArray(rouletteSlots, slotsCount);
+        const extendedEnd = reproduceArray(rouletteSlots, slotsCount * 2);
+
+        const allSlots = [...extendedStart, ...rouletteSlots, ...extendedEnd];
+
+        const centerStartIndex = extendedStart.length;
+        const winnerIndexInOriginal = rouletteSlots.findIndex(
+          (item: any) => item.id === winnerItem.id,
+        );
+
+        const finalPrizeIndex = centerStartIndex + winnerIndexInOriginal;
+
+        const prizes = allSlots.map((item: any, index: number) => ({
+          id: `${item.id}-${index}`,
+          image: item.image_url || "",
+          text: item.name || "",
+        }));
+
+        setRouletteData({
+          prizes,
+          prizeIndex: finalPrizeIndex,
+          winnerItem,
+          centerIndex: centerStartIndex,
+        });
+
+        return {
+          prizes,
+          prizeIndex: finalPrizeIndex,
+          winnerItem,
+          centerIndex: centerStartIndex,
+        };
+      } catch (error: any) {
+        console.error("Erro ao gerar roleta:", error);
+        toast({
+          title: "Erro",
+          description:
+            error.message || "Falha ao gerar a roleta. Tente novamente.",
+          variant: "destructive",
+        });
+        return null;
+      } finally {
+        setIsLoading(false);
+      }
+    },
+    [toast],
+  );
+
+  const resetRoulette = () => setRouletteData(null);
 
   return {
     generateRoulette,
     resetRoulette,
     rouletteData,
-    isLoading
+    isLoading,
   };
 };

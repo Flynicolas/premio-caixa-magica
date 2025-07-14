@@ -197,16 +197,7 @@ const Index = () => {
         onPrizeWon={handleChestOpeningComplete}
       />
 
-      <WinModal
-        isOpen={showWinModal}
-        onClose={() => setShowWinModal(false)}
-        prize={wonPrize}
-        onCollect={() => {
-          setShowWinModal(false);
-          setWonPrize(null);
-          setSelectedChest(null);
-        }}
-      />
+     
     </div>
   );
 };

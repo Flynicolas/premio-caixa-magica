@@ -132,7 +132,7 @@ export const useNewRouletteAnimation = ({
               playRareItemSound(rouletteData.winnerItem.rarity);
             }
 
-            // Abrir popup após efeito de destaque
+            // // Abrir popup após efeito de destaque
             animationRef.current = window.setTimeout(() => {
               setState('complete');
               console.log('Abrindo popup do prêmio');

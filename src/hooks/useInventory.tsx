@@ -200,7 +200,7 @@ const fetchUserItems = async () => {
       }
 
       // Atualizar estados
-      await Promise.all([fetchUserChests(), fetchUserItems()]);
+      await Promise.all([ fetchUserItems()]);
 
       return { item, error: null };
     } catch (error: any) {
@@ -243,7 +243,7 @@ const fetchUserItems = async () => {
       setLoading(true);
       await Promise.all([
         fetchAvailableItems(),
-        user ? fetchUserChests() : Promise.resolve(),
+        // user ? fetchUserChests() : Promise.resolve(),
         user ? fetchUserItems() : Promise.resolve()
       ]);
       setLoading(false);
@@ -267,7 +267,7 @@ const fetchUserItems = async () => {
     getItemsByCategory,
     
     // Funções de refresh
-    refreshInventory: () => Promise.all([fetchUserChests(), fetchUserItems()]),
+    refreshInventory: () => Promise.all([fetchUserItems()]),
     refreshItems: fetchAvailableItems
   };
 };

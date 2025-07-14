@@ -47,7 +47,9 @@ const ChestCard = ({ chest, chestType, onOpen, onViewItems, balance, onPrizeWon 
   const chestBorderColor = chestBorderColors[chestType] || chestBorderColors.silver;
 
   return (
-    <Card className={`relative overflow-hidden ${chestBorderColor} bg-card/50 hover:bg-card/70 transition-all duration-300 group h-full border-2`}>
+    <Card className={`relative overflow-hidden ${chestBorderColor} bg-card/50 hover:bg-card/70 transition-all duration-300 group h-full border-2`}
+      key={chest.name + chest.price}
+    >
       <CardContent className="p-8 flex flex-col h-full min-h-[520px]">
         {/* Header com nome e preço - Mais espaçoso */}
         <div className="text-center mb-8">
