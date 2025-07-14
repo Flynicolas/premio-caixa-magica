@@ -32,7 +32,7 @@ const RouletteDisplay: React.FC<RouletteDisplayProps> = ({
         prizes={prizes}
         prizeIndex={prizeIndex}
         start={start}
-        spinningTime={4}
+        spinningTime={8}
         soundWhileSpinning="/sounds/roleta.mp3"
         onPrizeDefined={() => {
           setTimeout(() => {
