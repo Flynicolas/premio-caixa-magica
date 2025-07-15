@@ -60,10 +60,6 @@ serve(async (req) => {
         .map((b) => b.toString(16).padStart(2, "0"))
         .join("");
 
-      console.log("Assinatura template:", template);
-      console.log("Assinatura calculada:", signatureHex);
-      console.log("Assinatura recebida:", receivedSignature);
-
       if (signatureHex !== receivedSignature) {
         console.error("Webhook com assinatura inválida");
         return new Response("Unauthorized", { status: 401, headers: corsHeaders });
@@ -101,10 +97,39 @@ serve(async (req) => {
 
         const paymentData = await paymentResponse.json();
         const preferenceId = paymentData.external_reference || paymentData.metadata?.preference_id;
+        const description = paymentData.description || '';
 
         if (!preferenceId) {
           console.error('Preference ID não encontrado');
           return new Response('Preference ID missing', { status: 400, headers: corsHeaders });
+        }
+
+        if (description.startsWith('Retirada do prêmio #')) {
+          const withdrawalId = description.replace('Retirada do prêmio #', '').trim();
+
+          const { error: payError } = await supabase
+            .from('item_withdrawal_payments')
+            .update({ status: 'paid' })
+            .eq('withdrawal_id', withdrawalId)
+            .eq('transaction_id', paymentId.toString());
+
+          if (payError) {
+            console.error('Erro ao atualizar item_withdrawal_payments:', payError);
+          }
+
+          const { error: withdrawalError } = await supabase
+            .from('item_withdrawals')
+            .update({
+              payment_status: 'paid',
+              delivery_status: 'aguardando_envio'
+            })
+            .eq('id', withdrawalId);
+
+          if (withdrawalError) {
+            console.error('Erro ao atualizar item_withdrawals:', withdrawalError);
+          }
+
+          return new Response('Retirada processada com sucesso', { status: 200, headers: corsHeaders });
         }
 
         const { data: result, error } = await supabase.rpc('process_mercadopago_webhook', {

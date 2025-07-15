@@ -15,9 +15,10 @@ const Footer = () => {
                 alt="Baú Premiado" 
                 className="w-8 h-8 rounded-full"
               />
-              <h3 className="text-lg font-bold gold-gradient bg-clip-text text-transparent">
-                Baú Premiado
-              </h3>
+            <h3 className="text-lg font-bold bg-gradient-to-r from-yellow-400 to-orange-500 bg-clip-text text-transparent">
+              Baú Premiado
+            </h3>
+
             </div>
             <p className="text-sm text-muted-foreground">
               A plataforma mais confiável para sorteios online. 

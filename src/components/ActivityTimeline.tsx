@@ -131,11 +131,15 @@ const ActivityTimeline = ({ activities, className = "" }: ActivityTimelineProps)
                         {activity.description}
                       </p>
                       <div className="flex items-center space-x-2">
-                        {activity.experience_gained > 0 && (
-                          <Badge variant="outline" className="text-xs">
-                            +{activity.experience_gained} XP
-                          </Badge>
-                        )}
+                      {activity.experience_gained > 0 && (
+  <div className="flex items-center text-xs font-medium bg-yellow-400/10 text-yellow-300 px-2 py-0.5 rounded-full gap-1 border border-yellow-500/30">
+    <svg xmlns="http://www.w3.org/2000/svg" className="h-3 w-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 11V5a1 1 0 112 0v6h6a1 1 0 110 2h-6v6a1 1 0 11-2 0v-6H5a1 1 0 110-2h6z" />
+    </svg>
+    +{activity.experience_gained} XP
+  </div>
+)}
+
                         <Badge variant="secondary" className="text-xs">
                           {getActivityTypeLabel(activity.activity_type)}
                         </Badge>

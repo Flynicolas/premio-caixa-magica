@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -45,6 +44,14 @@ interface UserData {
   id: string;
   email: string;
   full_name: string | null;
+  cpf: string | null;
+  zip_code: string | null;
+  street: string | null;
+  number: string | null;
+  complement?: string | null;
+  neighborhood: string | null;
+  city: string | null;
+  state: string | null;
   created_at: string;
   is_active: boolean;
   is_demo: boolean;
@@ -67,7 +74,7 @@ const UsersManagement = () => {
   const [showCreateDemoModal, setShowCreateDemoModal] = useState(false);
   const { toast } = useToast();
   const { isAdmin } = useAdminCheck();
-
+  
   useEffect(() => {
     fetchUsers();
   }, []);
@@ -91,13 +98,20 @@ const UsersManagement = () => {
 
       if (walletsError) throw walletsError;
 
-      // Combinar dados dos perfis com carteiras
       const usersData = profiles.map(profile => {
         const wallet = wallets.find(w => w.user_id === profile.id);
         return {
           id: profile.id,
           email: profile.email,
           full_name: profile.full_name,
+          cpf: profile.cpf,
+          zip_code: profile.zip_code,
+          street: profile.street,
+          number: profile.number,
+          complement: profile.complement,
+          neighborhood: profile.neighborhood,
+          city: profile.city,
+          state: profile.state,
           created_at: profile.created_at,
           is_active: profile.is_active,
           is_demo: profile.is_demo || false,
@@ -125,7 +139,6 @@ const UsersManagement = () => {
   const filterUsers = () => {
     let filtered = users;
 
-    // Filtro por busca
     if (searchTerm) {
       filtered = filtered.filter(user => 
         user.email.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -133,7 +146,6 @@ const UsersManagement = () => {
       );
     }
 
-    // Filtro por status
     if (statusFilter !== 'all') {
       filtered = filtered.filter(user => {
         switch (statusFilter) {
@@ -186,17 +198,6 @@ const UsersManagement = () => {
     );
   };
 
-  if (loading) {
-    return (
-      <Card>
-        <CardContent className="flex items-center justify-center py-8">
-          <div className="w-8 h-8 border-4 border-primary border-t-transparent rounded-full animate-spin"></div>
-          <p className="ml-3">Carregando usuários...</p>
-        </CardContent>
-      </Card>
-    );
-  }
-
   return (
     <div className="space-y-6">
       <Card>
@@ -206,70 +207,28 @@ const UsersManagement = () => {
               <Users className="w-5 h-5" />
               Gerenciar Usuários ({filteredUsers.length})
             </CardTitle>
-            <div className="flex items-center gap-4">
-              {isAdmin && (
-                <Button
-                  onClick={() => setShowCreateDemoModal(true)}
-                  className="flex items-center gap-2"
-                >
-                  <UserPlus className="w-4 h-4" />
-                  Criar Usuário DEMO
-                </Button>
-              )}
-              <div className="flex items-center gap-2">
-                <Filter className="w-4 h-4 text-gray-400" />
-                <Select value={statusFilter} onValueChange={setStatusFilter}>
-                  <SelectTrigger className="w-32">
-                    <SelectValue placeholder="Status" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="all">Todos</SelectItem>
-                    <SelectItem value="active">Ativos</SelectItem>
-                    <SelectItem value="inactive">Inativos</SelectItem>
-                    <SelectItem value="demo">Demo</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-              <div className="relative">
-                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
-                <Input
-                  placeholder="Buscar por email ou nome..."
-                  value={searchTerm}
-                  onChange={(e) => setSearchTerm(e.target.value)}
-                  className="pl-10 w-64"
-                />
-              </div>
-            </div>
           </div>
         </CardHeader>
         <CardContent>
-          {filteredUsers.length === 0 ? (
-            <div className="text-center py-8">
-              <Users className="w-12 h-12 mx-auto mb-4 text-gray-400" />
-              <p className="text-gray-500">
-                {searchTerm || statusFilter !== 'all' ? 'Nenhum usuário encontrado para os filtros aplicados.' : 'Nenhum usuário cadastrado ainda.'}
-              </p>
-            </div>
-          ) : (
-            <div className="rounded-md border">
-              <Table>
-                <TableHeader>
-                  <TableRow>
-                    <TableHead>Usuário</TableHead>
-                    <TableHead>Email</TableHead>
-                    <TableHead>Saldo</TableHead>
-                    <TableHead>Total Gasto</TableHead>
-                    <TableHead>Baús Abertos</TableHead>
-                    <TableHead>Cadastro</TableHead>
-                    <TableHead>Último Login</TableHead>
-                    <TableHead>Status</TableHead>
-                    <TableHead>Ações</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {filteredUsers.map((user) => (
-                    <TableRow key={user.id}>
-                      <TableCell>
+          <div className="rounded-md border overflow-x-auto">
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead>Usuário</TableHead>
+                  <TableHead>CPF</TableHead>
+                  <TableHead>Saldo</TableHead>
+                  <TableHead>Total Gasto</TableHead>
+                  <TableHead>Baús Abertos</TableHead>
+                  <TableHead>Cadastro</TableHead>
+                  <TableHead>Último Login</TableHead>
+                  <TableHead>Status</TableHead>
+                  <TableHead>Ações</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {filteredUsers.map((user) => (
+                  <TableRow key={user.id}>
+                     <TableCell>
                         <div>
                           <div className="font-medium flex items-center gap-2">
                             {user.full_name || 'Nome não informado'}
@@ -289,13 +248,8 @@ const UsersManagement = () => {
                           </div>
                         </div>
                       </TableCell>
-                      <TableCell>
-                        <div className="flex items-center gap-2">
-                          <Mail className="w-4 h-4 text-gray-400" />
-                          {user.email}
-                        </div>
-                      </TableCell>
-                      <TableCell>
+                    <TableCell>{user.cpf || '-'}</TableCell>
+                     <TableCell>
                         <div className="flex items-center gap-1">
                           <DollarSign className="w-4 h-4 text-green-600" />
                           <span className="font-medium text-green-600">
@@ -303,56 +257,36 @@ const UsersManagement = () => {
                           </span>
                         </div>
                       </TableCell>
-                      <TableCell>
+                    <TableCell>
                         <div className="flex items-center gap-1">
                           <DollarSign className="w-4 h-4 text-blue-600" />
                           <span>R$ {user.total_spent.toFixed(2)}</span>
                         </div>
                       </TableCell>
-                      <TableCell>
+                     <TableCell>
                         <div className="flex items-center gap-1">
                           <ShoppingBag className="w-4 h-4 text-purple-600" />
                           <span>{user.chests_opened}</span>
                         </div>
                       </TableCell>
-                      <TableCell>
-                        <div className="flex items-center gap-1">
-                          <Calendar className="w-4 h-4 text-gray-400" />
-                          <span className="text-sm">{formatDate(user.created_at)}</span>
-                        </div>
-                      </TableCell>
-                      <TableCell>
-                        <span className="text-sm">
-                          {formatDateTime(user.last_login)}
-                        </span>
-                      </TableCell>
-                      <TableCell>
-                        {getStatusBadge(user)}
-                      </TableCell>
-                      <TableCell>
-                        <div className="flex items-center gap-2">
-                          <Button
-                            variant="outline"
-                            size="sm"
-                            onClick={() => handleEditUser(user)}
-                          >
-                            <Edit className="w-4 h-4" />
-                          </Button>
-                          <Button
-                            variant="outline"
-                            size="sm"
-                            onClick={() => handleUserTools(user)}
-                          >
-                            <Settings className="w-4 h-4" />
-                          </Button>
-                        </div>
-                      </TableCell>
-                    </TableRow>
-                  ))}
-                </TableBody>
-              </Table>
-            </div>
-          )}
+                    <TableCell>{formatDate(user.created_at)}</TableCell>
+                    <TableCell>{formatDateTime(user.last_login)}</TableCell>
+                    <TableCell>{getStatusBadge(user)}</TableCell>
+                    <TableCell>
+                      <div className="flex items-center gap-2">
+                        <Button variant="outline" size="sm" onClick={() => handleEditUser(user)}>
+                          <Edit className="w-4 h-4" />
+                        </Button>
+                        <Button variant="outline" size="sm" onClick={() => handleUserTools(user)}>
+                          <Settings className="w-4 h-4" />
+                        </Button>
+                      </div>
+                    </TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          </div>
         </CardContent>
       </Card>
 

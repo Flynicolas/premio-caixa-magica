@@ -15,6 +15,7 @@ import {
 interface UserStatsCardsProps {
   stats: {
     total_spent: number;
+    total_rescue: number;
     total_prizes_won: number;
     chests_opened: number;
     experience_points: number;
@@ -64,7 +65,7 @@ const UserStatsCards = ({ stats, className = "" }: UserStatsCardsProps) => {
     },
     {
       title: 'Prêmios Resgatados ',
-      value: 0,
+      value: stats.total_rescue,
       icon: Gift,
       color: 'text-purple-500',
       bgColor: 'bg-purple-500/10',

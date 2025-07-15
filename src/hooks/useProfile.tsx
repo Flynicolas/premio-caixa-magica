@@ -12,8 +12,26 @@ export interface UserProfile {
   avatar_url?: string;
   username?: string;
   bio?: string;
+  phone?: string;
+  cpf?: string;
+  birth_date?: string;
+
+  zip_code?: string;
+  street?: string;
+  number?: string;
+  complement?: string;
+  neighborhood?: string;
+  city?: string;
+  state?: string;
+
+  email_notifications?: boolean;
+  push_notifications?: boolean;
+  prize_notifications?: boolean;
+  delivery_updates?: boolean;
+  promo_emails?: boolean;
+
   level: number;
-  experience_points: number;
+  experience: number;
   total_spent: number;
   total_prizes_won: number;
   chests_opened: number;
@@ -25,6 +43,7 @@ export interface UserProfile {
   created_at: string;
   updated_at: string;
 }
+
 
 export interface UserLevel {
   id: string;
@@ -104,42 +123,44 @@ export const useProfile = () => {
   };
 
   // Buscar nível atual do usuário
-  const fetchUserLevel = async () => {
-    if (!profile) return;
+const fetchUserLevel = async () => {
+    console.log("to aq")
+  if (!profile || allLevels.length === 0) return;
+    console.log("to aq 1")
 
-    try {
-      const { data, error } = await supabase
-        .rpc('calculate_user_level', {
-          experience: profile.experience_points
-        });
+  try {
+    console.log('profile.experience', profile.experience)
+    const { data, error } = await supabase.rpc('calculate_user_level', {
+      experience: profile.experience
+    });
 
-      if (error) throw error;
-      if (data && data.length > 0) {
-        const levelData = data[0];
-        setUserLevel({
-          id: '',
-          level: levelData.level,
-          name: levelData.name,
-          min_experience: 0,
-          max_experience: 0,
-          benefits: Array.isArray(levelData.benefits) ? levelData.benefits : 
-                   typeof levelData.benefits === 'string' ? JSON.parse(levelData.benefits) : [],
-          icon: levelData.icon || '',
-          color: levelData.color || ''
-        });
-      }
-    } catch (error) {
-      console.error('Error fetching user level:', error);
+    if (error) throw error;
+
+    const levelNumber = data?.[0]?.level;
+
+    if (!levelNumber) return;
+
+    const fullLevelData = allLevels.find(l => l.level === levelNumber);
+    if (fullLevelData) {
+      setUserLevel(fullLevelData);
     }
-  };
+  } catch (error) {
+    console.error('Error fetching user level:', error);
+  }
+};
+
 
   // Buscar todos os níveis
   const fetchAllLevels = async () => {
     try {
-      const { data, error } = await supabase
-        .from('user_levels')
-        .select('*')
-        .order('level', { ascending: true });
+ const { data, error } = await supabase
+  .from('user_levels')
+  .select('*')
+  .order('level', { ascending: true });
+
+console.log("user_levels data:", data);
+console.log("user_levels error:", error);
+
 
       if (error) throw error;
       
@@ -338,51 +359,52 @@ export const useProfile = () => {
     await fetchUserAchievements();
   };
 
-  useEffect(() => {
-    if (user) {
-      const loadData = async () => {
-        try {
-          setLoading(true);
-          await Promise.all([
-            fetchProfile(),
-            fetchAllLevels(),
-            fetchAchievements()
-          ]);
-        } catch (error) {
-          console.error('Error loading profile data:', error);
-        } finally {
-          setLoading(false);
-        }
-      };
-      loadData();
-    } else {
-      setLoading(false);
-    }
-  }, [user]);
+ useEffect(() => {
+  
+  if (user) {
+    const loadData = async () => {
+      try {
+        setLoading(true);
+        await fetchProfile();
+        await fetchAllLevels(); // precisa vir antes do fetchUserLevel
+      } catch (error) {
+        console.error('Error loading profile data:', error);
+      } finally {
+        setLoading(false);
+      }
+    };
+    loadData();
+  } else {
+    setLoading(false);
+  }
+}, [user]);
 
-  useEffect(() => {
-    if (profile) {
-      const loadProfileData = async () => {
-        try {
-          await Promise.all([
-            fetchUserLevel(),
-            fetchUserAchievements(),
-            fetchActivities()
-          ]);
-          await checkAchievements();
-        } catch (error) {
-          console.error('Error loading profile specific data:', error);
-        }
-      };
-      loadProfileData();
-    }
-  }, [profile]);
+useEffect(() => {
+  if (profile && allLevels.length > 0) {
+    const loadProfileData = async () => {
+      try {
+        await Promise.all([
+          fetchUserLevel(),
+          fetchUserAchievements(),
+          fetchActivities()
+        ]);
+        await checkAchievements();
+      } catch (error) {
+        console.error('Error loading profile specific data:', error);
+      }
+    };
+    loadProfileData();
+  }
+}, [profile, allLevels]);
+
+  const recentAchievements = userAchievements.slice(0, 3);
 
   return {
     profile,
     userLevel,
     achievements,
     userAchievements,
+    recentAchievements,
     activities,
     allLevels,
     loading,

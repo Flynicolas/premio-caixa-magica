@@ -11,13 +11,32 @@ import { Sparkles, Crown, Diamond, Heart, Flame, Star, Gift, Eye, ShoppingCart, 
 import { chestData, ChestType } from '@/data/chestData';
 import RealtimeWinsCarousel from '@/components/RealtimeWinsCarousel';
 import ItemCard from '@/components/ItemCard';
+import { useWithdrawItem } from '@/hooks/useWithdrawItem';
+import { useToast } from '@/hooks/use-toast';
+import { useProfile } from '@/hooks/useProfile';
+import { useNavigate } from 'react-router-dom';
+import { Dialog as ConfirmDialog } from "@/components/ui/dialog"; // reutilizando Dialog
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
+
+import Cookies from "js-cookie";
 
 const Baus = () => {
-  const { user } = useAuth();
-  const { walletData } = useWallet();
   const { userChests, userItems, getChestCounts, getItemsByCategory, getChestItems, loading } = useInventory();
+    const { toast } = useToast();
+    const navigate = useNavigate();
+    const { profile } = useProfile();
   const [selectedChest, setSelectedChest] = useState<ChestType>('silver');
   const [chestItems, setChestItems] = useState<any[]>([]);
+const { entregas } = useWithdrawItem();
+  const [selectedPrize, setSelectedPrize] = useState<any>(null);
+  const [isProcessing, setIsProcessing] = useState(false);
+  const { solicitarRetirada } = useWithdrawItem();
+  const { user } = useAuth();
 
   // Buscar itens do baú selecionado
   const loadChestItems = async (chestType: ChestType) => {
@@ -137,28 +156,82 @@ const Baus = () => {
               ) : (
                 <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
                   {userItems.map((userItem, index) => (
-                    <div key={index} className="relative">
-                      <ItemCard
-                        item={{
-                          name: userItem.item?.name || 'Item Desconhecido',
-                          image_url: userItem.item?.image_url,
-                          rarity: (userItem.item?.rarity || 'common') as 'common' | 'rare' | 'epic' | 'legendary',
-                          description: userItem.item?.description
-                        }}
-                        size="sm"
-                        showRarity={true}
-                      />
-                      <div className="absolute -bottom-2 left-1/2 transform -translate-x-1/2">
-                        <Badge variant="outline" className="text-xs">
-                          {userItem.quantity}x
-                        </Badge>
-                      </div>
-                      {!userItem.is_claimed && (
-                        <Button size="sm" className="w-full mt-2 text-xs">
-                          Resgatar
-                        </Button>
-                      )}
-                    </div>
+                  <div
+  key={index}
+  className="relative flex flex-col items-center bg-gradient-to-br from-zinc-800 via-zinc-900 to-black rounded-xl p-3 shadow-md hover:shadow-lg transition-all group"
+  title={userItem.item?.name}
+>
+  <div className="relative w-full flex flex-col items-center">
+    <img
+      src={userItem.item?.image_url || '/placeholder.png'}
+      alt={userItem.item?.name}
+      className="w-20 h-20 object-contain mb-2 rounded-md border border-zinc-700"
+    />
+
+    <span className="text-sm font-semibold text-center text-white line-clamp-2 capitalize">
+      {userItem.item?.name || 'Item Desconhecido'}
+    </span>
+
+    <Badge
+      className={`mt-1 capitalize px-2 py-0.5 text-xs rounded-full text-white ${
+        userItem.item?.rarity === 'legendary'
+          ? 'bg-gradient-to-r from-yellow-400 to-yellow-600'
+          : userItem.item?.rarity === 'epic'
+          ? 'bg-gradient-to-r from-purple-500 to-fuchsia-600'
+          : userItem.item?.rarity === 'rare'
+          ? 'bg-gradient-to-r from-blue-400 to-blue-600'
+          : 'bg-gradient-to-r from-gray-400 to-gray-600'
+      }`}
+    >
+      {userItem.item?.rarity}
+    </Badge>
+
+    <Badge
+      variant="secondary"
+      className="absolute top-0 right-0 text-xs font-semibold bg-black/80 border border-zinc-700 rounded-full px-2 py-0.5"
+    >
+      {userItem.quantity}x
+    </Badge>
+  </div>
+
+  {!userItem.is_claimed && (
+    <Button
+      size="sm"
+      className="w-full mt-3 bg-yellow-400 hover:bg-yellow-300 text-black font-bold text-xs rounded-md transition-all"
+       onClick={() => {
+                const fullName = profile?.full_name;
+                const cpf = profile?.cpf;
+                const addressComplete =
+                  profile?.zip_code &&
+                  profile?.street &&
+                  profile?.number &&
+                  profile?.neighborhood &&
+                  profile?.city &&
+                  profile?.state;
+      
+                if (!fullName || !cpf || !addressComplete) {
+                  toast({
+                    title: "Complete seu cadastro",
+                    description:
+                      "Você precisa informar nome completo, CPF e endereço para retirar prêmios.",
+                    variant: "destructive",
+                  });
+      
+                  Cookies.set("redirected_from_retirada", "true", {
+                    path: "/",
+                  });
+                  navigate("/configuracoes");
+                  return;
+                }
+          setSelectedPrize(userItem);
+      
+              }}
+    >
+      Resgatar
+    </Button>
+  )}
+</div>
+
                   ))}
                 </div>
               )}
@@ -222,6 +295,91 @@ const Baus = () => {
                       </div>
                     </CardHeader>
                     <CardContent className="p-6">
+                          {selectedPrize && (
+                  <ConfirmDialog open={true} onOpenChange={() => setSelectedPrize(null)}>
+                    <DialogContent className="bg-card border border-yellow-400">
+                      <DialogHeader>
+                        <DialogTitle>Confirmar Retirada</DialogTitle>
+                      </DialogHeader>
+          
+                      <div className="space-y-4">
+                        <p className="text-sm text-muted-foreground">
+                          Para receber o prêmio <strong>{selectedPrize.name}</strong>, é
+                          necessário pagar a taxa de entrega de <strong>R$ 25,00</strong>.
+                        </p>
+                        <p className="text-xs text-muted-foreground">
+                          Após o pagamento, sua entrega será iniciada. Você poderá
+                          acompanhar o status na área <strong>Minhas Entregas</strong>.
+                        </p>
+          
+                        <Button
+                          className="w-full gold-gradient text-black font-bold hover:opacity-90 mt-2"
+                          disabled={isProcessing}
+                          onClick={async () => {
+                            if (!user || !selectedPrize) return;
+          
+                            const fullName = profile?.full_name;
+                            const cpf = profile?.cpf;
+                            const addressComplete =
+                              profile?.zip_code &&
+                              profile?.street &&
+                              profile?.number &&
+                              profile?.neighborhood &&
+                              profile?.city &&
+                              profile?.state;
+          
+                            if (!fullName || !cpf || !addressComplete) {
+                              toast({
+                                title: "Complete seu cadastro",
+                                description:
+                                  "Você precisa informar nome completo, CPF e endereço para retirar prêmios.",
+                                variant: "destructive",
+                              });
+          
+                              Cookies.set("redirected_from_retirada", "true", {
+                                path: "/",
+                              });
+                              navigate("/configuracoes");
+                              return;
+                            }
+          
+                            try {
+                              setIsProcessing(true);
+          
+                              await solicitarRetirada({
+                                itemId: selectedPrize.itemId,
+                                inventoryId: selectedPrize.inventoryId,
+                                fullName,
+                                cpf,
+                                address: {
+                                  zip_code: profile.zip_code,
+                                  street: profile.street,
+                                  number: profile.number,
+                                  complement: profile.complement,
+                                  neighborhood: profile.neighborhood,
+                                  city: profile.city,
+                                  state: profile.state,
+                                },
+                              });
+          
+                              setSelectedPrize(null);
+                            } catch (error) {
+                              toast({
+                                title: "Erro ao solicitar retirada",
+                                description: "Tente novamente em instantes.",
+                                variant: "destructive",
+                              });
+                            } finally {
+                              setIsProcessing(false);
+                            }
+                          }}
+                        >
+                          {isProcessing ? "Processando..." : "Retirar meu prêmio"}
+                        </Button>
+                      </div>
+                    </DialogContent>
+                  </ConfirmDialog>
+                )}
                       <div className="grid md:grid-cols-2 gap-6">
                         <div>
                           <h4 className="text-lg font-bold mb-3 text-primary">Sobre este Baú</h4>
@@ -266,6 +424,8 @@ const Baus = () => {
               );
             })}
           </Tabs>
+          
+            
         </section>
       </div>
     </div>

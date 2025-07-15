@@ -89,14 +89,15 @@ const Ranking = () => {
           <h2 className="text-2xl font-bold mb-6 text-center text-primary">Top 10 Jogadores</h2>
           <div className="space-y-4">
             {ranking.map((user, index) => (
-              <div
-                key={user.id}
-                className={`flex items-center justify-between p-4 rounded-lg border transition-all hover:scale-[1.02] ${
-                  currentUserRank?.id === user.id
-                    ? 'bg-primary/10 border-primary/50 ring-2 ring-primary/30'
-                    : 'bg-card/50 border-primary/20 hover:border-primary/40'
-                } ${index < 3 ? 'shadow-lg' : ''}`}
-              >
+           <div
+  key={user.id}
+  className={`flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 p-4 rounded-lg border transition-all hover:scale-[1.02] ${
+    currentUserRank?.id === user.id
+      ? 'bg-primary/10 border-primary/50 ring-2 ring-primary/30'
+      : 'bg-card/50 border-primary/20 hover:border-primary/40'
+  } ${index < 3 ? 'shadow-lg' : ''}`}
+>
+
                 <div className="flex items-center space-x-4">
                   <div className="flex items-center justify-center w-12 h-12 rounded-full bg-primary/20">
                     {getRankIcon(user.position)}
@@ -116,7 +117,7 @@ const Ranking = () => {
                   </div>
                 </div>
 
-                <div className="text-right">
+                <div className="sm:text-right text-left">
                   <div className="flex items-center space-x-2 mb-1">
                     <Badge 
                       variant={user.position <= 3 ? "default" : "secondary"}

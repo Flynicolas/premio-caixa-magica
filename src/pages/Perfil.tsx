@@ -11,11 +11,16 @@ import LevelProgressCard from '@/components/LevelProgressCard';
 import AchievementsGrid from '@/components/AchievementsGrid';
 import UserStatsCards from '@/components/UserStatsCards';
 import ActivityTimeline from '@/components/ActivityTimeline';
+import { useActivities } from '@/hooks/useActivities';
+
 import { 
   User, 
   Trophy, 
   History
 } from 'lucide-react';
+import { useWallet } from '@/hooks/useWallet';
+import { useWithdrawItem } from '@/hooks/useWithdrawItem';
+import { useRescueStats } from '@/hooks/useRescueStats';
 
 const Perfil = () => {
   const { user } = useAuth();
@@ -24,12 +29,15 @@ const Perfil = () => {
     userLevel, 
     achievements, 
     userAchievements, 
-    activities,
+    recentAchievements,
     allLevels,
     loading,
   } = useProfile();
   
   const [currentTab, setCurrentTab] = useState('overview');
+  const { activities } = useActivities();
+  const { walletData } = useWallet();
+  const { totalRescue } = useRescueStats();
 
   const getInitials = (name: string) => {
     return name.split(' ').map(n => n[0]).join('').toUpperCase();
@@ -39,6 +47,7 @@ const Perfil = () => {
     if (!userLevel) return null;
     return allLevels.find(level => level.level === userLevel.level + 1);
   };
+
 
   if (loading) {
     return (
@@ -115,10 +124,11 @@ const Perfil = () => {
       {/* Cards de estatísticas */}
       <UserStatsCards 
         stats={{
-          total_spent: profile.total_spent,
+          total_rescue: totalRescue,
+          total_spent: walletData?.total_deposited || 0,
           total_prizes_won: profile.total_prizes_won,
           chests_opened: profile.chests_opened,
-          experience_points: profile.experience_points,
+          experience_points: profile.experience,
           level: profile.level,
           join_date: profile.join_date
         }}
@@ -147,21 +157,14 @@ const Perfil = () => {
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
             <div className="lg:col-span-2 space-y-6">
               {/* Level Progress */}
-              {userLevel && (
-                <LevelProgressCard 
-                  currentLevel={{
-                    ...userLevel,
-                    min_experience: allLevels.find(l => l.level === userLevel.level)?.min_experience || 0,
-                    max_experience: allLevels.find(l => l.level === userLevel.level)?.max_experience
-                  }}
-                  nextLevel={getNextLevel() ? {
-                    ...getNextLevel()!,
-                    benefits: getNextLevel()!.benefits
-                  } : undefined}
-                  experience={profile.experience_points}
-                />
-              )}
-              
+             {userLevel && (
+  <LevelProgressCard 
+    currentLevel={allLevels.find(l => l.level === userLevel.level)!}
+    nextLevel={allLevels.find(l => l.level === userLevel.level + 1)}
+    experience={profile.experience}
+  />
+)}
+
               {/* Recent Achievements */}
               <Card>
                 <CardHeader>
@@ -172,7 +175,7 @@ const Perfil = () => {
                 </CardHeader>
                 <CardContent>
                   <AchievementsGrid 
-                    achievements={achievements.slice(0, 6)}
+                   achievements={recentAchievements.map(a => a.achievement)} 
                     userAchievements={userAchievements}
                     userStats={{
                       chests_opened: profile.chests_opened,
@@ -210,7 +213,7 @@ const Perfil = () => {
             </CardHeader>
             <CardContent>
               <AchievementsGrid 
-                achievements={achievements}
+                achievements={userAchievements.map(a => a.achievement)} 
                 userAchievements={userAchievements}
                 userStats={{
                   chests_opened: profile.chests_opened,

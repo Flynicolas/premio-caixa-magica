@@ -31,7 +31,8 @@ const ItemSearchAndFilters = ({ onSearch, onSort, sortBy, sortOrder }: ItemSearc
 
   return (
     <div className="flex flex-col space-y-4 mb-6">
-      <div className="flex items-center space-x-4">
+      <div className="flex flex-col sm:flex-row sm:items-center gap-4">
+
         <div className="relative flex-1">
           <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
           <Input
@@ -42,9 +43,10 @@ const ItemSearchAndFilters = ({ onSearch, onSort, sortBy, sortOrder }: ItemSearc
           />
         </div>
         
-        <div className="flex items-center space-x-2">
+<div className="flex flex-col sm:flex-row gap-2 sm:items-center sm:justify-start">
           <Select value={sortBy} onValueChange={handleSortByChange}>
-            <SelectTrigger className="w-48">
+           <SelectTrigger className="w-full sm:w-48">
+
               <SelectValue placeholder="Ordenar por" />
             </SelectTrigger>
             <SelectContent>

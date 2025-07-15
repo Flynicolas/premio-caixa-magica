@@ -19,6 +19,7 @@ import { DatabaseItem } from "@/types/database";
 import { SpinItem } from "./roulette/types";
 import "react-roulette-pro/dist/index.css";
 import confetti from "canvas-confetti";
+import { useGamification } from "@/hooks/useGamification";
 
 interface ChestOpeningModalProps {
   isOpen: boolean;
@@ -48,6 +49,7 @@ const ChestOpeningModal = ({
   const { user } = useAuth();
   const { refreshData } = useWallet();
   const { generateRoulette, rouletteData, isLoading } = useRouletteLogic();
+const { processGamification } = useGamification();
 
   const config =
     {
@@ -182,6 +184,14 @@ const ChestOpeningModal = ({
 
     onPrizeWon(databaseItem);
     toast({ title: "🎉 Parabéns!", description: `Você ganhou: ${item.name}` });
+
+    if (user) {
+    try {
+      await processGamification(user.id, item, chestPrice);
+    } catch (err) {
+      console.error("Erro ao processar gamificação:", err);
+    }
+  }
   };
 
   const handleClose = () => {

@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
@@ -7,7 +6,7 @@ import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
-import { Save, X, History } from 'lucide-react';
+import { Save, X, History, MapPin } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 
 interface UserEditDialogProps {
@@ -41,7 +40,7 @@ const UserEditDialog = ({ user, isOpen, onClose, onSave }: UserEditDialogProps) 
 
   const fetchUserTransactions = async () => {
     if (!user) return;
-    
+
     setLoading(true);
     try {
       const { data, error } = await supabase
@@ -163,6 +162,52 @@ const UserEditDialog = ({ user, isOpen, onClose, onSave }: UserEditDialogProps) 
                     placeholder="Biografia do usuário..."
                     rows={3}
                   />
+                </div>
+
+                {user.cpf && (
+                  <>
+                    <Label>CPF</Label>
+                    <Input value={user.cpf} disabled />
+                  </>
+                )}
+
+                <CardTitle className="pt-4 flex items-center gap-2 text-base text-gray-800">
+                  <MapPin className="w-4 h-4" /> Endereço
+                </CardTitle>
+
+                <div className="grid grid-cols-2 gap-2">
+                  <div>
+                    <Label>Rua</Label>
+                    <Input value={user.street || ''} disabled />
+                  </div>
+                  <div>
+                    <Label>Número</Label>
+                    <Input value={user.number || ''} disabled />
+                  </div>
+                </div>
+                <div className="grid grid-cols-2 gap-2">
+                  <div>
+                    <Label>Complemento</Label>
+                    <Input value={user.complement || ''} disabled />
+                  </div>
+                  <div>
+                    <Label>Bairro</Label>
+                    <Input value={user.neighborhood || ''} disabled />
+                  </div>
+                </div>
+                <div className="grid grid-cols-2 gap-2">
+                  <div>
+                    <Label>Cidade</Label>
+                    <Input value={user.city || ''} disabled />
+                  </div>
+                  <div>
+                    <Label>Estado</Label>
+                    <Input value={user.state || ''} disabled />
+                  </div>
+                </div>
+                <div>
+                  <Label>CEP</Label>
+                  <Input value={user.zip_code || ''} disabled />
                 </div>
               </CardContent>
             </Card>

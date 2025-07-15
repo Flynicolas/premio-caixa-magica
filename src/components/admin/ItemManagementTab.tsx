@@ -159,15 +159,16 @@ const ItemManagementTab = () => {
   return (
     <div className="space-y-6">
       <Card>
-        <CardHeader>
-          <div className="flex justify-between items-center">
-            <CardTitle>Gerenciar Itens ({filteredItems.length})</CardTitle>
-            <Button onClick={() => setIsCreateDialogOpen(true)}>
-              <Plus className="w-4 h-4 mr-2" />
-              Adicionar Item
-            </Button>
-          </div>
-        </CardHeader>
+<CardHeader>
+  <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-4">
+    <CardTitle className="text-lg sm:text-2xl">Gerenciar Itens ({filteredItems.length})</CardTitle>
+    <Button onClick={() => setIsCreateDialogOpen(true)} className="w-full sm:w-auto">
+      <Plus className="w-4 h-4 mr-2" />
+      Adicionar Item
+    </Button>
+  </div>
+</CardHeader>
+
         <CardContent>
           <ItemSearchAndFilters
             onSearch={handleSearch}
@@ -183,8 +184,8 @@ const ItemManagementTab = () => {
               </p>
             </div>
           ) : (
-            <div className="rounded-md border">
-              <Table>
+            <div className="rounded-md border overflow-x-auto">
+              <Table className="min-w-[700px]">
                 <TableHeader>
                   <TableRow>
                     <TableHead>Imagem</TableHead>

@@ -72,6 +72,7 @@ const Header = () => {
   
 const mappedPrizes = useMemo(() => {
   return userItems.map(item => ({
+    inventoryId: item.id, 
     name: item.item?.name || 'Prêmio desconhecido',
     description: item.item?.description || '',
     image: item.item?.image_url || '',
@@ -79,8 +80,10 @@ const mappedPrizes = useMemo(() => {
     value: `R$ ${item.item?.base_value?.toFixed(2) || '0.00'}`,
     chestType: item.chest_type as ChestType,
     timestamp: new Date(item.won_at),
+    itemId: item.item?.id || '', 
   }));
 }, [userItems]);
+
 
   
   const handleOpenWallet = async () => {

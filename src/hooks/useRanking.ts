@@ -31,7 +31,11 @@ export const useRanking = () => {
         full_name: u.full_name,
         total_spent: u.total_spent || 0,
         total_prizes_won: u.total_prizes_won || 0,
-        level: calculateUserLevel(u.total_spent || 0, u.total_prizes_won || 0),
+        level: {
+          level: u.level,
+          title: u.level_title
+        },
+
         position: index + 1
       }));
 
@@ -52,7 +56,7 @@ export const useRanking = () => {
             total_spent: self.total_spent,
             total_prizes_won: self.total_prizes_won,
             level: calculateUserLevel(self.total_spent, self.total_prizes_won),
-            position: self.rank
+            position: self.position
           });
         }
       }

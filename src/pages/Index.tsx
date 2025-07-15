@@ -107,7 +107,7 @@ const Index = () => {
         {/* Featured Chests - 3 columns, 2 rows */}
         <section className="mb-16">
           <div className="text-center mb-12">
-            <h2 className="text-4xl font-bold mb-4 text-primary">
+            <h2 className="text-2xl sm:text-3xl md:text-4xl font-bold mb-4 text-primary leading-snug">
               🏆 Escolha Seu Baú 🏆
             </h2>
             <p className="text-lg text-muted-foreground max-w-3xl mx-auto">
@@ -115,7 +115,7 @@ const Index = () => {
             </p>
           </div>
 
-          <div className="grid grid-cols-3 grid-rows-2 gap-6 max-w-6xl mx-auto">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 max-w-6xl mx-auto">
             {chestOrder.map((chestType) => (
               <div key={chestType}>
                 <ChestCard
