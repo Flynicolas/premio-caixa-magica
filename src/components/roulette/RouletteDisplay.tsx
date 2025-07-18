@@ -22,7 +22,7 @@ const RouletteDisplay: React.FC<RouletteDisplayProps> = ({
   onPrizeDefined,
 }) => {
   return (
-    <div className="roulette-frame-container relative mx-auto w-full max-w-sm sm:max-w-md md:max-w-lg lg:max-w-xl p-2 sm:p-4 overflow-hidden border-2 sm:border-4 rounded-2xl sm:rounded-3xl">
+    <div className="roulette-frame-container relative mx-auto max-w-5xl p-6 overflow-hidden border-4 rounded-3xl">
       <div className="absolute z-50 top-[-14px] left-1/2 transform -translate-x-1/2">
         <div className="w-6 h-6 bg-yellow-400 rotate-45 shadow-lg border border-yellow-600" />
       </div>
