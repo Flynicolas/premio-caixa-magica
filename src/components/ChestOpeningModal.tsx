@@ -14,7 +14,7 @@ import { useInventory } from "@/hooks/useInventory";
 import { useWallet } from "@/hooks/useWalletProvider";
 import { useRouletteLogic } from "@/hooks/useRouletteLogic";
 import ItemCard from "./ItemCard";
-import RouletteDisplay from "@/components/roulette/RouletteDisplay";
+import SpinRouletteWheel from "@/components/roulette/SpinRouletteWheel";
 import { DatabaseItem } from "@/types/database";
 import { SpinItem } from "./roulette/types";
 import "react-roulette-pro/dist/index.css";
@@ -48,8 +48,8 @@ const ChestOpeningModal = ({
   const { toast } = useToast();
   const { user } = useAuth();
   const { refreshData } = useWallet();
-  const { generateRoulette, rouletteData, isLoading } = useRouletteLogic();
-const { processGamification } = useGamification();
+  const { simulateRoulette, drawRealItem, rouletteData, isLoading } = useRouletteLogic();
+  const { processGamification } = useGamification();
 
   const configMap = {
     silver: {
@@ -123,31 +123,22 @@ const { processGamification } = useGamification();
       });
       return;
     }
-    console.log("[BOTÃO] Girar clicado");
+    console.log("[NOVO FLUXO] Iniciando simulação da roleta");
 
     setIsProcessing(true);
     try {
-      const { data: result, error } = await supabase.functions.invoke(
-        "draw-item-from-chest",
-        {
-          body: { chestType, userId: user.id, chestPrice },
-        },
-      );
-
-      if (error || !result?.item)
-        throw error || new Error("Nenhum item foi retornado");
-
-      const winner = result.item;
+      // NOVA ETAPA 1: Simular roleta visual apenas
+      const simulationResult = await simulateRoulette(chestType, 25);
+      if (!simulationResult) throw new Error("Erro ao simular roleta");
+      
+      // NOVA ETAPA 2: Iniciar animação
       setPhase("spinning");
-      const rouletteResult = await generateRoulette(chestType, 25, winner.id);
-      if (!rouletteResult) throw new Error("Erro ao gerar roleta");
-      await refreshData();
       setTimeout(() => setIsSpinning(true), 200);
     } catch (err: any) {
-      console.error("Erro ao abrir baú:", err);
+      console.error("Erro ao simular roleta:", err);
       toast({
         title: "Erro",
-        description: err.message || "Falha ao abrir o baú.",
+        description: err.message || "Falha ao simular a roleta.",
         variant: "destructive",
       });
       setPhase("preview");
@@ -156,43 +147,71 @@ const { processGamification } = useGamification();
     }
   };
 
-  const handleSpinComplete = async (item: SpinItem) => {
-    setWonItem(item);
-    setPhase("result");
+  // NOVA FUNÇÃO: Chamada após a animação terminar para sortear item real
+  const handleSpinComplete = async () => {
+    if (!user) return;
+    
+    console.log("[NOVO FLUXO] Animação terminou, sorteando item real...");
     setIsSpinning(false);
-
-    const databaseItem: DatabaseItem = {
-      id: item.id,
-      name: item.name,
-      description: null,
-      image_url: item.image_url,
-      category: "product",
-      rarity: item.rarity as any,
-      base_value: 0,
-      delivery_type: "digital",
-      delivery_instructions: null,
-      requires_address: false,
-      requires_document: false,
-      is_active: true,
-      chest_types: null,
-      probability_weight: null,
-      import_source: null,
-      tags: null,
-      notes: null,
-      created_at: new Date().toISOString(),
-      updated_at: new Date().toISOString(),
-    };
-
-    onPrizeWon(databaseItem);
-    toast({ title: "🎉 Parabéns!", description: `Você ganhou: ${item.name}` });
-
-    if (user) {
+    
     try {
-      await processGamification(user.id, item, chestPrice);
-    } catch (err) {
-      console.error("Erro ao processar gamificação:", err);
+      // NOVA ETAPA 3: Sortear item REAL após animação
+      const realItem = await drawRealItem(chestType, chestPrice, user.id);
+      
+      // Converter para formato SpinItem
+      const wonSpinItem: SpinItem = {
+        id: realItem.id,
+        name: realItem.name,
+        image_url: realItem.image_url,
+        rarity: realItem.rarity,
+      };
+
+      setWonItem(wonSpinItem);
+      setPhase("result");
+
+      // Converter para DatabaseItem para compatibilidade
+      const databaseItem: DatabaseItem = {
+        id: realItem.id,
+        name: realItem.name,
+        description: realItem.description,
+        image_url: realItem.image_url,
+        category: realItem.category,
+        rarity: realItem.rarity as any,
+        base_value: realItem.base_value,
+        delivery_type: realItem.delivery_type,
+        delivery_instructions: realItem.delivery_instructions,
+        requires_address: realItem.requires_address,
+        requires_document: realItem.requires_document,
+        is_active: realItem.is_active,
+        chest_types: realItem.chest_types,
+        probability_weight: null,
+        import_source: realItem.import_source,
+        tags: realItem.tags,
+        notes: realItem.notes,
+        created_at: realItem.created_at,
+        updated_at: realItem.updated_at,
+      };
+
+      onPrizeWon(databaseItem);
+      await refreshData();
+      toast({ title: "🎉 Parabéns!", description: `Você ganhou: ${realItem.name}` });
+
+      if (user) {
+        try {
+          await processGamification(user.id, wonSpinItem, chestPrice);
+        } catch (err) {
+          console.error("Erro ao processar gamificação:", err);
+        }
+      }
+    } catch (err: any) {
+      console.error("Erro ao sortear item real:", err);
+      toast({
+        title: "Erro",
+        description: err.message || "Falha ao sortear o item.",
+        variant: "destructive",
+      });
+      setPhase("preview");
     }
-  }
   };
 
   const handleClose = () => {
@@ -298,11 +317,11 @@ const { processGamification } = useGamification();
           )}
 
           {phase === "spinning" && rouletteData && (
-            <RouletteDisplay
-              prizes={rouletteData.prizes}
-              prizeIndex={rouletteData.prizeIndex}
-              start={isSpinning}
-              onPrizeDefined={() => handleSpinComplete(rouletteData.winnerItem)}
+            <SpinRouletteWheel
+              rouletteData={rouletteData}
+              onSpinComplete={handleSpinComplete}
+              isSpinning={isSpinning}
+              chestType={chestType}
             />
           )}
 
