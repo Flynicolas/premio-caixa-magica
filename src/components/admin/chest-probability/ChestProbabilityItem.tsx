@@ -4,6 +4,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Badge } from '@/components/ui/badge';
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog';
 import { ChestItemProbability } from '@/types/database';
 
 interface ChestProbabilityItemProps {
@@ -38,6 +39,10 @@ export const ChestProbabilityItem = ({
   };
 
   const handleSave = () => {
+    onUpdateWeight(probability.id, editingWeight);
+  };
+
+  const handleConfirmSave = () => {
     onUpdateWeight(probability.id, editingWeight);
   };
 
@@ -82,15 +87,35 @@ export const ChestProbabilityItem = ({
           className="w-16 h-8"
           placeholder="0-100"
         />
-        <Button
-          variant="outline"
-          size="sm"
-          onClick={handleSave}
-          className="h-8 text-xs"
-          disabled={editingWeight === probability.probability_weight}
-        >
-          Salvar
-        </Button>
+        <AlertDialog>
+          <AlertDialogTrigger asChild>
+            <Button
+              variant="outline"
+              size="sm"
+              className="h-8 text-xs"
+              disabled={editingWeight === probability.probability_weight}
+            >
+              Salvar
+            </Button>
+          </AlertDialogTrigger>
+          <AlertDialogContent>
+            <AlertDialogHeader>
+              <AlertDialogTitle>Confirmar alteração</AlertDialogTitle>
+              <AlertDialogDescription>
+                Deseja alterar a probabilidade de "{probability.item?.name}" de {probability.probability_weight}% para {editingWeight}%?
+                {editingWeight === 0 && (
+                  <span className="block mt-2 text-orange-600 font-medium">
+                    ⚠️ Com probabilidade 0%, este item será apenas visual na roleta e não poderá ser sorteado.
+                  </span>
+                )}
+              </AlertDialogDescription>
+            </AlertDialogHeader>
+            <AlertDialogFooter>
+              <AlertDialogCancel>Cancelar</AlertDialogCancel>
+              <AlertDialogAction onClick={handleConfirmSave}>Confirmar</AlertDialogAction>
+            </AlertDialogFooter>
+          </AlertDialogContent>
+        </AlertDialog>
         <Button
           variant="outline"
           size="sm"

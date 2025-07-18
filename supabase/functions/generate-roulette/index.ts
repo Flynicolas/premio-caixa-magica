@@ -19,7 +19,7 @@ serve(async (req) => {
 
     const { chestType, slotsCount = 25, forcedItemId } = await req.json();
 
-    // Buscar itens com probabilidade e dados do item
+    // Buscar itens com probabilidade e dados do item (incluindo itens com probabilidade 0 para visualização)
     const { data: probabilities, error: probError } = await supabaseClient
       .from('chest_item_probabilities')
       .select(`
@@ -28,7 +28,8 @@ serve(async (req) => {
       `)
       .eq('chest_type', chestType)
       .eq('is_active', true)
-      .eq('item.is_active', true);
+      .eq('item.is_active', true)
+      .gte('probability_weight', 0);
 
     if (probError) throw probError;
 
@@ -36,13 +37,18 @@ serve(async (req) => {
       throw new Error(`Nenhum item configurado para o baú ${chestType}`);
     }
 
-    // Array ponderado para slots aleatórios
+    // Array ponderado para slots aleatórios (apenas itens com probabilidade > 0)
     const weightedItems: any[] = [];
     probabilities.forEach((prob) => {
-      for (let i = 0; i < prob.probability_weight; i++) {
-        weightedItems.push(prob.item);
+      if (prob.probability_weight > 0) {
+        for (let i = 0; i < prob.probability_weight; i++) {
+          weightedItems.push(prob.item);
+        }
       }
     });
+
+    // Array com todos os itens para visualização na roleta (incluindo probabilidade 0)
+    const allItems: any[] = probabilities.map(prob => prob.item);
 
     // Definir item vencedor
     let winnerItem;
@@ -62,13 +68,13 @@ serve(async (req) => {
     const rouletteSlots = [];
     const centerIndex = Math.floor(slotsCount / 2);
 
-    // Função para evitar itens consecutivos iguais
+    // Função para evitar itens consecutivos iguais (usa todos os itens para visualização)
     const getNextDifferentItem = (previousItem: any, nextPreviousItem: any) => {
       let attempts = 0;
       let item;
       do {
-        const randomIndex = Math.floor(Math.random() * weightedItems.length);
-        item = weightedItems[randomIndex];
+        const randomIndex = Math.floor(Math.random() * allItems.length);
+        item = allItems[randomIndex];
         attempts++;
       } while (
         attempts < 50 && 
