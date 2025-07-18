@@ -54,6 +54,34 @@ export const useWallet = () => {
         throw error;
       }
 
+      if (!data) {
+        // Se não existir carteira, criar uma
+        const { data: newWallet, error: createError } = await supabase
+          .from('user_wallets')
+          .insert({
+            user_id: user.id,
+            balance: 0.00,
+            total_deposited: 0.00,
+            total_withdrawn: 0.00,
+            total_spent: 0.00
+          })
+          .select()
+          .single();
+
+        if (createError) {
+          console.error('Erro ao criar carteira:', createError);
+          throw createError;
+        }
+
+        setWalletData({
+          balance: 0,
+          total_deposited: 0,
+          total_withdrawn: 0,
+          total_spent: 0
+        });
+        return;
+      }
+
       if (data) {
         // Calcular totais baseado nas transações
         const { data: transactionsData } = await supabase
