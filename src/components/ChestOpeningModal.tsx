@@ -4,6 +4,7 @@ import {
   DialogContent,
   DialogHeader,
   DialogTitle,
+  DialogClose,
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { X, Sparkles } from "lucide-react";
@@ -241,14 +242,15 @@ const { processGamification } = useGamification();
               {phase === "spinning" && "🎰 Girando a Roleta"}
               {phase === "result" && "🎉 Resultado do Sorteio"}
             </DialogTitle>
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={handleClose}
-              className="text-white hover:bg-white/20"
-            >
-              <X size={20} />
-            </Button>
+            <DialogClose asChild>
+              <Button
+                variant="ghost"
+                size="sm"
+                className="text-white hover:bg-white/20"
+              >
+                <X size={20} />
+              </Button>
+            </DialogClose>
           </div>
         </DialogHeader>
 

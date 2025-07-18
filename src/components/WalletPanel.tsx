@@ -3,12 +3,13 @@ import {
   DialogContent,
   DialogHeader,
   DialogTitle,
+  DialogClose,
 } from "@/components/ui/dialog";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Wallet, Plus, Trophy, Gift, Clock, CreditCard } from "lucide-react";
+import { Wallet, Plus, Trophy, Gift, Clock, CreditCard, X } from "lucide-react";
 import { Prize, ChestType } from "@/data/chestData";
 import { useEffect, useState } from "react";
 import PaymentModal from "./PaymentModal";
@@ -101,14 +102,21 @@ const WalletPanel = ({
     <>
       <Dialog open={isOpen} onOpenChange={onClose}>
         <DialogContent className="max-w-3xl max-h-[85vh] overflow-hidden bg-gradient-to-br from-card via-card/95 to-card/90 border-2 border-primary/30 shadow-2xl">
-         <DialogHeader className="pb-6 border-b border-primary/20">
-  <div className="flex items-center">
-    <div className="w-10 h-10 bg-gradient-to-r from-yellow-400 to-orange-500 rounded-full flex items-center justify-center mr-3 shadow-lg">
-      <Wallet className="w-6 h-6 text-black" />
+          <DialogHeader className="pb-6 border-b border-primary/20">
+  <div className="flex items-center justify-between">
+    <div className="flex items-center">
+      <div className="w-10 h-10 bg-gradient-to-r from-yellow-400 to-orange-500 rounded-full flex items-center justify-center mr-3 shadow-lg">
+        <Wallet className="w-6 h-6 text-black" />
+      </div>
+      <DialogTitle className="text-3xl font-bold bg-gradient-to-r from-yellow-400 to-orange-500 bg-clip-text text-transparent">
+        Minha Carteira Premium
+      </DialogTitle>
     </div>
-    <DialogTitle className="text-3xl font-bold bg-gradient-to-r from-yellow-400 to-orange-500 bg-clip-text text-transparent">
-      Minha Carteira Premium
-    </DialogTitle>
+    <DialogClose asChild>
+      <Button variant="ghost" size="sm" className="h-8 w-8 p-0 hover:bg-primary/10">
+        <X className="h-4 w-4" />
+      </Button>
+    </DialogClose>
   </div>
 </DialogHeader>
 
@@ -369,7 +377,14 @@ const WalletPanel = ({
         <ConfirmDialog open={true} onOpenChange={() => setSelectedPrize(null)}>
           <DialogContent className="bg-card border border-yellow-400">
             <DialogHeader>
-              <DialogTitle>Confirmar Retirada</DialogTitle>
+              <div className="flex items-center justify-between">
+                <DialogTitle>Confirmar Retirada</DialogTitle>
+                <DialogClose asChild>
+                  <Button variant="ghost" size="sm" className="h-8 w-8 p-0">
+                    <X className="h-4 w-4" />
+                  </Button>
+                </DialogClose>
+              </div>
             </DialogHeader>
 
             <div className="space-y-4">

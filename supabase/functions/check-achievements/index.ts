@@ -67,10 +67,15 @@ serve(async (req) => {
     // 2. Todos os tipos de baú
     const { data: chests } = await supabase
     .from('user_inventory')
-    .select('item:items(chest_types)')
+    .select(`
+      item_id,
+      items!inner (
+        chest_types
+      )
+    `)
     .eq('user_id', user_id);
     
-    const tiposUnicos = new Set(chests?.flatMap((c: any) => c.item?.chest_types || []));
+    const tiposUnicos = new Set(chests?.flatMap((c: any) => c.items?.chest_types || []));
     if (tiposUnicos.size >= 5) await insertAchievement('todos_os_baus');
     
     // 3. Gastos acumulados
@@ -81,9 +86,9 @@ serve(async (req) => {
     .eq('status', 'completed')
     .eq('type', 'deposit');
 
-    console.log(transacoes.length)
+    console.log(transacoes?.length || 0)
     
-    const totalGasto = transacoes?.reduce((acc, t) => acc + (t.amount || 0), 0);
+    const totalGasto = transacoes?.reduce((acc, t) => acc + (t.amount || 0), 0) || 0;
 
     console.log(totalGasto);
 
@@ -99,9 +104,9 @@ serve(async (req) => {
       .from('user_inventory')
       .select('*', { count: 'exact', head: true })
       .eq('user_id', user_id)
-      .eq('item->>rarity', 'legendary');
+      .eq('rarity', 'legendary');
       
-      if (legendaryCount >= 5) await insertAchievement('5_lendarios');
+      if ((legendaryCount || 0) >= 5) await insertAchievement('5_lendarios');
     }
     
     // 5. Itens únicos
@@ -122,13 +127,18 @@ serve(async (req) => {
     if (withdrawals >= 1) await insertAchievement('primeiro_resgate');
     if (withdrawals >= 5) await insertAchievement('5_resgates');
     
-    const { count: legendaryWithdrawals } = await supabase
+    const { data: legendaryWithdrawalsData } = await supabase
     .from('item_withdrawals')
-    .select('*', { count: 'exact', head: true })
+    .select(`
+      id,
+      items!inner (
+        rarity
+      )
+    `)
     .eq('user_id', user_id)
-    .eq('item->>rarity', 'legendary');
+    .eq('items.rarity', 'legendary');
     
-    if (legendaryWithdrawals >= 1) await insertAchievement('resgate_lendario');
+    if ((legendaryWithdrawalsData?.length || 0) >= 1) await insertAchievement('resgate_lendario');
     
     return new Response(JSON.stringify({ unlocked: unlockedAchievements }), {
       status: 200,

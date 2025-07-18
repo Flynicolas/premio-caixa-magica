@@ -1,7 +1,7 @@
 
-import { Dialog, DialogContent } from '@/components/ui/dialog';
+import { Dialog, DialogContent, DialogClose } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
-import { Sparkles, ArrowUp, AlertTriangle } from 'lucide-react';
+import { Sparkles, ArrowUp, AlertTriangle, X } from 'lucide-react';
 import { ChestType } from '@/data/chestData';
 import { useChestItemCount } from '@/hooks/useChestItemCount';
 
@@ -96,6 +96,15 @@ const ChestConfirmModal = ({
         <div className={`relative rounded-3xl p-8 bg-gradient-to-br ${config.gradient} ${config.glow} shadow-2xl animate-scale-in border-4 border-white/30`}>
           {/* Background overlay */}
           <div className="absolute inset-0 bg-black/20 rounded-3xl" />
+          
+          {/* Close button */}
+          <div className="absolute top-4 right-4 z-20">
+            <DialogClose asChild>
+              <Button variant="ghost" size="sm" className="h-8 w-8 p-0 text-white hover:bg-white/20 rounded-full">
+                <X className="h-4 w-4" />
+              </Button>
+            </DialogClose>
+          </div>
           
           {/* Floating sparkles */}
           <div className="absolute -top-2 -left-2">
