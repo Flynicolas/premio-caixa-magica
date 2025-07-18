@@ -51,39 +51,40 @@ const ChestOpeningModal = ({
   const { generateRoulette, rouletteData, isLoading } = useRouletteLogic();
 const { processGamification } = useGamification();
 
-  const config =
-    {
-      silver: {
-        gradient: "from-gray-400 to-gray-600",
-        glow: "shadow-gray-400/30",
-        accent: "text-gray-300",
-      },
-      gold: {
-        gradient: "from-yellow-400 to-yellow-600",
-        glow: "shadow-yellow-400/30",
-        accent: "text-yellow-300",
-      },
-      delas: {
-        gradient: "from-[#f72585] via-[#b5179e] to-[#7209b7]",
-        glow: "shadow-pink-500/30",
-        accent: "text-pink-100",
-      },
-      diamond: {
-        gradient: "from-blue-400 to-cyan-400",
-        glow: "shadow-blue-400/30",
-        accent: "text-blue-300",
-      },
-      ruby: {
-        gradient: "from-red-400 to-pink-500",
-        glow: "shadow-red-400/30",
-        accent: "text-red-300",
-      },
-      premium: {
-        gradient: "from-purple-500 to-pink-600",
-        glow: "shadow-purple-500/30",
-        accent: "text-purple-300",
-      },
-    }[chestType] || config.silver;
+  const configMap = {
+    silver: {
+      gradient: "from-gray-400 to-gray-600",
+      glow: "shadow-gray-400/30",
+      accent: "text-gray-300",
+    },
+    gold: {
+      gradient: "from-yellow-400 to-yellow-600",
+      glow: "shadow-yellow-400/30",
+      accent: "text-yellow-300",
+    },
+    delas: {
+      gradient: "from-[#f72585] via-[#b5179e] to-[#7209b7]",
+      glow: "shadow-pink-500/30",
+      accent: "text-pink-100",
+    },
+    diamond: {
+      gradient: "from-blue-400 to-cyan-400",
+      glow: "shadow-blue-400/30",
+      accent: "text-blue-300",
+    },
+    ruby: {
+      gradient: "from-red-400 to-pink-500",
+      glow: "shadow-red-400/30",
+      accent: "text-red-300",
+    },
+    premium: {
+      gradient: "from-purple-500 to-pink-600",
+      glow: "shadow-purple-500/30",
+      accent: "text-purple-300",
+    },
+  };
+
+  const config = configMap[chestType] || configMap.silver;
 
   useEffect(() => {
     if (isOpen) {

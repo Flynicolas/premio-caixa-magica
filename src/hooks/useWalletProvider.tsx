@@ -119,14 +119,15 @@ export const WalletProvider = ({ children }: { children: ReactNode }) => {
         .limit(50);
 
       const allowedTypes = ['deposit', 'withdrawal', 'prize', 'purchase'] as const;
+      const allowedStatuses = ['pending', 'completed', 'failed', 'cancelled'] as const;
       
       const typed = (data || []).filter(t => 
-        allowedTypes.includes(t.type)
+        allowedTypes.includes(t.type as any) && allowedStatuses.includes(t.status as any)
       ).map(t => ({
         id: t.id,
         type: t.type as Transaction['type'],
         amount: Number(t.amount),
-        status: t.status,
+        status: t.status as Transaction['status'],
         description: t.description || '',
         created_at: t.created_at,
       }));

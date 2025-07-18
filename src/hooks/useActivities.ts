@@ -46,9 +46,10 @@ export const useActivities = () => {
 
       // 2. Baús abertos
       const { data: openings } = await supabase
-        .from('chest_openings')
+        .from('user_chests')
         .select(`id, created_at, chest_type`)
         .eq('user_id', user.id)
+        .eq('status', 'opened')
         .order('created_at', { ascending: false })
         .limit(10);
 

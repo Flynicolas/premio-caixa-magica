@@ -83,6 +83,8 @@ export const useWithdrawItem = () => {
       }
       
       try {
+        const addressString = `${address.street}, ${address.number}${address.complement ? `, ${address.complement}` : ''}, ${address.neighborhood}, ${address.city} - ${address.state}, CEP: ${address.zip_code}`;
+        
         const { data: retirada, error: retiradaError } = await supabase
         .from('item_withdrawals')
         .insert({
@@ -91,7 +93,7 @@ export const useWithdrawItem = () => {
           inventory_id: inventoryId,
           full_name: fullName,
           cpf,
-          delivery_address: address,
+          delivery_address: addressString,
           delivery_fee: 25.0
         })
         .select()

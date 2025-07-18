@@ -190,11 +190,11 @@ const { entregas } = useWithdrawItem();
       variant="secondary"
       className="absolute top-0 right-0 text-xs font-semibold bg-black/80 border border-zinc-700 rounded-full px-2 py-0.5"
     >
-      {userItem.quantity}x
+      1x
     </Badge>
   </div>
 
-  {!userItem.is_claimed && (
+  {!userItem.is_redeemed && (
     <Button
       size="sm"
       className="w-full mt-3 bg-yellow-400 hover:bg-yellow-300 text-black font-bold text-xs rounded-md transition-all"
