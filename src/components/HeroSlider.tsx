@@ -17,9 +17,9 @@ const slides = [
   },
   {
     id: 3,
-    title: "Use o Cupom e Concorra ao iPhone 16 Pro Max",
-    subtitle: "Ganhe +50% de bônus e concorra aos melhores prêmios",
-    image: "/lovable-uploads/e0452997-8d33-4a8b-98bb-2499385c81dd.png"
+    title: "Chegou o novo baú Premium, todos os prêmios maximos!",
+    subtitle: "O baú que te dá 100% de oportunidade.",
+    image: "https://jhbafgzfphiizpuoqksj.supabase.co/storage/v1/object/public/head-images//CAPA01.png"
   }
 ];
 
