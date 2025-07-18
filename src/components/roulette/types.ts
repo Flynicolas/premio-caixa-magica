@@ -7,14 +7,14 @@ export interface SpinItem {
 
 export interface RouletteData {
   rouletteSlots: SpinItem[];
-  winnerItem: SpinItem | null;
+  winnerItem: SpinItem;
   centerIndex: number;
   totalSlots: number;
 }
 
 export interface SpinRouletteWheelProps {
   rouletteData: RouletteData | null;
-  onSpinComplete?: () => void;
+  onSpinComplete?: (item: SpinItem) => void;
   isSpinning?: boolean;
   className?: string;
   chestType?: string;

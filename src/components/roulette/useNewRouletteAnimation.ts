@@ -5,7 +5,7 @@ import { useRouletteState } from './useRouletteState';
 
 interface UseNewRouletteAnimationProps {
   rouletteData: RouletteData | null;
-  onSpinComplete?: () => void;
+  onSpinComplete?: (item: RouletteData['winnerItem']) => void;
 }
 
 export const useNewRouletteAnimation = ({
@@ -136,7 +136,7 @@ export const useNewRouletteAnimation = ({
             animationRef.current = window.setTimeout(() => {
               setState('complete');
               console.log('Abrindo popup do prêmio');
-              onSpinComplete?.();
+              onSpinComplete?.(rouletteData.winnerItem);
             }, 1500);
           }, 300);
         }, 4000);
