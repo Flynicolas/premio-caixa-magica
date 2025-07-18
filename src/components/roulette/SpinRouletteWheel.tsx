@@ -51,7 +51,7 @@ const SpinRouletteWheel = ({
 
   if (!rouletteData) {
     return (
-      <div className={`flex items-center justify-center h-40 ${className}`}>
+      <div className={`flex items-center justify-center h-32 sm:h-40 ${className}`}>
         <div className="text-white/70">Carregando roleta...</div>
       </div>
     );
@@ -62,9 +62,9 @@ const SpinRouletteWheel = ({
   return (
     <div className={`relative ${className}`} ref={containerRef}>
       {/* Seta Dourada */}
-      <div className="absolute -top-8 left-1/2 transform -translate-x-1/2 z-20">
+      <div className="absolute -top-6 sm:-top-8 left-1/2 transform -translate-x-1/2 z-20">
         <div 
-          className="text-4xl animate-pulse text-yellow-400"
+          className="text-2xl sm:text-4xl animate-pulse text-yellow-400"
           style={{ 
             filter: 'drop-shadow(0 0 8px rgb(251 191 36 / 0.8))',
             textShadow: '0 0 12px rgb(251 191 36 / 0.8)'
@@ -75,7 +75,7 @@ const SpinRouletteWheel = ({
       </div>
 
       {/* Container da Roleta */}
-      <div className={`relative w-full max-w-4xl mx-auto h-40 rounded-xl border-4 ${theme.border} ${theme.bg} backdrop-blur-sm`} style={{ overflow: 'hidden' }}>
+      <div className={`relative w-full max-w-xs sm:max-w-4xl mx-auto h-32 sm:h-40 rounded-lg sm:rounded-xl border-2 sm:border-4 ${theme.border} ${theme.bg} backdrop-blur-sm`} style={{ overflow: 'hidden' }}>
         {/* Trilha dos Itens - Mostra TODOS os itens (incluindo os com probabilidade 0) */}
         <NewRouletteTrack 
           ref={trackRef}
@@ -85,8 +85,8 @@ const SpinRouletteWheel = ({
         />
 
         {/* Zona de Destaque Central */}
-        <div className="absolute top-0 left-1/2 transform -translate-x-1/2 w-32 h-full pointer-events-none">
-          <div className="w-full h-full border-2 border-dashed border-yellow-400/30" />
+        <div className="absolute top-0 left-1/2 transform -translate-x-1/2 w-20 sm:w-32 h-full pointer-events-none">
+          <div className="w-full h-full border border-dashed sm:border-2 border-yellow-400/30" />
         </div>
 
         {/* Efeito de Partículas para Itens Raros */}

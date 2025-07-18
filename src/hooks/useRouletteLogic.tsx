@@ -20,11 +20,31 @@ export const useRouletteLogic = () => {
   const [rouletteData, setRouletteData] = useState<RouletteResult | null>(null);
   const { toast } = useToast();
 
-  const reproduceArray = <T,>(array: T[], length: number): T[] => [
-    ...Array(length)
-      .fill("_")
-      .map(() => array[Math.floor(Math.random() * array.length)]),
-  ];
+  const reproduceArray = <T,>(array: T[], length: number): T[] => {
+    const result: T[] = [];
+    const getNextDifferentItem = (previousItem?: T, nextPreviousItem?: T): T => {
+      let attempts = 0;
+      let item: T;
+      do {
+        item = array[Math.floor(Math.random() * array.length)];
+        attempts++;
+      } while (
+        attempts < 50 && 
+        array.length > 1 && 
+        ((previousItem && JSON.stringify(item) === JSON.stringify(previousItem)) ||
+         (nextPreviousItem && JSON.stringify(item) === JSON.stringify(nextPreviousItem)))
+      );
+      return item;
+    };
+
+    for (let i = 0; i < length; i++) {
+      const previousItem = result[i - 1];
+      const nextPreviousItem = result[i - 2];
+      result.push(getNextDifferentItem(previousItem, nextPreviousItem));
+    }
+    
+    return result;
+  };
 
   const generateRoulette = useCallback(
     async (chestType: string, slotsCount = 25, forcedItemId?: string) => {

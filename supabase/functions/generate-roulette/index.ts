@@ -58,16 +58,33 @@ serve(async (req) => {
       winnerItem = weightedItems[winnerIndex];
     }
 
-    // Construir slots da roleta com item vencedor no centro
+    // Construir slots da roleta com item vencedor no centro e evitar sequências
     const rouletteSlots = [];
     const centerIndex = Math.floor(slotsCount / 2);
+
+    // Função para evitar itens consecutivos iguais
+    const getNextDifferentItem = (previousItem: any, nextPreviousItem: any) => {
+      let attempts = 0;
+      let item;
+      do {
+        const randomIndex = Math.floor(Math.random() * weightedItems.length);
+        item = weightedItems[randomIndex];
+        attempts++;
+      } while (
+        attempts < 50 && 
+        (item.id === previousItem?.id || item.id === nextPreviousItem?.id)
+      );
+      return item;
+    };
 
     for (let i = 0; i < slotsCount; i++) {
       if (i === centerIndex) {
         rouletteSlots.push(winnerItem);
       } else {
-        const randomIndex = Math.floor(Math.random() * weightedItems.length);
-        rouletteSlots.push(weightedItems[randomIndex]);
+        const previousItem = rouletteSlots[i - 1];
+        const nextPreviousItem = rouletteSlots[i - 2];
+        const selectedItem = getNextDifferentItem(previousItem, nextPreviousItem);
+        rouletteSlots.push(selectedItem);
       }
     }
 
