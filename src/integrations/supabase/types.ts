@@ -1,10 +1,10 @@
 export type Json =
-| string
-| number
-| boolean
-| null
-| { [key: string]: Json | undefined }
-| Json[]
+  | string
+  | number
+  | boolean
+  | null
+  | { [key: string]: Json | undefined }
+  | Json[]
 
 export type Database = {
   // Allows to automatically instanciate createClient with right options
@@ -20,9 +20,9 @@ export type Database = {
           condition_value: number
           created_at: string | null
           description: string
-          identifier: string
           icon: string | null
           id: string
+          identifier: string | null
           is_active: boolean | null
           name: string
           rarity: string | null
@@ -35,6 +35,7 @@ export type Database = {
           description: string
           icon?: string | null
           id?: string
+          identifier?: string | null
           is_active?: boolean | null
           name: string
           rarity?: string | null
@@ -47,6 +48,7 @@ export type Database = {
           description?: string
           icon?: string | null
           id?: string
+          identifier?: string | null
           is_active?: boolean | null
           name?: string
           rarity?: string | null
@@ -527,6 +529,123 @@ export type Database = {
         }
         Relationships: []
       }
+      item_withdrawal_payments: {
+        Row: {
+          created_at: string | null
+          id: string
+          paid_at: string | null
+          preference_id: string | null
+          status: string | null
+          transaction_id: string | null
+          user_id: string | null
+          withdrawal_id: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          id?: string
+          paid_at?: string | null
+          preference_id?: string | null
+          status?: string | null
+          transaction_id?: string | null
+          user_id?: string | null
+          withdrawal_id?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          id?: string
+          paid_at?: string | null
+          preference_id?: string | null
+          status?: string | null
+          transaction_id?: string | null
+          user_id?: string | null
+          withdrawal_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "item_withdrawal_payments_withdrawal_id_fkey"
+            columns: ["withdrawal_id"]
+            isOneToOne: false
+            referencedRelation: "item_withdrawals"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      item_withdrawals: {
+        Row: {
+          cpf: string | null
+          created_at: string | null
+          delivered_at: string | null
+          delivery_address: string | null
+          delivery_fee: number | null
+          delivery_status: string | null
+          full_name: string | null
+          id: string
+          inventory_id: string | null
+          item_id: string | null
+          paid_at: string | null
+          payment_status: string | null
+          sent_at: string | null
+          tracking_code: string | null
+          user_id: string | null
+        }
+        Insert: {
+          cpf?: string | null
+          created_at?: string | null
+          delivered_at?: string | null
+          delivery_address?: string | null
+          delivery_fee?: number | null
+          delivery_status?: string | null
+          full_name?: string | null
+          id?: string
+          inventory_id?: string | null
+          item_id?: string | null
+          paid_at?: string | null
+          payment_status?: string | null
+          sent_at?: string | null
+          tracking_code?: string | null
+          user_id?: string | null
+        }
+        Update: {
+          cpf?: string | null
+          created_at?: string | null
+          delivered_at?: string | null
+          delivery_address?: string | null
+          delivery_fee?: number | null
+          delivery_status?: string | null
+          full_name?: string | null
+          id?: string
+          inventory_id?: string | null
+          item_id?: string | null
+          paid_at?: string | null
+          payment_status?: string | null
+          sent_at?: string | null
+          tracking_code?: string | null
+          user_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "item_withdrawals_inventory_id_fkey"
+            columns: ["inventory_id"]
+            isOneToOne: false
+            referencedRelation: "user_inventory"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "item_withdrawals_item_id_fkey"
+            columns: ["item_id"]
+            isOneToOne: false
+            referencedRelation: "items"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "item_withdrawals_user_id_fkey1"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       items: {
         Row: {
           base_value: number
@@ -658,121 +777,6 @@ export type Database = {
           },
         ]
       }
-      item_withdrawals: {
-        Row: {
-          id: string
-          user_id: string
-          item_id: string
-          inventory_id: string
-          delivery_address: string
-          cpf: string
-          full_name: string
-          delivery_fee: number
-          payment_status: string
-          delivery_status: string
-          tracking_code: string | null
-          created_at: string
-          paid_at: string | null
-          sent_at: string | null
-          delivered_at: string | null
-        }
-        Insert: {
-          id?: string
-          user_id: string
-          item_id: string
-          inventory_id: string
-          delivery_address: string
-          cpf: string
-          full_name: string
-          delivery_fee: number
-          payment_status: string
-          delivery_status: string
-          tracking_code?: string | null
-          created_at?: string
-          paid_at?: string | null
-          sent_at?: string | null
-          delivered_at?: string | null
-        }
-        Update: {
-          id?: string
-          user_id?: string
-          item_id?: string
-          inventory_id?: string
-          delivery_address?: string
-          cpf?: string
-          full_name?: string
-          delivery_fee?: number
-          payment_status?: string
-          delivery_status?: string
-          tracking_code?: string | null
-          created_at?: string
-          paid_at?: string | null
-          sent_at?: string | null
-          delivered_at?: string | null
-        }
-        Relationships: [
-          {
-            foreignKeyName: "item_withdrawals_item_id_fkey"
-            columns: ["item_id"]
-            isOneToOne: false
-            referencedRelation: "items"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "item_withdrawals_inventory_id_fkey"
-            columns: ["inventory_id"]
-            isOneToOne: false
-            referencedRelation: "user_inventory"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "item_withdrawals_user_id_fkey"
-            columns: ["user_id"]
-            isOneToOne: false
-            referencedRelation: "profiles"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
-      item_withdrawal_payments: {
-        Row: {
-          id: string
-          withdrawal_id: string
-          preference_id: string
-          transaction_id: string
-          status: string
-        }
-        Insert: {
-          id?: string
-          withdrawal_id: string
-          preference_id: string
-          transaction_id: string
-          status: string
-        }
-        Update: {
-          id?: string
-          withdrawal_id?: string
-          preference_id?: string
-          transaction_id?: string
-          status?: string
-        }
-        Relationships: [
-          {
-            foreignKeyName: "item_withdrawal_payments_withdrawal_id_fkey"
-            columns: ["withdrawal_id"]
-            isOneToOne: false
-            referencedRelation: "item_withdrawals"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "item_withdrawal_payments_transaction_id_fkey"
-            columns: ["transaction_id"]
-            isOneToOne: false
-            referencedRelation: "transactions"
-            referencedColumns: ["id"]
-          }
-        ]
-      }
       metas_baus: {
         Row: {
           created_at: string
@@ -808,9 +812,16 @@ export type Database = {
           achievements: Json | null
           avatar_url: string | null
           bio: string | null
+          birth_date: string | null
           chests_opened: number | null
+          city: string | null
+          complement: string | null
+          cpf: string | null
           created_at: string | null
+          delivery_updates: boolean | null
           email: string
+          email_notifications: boolean | null
+          experience: number | null
           experience_points: number | null
           full_name: string | null
           id: string
@@ -818,22 +829,37 @@ export type Database = {
           is_demo: boolean | null
           join_date: string | null
           last_login: string | null
-          experience: number | null
           level: number | null
+          neighborhood: string | null
+          number: string | null
+          phone: string | null
           preferences: Json | null
+          prize_notifications: boolean | null
+          promo_emails: boolean | null
+          push_notifications: boolean | null
           simulate_actions: boolean | null
+          state: string | null
+          street: string | null
           total_prizes_won: number | null
           total_spent: number | null
           updated_at: string | null
           username: string | null
+          zip_code: string | null
         }
         Insert: {
           achievements?: Json | null
           avatar_url?: string | null
           bio?: string | null
+          birth_date?: string | null
           chests_opened?: number | null
+          city?: string | null
+          complement?: string | null
+          cpf?: string | null
           created_at?: string | null
+          delivery_updates?: boolean | null
           email: string
+          email_notifications?: boolean | null
+          experience?: number | null
           experience_points?: number | null
           full_name?: string | null
           id: string
@@ -842,20 +868,36 @@ export type Database = {
           join_date?: string | null
           last_login?: string | null
           level?: number | null
+          neighborhood?: string | null
+          number?: string | null
+          phone?: string | null
           preferences?: Json | null
+          prize_notifications?: boolean | null
+          promo_emails?: boolean | null
+          push_notifications?: boolean | null
           simulate_actions?: boolean | null
+          state?: string | null
+          street?: string | null
           total_prizes_won?: number | null
           total_spent?: number | null
           updated_at?: string | null
           username?: string | null
+          zip_code?: string | null
         }
         Update: {
           achievements?: Json | null
           avatar_url?: string | null
           bio?: string | null
+          birth_date?: string | null
           chests_opened?: number | null
+          city?: string | null
+          complement?: string | null
+          cpf?: string | null
           created_at?: string | null
+          delivery_updates?: boolean | null
           email?: string
+          email_notifications?: boolean | null
+          experience?: number | null
           experience_points?: number | null
           full_name?: string | null
           id?: string
@@ -864,12 +906,21 @@ export type Database = {
           join_date?: string | null
           last_login?: string | null
           level?: number | null
+          neighborhood?: string | null
+          number?: string | null
+          phone?: string | null
           preferences?: Json | null
+          prize_notifications?: boolean | null
+          promo_emails?: boolean | null
+          push_notifications?: boolean | null
           simulate_actions?: boolean | null
+          state?: string | null
+          street?: string | null
           total_prizes_won?: number | null
           total_spent?: number | null
           updated_at?: string | null
           username?: string | null
+          zip_code?: string | null
         }
         Relationships: []
       }
@@ -1242,6 +1293,10 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      add_experience_and_level: {
+        Args: { user_id_input: string; xp_to_add: number }
+        Returns: undefined
+      }
       add_wallet_balance: {
         Args: { p_user_id: string; p_amount: number; p_description?: string }
         Returns: boolean
@@ -1260,28 +1315,6 @@ export type Database = {
         Args: Record<PropertyKey, never>
         Returns: undefined
       }
-      get_user_ranking_position: {
-        Args: { user_id_input: string }
-        Returns: {
-          id: string
-          full_name: string | null
-          total_spent: number
-          total_prizes_won: number
-          rank: number
-        }[]
-      }
-      get_ranking_top10: {
-        Args: Record<string, never>;
-        Returns: Array<{
-          id: string;
-          level: string;
-          level_title: string;
-          full_name: string;
-          total_spent: number;
-          total_prizes_won: number;
-        }>;
-      }
-      
       clear_items_table: {
         Args: Record<PropertyKey, never>
         Returns: {
@@ -1293,6 +1326,29 @@ export type Database = {
         Returns: {
           preference_id: string
           transaction_id: string
+        }[]
+      }
+      get_ranking_top10: {
+        Args: Record<PropertyKey, never>
+        Returns: {
+          id: string
+          full_name: string
+          total_spent: number
+          total_prizes_won: number
+          level: number
+          level_title: string
+        }[]
+      }
+      get_user_ranking_position: {
+        Args: { user_id_input: string }
+        Returns: {
+          id: string
+          full_name: string
+          total_spent: number
+          total_prizes_won: number
+          level: number
+          level_title: string
+          position: number
         }[]
       }
       is_admin_role: {
@@ -1371,121 +1427,120 @@ type DatabaseWithoutInternals = Omit<Database, "__InternalSupabase">
 type DefaultSchema = DatabaseWithoutInternals[Extract<keyof Database, "public">]
 
 export type Tables<
-DefaultSchemaTableNameOrOptions extends
-| keyof (DefaultSchema["Tables"] & DefaultSchema["Views"])
-| { schema: keyof DatabaseWithoutInternals },
-TableName extends DefaultSchemaTableNameOrOptions extends {
-  schema: keyof DatabaseWithoutInternals
-}
-? keyof (DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"] &
-  DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Views"])
-  : never = never,
-  > = DefaultSchemaTableNameOrOptions extends {
+  DefaultSchemaTableNameOrOptions extends
+    | keyof (DefaultSchema["Tables"] & DefaultSchema["Views"])
+    | { schema: keyof DatabaseWithoutInternals },
+  TableName extends DefaultSchemaTableNameOrOptions extends {
     schema: keyof DatabaseWithoutInternals
   }
+    ? keyof (DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"] &
+        DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Views"])
+    : never = never,
+> = DefaultSchemaTableNameOrOptions extends {
+  schema: keyof DatabaseWithoutInternals
+}
   ? (DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"] &
-    DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Views"])[TableName] extends {
+      DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Views"])[TableName] extends {
       Row: infer R
     }
     ? R
     : never
-    : DefaultSchemaTableNameOrOptions extends keyof (DefaultSchema["Tables"] &
-      DefaultSchema["Views"])
-      ? (DefaultSchema["Tables"] &
+  : DefaultSchemaTableNameOrOptions extends keyof (DefaultSchema["Tables"] &
+        DefaultSchema["Views"])
+    ? (DefaultSchema["Tables"] &
         DefaultSchema["Views"])[DefaultSchemaTableNameOrOptions] extends {
-          Row: infer R
-        }
-        ? R
-        : never
-        : never
-        
-        export type TablesInsert<
-        DefaultSchemaTableNameOrOptions extends
-        | keyof DefaultSchema["Tables"]
-        | { schema: keyof DatabaseWithoutInternals },
-        TableName extends DefaultSchemaTableNameOrOptions extends {
-          schema: keyof DatabaseWithoutInternals
-        }
-        ? keyof DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"]
-        : never = never,
-        > = DefaultSchemaTableNameOrOptions extends {
-          schema: keyof DatabaseWithoutInternals
-        }
-        ? DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"][TableName] extends {
-          Insert: infer I
-        }
-        ? I
-        : never
-        : DefaultSchemaTableNameOrOptions extends keyof DefaultSchema["Tables"]
-        ? DefaultSchema["Tables"][DefaultSchemaTableNameOrOptions] extends {
-          Insert: infer I
-        }
-        ? I
-        : never
-        : never
-        
-        export type TablesUpdate<
-        DefaultSchemaTableNameOrOptions extends
-        | keyof DefaultSchema["Tables"]
-        | { schema: keyof DatabaseWithoutInternals },
-        TableName extends DefaultSchemaTableNameOrOptions extends {
-          schema: keyof DatabaseWithoutInternals
-        }
-        ? keyof DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"]
-        : never = never,
-        > = DefaultSchemaTableNameOrOptions extends {
-          schema: keyof DatabaseWithoutInternals
-        }
-        ? DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"][TableName] extends {
-          Update: infer U
-        }
-        ? U
-        : never
-        : DefaultSchemaTableNameOrOptions extends keyof DefaultSchema["Tables"]
-        ? DefaultSchema["Tables"][DefaultSchemaTableNameOrOptions] extends {
-          Update: infer U
-        }
-        ? U
-        : never
-        : never
-        
-        export type Enums<
-        DefaultSchemaEnumNameOrOptions extends
-        | keyof DefaultSchema["Enums"]
-        | { schema: keyof DatabaseWithoutInternals },
-        EnumName extends DefaultSchemaEnumNameOrOptions extends {
-          schema: keyof DatabaseWithoutInternals
-        }
-        ? keyof DatabaseWithoutInternals[DefaultSchemaEnumNameOrOptions["schema"]]["Enums"]
-        : never = never,
-        > = DefaultSchemaEnumNameOrOptions extends {
-          schema: keyof DatabaseWithoutInternals
-        }
-        ? DatabaseWithoutInternals[DefaultSchemaEnumNameOrOptions["schema"]]["Enums"][EnumName]
-        : DefaultSchemaEnumNameOrOptions extends keyof DefaultSchema["Enums"]
-        ? DefaultSchema["Enums"][DefaultSchemaEnumNameOrOptions]
-        : never
-        
-        export type CompositeTypes<
-        PublicCompositeTypeNameOrOptions extends
-        | keyof DefaultSchema["CompositeTypes"]
-        | { schema: keyof DatabaseWithoutInternals },
-        CompositeTypeName extends PublicCompositeTypeNameOrOptions extends {
-          schema: keyof DatabaseWithoutInternals
-        }
-        ? keyof DatabaseWithoutInternals[PublicCompositeTypeNameOrOptions["schema"]]["CompositeTypes"]
-        : never = never,
-        > = PublicCompositeTypeNameOrOptions extends {
-          schema: keyof DatabaseWithoutInternals
-        }
-        ? DatabaseWithoutInternals[PublicCompositeTypeNameOrOptions["schema"]]["CompositeTypes"][CompositeTypeName]
-        : PublicCompositeTypeNameOrOptions extends keyof DefaultSchema["CompositeTypes"]
-        ? DefaultSchema["CompositeTypes"][PublicCompositeTypeNameOrOptions]
-        : never
-        
-        export const Constants = {
-          public: {
-            Enums: {},
-          },
-        } as const
-        
+        Row: infer R
+      }
+      ? R
+      : never
+    : never
+
+export type TablesInsert<
+  DefaultSchemaTableNameOrOptions extends
+    | keyof DefaultSchema["Tables"]
+    | { schema: keyof DatabaseWithoutInternals },
+  TableName extends DefaultSchemaTableNameOrOptions extends {
+    schema: keyof DatabaseWithoutInternals
+  }
+    ? keyof DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"]
+    : never = never,
+> = DefaultSchemaTableNameOrOptions extends {
+  schema: keyof DatabaseWithoutInternals
+}
+  ? DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"][TableName] extends {
+      Insert: infer I
+    }
+    ? I
+    : never
+  : DefaultSchemaTableNameOrOptions extends keyof DefaultSchema["Tables"]
+    ? DefaultSchema["Tables"][DefaultSchemaTableNameOrOptions] extends {
+        Insert: infer I
+      }
+      ? I
+      : never
+    : never
+
+export type TablesUpdate<
+  DefaultSchemaTableNameOrOptions extends
+    | keyof DefaultSchema["Tables"]
+    | { schema: keyof DatabaseWithoutInternals },
+  TableName extends DefaultSchemaTableNameOrOptions extends {
+    schema: keyof DatabaseWithoutInternals
+  }
+    ? keyof DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"]
+    : never = never,
+> = DefaultSchemaTableNameOrOptions extends {
+  schema: keyof DatabaseWithoutInternals
+}
+  ? DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"][TableName] extends {
+      Update: infer U
+    }
+    ? U
+    : never
+  : DefaultSchemaTableNameOrOptions extends keyof DefaultSchema["Tables"]
+    ? DefaultSchema["Tables"][DefaultSchemaTableNameOrOptions] extends {
+        Update: infer U
+      }
+      ? U
+      : never
+    : never
+
+export type Enums<
+  DefaultSchemaEnumNameOrOptions extends
+    | keyof DefaultSchema["Enums"]
+    | { schema: keyof DatabaseWithoutInternals },
+  EnumName extends DefaultSchemaEnumNameOrOptions extends {
+    schema: keyof DatabaseWithoutInternals
+  }
+    ? keyof DatabaseWithoutInternals[DefaultSchemaEnumNameOrOptions["schema"]]["Enums"]
+    : never = never,
+> = DefaultSchemaEnumNameOrOptions extends {
+  schema: keyof DatabaseWithoutInternals
+}
+  ? DatabaseWithoutInternals[DefaultSchemaEnumNameOrOptions["schema"]]["Enums"][EnumName]
+  : DefaultSchemaEnumNameOrOptions extends keyof DefaultSchema["Enums"]
+    ? DefaultSchema["Enums"][DefaultSchemaEnumNameOrOptions]
+    : never
+
+export type CompositeTypes<
+  PublicCompositeTypeNameOrOptions extends
+    | keyof DefaultSchema["CompositeTypes"]
+    | { schema: keyof DatabaseWithoutInternals },
+  CompositeTypeName extends PublicCompositeTypeNameOrOptions extends {
+    schema: keyof DatabaseWithoutInternals
+  }
+    ? keyof DatabaseWithoutInternals[PublicCompositeTypeNameOrOptions["schema"]]["CompositeTypes"]
+    : never = never,
+> = PublicCompositeTypeNameOrOptions extends {
+  schema: keyof DatabaseWithoutInternals
+}
+  ? DatabaseWithoutInternals[PublicCompositeTypeNameOrOptions["schema"]]["CompositeTypes"][CompositeTypeName]
+  : PublicCompositeTypeNameOrOptions extends keyof DefaultSchema["CompositeTypes"]
+    ? DefaultSchema["CompositeTypes"][PublicCompositeTypeNameOrOptions]
+    : never
+
+export const Constants = {
+  public: {
+    Enums: {},
+  },
+} as const

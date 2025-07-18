@@ -166,7 +166,7 @@ const Index = () => {
       <ChestItemsModal
         isOpen={showItemsModal}
         onClose={() => setShowItemsModal(false)}
-        chest={selectedChest?.chest || null}
+        chestType={selectedChest?.type || 'silver'}
       />
 
       <ChestConfirmModal
