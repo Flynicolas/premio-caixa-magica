@@ -3,6 +3,7 @@ import { useState } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from './useAuth';
 import { useToast } from '@/hooks/use-toast';
+import { useIsMobile } from './use-mobile';
 
 interface PaymentPreference {
   preference_id: string;
@@ -14,6 +15,7 @@ interface PaymentPreference {
 export const useMercadoPago = () => {
   const { user } = useAuth();
   const { toast } = useToast();
+  const isMobile = useIsMobile();
   const [loading, setLoading] = useState(false);
 
   const createPayment = async (amount: number, description?: string): Promise<PaymentPreference | null> => {
@@ -51,7 +53,9 @@ export const useMercadoPago = () => {
 
       toast({
         title: "Link de pagamento criado!",
-        description: "Você será redirecionado para o Mercado Pago.",
+        description: isMobile 
+          ? "Redirecionando para o Mercado Pago..." 
+          : "Você será redirecionado para o Mercado Pago.",
         variant: "default"
       });
 
@@ -73,14 +77,31 @@ export const useMercadoPago = () => {
     // Em produção, usar init_point. Em desenvolvimento, pode usar sandbox_init_point
     const paymentUrl = paymentData.init_point || paymentData.sandbox_init_point;
     
-    if (paymentUrl) {
-      window.open(paymentUrl, '_blank');
-    } else {
+    if (!paymentUrl) {
       toast({
         title: "Erro",
         description: "URL de pagamento não encontrada.",
         variant: "destructive"
       });
+      return;
+    }
+
+    if (isMobile) {
+      // Em dispositivos móveis, usar redirecionamento direto
+      window.location.href = paymentUrl;
+    } else {
+      // Em desktop, tentar abrir em nova aba
+      const newWindow = window.open(paymentUrl, '_blank');
+      
+      // Fallback caso window.open seja bloqueado
+      if (!newWindow || newWindow.closed || typeof newWindow.closed === 'undefined') {
+        toast({
+          title: "Pop-up bloqueado",
+          description: "Redirecionando para o pagamento...",
+          variant: "default"
+        });
+        window.location.href = paymentUrl;
+      }
     }
   };
 
