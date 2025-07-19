@@ -48,13 +48,19 @@ const IOSDatePicker = ({ id, label, value, onChange }: iOSDatePickerProps) => {
   // Inicializar com valor existente apenas uma vez
   useEffect(() => {
     if (value && !isInitialized) {
-      const [year, month, day] = value.split('-');
-      if (year && month && day) {
+      console.log('IOSDatePicker: Inicializando com valor:', value);
+      
+      // Parse direto da string YYYY-MM-DD sem criar objeto Date (evita problemas de timezone)
+      const dateParts = value.split('-');
+      if (dateParts.length === 3) {
+        const [year, month, day] = dateParts;
+        console.log('IOSDatePicker: Componentes da data parseados:', { year, month, day });
+        
         setSelectedYear(year);
         setSelectedMonth(month);
         setSelectedDay(day);
-        setIsInitialized(true);
       }
+      setIsInitialized(true);
     } else if (!value && !isInitialized) {
       setIsInitialized(true);
     }
