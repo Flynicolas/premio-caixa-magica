@@ -4,6 +4,28 @@ import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
 import { useToast } from '@/hooks/use-toast';
 
+export interface Achievement {
+  id: string;
+  name: string;
+  description: string;
+  icon?: string;
+  rarity?: string;
+  condition_type: string;
+  condition_value: number;
+  reward_experience?: number;
+  is_active?: boolean;
+}
+
+export interface UserActivity {
+  id: string;
+  user_id: string;
+  activity_type: string;
+  description: string;
+  metadata?: any;
+  experience_gained?: number;
+  created_at: string;
+}
+
 export interface UserProfile {
   id: string;
   email: string;
@@ -56,6 +78,8 @@ export const useProfile = () => {
   const [profile, setProfile] = useState<UserProfile | null>(null);
   const [userLevel, setUserLevel] = useState<UserLevel | null>(null);
   const [allLevels, setAllLevels] = useState<UserLevel[]>([]);
+  const [achievements, setAchievements] = useState<Achievement[]>([]);
+  const [userAchievements, setUserAchievements] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
 
@@ -289,6 +313,8 @@ export const useProfile = () => {
     profile,
     userLevel,
     allLevels,
+    achievements,
+    userAchievements,
     loading,
     saving,
     updateProfile,
