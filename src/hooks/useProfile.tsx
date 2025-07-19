@@ -99,16 +99,45 @@ export const useProfile = () => {
         .eq('id', user.id)
         .single();
 
-      if (error) throw error;
+      let profileData: any = data;
+
+      if (error) {
+        // Se perfil não existe, criar um novo
+        if (error.code === 'PGRST116') {
+          console.log('Perfil não encontrado, criando novo...');
+          const { data: newProfile, error: createError } = await supabase
+            .from('profiles')
+            .insert({
+              id: user.id,
+              email: user.email,
+              full_name: user.user_metadata?.full_name || user.email,
+              is_active: true,
+              level: 1,
+              experience: 0,
+              total_spent: 0,
+              total_prizes_won: 0,
+              chests_opened: 0,
+              created_at: new Date().toISOString(),
+              updated_at: new Date().toISOString()
+            })
+            .select()
+            .single();
+
+          if (createError) throw createError;
+          profileData = newProfile;
+        } else {
+          throw error;
+        }
+      }
       
       // Converter os dados do Supabase para o formato esperado
-      const profileData: UserProfile = {
-        ...data,
-        achievements: Array.isArray(data.achievements) ? data.achievements : [],
-        preferences: data.preferences || {}
+      const finalProfileData: UserProfile = {
+        ...profileData,
+        achievements: Array.isArray(profileData.achievements) ? profileData.achievements : [],
+        preferences: profileData.preferences || {}
       };
       
-      setProfile(profileData);
+      setProfile(finalProfileData);
 
       // Atualizar último login
       await supabase
@@ -117,10 +146,10 @@ export const useProfile = () => {
         .eq('id', user.id);
 
     } catch (error) {
-      console.error('Error fetching profile:', error);
+      console.error('Error fetching/creating profile:', error);
       toast({
         title: "Erro ao carregar perfil",
-        description: "Não foi possível carregar os dados do perfil.",
+        description: "Não foi possível carregar ou criar os dados do perfil.",
         variant: "destructive"
       });
     }
