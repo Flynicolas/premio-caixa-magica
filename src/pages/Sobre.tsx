@@ -48,7 +48,7 @@ const Sobre = () => {
     {
       number: "1",
       title: "Cadastre-se",
-      description: "Crie sua conta gratuitamente e receba R$ 50 de bônus para começar a jogar imediatamente.",
+      description: "Crie sua conta gratuitamente e comece a jogar imediatamente.",
       color: "from-blue-500 to-cyan-500"
     },
     {
