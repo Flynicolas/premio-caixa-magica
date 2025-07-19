@@ -189,20 +189,20 @@ export const useProfile = () => {
     try {
       console.log('Salvando atualizações do perfil:', updates);
 
-      // Preparar dados para atualização
+      // Preparar dados para atualização - converter strings vazias em null
       const profileUpdates = {
         full_name: updates.full_name,
-        username: updates.username,
-        phone: updates.phone,
-        cpf: updates.cpf,
-        birth_date: updates.birth_date,
-        zip_code: updates.zip_code,
-        street: updates.street,
-        number: updates.number,
-        complement: updates.complement,
-        neighborhood: updates.neighborhood,
-        city: updates.city,
-        state: updates.state,
+        username: updates.username === '' ? null : updates.username,
+        phone: updates.phone === '' ? null : updates.phone,
+        cpf: updates.cpf === '' ? null : updates.cpf,
+        birth_date: updates.birth_date === '' ? null : updates.birth_date,
+        zip_code: updates.zip_code === '' ? null : updates.zip_code,
+        street: updates.street === '' ? null : updates.street,
+        number: updates.number === '' ? null : updates.number,
+        complement: updates.complement === '' ? null : updates.complement,
+        neighborhood: updates.neighborhood === '' ? null : updates.neighborhood,
+        city: updates.city === '' ? null : updates.city,
+        state: updates.state === '' ? null : updates.state,
         email_notifications: updates.email_notifications,
         push_notifications: updates.push_notifications,
         prize_notifications: updates.prize_notifications,
