@@ -138,13 +138,13 @@ const Index = () => {
               Pronto para Ganhar?
             </h2>
             <p className="text-xl text-muted-foreground mb-8 max-w-2xl mx-auto">
-              Cadastre-se agora e comece a jogar imediatamente!
+              Cadastre-se agora e receba R$ 50 de bônus para começar a jogar!
             </p>
             <button
               onClick={() => setShowAuthModal(true)}
               className="gold-gradient text-black text-xl font-bold py-4 px-12 rounded-full shadow-2xl hover:shadow-primary/50 transition-all duration-300 hover:scale-105"
             >
-              Começar Agora! 🎯
+              Começar Agora - Ganhe R$ 50! 🎯
             </button>
           </section>
         )}

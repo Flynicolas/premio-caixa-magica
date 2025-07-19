@@ -210,7 +210,7 @@ const WalletPanel = ({
                     🔒 Pagamento 100% Seguro
                   </p>
                   <p className="text-xs text-muted-foreground text-center mt-1">
-                    PIX instantâneo • Cartão • Boleto
+                    PIX instantâneo • Cartão • Boleto via Mercado Pago
                   </p>
                 </div>
               </div>
