@@ -10,11 +10,9 @@ export interface UserProfile {
   full_name?: string;
   avatar_url?: string;
   username?: string;
-  bio?: string;
   phone?: string;
   cpf?: string;
   birth_date?: string;
-
   zip_code?: string;
   street?: string;
   number?: string;
@@ -22,13 +20,11 @@ export interface UserProfile {
   neighborhood?: string;
   city?: string;
   state?: string;
-
   email_notifications?: boolean;
   push_notifications?: boolean;
   prize_notifications?: boolean;
   delivery_updates?: boolean;
   promo_emails?: boolean;
-
   level: number;
   experience: number;
   total_spent: number;
@@ -54,36 +50,11 @@ export interface UserLevel {
   color: string;
 }
 
-export interface Achievement {
-  id: string;
-  name: string;
-  description: string;
-  icon: string;
-  rarity: string;
-  condition_type: string;
-  condition_value: number;
-  reward_experience: number;
-  is_active: boolean;
-}
-
-export interface UserActivity {
-  id: string;
-  user_id: string;
-  activity_type: string;
-  description: string;
-  metadata: any;
-  experience_gained: number;
-  created_at: string;
-}
-
 export const useProfile = () => {
   const { user } = useAuth();
   const { toast } = useToast();
   const [profile, setProfile] = useState<UserProfile | null>(null);
   const [userLevel, setUserLevel] = useState<UserLevel | null>(null);
-  const [achievements, setAchievements] = useState<Achievement[]>([]);
-  const [userAchievements, setUserAchievements] = useState<any[]>([]);
-  const [activities, setActivities] = useState<UserActivity[]>([]);
   const [allLevels, setAllLevels] = useState<UserLevel[]>([]);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
@@ -93,13 +64,20 @@ export const useProfile = () => {
     if (!user) return;
 
     try {
+      console.log('Buscando perfil para usuário:', user.id);
+      
       const { data, error } = await supabase
         .from('profiles')
         .select('*')
         .eq('id', user.id)
         .single();
 
-      if (error) throw error;
+      if (error) {
+        console.error('Erro ao buscar perfil:', error);
+        throw error;
+      }
+      
+      console.log('Dados do perfil carregados:', data);
       
       // Converter os dados do Supabase para o formato esperado
       const profileData: UserProfile = {
@@ -116,11 +94,11 @@ export const useProfile = () => {
         .update({ last_login: new Date().toISOString() })
         .eq('id', user.id);
 
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error fetching profile:', error);
       toast({
         title: "Erro ao carregar perfil",
-        description: "Não foi possível carregar os dados do perfil.",
+        description: error.message || "Não foi possível carregar os dados do perfil.",
         variant: "destructive"
       });
     }
@@ -160,7 +138,6 @@ export const useProfile = () => {
 
       if (error) throw error;
       
-      // Converter os dados para o formato esperado
       const levelsData: UserLevel[] = (data || []).map(level => ({
         id: level.id,
         level: level.level,
@@ -179,73 +156,18 @@ export const useProfile = () => {
     }
   };
 
-  // Buscar conquistas disponíveis
-  const fetchAchievements = async () => {
-    try {
-      const { data, error } = await supabase
-        .from('achievements')
-        .select('*')
-        .eq('is_active', true)
-        .order('condition_value', { ascending: true });
-
-      if (error) throw error;
-      setAchievements(data || []);
-    } catch (error) {
-      console.error('Error fetching achievements:', error);
-    }
-  };
-
-  // Buscar conquistas do usuário
-  const fetchUserAchievements = async () => {
-    if (!user) return;
-
-    try {
-      const { data, error } = await supabase
-        .from('user_achievements')
-        .select(`
-          *,
-          achievement:achievements(*)
-        `)
-        .eq('user_id', user.id)
-        .order('unlocked_at', { ascending: false });
-
-      if (error) throw error;
-      setUserAchievements(data || []);
-    } catch (error) {
-      console.error('Error fetching user achievements:', error);
-    }
-  };
-
-  // Buscar atividades do usuário
-  const fetchActivities = async () => {
-    if (!user) return;
-
-    try {
-      const { data, error } = await supabase
-        .from('user_activities')
-        .select('*')
-        .eq('user_id', user.id)
-        .order('created_at', { ascending: false })
-        .limit(50);
-
-      if (error) throw error;
-      setActivities(data || []);
-    } catch (error) {
-      console.error('Error fetching activities:', error);
-    }
-  };
-
-  // Atualizar perfil com melhor feedback e validação
+  // Atualizar perfil completo com validação
   const updateProfile = async (updates: Partial<UserProfile>) => {
     if (!user) return { error: new Error('Usuário não logado') };
 
     setSaving(true);
     
     try {
-      // Mapear corretamente os campos do perfil
+      console.log('Salvando atualizações do perfil:', updates);
+
+      // Preparar dados para atualização
       const profileUpdates = {
         full_name: updates.full_name,
-        bio: updates.bio,
         username: updates.username,
         phone: updates.phone,
         cpf: updates.cpf,
@@ -272,12 +194,17 @@ export const useProfile = () => {
         }
       });
 
+      console.log('Dados a serem salvos:', profileUpdates);
+
       const { error } = await supabase
         .from('profiles')
         .update(profileUpdates)
         .eq('id', user.id);
 
-      if (error) throw error;
+      if (error) {
+        console.error('Erro no Supabase:', error);
+        throw error;
+      }
 
       // Recarregar perfil após atualização
       await fetchProfile();
@@ -301,91 +228,36 @@ export const useProfile = () => {
     }
   };
 
-  // Registrar atividade
-  const logActivity = async (
-    activityType: string,
-    description: string,
-    metadata: any = {},
-    experienceGained: number = 0
-  ) => {
-    if (!user) return;
-
-    try {
-      await supabase.rpc('log_user_activity', {
-        p_user_id: user.id,
-        p_activity_type: activityType,
-        p_description: description,
-        p_metadata: metadata,
-        p_experience_gained: experienceGained
-      });
-
-      // Recarregar dados após registrar atividade
-      await fetchProfile();
-      await fetchActivities();
-      
-      if (experienceGained > 0) {
-        toast({
-          title: `🎉 +${experienceGained} XP!`,
-          description: description,
-        });
-      }
-    } catch (error) {
-      console.error('Error logging activity:', error);
-    }
+  // Validar CPF
+  const validateCPF = (cpf: string) => {
+    if (!cpf) return false;
+    const cleanCPF = cpf.replace(/\D/g, '');
+    if (cleanCPF.length !== 11) return false;
+    if (/^(\d)\1{10}$/.test(cleanCPF)) return false;
+    return true;
   };
 
-  // Verificar e desbloquear conquistas
-  const checkAchievements = async () => {
-    if (!user || !profile) return;
+  // Buscar endereço por CEP
+  const fetchAddressByCEP = async (cep: string) => {
+    try {
+      const cleanCEP = cep.replace(/\D/g, '');
+      if (cleanCEP.length !== 8) return null;
 
-    for (const achievement of achievements) {
-      // Verificar se já possui a conquista
-      const hasAchievement = userAchievements.some(
-        ua => ua.achievement_id === achievement.id
-      );
+      const response = await fetch(`https://viacep.com.br/ws/${cleanCEP}/json/`);
+      const data = await response.json();
       
-      if (hasAchievement) continue;
-
-      let shouldUnlock = false;
-
-      switch (achievement.condition_type) {
-        case 'chests_opened':
-          shouldUnlock = profile.chests_opened >= achievement.condition_value;
-          break;
-        case 'total_spent':
-          shouldUnlock = profile.total_spent >= achievement.condition_value;
-          break;
-        default:
-          break;
-      }
-
-      if (shouldUnlock) {
-        try {
-          await supabase
-            .from('user_achievements')
-            .insert({
-              user_id: user.id,
-              achievement_id: achievement.id
-            });
-
-          await logActivity(
-            'achievement_unlocked',
-            `Conquista desbloqueada: ${achievement.name}`,
-            { achievement_id: achievement.id },
-            achievement.reward_experience
-          );
-
-          toast({
-            title: "🏆 Nova Conquista!",
-            description: `${achievement.icon} ${achievement.name}`,
-          });
-        } catch (error) {
-          console.error('Error unlocking achievement:', error);
-        }
-      }
+      if (data.erro) return null;
+      
+      return {
+        street: data.logradouro,
+        neighborhood: data.bairro,
+        city: data.localidade,
+        state: data.uf
+      };
+    } catch (error) {
+      console.error('Erro ao buscar CEP:', error);
+      return null;
     }
-
-    await fetchUserAchievements();
   };
 
   useEffect(() => {
@@ -395,7 +267,6 @@ export const useProfile = () => {
           setLoading(true);
           await fetchProfile();
           await fetchAllLevels();
-          await fetchAchievements();
         } catch (error) {
           console.error('Error loading profile data:', error);
         } finally {
@@ -410,36 +281,18 @@ export const useProfile = () => {
 
   useEffect(() => {
     if (profile && allLevels.length > 0) {
-      const loadProfileData = async () => {
-        try {
-          await Promise.all([
-            fetchUserLevel(),
-            fetchUserAchievements(),
-            fetchActivities()
-          ]);
-          await checkAchievements();
-        } catch (error) {
-          console.error('Error loading profile specific data:', error);
-        }
-      };
-      loadProfileData();
+      fetchUserLevel();
     }
   }, [profile, allLevels]);
-
-  const recentAchievements = userAchievements.slice(0, 3);
 
   return {
     profile,
     userLevel,
-    achievements,
-    userAchievements,
-    recentAchievements,
-    activities,
     allLevels,
     loading,
     saving,
     updateProfile,
-    logActivity,
-    checkAchievements
+    validateCPF,
+    fetchAddressByCEP
   };
 };
