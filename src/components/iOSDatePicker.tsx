@@ -12,6 +12,7 @@ const IOSDatePicker = ({ id, label, value, onChange }: iOSDatePickerProps) => {
   const [selectedDay, setSelectedDay] = useState('01');
   const [selectedMonth, setSelectedMonth] = useState('01');
   const [selectedYear, setSelectedYear] = useState(new Date().getFullYear().toString());
+  const [isInitialized, setIsInitialized] = useState(false);
 
   const dayColumnRef = useRef<HTMLDivElement>(null);
   const monthColumnRef = useRef<HTMLDivElement>(null);
@@ -44,24 +45,29 @@ const IOSDatePicker = ({ id, label, value, onChange }: iOSDatePickerProps) => {
   // Gerar dias (1-31)
   const days = Array.from({ length: 31 }, (_, i) => (i + 1).toString().padStart(2, '0'));
 
-  // Inicializar com valor existente
+  // Inicializar com valor existente apenas uma vez
   useEffect(() => {
-    if (value) {
+    if (value && !isInitialized) {
       const [year, month, day] = value.split('-');
       if (year && month && day) {
         setSelectedYear(year);
         setSelectedMonth(month);
         setSelectedDay(day);
+        setIsInitialized(true);
       }
+    } else if (!value && !isInitialized) {
+      setIsInitialized(true);
     }
-  }, [value]);
+  }, [value, isInitialized]);
 
-  // Atualizar valor quando seleção muda
+  // Atualizar valor quando seleção muda (só após inicialização)
   useEffect(() => {
-    if (selectedDay && selectedMonth && selectedYear) {
-      onChange(`${selectedYear}-${selectedMonth}-${selectedDay}`);
+    if (isInitialized && selectedDay && selectedMonth && selectedYear) {
+      const newDate = `${selectedYear}-${selectedMonth}-${selectedDay}`;
+      console.log('IOSDatePicker onChange:', newDate);
+      onChange(newDate);
     }
-  }, [selectedDay, selectedMonth, selectedYear, onChange]);
+  }, [selectedDay, selectedMonth, selectedYear, onChange, isInitialized]);
 
   const handleScroll = (
     column: HTMLDivElement,
@@ -134,7 +140,7 @@ const IOSDatePicker = ({ id, label, value, onChange }: iOSDatePickerProps) => {
     const monthList = monthListRef.current;
     const yearList = yearListRef.current;
 
-    if (!dayColumn || !monthColumn || !yearColumn || !dayList || !monthList || !yearList) return;
+    if (!dayColumn || !monthColumn || !yearColumn || !dayList || !monthList || !yearList || !isInitialized) return;
 
     const handleDayScroll = () => handleScroll(dayColumn, dayList, setSelectedDay, days);
     const handleMonthScroll = () => handleScroll(monthColumn, monthList, setSelectedMonth, months);
@@ -144,7 +150,7 @@ const IOSDatePicker = ({ id, label, value, onChange }: iOSDatePickerProps) => {
     monthColumn.addEventListener('scroll', handleMonthScroll);
     yearColumn.addEventListener('scroll', handleYearScroll);
 
-    // Inicializar posições imediatamente (sem setTimeout)
+    // Inicializar posições apenas após a inicialização completa
     initializePositions();
 
     return () => {
@@ -152,7 +158,7 @@ const IOSDatePicker = ({ id, label, value, onChange }: iOSDatePickerProps) => {
       monthColumn.removeEventListener('scroll', handleMonthScroll);
       yearColumn.removeEventListener('scroll', handleYearScroll);
     };
-  }, [selectedDay, selectedMonth, selectedYear, days, months, years]);
+  }, [isInitialized]);
 
   return (
     <div className="space-y-2">

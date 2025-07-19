@@ -86,6 +86,7 @@ const Configuracoes = () => {
   }, [profile]);
 
   const handleInputChange = (field: string, value: any) => {
+    console.log('Configuracoes handleInputChange:', field, value);
     setFormData(prev => ({
       ...prev,
       [field]: value
@@ -105,6 +106,8 @@ const Configuracoes = () => {
   };
 
   const handleSaveAll = async () => {
+    console.log('Salvando formData:', formData);
+    
     // Validações
     const hasWithdrawals = totalRescue > 0;
     
@@ -120,10 +123,19 @@ const Configuracoes = () => {
     }
 
     const result = await updateProfile(formData);
+    console.log('Resultado do updateProfile:', result);
+    
     if (!result.error) {
       toast({
         title: "✅ Perfil atualizado!",
         description: "Todas as suas informações foram salvas com sucesso.",
+      });
+    } else {
+      console.error('Erro ao salvar perfil:', result.error);
+      toast({
+        title: "❌ Erro ao salvar",
+        description: "Houve um erro ao salvar suas informações. Tente novamente.",
+        variant: "destructive"
       });
     }
   };
