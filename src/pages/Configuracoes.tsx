@@ -28,6 +28,7 @@ const Configuracoes = () => {
   // Estados para formulários
   const [personalInfo, setPersonalInfo] = useState({
     full_name: '',
+    bio: '',
     username: '',
     phone: '',
     cpf: '',
@@ -57,6 +58,7 @@ const Configuracoes = () => {
     if (profile) {
       setPersonalInfo({
         full_name: profile.full_name || '',
+        bio: profile.bio || '',
         username: profile.username || '',
         phone: profile.phone || '',
         cpf: profile.cpf || '',
@@ -178,6 +180,16 @@ const Configuracoes = () => {
                 </div>
               </div>
 
+              <div className="space-y-2">
+                <Label htmlFor="bio">Biografia</Label>
+                <Textarea
+                  id="bio"
+                  value={personalInfo.bio}
+                  onChange={(e) => setPersonalInfo({...personalInfo, bio: e.target.value})}
+                  placeholder="Conte um pouco sobre você..."
+                  rows={3}
+                />
+              </div>
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div className="space-y-2">
