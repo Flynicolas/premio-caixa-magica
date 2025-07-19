@@ -10,7 +10,7 @@ import { useWallet } from '@/hooks/useWallet';
 import { useRescueStats } from '@/hooks/useRescueStats';
 import AddressAutoFill from '@/components/AddressAutoFill';
 import MaskedInput from '@/components/MaskedInput';
-import iOSDatePicker from '@/components/iOSDatePicker';
+import IOSDatePicker from '@/components/iOSDatePicker';
 import { Label } from '@/components/ui/label';
 import { Input } from '@/components/ui/input';
 import { 
@@ -237,7 +237,7 @@ const Configuracoes = () => {
                 </div>
               )}
 
-              <iOSDatePicker
+              <IOSDatePicker
                 id="birth_date"
                 label="Data de Nascimento"
                 value={formData.birth_date}

@@ -9,7 +9,7 @@ interface iOSDatePickerProps {
   onChange: (date: string) => void;
 }
 
-const iOSDatePicker = ({ id, label, value, onChange }: iOSDatePickerProps) => {
+const IOSDatePicker = ({ id, label, value, onChange }: iOSDatePickerProps) => {
   const [selectedDay, setSelectedDay] = useState('01');
   const [selectedMonth, setSelectedMonth] = useState('01');
   const [selectedYear, setSelectedYear] = useState(new Date().getFullYear().toString());
@@ -186,7 +186,7 @@ const iOSDatePicker = ({ id, label, value, onChange }: iOSDatePickerProps) => {
         </div>
       </div>
 
-      <style jsx>{`
+      <style>{`
         .dob-ios-container {
           width: 100%;
           max-width: 350px;
@@ -258,4 +258,4 @@ const iOSDatePicker = ({ id, label, value, onChange }: iOSDatePickerProps) => {
   );
 };
 
-export default iOSDatePicker;
+export default IOSDatePicker;
