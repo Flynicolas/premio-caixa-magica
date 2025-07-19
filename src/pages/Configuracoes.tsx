@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -10,7 +11,7 @@ import { useWallet } from '@/hooks/useWallet';
 import { useRescueStats } from '@/hooks/useRescueStats';
 import AddressAutoFill from '@/components/AddressAutoFill';
 import MaskedInput from '@/components/MaskedInput';
-import IOSDatePicker from '@/components/iOSDatePicker';
+import DatePicker from '@/components/DatePicker';
 import { Label } from '@/components/ui/label';
 import { Input } from '@/components/ui/input';
 import { 
@@ -237,12 +238,27 @@ const Configuracoes = () => {
                 </div>
               )}
 
-              <IOSDatePicker
-                id="birth_date"
-                label="Data de Nascimento"
-                value={formData.birth_date}
-                onChange={(value) => handleInputChange('birth_date', value)}
-              />
+              <div className="space-y-2">
+                <Label htmlFor="birth_date">Data de Nascimento</Label>
+                {isMobile ? (
+                  <Input
+                    id="birth_date"
+                    type="date"
+                    value={formData.birth_date}
+                    onChange={(e) => handleInputChange('birth_date', e.target.value)}
+                    max={new Date().toISOString().split('T')[0]}
+                    min="1900-01-01"
+                  />
+                ) : (
+                  <DatePicker
+                    id="birth_date"
+                    label=""
+                    value={formData.birth_date}
+                    onChange={(value) => handleInputChange('birth_date', value)}
+                    placeholder="Selecione sua data de nascimento"
+                  />
+                )}
+              </div>
             </CardContent>
           </Card>
 
