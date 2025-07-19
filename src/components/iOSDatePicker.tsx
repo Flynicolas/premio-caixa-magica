@@ -1,4 +1,3 @@
-
 import { useState, useEffect, useRef } from 'react';
 import { Label } from '@/components/ui/label';
 
@@ -97,6 +96,36 @@ const IOSDatePicker = ({ id, label, value, onChange }: iOSDatePickerProps) => {
     }
   };
 
+  // Função para inicializar posição imediatamente
+  const initializePositions = () => {
+    const dayColumn = dayColumnRef.current;
+    const monthColumn = monthColumnRef.current;
+    const yearColumn = yearColumnRef.current;
+    const dayList = dayListRef.current;
+    const monthList = monthListRef.current;
+    const yearList = yearListRef.current;
+
+    if (!dayColumn || !monthColumn || !yearColumn || !dayList || !monthList || !yearList) return;
+
+    // Calcular e definir posições imediatamente sem animação
+    const dayIndex = days.indexOf(selectedDay);
+    const monthIndex = months.findIndex(m => m.value === selectedMonth);
+    const yearIndex = years.indexOf(selectedYear);
+
+    if (dayIndex >= 0) {
+      dayColumn.scrollTo({ top: dayIndex * 44, behavior: 'auto' });
+      handleScroll(dayColumn, dayList, setSelectedDay, days);
+    }
+    if (monthIndex >= 0) {
+      monthColumn.scrollTo({ top: monthIndex * 44, behavior: 'auto' });
+      handleScroll(monthColumn, monthList, setSelectedMonth, months);
+    }
+    if (yearIndex >= 0) {
+      yearColumn.scrollTo({ top: yearIndex * 44, behavior: 'auto' });
+      handleScroll(yearColumn, yearList, setSelectedYear, years);
+    }
+  };
+
   useEffect(() => {
     const dayColumn = dayColumnRef.current;
     const monthColumn = monthColumnRef.current;
@@ -115,25 +144,8 @@ const IOSDatePicker = ({ id, label, value, onChange }: iOSDatePickerProps) => {
     monthColumn.addEventListener('scroll', handleMonthScroll);
     yearColumn.addEventListener('scroll', handleYearScroll);
 
-    // Inicializar posições
-    setTimeout(() => {
-      const dayIndex = days.indexOf(selectedDay);
-      const monthIndex = months.findIndex(m => m.value === selectedMonth);
-      const yearIndex = years.indexOf(selectedYear);
-
-      if (dayIndex >= 0) {
-        dayColumn.scrollTo(0, dayIndex * 44);
-        handleDayScroll();
-      }
-      if (monthIndex >= 0) {
-        monthColumn.scrollTo(0, monthIndex * 44);
-        handleMonthScroll();
-      }
-      if (yearIndex >= 0) {
-        yearColumn.scrollTo(0, yearIndex * 44);
-        handleYearScroll();
-      }
-    }, 100);
+    // Inicializar posições imediatamente (sem setTimeout)
+    initializePositions();
 
     return () => {
       dayColumn.removeEventListener('scroll', handleDayScroll);
