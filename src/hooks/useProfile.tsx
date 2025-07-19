@@ -101,17 +101,12 @@ export const useProfile = () => {
         throw error;
       }
       
-      console.log('Dados do perfil carregados:', data);
-      console.log('Birth date do banco de dados:', data.birth_date, typeof data.birth_date);
-      
       // Converter os dados do Supabase para o formato esperado
       const profileData: UserProfile = {
         ...data,
         achievements: Array.isArray(data.achievements) ? data.achievements : [],
         preferences: data.preferences || {}
       };
-      
-      console.log('ProfileData processado:', profileData.birth_date, typeof profileData.birth_date);
       setProfile(profileData);
 
       // Atualizar último login
