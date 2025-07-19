@@ -62,6 +62,7 @@ const Configuracoes = () => {
   // Carregar dados do perfil
   useEffect(() => {
     if (profile) {
+      console.log('Configuracoes: Carregando perfil com birth_date:', profile.birth_date);
       setFormData({
         full_name: profile.full_name || '',
         username: profile.username || '',
