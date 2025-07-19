@@ -8,9 +8,11 @@ import { useAuth } from '@/hooks/useAuth';
 import { useProfile } from '@/hooks/useProfile';
 import { useWallet } from '@/hooks/useWallet';
 import { useRescueStats } from '@/hooks/useRescueStats';
+import { useIsMobile } from '@/hooks/use-mobile';
 import AddressAutoFill from '@/components/AddressAutoFill';
 import MaskedInput from '@/components/MaskedInput';
 import IOSDatePicker from '@/components/iOSDatePicker';
+import DatePicker from '@/components/DatePicker';
 import { Label } from '@/components/ui/label';
 import { Input } from '@/components/ui/input';
 import { 
@@ -28,6 +30,7 @@ const Configuracoes = () => {
   const { profile, updateProfile, loading, saving, validateCPF } = useProfile();
   const { totalRescue } = useRescueStats();
   const { toast } = useToast();
+  const isMobile = useIsMobile();
 
   // Estado único para todos os dados do formulário
   const [formData, setFormData] = useState({
@@ -124,9 +127,6 @@ const Configuracoes = () => {
       });
     }
   };
-
-  // Detectar se é mobile para usar input nativo de data
-  const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
 
   if (loading) {
     return (
@@ -237,12 +237,22 @@ const Configuracoes = () => {
                 </div>
               )}
 
-              <IOSDatePicker
-                id="birth_date"
-                label="Data de Nascimento"
-                value={formData.birth_date}
-                onChange={(value) => handleInputChange('birth_date', value)}
-              />
+              {isMobile ? (
+                <IOSDatePicker
+                  id="birth_date"
+                  label="Data de Nascimento"
+                  value={formData.birth_date}
+                  onChange={(value) => handleInputChange('birth_date', value)}
+                />
+              ) : (
+                <DatePicker
+                  id="birth_date"
+                  label="Data de Nascimento"
+                  value={formData.birth_date}
+                  onChange={(value) => handleInputChange('birth_date', value)}
+                  placeholder="Selecione sua data de nascimento"
+                />
+              )}
             </CardContent>
           </Card>
 
