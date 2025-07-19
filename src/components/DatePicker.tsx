@@ -7,6 +7,7 @@ import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
 import { Calendar } from '@/components/ui/calendar';
 import { Label } from '@/components/ui/label';
+import { Input } from '@/components/ui/input';
 import {
   Popover,
   PopoverContent,
@@ -32,6 +33,9 @@ const DatePicker = ({
     value ? new Date(value) : undefined
   );
 
+  // Detectar se é mobile para usar input nativo
+  const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+
   const handleDateSelect = (selectedDate: Date | undefined) => {
     setDate(selectedDate);
     if (selectedDate) {
@@ -41,9 +45,34 @@ const DatePicker = ({
     }
   };
 
+  const handleNativeDateChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const dateValue = e.target.value;
+    onChange(dateValue);
+    setDate(dateValue ? new Date(dateValue) : undefined);
+  };
+
+  // No mobile, usar input nativo que já tem roleta
+  if (isMobile) {
+    return (
+      <div>
+        {label && <Label htmlFor={id}>{label}</Label>}
+        <Input
+          id={id}
+          type="date"
+          value={value || ''}
+          onChange={handleNativeDateChange}
+          max={new Date().toISOString().split('T')[0]}
+          min="1900-01-01"
+          className="w-full"
+        />
+      </div>
+    );
+  }
+
+  // No desktop, usar calendário popup
   return (
     <div>
-      <Label htmlFor={id}>{label}</Label>
+      {label && <Label htmlFor={id}>{label}</Label>}
       <Popover>
         <PopoverTrigger asChild>
           <Button

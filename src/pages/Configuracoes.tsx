@@ -2,14 +2,18 @@
 import { useState, useEffect } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { Textarea } from '@/components/ui/textarea';
 import { Switch } from '@/components/ui/switch';
 import { Separator } from '@/components/ui/separator';
 import { useToast } from '@/hooks/use-toast';
 import { useAuth } from '@/hooks/useAuth';
 import { useProfile } from '@/hooks/useProfile';
+import { useWallet } from '@/hooks/useWallet';
+import { useRescueStats } from '@/hooks/useRescueStats';
+import AddressAutoFill from '@/components/AddressAutoFill';
+import MaskedInput from '@/components/MaskedInput';
+import DatePicker from '@/components/DatePicker';
+import { Label } from '@/components/ui/label';
+import { Input } from '@/components/ui/input';
 import { 
   User, 
   MapPin, 
@@ -22,29 +26,30 @@ import {
 
 const Configuracoes = () => {
   const { user, signOut } = useAuth();
-  const { profile, updateProfile, loading, saving } = useProfile();
+  const { profile, updateProfile, loading, saving, validateCPF } = useProfile();
+  const { totalRescue } = useRescueStats();
   const { toast } = useToast();
 
-  // Estados para formulários
-  const [personalInfo, setPersonalInfo] = useState({
+  // Estado único para todos os dados do formulário
+  const [formData, setFormData] = useState({
+    // Dados pessoais
     full_name: '',
     username: '',
+    email: '',
     phone: '',
     cpf: '',
-    birth_date: ''
-  });
-
-  const [addressInfo, setAddressInfo] = useState({
+    birth_date: '',
+    
+    // Endereço
     zip_code: '',
     street: '',
     number: '',
     complement: '',
     neighborhood: '',
     city: '',
-    state: ''
-  });
-
-  const [notifications, setNotifications] = useState({
+    state: '',
+    
+    // Notificações
     email_notifications: true,
     push_notifications: true,
     prize_notifications: true,
@@ -55,25 +60,20 @@ const Configuracoes = () => {
   // Carregar dados do perfil
   useEffect(() => {
     if (profile) {
-      setPersonalInfo({
+      setFormData({
         full_name: profile.full_name || '',
         username: profile.username || '',
+        email: profile.email || '',
         phone: profile.phone || '',
         cpf: profile.cpf || '',
-        birth_date: profile.birth_date || ''
-      });
-
-      setAddressInfo({
+        birth_date: profile.birth_date || '',
         zip_code: profile.zip_code || '',
         street: profile.street || '',
         number: profile.number || '',
         complement: profile.complement || '',
         neighborhood: profile.neighborhood || '',
         city: profile.city || '',
-        state: profile.state || ''
-      });
-
-      setNotifications({
+        state: profile.state || '',
         email_notifications: profile.email_notifications ?? true,
         push_notifications: profile.push_notifications ?? true,
         prize_notifications: profile.prize_notifications ?? true,
@@ -83,35 +83,51 @@ const Configuracoes = () => {
     }
   }, [profile]);
 
-  const handlePersonalInfoSave = async () => {
-    const result = await updateProfile(personalInfo);
-    if (!result?.error) {
+  const handleInputChange = (field: string, value: any) => {
+    setFormData(prev => ({
+      ...prev,
+      [field]: value
+    }));
+  };
+
+  const handleAddressChange = (address: {
+    street: string;
+    neighborhood: string;
+    city: string;
+    state: string;
+  }) => {
+    setFormData(prev => ({
+      ...prev,
+      ...address
+    }));
+  };
+
+  const handleSaveAll = async () => {
+    // Validações
+    const hasWithdrawals = totalRescue > 0;
+    
+    if (hasWithdrawals) {
+      if (!formData.cpf || !validateCPF(formData.cpf)) {
+        toast({
+          title: "❌ CPF obrigatório",
+          description: "CPF é obrigatório e deve ser válido para quem já fez resgates.",
+          variant: "destructive"
+        });
+        return;
+      }
+    }
+
+    const result = await updateProfile(formData);
+    if (!result.error) {
       toast({
-        title: "✅ Informações pessoais atualizadas!",
-        description: "Seus dados foram salvos com sucesso.",
+        title: "✅ Perfil atualizado!",
+        description: "Todas as suas informações foram salvas com sucesso.",
       });
     }
   };
 
-  const handleAddressSave = async () => {
-    const result = await updateProfile(addressInfo);
-    if (!result?.error) {
-      toast({
-        title: "✅ Endereço atualizado!",
-        description: "Seu endereço foi salvo com sucesso.",
-      });
-    }
-  };
-
-  const handleNotificationsSave = async () => {
-    const result = await updateProfile(notifications);
-    if (!result?.error) {
-      toast({
-        title: "✅ Preferências de notificação atualizadas!",
-        description: "Suas configurações foram salvas com sucesso.",
-      });
-    }
-  };
+  // Detectar se é mobile para usar input nativo de data
+  const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
 
   if (loading) {
     return (
@@ -162,8 +178,8 @@ const Configuracoes = () => {
                   <Label htmlFor="full_name">Nome Completo</Label>
                   <Input
                     id="full_name"
-                    value={personalInfo.full_name}
-                    onChange={(e) => setPersonalInfo({...personalInfo, full_name: e.target.value})}
+                    value={formData.full_name}
+                    onChange={(e) => handleInputChange('full_name', e.target.value)}
                     placeholder="Digite seu nome completo"
                   />
                 </div>
@@ -171,57 +187,78 @@ const Configuracoes = () => {
                   <Label htmlFor="username">Nome de usuário</Label>
                   <Input
                     id="username"
-                    value={personalInfo.username}
-                    onChange={(e) => setPersonalInfo({...personalInfo, username: e.target.value})}
+                    value={formData.username}
+                    onChange={(e) => handleInputChange('username', e.target.value)}
                     placeholder="Digite seu nome de usuário"
                   />
                 </div>
               </div>
 
-
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div className="space-y-2">
-                  <Label htmlFor="phone">Telefone</Label>
-                  <Input
-                    id="phone"
-                    type="tel"
-                    value={personalInfo.phone}
-                    onChange={(e) => setPersonalInfo({...personalInfo, phone: e.target.value})}
-                    placeholder="(00) 00000-0000"
-                  />
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="cpf">CPF</Label>
-                  <Input
-                    id="cpf"
-                    value={personalInfo.cpf}
-                    onChange={(e) => setPersonalInfo({...personalInfo, cpf: e.target.value})}
-                    placeholder="000.000.000-00"
-                  />
-                  <p className="text-xs text-muted-foreground">
-                    CPF é obrigatório apenas para resgates de prêmios
-                  </p>
-                </div>
+              <div className="space-y-2">
+                <Label htmlFor="email">Email</Label>
+                <Input
+                  id="email"
+                  type="email"
+                  value={formData.email}
+                  readOnly
+                  className="bg-muted cursor-not-allowed"
+                />
+                <p className="text-xs text-muted-foreground">
+                  O email não pode ser alterado. Entre em contato com o suporte se necessário.
+                </p>
               </div>
 
-              <div className="space-y-2">
-                <Label htmlFor="birth_date">Data de Nascimento</Label>
-                <Input
-                  id="birth_date"
-                  value={personalInfo.birth_date}
-                  onChange={(e) => setPersonalInfo({...personalInfo, birth_date: e.target.value})}
-                  placeholder="DD/MM/AAAA"
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <MaskedInput
+                  id="phone"
+                  label="Telefone"
+                  value={formData.phone}
+                  onChange={(value) => handleInputChange('phone', value)}
+                  type="phone"
+                  placeholder="(00) 00000-0000"
+                />
+                
+                <MaskedInput
+                  id="cpf"
+                  label="CPF"
+                  value={formData.cpf}
+                  onChange={(value) => handleInputChange('cpf', value)}
+                  type="cpf"
+                  placeholder="000.000.000-00"
+                  required={totalRescue > 0}
                 />
               </div>
 
-              <Button onClick={handlePersonalInfoSave} disabled={saving} className="w-full md:w-auto">
-                {saving ? (
-                  <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+              {totalRescue > 0 && (
+                <div className="flex items-center gap-2 p-3 bg-amber-50 dark:bg-amber-950/20 border border-amber-200 dark:border-amber-800 rounded-lg">
+                  <AlertTriangle className="w-4 h-4 text-amber-600" />
+                  <p className="text-sm text-amber-800 dark:text-amber-200">
+                    CPF é obrigatório para usuários que já fizeram resgates de prêmios.
+                  </p>
+                </div>
+              )}
+
+              <div className="space-y-2">
+                <Label htmlFor="birth_date">Data de Nascimento</Label>
+                {isMobile ? (
+                  <Input
+                    id="birth_date"
+                    type="date"
+                    value={formData.birth_date}
+                    onChange={(e) => handleInputChange('birth_date', e.target.value)}
+                    max={new Date().toISOString().split('T')[0]}
+                    min="1900-01-01"
+                  />
                 ) : (
-                  <Save className="w-4 h-4 mr-2" />
+                  <DatePicker
+                    id="birth_date"
+                    label=""
+                    value={formData.birth_date}
+                    onChange={(value) => handleInputChange('birth_date', value)}
+                    placeholder="Selecione sua data de nascimento"
+                  />
                 )}
-                {saving ? 'Salvando...' : 'Salvar Informações Pessoais'}
-              </Button>
+              </div>
             </CardContent>
           </Card>
 
@@ -237,34 +274,23 @@ const Configuracoes = () => {
               </CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                <div className="space-y-2">
-                  <Label htmlFor="zip_code">CEP</Label>
-                  <Input
-                    id="zip_code"
-                    value={addressInfo.zip_code}
-                    onChange={(e) => setAddressInfo({...addressInfo, zip_code: e.target.value})}
-                    placeholder="00000-000"
-                  />
-                </div>
-                <div className="space-y-2 md:col-span-2">
-                  <Label htmlFor="street">Rua</Label>
-                  <Input
-                    id="street"
-                    value={addressInfo.street}
-                    onChange={(e) => setAddressInfo({...addressInfo, street: e.target.value})}
-                    placeholder="Nome da rua"
-                  />
-                </div>
-              </div>
+              <AddressAutoFill
+                cep={formData.zip_code}
+                street={formData.street}
+                neighborhood={formData.neighborhood}
+                city={formData.city}
+                state={formData.state}
+                onCepChange={(cep) => handleInputChange('zip_code', cep)}
+                onAddressChange={handleAddressChange}
+              />
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div className="space-y-2">
                   <Label htmlFor="number">Número</Label>
                   <Input
                     id="number"
-                    value={addressInfo.number}
-                    onChange={(e) => setAddressInfo({...addressInfo, number: e.target.value})}
+                    value={formData.number}
+                    onChange={(e) => handleInputChange('number', e.target.value)}
                     placeholder="123"
                   />
                 </div>
@@ -272,51 +298,12 @@ const Configuracoes = () => {
                   <Label htmlFor="complement">Complemento</Label>
                   <Input
                     id="complement"
-                    value={addressInfo.complement}
-                    onChange={(e) => setAddressInfo({...addressInfo, complement: e.target.value})}
+                    value={formData.complement}
+                    onChange={(e) => handleInputChange('complement', e.target.value)}
                     placeholder="Apto, Bloco, etc."
                   />
                 </div>
               </div>
-
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                <div className="space-y-2">
-                  <Label htmlFor="neighborhood">Bairro</Label>
-                  <Input
-                    id="neighborhood"
-                    value={addressInfo.neighborhood}
-                    onChange={(e) => setAddressInfo({...addressInfo, neighborhood: e.target.value})}
-                    placeholder="Nome do bairro"
-                  />
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="city">Cidade</Label>
-                  <Input
-                    id="city"
-                    value={addressInfo.city}
-                    onChange={(e) => setAddressInfo({...addressInfo, city: e.target.value})}
-                    placeholder="Nome da cidade"
-                  />
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="state">Estado</Label>
-                  <Input
-                    id="state"
-                    value={addressInfo.state}
-                    onChange={(e) => setAddressInfo({...addressInfo, state: e.target.value})}
-                    placeholder="UF"
-                  />
-                </div>
-              </div>
-
-              <Button onClick={handleAddressSave} disabled={saving} className="w-full md:w-auto">
-                {saving ? (
-                  <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                ) : (
-                  <Save className="w-4 h-4 mr-2" />
-                )}
-                {saving ? 'Salvando...' : 'Salvar Endereço'}
-              </Button>
             </CardContent>
           </Card>
 
@@ -340,9 +327,9 @@ const Configuracoes = () => {
                   </p>
                 </div>
                 <Switch
-                  checked={notifications.email_notifications}
+                  checked={formData.email_notifications}
                   onCheckedChange={(checked) => 
-                    setNotifications({...notifications, email_notifications: checked})
+                    handleInputChange('email_notifications', checked)
                   }
                 />
               </div>
@@ -357,9 +344,9 @@ const Configuracoes = () => {
                   </p>
                 </div>
                 <Switch
-                  checked={notifications.push_notifications}
+                  checked={formData.push_notifications}
                   onCheckedChange={(checked) => 
-                    setNotifications({...notifications, push_notifications: checked})
+                    handleInputChange('push_notifications', checked)
                   }
                 />
               </div>
@@ -374,9 +361,9 @@ const Configuracoes = () => {
                   </p>
                 </div>
                 <Switch
-                  checked={notifications.prize_notifications}
+                  checked={formData.prize_notifications}
                   onCheckedChange={(checked) => 
-                    setNotifications({...notifications, prize_notifications: checked})
+                    handleInputChange('prize_notifications', checked)
                   }
                 />
               </div>
@@ -391,9 +378,9 @@ const Configuracoes = () => {
                   </p>
                 </div>
                 <Switch
-                  checked={notifications.delivery_updates}
+                  checked={formData.delivery_updates}
                   onCheckedChange={(checked) => 
-                    setNotifications({...notifications, delivery_updates: checked})
+                    handleInputChange('delivery_updates', checked)
                   }
                 />
               </div>
@@ -408,21 +395,38 @@ const Configuracoes = () => {
                   </p>
                 </div>
                 <Switch
-                  checked={notifications.promo_emails}
+                  checked={formData.promo_emails}
                   onCheckedChange={(checked) => 
-                    setNotifications({...notifications, promo_emails: checked})
+                    handleInputChange('promo_emails', checked)
                   }
                 />
               </div>
+            </CardContent>
+          </Card>
 
-              <Button onClick={handleNotificationsSave} disabled={saving} className="w-full md:w-auto">
-                {saving ? (
-                  <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                ) : (
-                  <Save className="w-4 h-4 mr-2" />
-                )}
-                {saving ? 'Salvando...' : 'Salvar Preferências'}
-              </Button>
+          {/* Botão de Salvar Centralizado */}
+          <Card>
+            <CardContent className="pt-6">
+              <div className="flex justify-center">
+                <Button 
+                  onClick={handleSaveAll} 
+                  disabled={saving}
+                  size="lg"
+                  className="w-full md:w-auto min-w-[200px]"
+                >
+                  {saving ? (
+                    <>
+                      <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                      Salvando...
+                    </>
+                  ) : (
+                    <>
+                      <Save className="w-4 h-4 mr-2" />
+                      Salvar Todas Alterações
+                    </>
+                  )}
+                </Button>
+              </div>
             </CardContent>
           </Card>
 

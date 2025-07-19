@@ -1,29 +1,16 @@
 
-import { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { Switch } from '@/components/ui/switch';
 import { Badge } from '@/components/ui/badge';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { useAuth } from '@/hooks/useAuth';
 import { useProfile } from '@/hooks/useProfile';
 import LevelProgressCard from '@/components/LevelProgressCard';
 import UserStatsCards from '@/components/UserStatsCards';
-import AddressAutoFill from '@/components/AddressAutoFill';
-import MaskedInput from '@/components/MaskedInput';
-import DatePicker from '@/components/DatePicker';
 import { useWallet } from '@/hooks/useWallet';
 import { useRescueStats } from '@/hooks/useRescueStats';
-
-import { 
-  User, 
-  MapPin,
-  Settings,
-  Save,
-  Loader2
-} from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
+import { Settings, Edit } from 'lucide-react';
 
 const Perfil = () => {
   const { user } = useAuth();
@@ -31,104 +18,15 @@ const Perfil = () => {
     profile, 
     userLevel, 
     allLevels,
-    loading,
-    saving,
-    updateProfile,
-    validateCPF
+    loading
   } = useProfile();
   
   const { walletData } = useWallet();
   const { totalRescue } = useRescueStats();
-
-  // Estados para os formulários
-  const [formData, setFormData] = useState({
-    // Dados pessoais
-    full_name: '',
-    username: '',
-    phone: '',
-    cpf: '',
-    birth_date: '',
-    
-    // Endereço
-    zip_code: '',
-    street: '',
-    number: '',
-    complement: '',
-    neighborhood: '',
-    city: '',
-    state: '',
-    
-    // Notificações
-    email_notifications: true,
-    push_notifications: true,
-    prize_notifications: true,
-    delivery_updates: true,
-    promo_emails: false
-  });
-
-  // Atualizar formulário quando profile carregar
-  useEffect(() => {
-    if (profile) {
-      setFormData({
-        full_name: profile.full_name || '',
-        username: profile.username || '',
-        phone: profile.phone || '',
-        cpf: profile.cpf || '',
-        birth_date: profile.birth_date || '',
-        zip_code: profile.zip_code || '',
-        street: profile.street || '',
-        number: profile.number || '',
-        complement: profile.complement || '',
-        neighborhood: profile.neighborhood || '',
-        city: profile.city || '',
-        state: profile.state || '',
-        email_notifications: profile.email_notifications ?? true,
-        push_notifications: profile.push_notifications ?? true,
-        prize_notifications: profile.prize_notifications ?? true,
-        delivery_updates: profile.delivery_updates ?? true,
-        promo_emails: profile.promo_emails ?? false
-      });
-    }
-  }, [profile]);
+  const navigate = useNavigate();
 
   const getInitials = (name: string) => {
     return name.split(' ').map(n => n[0]).join('').toUpperCase();
-  };
-
-  const handleInputChange = (field: string, value: any) => {
-    setFormData(prev => ({
-      ...prev,
-      [field]: value
-    }));
-  };
-
-  const handleAddressChange = (address: {
-    street: string;
-    neighborhood: string;
-    city: string;
-    state: string;
-  }) => {
-    setFormData(prev => ({
-      ...prev,
-      ...address
-    }));
-  };
-
-  const handleSaveProfile = async () => {
-    // Validações inteligentes
-    const hasWithdrawals = totalRescue > 0;
-    
-    if (hasWithdrawals) {
-      if (!formData.cpf || !validateCPF(formData.cpf)) {
-        alert('CPF é obrigatório e deve ser válido para quem já fez resgates.');
-        return;
-      }
-    }
-
-    const result = await updateProfile(formData);
-    if (!result.error) {
-      // Sucesso já é mostrado no toast pelo hook
-    }
   };
 
   if (loading) {
@@ -183,6 +81,16 @@ const Perfil = () => {
                 </div>
               </div>
             </div>
+
+            {/* Botão para editar perfil */}
+            <Button 
+              onClick={() => navigate('/configuracoes')}
+              className="flex items-center gap-2"
+              size="lg"
+            >
+              <Edit className="w-4 h-4" />
+              Editar Perfil
+            </Button>
           </div>
         </div>
 
@@ -211,192 +119,93 @@ const Perfil = () => {
           </div>
         )}
 
-        {/* Formulário Unificado */}
+        {/* Informações Pessoais - Visualização */}
         <Card className="mb-8">
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
               <Settings className="w-5 h-5" />
-              Editar Perfil
+              Informações Pessoais
             </CardTitle>
           </CardHeader>
-          <CardContent className="space-y-8">
-            {/* Seção: Dados Pessoais */}
+          <CardContent className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <div>
-              <div className="flex items-center gap-2 mb-4">
-                <User className="w-5 h-5 text-primary" />
-                <h3 className="text-lg font-semibold">Dados Pessoais</h3>
-              </div>
-              
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div>
-                  <Label htmlFor="full_name">Nome Completo</Label>
-                  <Input
-                    id="full_name"
-                    value={formData.full_name}
-                    onChange={(e) => handleInputChange('full_name', e.target.value)}
-                    placeholder="Digite seu nome completo"
-                  />
-                </div>
-                
-                <div>
-                  <Label htmlFor="username">Nome de usuário</Label>
-                  <Input
-                    id="username"
-                    value={formData.username}
-                    onChange={(e) => handleInputChange('username', e.target.value)}
-                    placeholder="Digite seu nome de usuário"
-                  />
-                </div>
-                
-                <MaskedInput
-                  id="phone"
-                  label="Telefone"
-                  value={formData.phone}
-                  onChange={(value) => handleInputChange('phone', value)}
-                  type="phone"
-                  placeholder="(00) 00000-0000"
-                />
-                
-                <MaskedInput
-                  id="cpf"
-                  label="CPF"
-                  value={formData.cpf}
-                  onChange={(value) => handleInputChange('cpf', value)}
-                  type="cpf"
-                  placeholder="000.000.000-00"
-                  required={totalRescue > 0}
-                />
-                
-                <DatePicker
-                  id="birth_date"
-                  label="Data de Nascimento"
-                  value={formData.birth_date}
-                  onChange={(value) => handleInputChange('birth_date', value)}
-                  placeholder="Selecione sua data de nascimento"
-                />
-              </div>
+              <h4 className="text-sm font-medium text-muted-foreground mb-1">Nome Completo</h4>
+              <p className="text-base">{profile.full_name || 'Não informado'}</p>
             </div>
-
-            {/* Seção: Endereço */}
+            
             <div>
-              <div className="flex items-center gap-2 mb-4">
-                <MapPin className="w-5 h-5 text-primary" />
-                <h3 className="text-lg font-semibold">Endereço</h3>
-              </div>
-              
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div className="md:col-span-2">
-                  <AddressAutoFill
-                    cep={formData.zip_code}
-                    street={formData.street}
-                    neighborhood={formData.neighborhood}
-                    city={formData.city}
-                    state={formData.state}
-                    onCepChange={(cep) => handleInputChange('zip_code', cep)}
-                    onAddressChange={handleAddressChange}
-                  />
-                </div>
-                
-                <div>
-                  <Label htmlFor="number">Número</Label>
-                  <Input
-                    id="number"
-                    value={formData.number}
-                    onChange={(e) => handleInputChange('number', e.target.value)}
-                    placeholder="123"
-                  />
-                </div>
-                
-                <div>
-                  <Label htmlFor="complement">Complemento</Label>
-                  <Input
-                    id="complement"
-                    value={formData.complement}
-                    onChange={(e) => handleInputChange('complement', e.target.value)}
-                    placeholder="Apto, Bloco, etc."
-                  />
-                </div>
-              </div>
+              <h4 className="text-sm font-medium text-muted-foreground mb-1">Username</h4>
+              <p className="text-base">{profile.username || 'Não informado'}</p>
             </div>
-
-            {/* Seção: Notificações */}
+            
             <div>
-              <div className="flex items-center gap-2 mb-4">
-                <Settings className="w-5 h-5 text-primary" />
-                <h3 className="text-lg font-semibold">Preferências de Notificação</h3>
-              </div>
-              
-              <div className="space-y-4">
-                <div className="flex items-center justify-between">
-                  <Label htmlFor="email_notifications">Notificações por Email</Label>
-                  <Switch
-                    id="email_notifications"
-                    checked={formData.email_notifications}
-                    onCheckedChange={(checked) => handleInputChange('email_notifications', checked)}
-                  />
-                </div>
-                
-                <div className="flex items-center justify-between">
-                  <Label htmlFor="push_notifications">Notificações Push</Label>
-                  <Switch
-                    id="push_notifications"
-                    checked={formData.push_notifications}
-                    onCheckedChange={(checked) => handleInputChange('push_notifications', checked)}
-                  />
-                </div>
-                
-                <div className="flex items-center justify-between">
-                  <Label htmlFor="prize_notifications">Notificações de Prêmios</Label>
-                  <Switch
-                    id="prize_notifications"
-                    checked={formData.prize_notifications}
-                    onCheckedChange={(checked) => handleInputChange('prize_notifications', checked)}
-                  />
-                </div>
-                
-                <div className="flex items-center justify-between">
-                  <Label htmlFor="delivery_updates">Atualizações de Entrega</Label>
-                  <Switch
-                    id="delivery_updates"
-                    checked={formData.delivery_updates}
-                    onCheckedChange={(checked) => handleInputChange('delivery_updates', checked)}
-                  />
-                </div>
-                
-                <div className="flex items-center justify-between">
-                  <Label htmlFor="promo_emails">Emails Promocionais</Label>
-                  <Switch
-                    id="promo_emails"
-                    checked={formData.promo_emails}
-                    onCheckedChange={(checked) => handleInputChange('promo_emails', checked)}
-                  />
-                </div>
-              </div>
+              <h4 className="text-sm font-medium text-muted-foreground mb-1">Email</h4>
+              <p className="text-base">{profile.email}</p>
             </div>
-
-            {/* Botão de Salvar */}
-            <div className="pt-4 border-t">
-              <Button 
-                onClick={handleSaveProfile} 
-                disabled={saving}
-                className="w-full md:w-auto"
-                size="lg"
-              >
-                {saving ? (
-                  <>
-                    <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                    Salvando...
-                  </>
-                ) : (
-                  <>
-                    <Save className="w-4 h-4 mr-2" />
-                    Salvar Alterações
-                  </>
-                )}
-              </Button>
+            
+            <div>
+              <h4 className="text-sm font-medium text-muted-foreground mb-1">Telefone</h4>
+              <p className="text-base">{profile.phone || 'Não informado'}</p>
+            </div>
+            
+            <div>
+              <h4 className="text-sm font-medium text-muted-foreground mb-1">CPF</h4>
+              <p className="text-base">{profile.cpf || 'Não informado'}</p>
+            </div>
+            
+            <div>
+              <h4 className="text-sm font-medium text-muted-foreground mb-1">Data de Nascimento</h4>
+              <p className="text-base">
+                {profile.birth_date ? new Date(profile.birth_date).toLocaleDateString('pt-BR') : 'Não informado'}
+              </p>
             </div>
           </CardContent>
         </Card>
+
+        {/* Endereço - Visualização */}
+        {(profile.zip_code || profile.street || profile.city) && (
+          <Card className="mb-8">
+            <CardHeader>
+              <CardTitle>Endereço</CardTitle>
+            </CardHeader>
+            <CardContent className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <div>
+                <h4 className="text-sm font-medium text-muted-foreground mb-1">CEP</h4>
+                <p className="text-base">{profile.zip_code || 'Não informado'}</p>
+              </div>
+              
+              <div>
+                <h4 className="text-sm font-medium text-muted-foreground mb-1">Rua</h4>
+                <p className="text-base">{profile.street || 'Não informado'}</p>
+              </div>
+              
+              <div>
+                <h4 className="text-sm font-medium text-muted-foreground mb-1">Número</h4>
+                <p className="text-base">{profile.number || 'Não informado'}</p>
+              </div>
+              
+              <div>
+                <h4 className="text-sm font-medium text-muted-foreground mb-1">Complemento</h4>
+                <p className="text-base">{profile.complement || 'Não informado'}</p>
+              </div>
+              
+              <div>
+                <h4 className="text-sm font-medium text-muted-foreground mb-1">Bairro</h4>
+                <p className="text-base">{profile.neighborhood || 'Não informado'}</p>
+              </div>
+              
+              <div>
+                <h4 className="text-sm font-medium text-muted-foreground mb-1">Cidade</h4>
+                <p className="text-base">{profile.city || 'Não informado'}</p>
+              </div>
+              
+              <div>
+                <h4 className="text-sm font-medium text-muted-foreground mb-1">Estado</h4>
+                <p className="text-base">{profile.state || 'Não informado'}</p>
+              </div>
+            </CardContent>
+          </Card>
+        )}
       </div>
     </div>
   );
