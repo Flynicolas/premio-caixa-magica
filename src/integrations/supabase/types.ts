@@ -1412,6 +1412,10 @@ export type Database = {
         Args: { p_user_id: string; p_chest_type: string; p_price: number }
         Returns: string
       }
+      validate_cpf_for_withdrawal: {
+        Args: { cpf_input: string }
+        Returns: boolean
+      }
     }
     Enums: {
       [_ in never]: never

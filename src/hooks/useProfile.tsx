@@ -3,7 +3,6 @@ import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
 import { useToast } from '@/hooks/use-toast';
-import { Json } from '@/integrations/supabase/types';
 
 export interface UserProfile {
   id: string;
@@ -43,7 +42,6 @@ export interface UserProfile {
   created_at: string;
   updated_at: string;
 }
-
 
 export interface UserLevel {
   id: string;
@@ -88,6 +86,7 @@ export const useProfile = () => {
   const [activities, setActivities] = useState<UserActivity[]>([]);
   const [allLevels, setAllLevels] = useState<UserLevel[]>([]);
   const [loading, setLoading] = useState(true);
+  const [saving, setSaving] = useState(false);
 
   // Buscar perfil do usuário
   const fetchProfile = async () => {
@@ -119,48 +118,45 @@ export const useProfile = () => {
 
     } catch (error) {
       console.error('Error fetching profile:', error);
+      toast({
+        title: "Erro ao carregar perfil",
+        description: "Não foi possível carregar os dados do perfil.",
+        variant: "destructive"
+      });
     }
   };
 
   // Buscar nível atual do usuário
-const fetchUserLevel = async () => {
-    console.log("to aq")
-  if (!profile || allLevels.length === 0) return;
-    console.log("to aq 1")
+  const fetchUserLevel = async () => {
+    if (!profile || allLevels.length === 0) return;
 
-  try {
-    console.log('profile.experience', profile.experience)
-    const { data, error } = await supabase.rpc('calculate_user_level', {
-      experience: profile.experience
-    });
+    try {
+      const { data, error } = await supabase.rpc('calculate_user_level', {
+        experience: profile.experience
+      });
 
-    if (error) throw error;
+      if (error) throw error;
 
-    const levelNumber = data?.[0]?.level;
+      const levelNumber = data?.[0]?.level;
 
-    if (!levelNumber) return;
+      if (!levelNumber) return;
 
-    const fullLevelData = allLevels.find(l => l.level === levelNumber);
-    if (fullLevelData) {
-      setUserLevel(fullLevelData);
+      const fullLevelData = allLevels.find(l => l.level === levelNumber);
+      if (fullLevelData) {
+        setUserLevel(fullLevelData);
+      }
+    } catch (error) {
+      console.error('Error fetching user level:', error);
     }
-  } catch (error) {
-    console.error('Error fetching user level:', error);
-  }
-};
-
+  };
 
   // Buscar todos os níveis
   const fetchAllLevels = async () => {
     try {
- const { data, error } = await supabase
-  .from('user_levels')
-  .select('*')
-  .order('level', { ascending: true });
-
-console.log("user_levels data:", data);
-console.log("user_levels error:", error);
-
+      const { data, error } = await supabase
+        .from('user_levels')
+        .select('*')
+        .order('level', { ascending: true });
 
       if (error) throw error;
       
@@ -239,36 +235,69 @@ console.log("user_levels error:", error);
     }
   };
 
-  // Atualizar perfil
+  // Atualizar perfil com melhor feedback e validação
   const updateProfile = async (updates: Partial<UserProfile>) => {
     if (!user) return { error: new Error('Usuário não logado') };
 
+    setSaving(true);
+    
     try {
+      // Mapear corretamente os campos do perfil
+      const profileUpdates = {
+        full_name: updates.full_name,
+        bio: updates.bio,
+        username: updates.username,
+        phone: updates.phone,
+        cpf: updates.cpf,
+        birth_date: updates.birth_date,
+        zip_code: updates.zip_code,
+        street: updates.street,
+        number: updates.number,
+        complement: updates.complement,
+        neighborhood: updates.neighborhood,
+        city: updates.city,
+        state: updates.state,
+        email_notifications: updates.email_notifications,
+        push_notifications: updates.push_notifications,
+        prize_notifications: updates.prize_notifications,
+        delivery_updates: updates.delivery_updates,
+        promo_emails: updates.promo_emails,
+        updated_at: new Date().toISOString()
+      };
+
+      // Remover campos undefined
+      Object.keys(profileUpdates).forEach(key => {
+        if (profileUpdates[key as keyof typeof profileUpdates] === undefined) {
+          delete profileUpdates[key as keyof typeof profileUpdates];
+        }
+      });
+
       const { error } = await supabase
         .from('profiles')
-        .update({
-          ...updates,
-          updated_at: new Date().toISOString()
-        })
+        .update(profileUpdates)
         .eq('id', user.id);
 
       if (error) throw error;
 
+      // Recarregar perfil após atualização
       await fetchProfile();
       
       toast({
-        title: "Perfil atualizado!",
+        title: "✅ Perfil atualizado!",
         description: "Suas informações foram salvas com sucesso.",
       });
 
       return { error: null };
     } catch (error: any) {
+      console.error('Erro ao atualizar perfil:', error);
       toast({
-        title: "Erro ao atualizar perfil",
-        description: error.message,
+        title: "❌ Erro ao atualizar perfil",
+        description: error.message || "Ocorreu um erro inesperado. Tente novamente.",
         variant: "destructive"
       });
       return { error };
+    } finally {
+      setSaving(false);
     }
   };
 
@@ -296,7 +325,7 @@ console.log("user_levels error:", error);
       
       if (experienceGained > 0) {
         toast({
-          title: `+${experienceGained} XP!`,
+          title: `🎉 +${experienceGained} XP!`,
           description: description,
         });
       }
@@ -359,43 +388,43 @@ console.log("user_levels error:", error);
     await fetchUserAchievements();
   };
 
- useEffect(() => {
-  
-  if (user) {
-    const loadData = async () => {
-      try {
-        setLoading(true);
-        await fetchProfile();
-        await fetchAllLevels(); // precisa vir antes do fetchUserLevel
-      } catch (error) {
-        console.error('Error loading profile data:', error);
-      } finally {
-        setLoading(false);
-      }
-    };
-    loadData();
-  } else {
-    setLoading(false);
-  }
-}, [user]);
+  useEffect(() => {
+    if (user) {
+      const loadData = async () => {
+        try {
+          setLoading(true);
+          await fetchProfile();
+          await fetchAllLevels();
+          await fetchAchievements();
+        } catch (error) {
+          console.error('Error loading profile data:', error);
+        } finally {
+          setLoading(false);
+        }
+      };
+      loadData();
+    } else {
+      setLoading(false);
+    }
+  }, [user]);
 
-useEffect(() => {
-  if (profile && allLevels.length > 0) {
-    const loadProfileData = async () => {
-      try {
-        await Promise.all([
-          fetchUserLevel(),
-          fetchUserAchievements(),
-          fetchActivities()
-        ]);
-        await checkAchievements();
-      } catch (error) {
-        console.error('Error loading profile specific data:', error);
-      }
-    };
-    loadProfileData();
-  }
-}, [profile, allLevels]);
+  useEffect(() => {
+    if (profile && allLevels.length > 0) {
+      const loadProfileData = async () => {
+        try {
+          await Promise.all([
+            fetchUserLevel(),
+            fetchUserAchievements(),
+            fetchActivities()
+          ]);
+          await checkAchievements();
+        } catch (error) {
+          console.error('Error loading profile specific data:', error);
+        }
+      };
+      loadProfileData();
+    }
+  }, [profile, allLevels]);
 
   const recentAchievements = userAchievements.slice(0, 3);
 
@@ -408,6 +437,7 @@ useEffect(() => {
     activities,
     allLevels,
     loading,
+    saving,
     updateProfile,
     logActivity,
     checkAchievements
