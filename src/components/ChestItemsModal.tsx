@@ -154,7 +154,7 @@ const ChestItemsModal = ({ isOpen, onClose, chestType }: ChestItemsModalProps) =
 
                   <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
                     {itemsInRarity.map((item, index) => (
-                      <div key={index} className="group">
+                      <div key={index} className="group flex flex-col items-center">
                         <ItemCard
                           item={{
                             name: item.name,
@@ -165,8 +165,8 @@ const ChestItemsModal = ({ isOpen, onClose, chestType }: ChestItemsModalProps) =
                           size="md"
                           showRarity={false}
                         />
-                        <div className="mt-3 text-center">
-                          <h4 className="text-sm font-medium text-white/90 leading-tight">{item.name}</h4>
+                        <div className="mt-3 px-2 text-center w-full">
+                          <h4 className="text-sm font-medium text-white/90 leading-tight break-words">{item.name}</h4>
                         </div>
                       </div>
                     ))}

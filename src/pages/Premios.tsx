@@ -25,7 +25,7 @@ import {
 
 import Cookies from "js-cookie";
 
-const Baus = () => {
+const Premios = () => {
   const { userChests, userItems, getChestCounts, getItemsByCategory, getChestItems, loading } = useInventory();
     const { toast } = useToast();
     const navigate = useNavigate();
@@ -97,7 +97,7 @@ const { entregas } = useWithdrawItem();
         {/* Carteira de Baús do Usuário */}
         <section className="mb-12">
           <div className="text-center mb-8">
-            <h1 className="text-4xl font-bold text-primary mb-4">Meus Baús & Prêmios</h1>
+            <h1 className="text-4xl font-bold text-primary mb-4">Meus Prêmios</h1>
             <p className="text-lg text-muted-foreground">Gerencie sua coleção e descubra novos tesouros</p>
           </div>
 
@@ -194,7 +194,11 @@ const { entregas } = useWithdrawItem();
     </Badge>
   </div>
 
-  {!userItem.is_redeemed && (
+  {userItem.is_redeemed ? (
+    <Badge className="w-full mt-3 bg-green-500/20 text-green-500 border-green-500/30 text-xs font-semibold py-2 justify-center">
+      Resgatado
+    </Badge>
+  ) : (
     <Button
       size="sm"
       className="w-full mt-3 bg-yellow-400 hover:bg-yellow-300 text-black font-bold text-xs rounded-md transition-all"
@@ -427,9 +431,22 @@ const { entregas } = useWithdrawItem();
           
             
         </section>
+        
+        {/* Contagem de Baús Abertos */}
+        <section className="text-center py-8">
+          <Card className="bg-card/50 border-primary/20 max-w-md mx-auto">
+            <CardContent className="p-6">
+              <h3 className="text-lg font-bold text-primary mb-2">Estatística de Baús</h3>
+              <p className="text-3xl font-bold mb-1">{userItems.length}</p>
+              <p className="text-muted-foreground text-sm">
+                Baús abertos até agora
+              </p>
+            </CardContent>
+          </Card>
+        </section>
       </div>
     </div>
   );
 };
 
-export default Baus;
+export default Premios;

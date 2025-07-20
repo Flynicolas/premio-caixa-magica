@@ -41,7 +41,7 @@ const ChestImageDisplay = ({ chestType, chestName, onViewItems }: ChestImageDisp
       
       <button
         onClick={onViewItems}
-        className={`absolute top-2 right-2 bg-gradient-to-r ${chestColor} text-white p-3 rounded-full transition-all duration-300 flex items-center justify-center hover:scale-110 hover:rotate-12 shadow-xl backdrop-blur-sm border border-white/20 group/btn animate-pulse hover:animate-none`}
+        className={`absolute top-2 right-2 bg-gradient-to-r ${chestColor} text-white p-3 rounded-full transition-all duration-300 flex items-center justify-center hover:scale-110 hover:rotate-12 shadow-xl backdrop-blur-sm border border-white/20 group/btn`}
       >
         <Eye className="w-5 h-5 transition-transform duration-300 group-hover/btn:scale-110" />
       </button>

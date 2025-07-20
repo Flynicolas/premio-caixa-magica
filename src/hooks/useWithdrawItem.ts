@@ -114,6 +114,12 @@ export const useWithdrawItem = () => {
           status: 'pending'
         });
         
+        // Marcar item como resgatado no inventário
+        await supabase
+        .from('user_inventory')
+        .update({ is_redeemed: true, redeemed_at: new Date().toISOString() })
+        .eq('id', inventoryId);
+        
         if (payError) {
           console.error('Erro ao salvar pagamento da retirada:', payError);
           toast({ title: 'Erro', description: 'Falha ao vincular pagamento à retirada.', variant: 'destructive' });

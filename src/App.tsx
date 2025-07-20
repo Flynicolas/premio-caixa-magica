@@ -11,7 +11,7 @@ import Footer from "./components/Footer";
 import BottomNavBar from "./components/BottomNavBar";
 import WalletPanel from "./components/WalletPanel";
 import Index from "./pages/Index";
-import Baus from "./pages/Baus";
+import Premios from "./pages/Premios";
 import Sobre from "./pages/Sobre";
 import Ranking from "./pages/Ranking";
 import Perfil from "./pages/Perfil";
@@ -43,7 +43,8 @@ const App = () => {
                 <main className="flex-1 pb-20 md:pb-0">
                   <Routes>
                     <Route path="/" element={<Index />} />
-                    <Route path="/baus" element={<Baus />} />
+            <Route path="/baus" element={<Premios />} />
+            <Route path="/premios" element={<Premios />} />
                     <Route path="/sobre" element={<Sobre />} />
                     <Route path="/ranking" element={<Ranking />} />
                     <Route path="/perfil" element={<Perfil />} />

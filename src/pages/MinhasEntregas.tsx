@@ -137,8 +137,12 @@ const MinhasEntregas = () => {
                       <Calendar className="h-4 w-4" /> Pedido em: {formatDate(entrega.created_at)}
                     </div>
                     <div className="flex items-center gap-2 text-muted-foreground">
-                      <CreditCard className="h-4 w-4" /> Status do Pagamento: {paymentStatus || 'Indefinido'}
-                    </div>
+                       <CreditCard className="h-4 w-4" /> 
+                       Status do Pagamento: 
+                       <Badge className={`ml-1 text-xs ${paymentStatus === 'paid' ? 'bg-green-500/20 text-green-500 border-green-500/30' : 'bg-yellow-500/20 text-yellow-500 border-yellow-500/30'}`}>
+                         {paymentStatus === 'paid' ? 'Pago' : paymentStatus || 'Indefinido'}
+                       </Badge>
+                     </div>
                     <div className="flex items-center gap-2 text-muted-foreground">
                      <User className="h-4 w-4" /> Destinatário: {entrega.profile?.full_name}
 
