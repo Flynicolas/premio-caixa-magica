@@ -124,7 +124,9 @@ const Index = () => {
                   onOpen={() => handleChestOpen(chestType)}
                   onViewItems={() => handleChestViewItems(chestType)}
                   balance={walletData?.balance || 0}
+                  isAuthenticated={!!user}
                   onPrizeWon={handleDirectChestOpening}
+                  onAddBalance={handleOpenWallet}
                 />
               </div>
             ))}

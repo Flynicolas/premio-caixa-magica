@@ -15,11 +15,22 @@ interface ChestCardProps {
   onOpen: () => void;
   onViewItems: () => void;
   balance: number;
+  isAuthenticated: boolean;
   onPrizeWon?: (prize: DatabaseItem) => void;
+  onAddBalance?: () => void;
 }
 
 
-const ChestCard = ({ chest, chestType, onOpen, onViewItems, balance, onPrizeWon }: ChestCardProps) => {
+const ChestCard = ({ 
+  chest, 
+  chestType, 
+  onOpen, 
+  onViewItems, 
+  balance, 
+  isAuthenticated,
+  onPrizeWon,
+  onAddBalance
+}: ChestCardProps) => {
   const [showOpeningModal, setShowOpeningModal] = useState(false);
   const { hasMinimumItems, loading } = useChestItemCount(chestType);
 
@@ -73,7 +84,9 @@ const ChestCard = ({ chest, chestType, onOpen, onViewItems, balance, onPrizeWon 
           balance={balance}
           hasMinimumItems={hasMinimumItems}
           loading={loading}
+          isAuthenticated={isAuthenticated}
           onOpen={handleOpenChest}
+          onAddBalance={onAddBalance}
         />
       </CardContent>
       

@@ -21,6 +21,24 @@ interface ChestItemsModalProps {
   chestType: ChestType;
 }
 
+const chestTitles = {
+  silver: 'Coleção Prata - Tesouros Clássicos',
+  gold: 'Coleção Ouro - Riquezas Douradas', 
+  delas: 'Coleção Rosa - Exclusivo Feminino',
+  diamond: 'Coleção Diamante - Brilho Eterno',
+  ruby: 'Coleção Rubi - Raridades Preciosas',
+  premium: 'Coleção Premium - Elite Suprema'
+};
+
+const chestThemes = {
+  silver: 'from-gray-400/20 via-gray-500/20 to-gray-600/20',
+  gold: 'from-yellow-400/20 via-yellow-500/20 to-yellow-600/20',
+  delas: 'from-pink-400/20 via-rose-500/20 to-pink-600/20',
+  diamond: 'from-blue-400/20 via-cyan-500/20 to-blue-600/20',
+  ruby: 'from-red-400/20 via-pink-500/20 to-red-600/20',
+  premium: 'from-purple-500/20 via-pink-600/20 to-purple-700/20'
+};
+
 const ChestItemsModal = ({ isOpen, onClose, chestType }: ChestItemsModalProps) => {
   const [items, setItems] = useState<ChestItem[]>([]);
   const [loading, setLoading] = useState(true);
@@ -96,12 +114,15 @@ const ChestItemsModal = ({ isOpen, onClose, chestType }: ChestItemsModalProps) =
 
   const rarityOrder = ['legendary', 'epic', 'rare', 'common'];
 
+  const chestTitle = chestTitles[chestType] || chestTitles.silver;
+  const chestTheme = chestThemes[chestType] || chestThemes.silver;
+
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="max-w-4xl max-h-[80vh] overflow-y-auto bg-gradient-to-br from-card via-card to-card/90 border-primary/30">
+      <DialogContent className={`max-w-5xl max-h-[85vh] overflow-y-auto bg-gradient-to-br ${chestTheme} backdrop-blur-xl border border-white/20 shadow-2xl`}>
         <DialogHeader>
-          <DialogTitle className="text-2xl font-bold text-center text-primary">
-            {chestType} - Conteúdo
+          <DialogTitle className="text-3xl font-bold text-center bg-gradient-to-r from-white to-white/80 bg-clip-text text-transparent">
+            {chestTitle}
           </DialogTitle>
         </DialogHeader>
 
@@ -131,19 +152,23 @@ const ChestItemsModal = ({ isOpen, onClose, chestType }: ChestItemsModalProps) =
                     </h3>
                   </div>
 
-                  <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4">
+                  <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
                     {itemsInRarity.map((item, index) => (
-                      <ItemCard
-                        key={index}
-                        item={{
-                          name: item.name,
-                          image_url: item.image_url,
-                          rarity: (item.rarity === 'special' ? 'legendary' : item.rarity) as 'common' | 'rare' | 'epic' | 'legendary',
-                          description: `Valor: R$ ${item.base_value.toFixed(2)}`
-                        }}
-                        size="md"
-                        showRarity={false}
-                      />
+                      <div key={index} className="group">
+                        <ItemCard
+                          item={{
+                            name: item.name,
+                            image_url: item.image_url,
+                            rarity: (item.rarity === 'special' ? 'legendary' : item.rarity) as 'common' | 'rare' | 'epic' | 'legendary',
+                            description: `Valor: R$ ${item.base_value.toFixed(2)}`
+                          }}
+                          size="md"
+                          showRarity={false}
+                        />
+                        <div className="mt-3 text-center">
+                          <h4 className="text-sm font-medium text-white/90 leading-tight">{item.name}</h4>
+                        </div>
+                      </div>
                     ))}
                   </div>
                 </div>
@@ -151,12 +176,6 @@ const ChestItemsModal = ({ isOpen, onClose, chestType }: ChestItemsModalProps) =
             })
           )}
 
-          <div className="mt-6 p-4 bg-primary/10 rounded-lg text-center">
-            <p className="text-sm text-muted-foreground">
-              <strong>Probabilidade de acerto item raro:</strong> Varia conforme a raridade<br/>
-              <strong>Média de lucro nos itens comuns:</strong> Todos os prêmios têm valor real
-            </p>
-          </div>
         </div>
       </DialogContent>
     </Dialog>

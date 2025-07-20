@@ -1,6 +1,6 @@
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { Sparkles, Lock, AlertTriangle } from 'lucide-react';
+import { Sparkles, Lock, AlertTriangle, Wallet } from 'lucide-react';
 import { ChestType } from '@/data/chestData';
 
 interface ChestActionButtonProps {
@@ -9,7 +9,9 @@ interface ChestActionButtonProps {
   balance: number;
   hasMinimumItems: boolean;
   loading: boolean;
+  isAuthenticated: boolean;
   onOpen: () => void;
+  onAddBalance?: () => void;
 }
 
 const chestColors = {
@@ -27,11 +29,14 @@ const ChestActionButton = ({
   balance, 
   hasMinimumItems, 
   loading, 
-  onOpen 
+  isAuthenticated,
+  onOpen,
+  onAddBalance
 }: ChestActionButtonProps) => {
   const canAfford = balance >= price;
   const canPurchase = canAfford && hasMinimumItems;
   const chestColor = chestColors[chestType] || chestColors.silver;
+  const shouldShowAddBalance = isAuthenticated && !canAfford && hasMinimumItems;
 
   const getButtonContent = () => {
     if (loading) {
@@ -52,11 +57,11 @@ const ChestActionButton = ({
       );
     }
 
-    if (!canAfford) {
+    if (shouldShowAddBalance) {
       return (
         <>
-          <Lock className="w-4 h-4 mr-2" />
-          Sem Saldo
+          <Wallet className="w-4 h-4 mr-2" />
+          Adicionar Saldo
         </>
       );
     }
@@ -81,13 +86,21 @@ const ChestActionButton = ({
     return null;
   };
 
+  const handleClick = () => {
+    if (shouldShowAddBalance && onAddBalance) {
+      onAddBalance();
+    } else {
+      onOpen();
+    }
+  };
+
   return (
     <div className="mt-auto pt-6">
       <Button
-        onClick={onOpen}
-        disabled={!canPurchase || loading}
+        onClick={handleClick}
+        disabled={(!canPurchase && !shouldShowAddBalance) || loading}
         className={`w-full font-bold transition-all duration-300 text-xl py-8 ${
-          canPurchase 
+          (canPurchase || shouldShowAddBalance)
             ? `bg-gradient-to-r ${chestColor} text-black hover:opacity-90 hover:scale-105 shadow-lg` 
             : 'bg-gray-600 text-gray-300 cursor-not-allowed'
         }`}
@@ -95,7 +108,7 @@ const ChestActionButton = ({
         {getButtonContent()}
       </Button>
 
-      {getStatusMessage() && (
+      {getStatusMessage() && !shouldShowAddBalance && (
         <Badge 
           variant="destructive" 
           className="mt-4 text-sm text-center w-full py-3"
