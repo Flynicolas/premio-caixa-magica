@@ -9,14 +9,22 @@ interface WinData {
   prize: string;
   image: string;
   time: string;
+  isReal?: boolean;
 }
 
 const LiveWinsCarousel = () => {
   const [wins, setWins] = useState<WinData[]>([]);
-  const [allWins, setAllWins] = useState<WinData[]>([]);
+  const [realWins, setRealWins] = useState<WinData[]>([]);
+  const [availableItems, setAvailableItems] = useState<any[]>([]);
   const [isLoading, setIsLoading] = useState(true);
 
-  // Buscar vitórias reais do banco de dados
+  // Nomes simulados
+  const simulatedUserNames = [
+    'João Silva', 'Maria Santos', 'Pedro Oliveira', 'Ana Costa', 'Carlos Lima',
+    'Fernanda Rocha', 'Roberto Alves', 'Juliana Souza', 'Diego Ferreira', 'Camila Ribeiro'
+  ];
+
+  // Buscar vitórias reais
   const fetchRecentWins = async () => {
     try {
       const { data, error } = await supabase
@@ -35,7 +43,7 @@ const LiveWinsCarousel = () => {
         .not('item', 'is', null)
         .not('user', 'is', null)
         .order('won_at', { ascending: false })
-        .limit(30);
+        .limit(10);
 
       if (error) {
         console.error('Erro ao buscar vitórias:', error);
@@ -49,32 +57,91 @@ const LiveWinsCarousel = () => {
           name: Array.isArray(win.user) ? win.user[0]?.full_name || 'Usuário' : 'Usuário',
           prize: Array.isArray(win.item) ? win.item[0]?.name || 'Item' : win.item?.name || 'Item',
           image: Array.isArray(win.item) ? win.item[0]?.image_url || '' : win.item?.image_url || '',
-          time: 'Agora mesmo'
+          time: 'Agora mesmo',
+          isReal: true
         }));
 
-      setAllWins(formattedWins);
-      setWins(formattedWins.slice(0, 4));
-      setIsLoading(false);
+      setRealWins(formattedWins);
     } catch (error) {
       console.error('Erro na busca:', error);
+    }
+  };
+
+  // Buscar itens disponíveis
+  const fetchAvailableItems = async () => {
+    try {
+      const { data, error } = await supabase
+        .from('items')
+        .select('*')
+        .eq('is_active', true)
+        .limit(30);
+
+      if (error) {
+        console.error('Erro ao buscar itens:', error);
+        return;
+      }
+
+      setAvailableItems(data || []);
+      setIsLoading(false);
+    } catch (error) {
+      console.error('Erro ao buscar itens:', error);
       setIsLoading(false);
     }
   };
 
-  // Função para rotacionar vitórias de forma natural
-  const startNaturalRotation = () => {
-    if (allWins.length === 0) return;
-
-    let currentIndex = 4;
+  // Gerar vitória simulada
+  const generateSimulatedWin = (): WinData => {
+    const randomItem = availableItems[Math.floor(Math.random() * availableItems.length)];
+    const randomUser = simulatedUserNames[Math.floor(Math.random() * simulatedUserNames.length)];
     
-    const rotateWins = () => {
-      if (currentIndex >= allWins.length) {
-        currentIndex = 0;
-      }
+    return {
+      id: `sim_${Date.now()}_${Math.random()}`,
+      name: randomUser,
+      prize: randomItem?.name || 'Item Especial',
+      image: randomItem?.image_url || '',
+      time: 'Agora mesmo',
+      isReal: false
+    };
+  };
 
-      const newWin = allWins[currentIndex];
+  // Inicializar com dados simulados + reais
+  const initializeWins = () => {
+    const initialWins: WinData[] = [];
+    
+    // Adicionar vitórias reais se existirem
+    if (realWins.length > 0) {
+      initialWins.push(...realWins.slice(0, 2));
+    }
+    
+    // Completar com dados simulados
+    while (initialWins.length < 4) {
+      initialWins.push(generateSimulatedWin());
+    }
+    
+    setWins(initialWins);
+  };
+
+  // Rotação natural com dados híbridos
+  const startNaturalRotation = () => {
+    if (availableItems.length === 0) return;
+
+    const rotateWins = () => {
+      // Verificar se há vitórias reais pendentes
+      const pendingRealWins = realWins.filter(realWin => 
+        !wins.some(win => win.id === realWin.id)
+      );
+
+      let newWin: WinData;
+      
+      if (pendingRealWins.length > 0 && Math.random() < 0.4) {
+        // 40% de chance de usar vitória real
+        newWin = pendingRealWins[0];
+      } else {
+        // Usar dados simulados
+        newWin = generateSimulatedWin();
+      }
+      
       setWins(prev => [newWin, ...prev.slice(0, 3)]);
-      currentIndex++;
 
       // Delay natural entre 4-9 segundos
       const nextDelay = Math.random() * 5000 + 4000;
@@ -86,15 +153,21 @@ const LiveWinsCarousel = () => {
     setTimeout(rotateWins, initialDelay);
   };
 
+  // Carregar dados
   useEffect(() => {
-    fetchRecentWins();
+    const loadData = async () => {
+      await Promise.all([fetchRecentWins(), fetchAvailableItems()]);
+    };
+    loadData();
   }, []);
 
+  // Inicializar quando dados estiverem prontos
   useEffect(() => {
-    if (allWins.length > 0 && !isLoading) {
+    if (!isLoading && availableItems.length > 0) {
+      initializeWins();
       startNaturalRotation();
     }
-  }, [allWins, isLoading]);
+  }, [isLoading, availableItems, realWins]);
 
   if (isLoading) {
     return (
@@ -129,6 +202,8 @@ const LiveWinsCarousel = () => {
               key={win.id}
               className={`flex items-center p-4 bg-card/50 rounded-lg border border-primary/20 transition-all duration-700 ease-out ${
                 index === 0 ? 'animate-fade-in scale-105 border-green-500/40 shadow-lg shadow-green-500/20' : ''
+              } ${
+                win.isReal ? 'ring-2 ring-green-500/30' : ''
               }`}
               style={{
                 transform: index === 0 ? 'translateY(0)' : `translateY(${index * 4}px)`,

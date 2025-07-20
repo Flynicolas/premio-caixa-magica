@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from 'react';
 import { Radio, Trophy, Gift } from 'lucide-react';
 import ItemCard from './ItemCard';
@@ -10,6 +11,7 @@ interface WinData {
   item_image: string;
   item_rarity: 'common' | 'rare' | 'epic' | 'legendary';
   won_at: string;
+  isReal?: boolean; // Flag para identificar vitórias reais
 }
 
 interface RealtimeWinsCarouselProps {
@@ -19,8 +21,17 @@ interface RealtimeWinsCarouselProps {
 
 const RealtimeWinsCarousel = ({ showIcons = true, className = "" }: RealtimeWinsCarouselProps) => {
   const [currentItems, setCurrentItems] = useState<WinData[]>([]);
-  const [allWins, setAllWins] = useState<WinData[]>([]);
+  const [realWins, setRealWins] = useState<WinData[]>([]);
+  const [availableItems, setAvailableItems] = useState<any[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+
+  // Nomes simulados para as vitórias
+  const simulatedUserNames = [
+    'João Silva', 'Maria Santos', 'Pedro Oliveira', 'Ana Costa', 'Carlos Lima',
+    'Fernanda Rocha', 'Roberto Alves', 'Juliana Souza', 'Diego Ferreira', 'Camila Ribeiro',
+    'Bruno Martins', 'Larissa Pereira', 'Rafael Gonçalves', 'Gabriela Cardoso', 'Lucas Barbosa',
+    'Amanda Nascimento', 'Thiago Melo', 'Patrícia Dias', 'Felipe Castro', 'Bianca Moreira'
+  ];
 
   // Buscar vitórias reais do banco de dados
   const fetchRecentWins = async () => {
@@ -43,7 +54,7 @@ const RealtimeWinsCarousel = ({ showIcons = true, className = "" }: RealtimeWins
         .not('item', 'is', null)
         .not('user', 'is', null)
         .order('won_at', { ascending: false })
-        .limit(50);
+        .limit(20);
 
       if (error) {
         console.error('Erro ao buscar vitórias:', error);
@@ -58,57 +69,106 @@ const RealtimeWinsCarousel = ({ showIcons = true, className = "" }: RealtimeWins
           item_name: Array.isArray(win.item) ? win.item[0]?.name || 'Item' : win.item?.name || 'Item',
           item_image: Array.isArray(win.item) ? win.item[0]?.image_url || '' : win.item?.image_url || '',
           item_rarity: (Array.isArray(win.item) ? win.item[0]?.rarity : win.item?.rarity) as 'common' | 'rare' | 'epic' | 'legendary' || 'common',
-          won_at: win.won_at
+          won_at: win.won_at,
+          isReal: true
         }));
 
-      setAllWins(formattedWins);
-      
-      // Inicializar com os primeiros 12 itens
-      setCurrentItems(formattedWins.slice(0, 12));
-      setIsLoading(false);
+      setRealWins(formattedWins);
     } catch (error) {
       console.error('Erro na busca:', error);
+    }
+  };
+
+  // Buscar itens disponíveis para simulação
+  const fetchAvailableItems = async () => {
+    try {
+      const { data, error } = await supabase
+        .from('items')
+        .select('*')
+        .eq('is_active', true)
+        .limit(50);
+
+      if (error) {
+        console.error('Erro ao buscar itens:', error);
+        return;
+      }
+
+      setAvailableItems(data || []);
+      setIsLoading(false);
+    } catch (error) {
+      console.error('Erro ao buscar itens:', error);
       setIsLoading(false);
     }
   };
 
-  // Função para criar comportamento mais natural
-  const startNaturalFlow = () => {
-    if (allWins.length === 0) return;
-
-    let currentIndex = 12; // Começamos após os 12 primeiros
+  // Gerar vitória simulada
+  const generateSimulatedWin = (): WinData => {
+    const randomItem = availableItems[Math.floor(Math.random() * availableItems.length)];
+    const randomUser = simulatedUserNames[Math.floor(Math.random() * simulatedUserNames.length)];
     
-    const addNewWin = () => {
-      if (currentIndex >= allWins.length) {
-        currentIndex = 0; // Reiniciar do começo quando acabar
-      }
+    return {
+      id: `sim_${Date.now()}_${Math.random()}`,
+      user_name: randomUser,
+      item_name: randomItem?.name || 'Item Especial',
+      item_image: randomItem?.image_url || '',
+      item_rarity: randomItem?.rarity || 'common',
+      won_at: new Date().toISOString(),
+      isReal: false
+    };
+  };
 
-      const newWin = allWins[currentIndex];
+  // Inicializar carrossel com dados simulados
+  const initializeCarousel = () => {
+    if (availableItems.length === 0) return;
+
+    const initialItems: WinData[] = [];
+    
+    // Adicionar algumas vitórias reais se existirem
+    if (realWins.length > 0) {
+      initialItems.push(...realWins.slice(0, 4));
+    }
+    
+    // Completar com dados simulados até ter 12 itens
+    while (initialItems.length < 12) {
+      initialItems.push(generateSimulatedWin());
+    }
+    
+    setCurrentItems(initialItems);
+  };
+
+  // Função para manter o fluxo natural com dados simulados
+  const startNaturalFlow = () => {
+    if (availableItems.length === 0) return;
+
+    const addNewItem = () => {
+      // Verificar se há vitórias reais pendentes na fila
+      const pendingRealWins = realWins.filter(realWin => 
+        !currentItems.some(current => current.id === realWin.id)
+      );
+
+      let newItem: WinData;
       
-      setCurrentItems(prev => [newWin, ...prev.slice(0, 11)]);
-      currentIndex++;
+      if (pendingRealWins.length > 0 && Math.random() < 0.3) {
+        // 30% de chance de usar vitória real se disponível
+        newItem = pendingRealWins[0];
+      } else {
+        // Usar dados simulados
+        newItem = generateSimulatedWin();
+      }
+      
+      setCurrentItems(prev => [newItem, ...prev.slice(0, 11)]);
 
       // Delay variável entre 3 a 8 segundos para comportamento natural
-      const nextDelay = Math.random() * 5000 + 3000; // 3-8 segundos
-      setTimeout(addNewWin, nextDelay);
+      const nextDelay = Math.random() * 5000 + 3000;
+      setTimeout(addNewItem, nextDelay);
     };
 
     // Pausa inicial antes de começar o fluxo
-    const initialDelay = Math.random() * 3000 + 2000; // 2-5 segundos
-    setTimeout(addNewWin, initialDelay);
+    const initialDelay = Math.random() * 3000 + 2000;
+    setTimeout(addNewItem, initialDelay);
   };
 
-  useEffect(() => {
-    fetchRecentWins();
-  }, []);
-
-  useEffect(() => {
-    if (allWins.length > 0 && !isLoading) {
-      startNaturalFlow();
-    }
-  }, [allWins, isLoading]);
-
-  // Configurar realtime para novas vitórias
+  // Configurar realtime para novas vitórias verdadeiras
   useEffect(() => {
     const channel = supabase
       .channel('new-wins')
@@ -119,42 +179,47 @@ const RealtimeWinsCarousel = ({ showIcons = true, className = "" }: RealtimeWins
           table: 'user_inventory' 
         },
         async (payload) => {
-          // Buscar dados completos da nova vitória
-          const { data: newWinData } = await supabase
-            .from('user_inventory')
-            .select(`
-              id,
-              won_at,
-              rarity,
-              item:items(
-                name,
-                image_url,
-                rarity
-              ),
-              user:profiles(
-                full_name
-              )
-            `)
-            .eq('id', payload.new.id)
-            .single();
+          try {
+            // Buscar dados completos da nova vitória
+            const { data: newWinData } = await supabase
+              .from('user_inventory')
+              .select(`
+                id,
+                won_at,
+                rarity,
+                item:items(
+                  name,
+                  image_url,
+                  rarity
+                ),
+                user:profiles(
+                  full_name
+                )
+              `)
+              .eq('id', payload.new.id)
+              .single();
 
-          if (newWinData && newWinData.item && newWinData.user && Array.isArray(newWinData.user) && newWinData.user.length > 0) {
-            const newWin: WinData = {
-              id: newWinData.id,
-              user_name: Array.isArray(newWinData.user) ? newWinData.user[0]?.full_name || 'Usuário' : 'Usuário',
-              item_name: Array.isArray(newWinData.item) ? newWinData.item[0]?.name || 'Item' : newWinData.item?.name || 'Item',
-              item_image: Array.isArray(newWinData.item) ? newWinData.item[0]?.image_url || '' : newWinData.item?.image_url || '',  
-              item_rarity: (Array.isArray(newWinData.item) ? newWinData.item[0]?.rarity : newWinData.item?.rarity) as 'common' | 'rare' | 'epic' | 'legendary' || 'common',
-              won_at: newWinData.won_at
-            };
+            if (newWinData && newWinData.item && newWinData.user && Array.isArray(newWinData.user) && newWinData.user.length > 0) {
+              const newWin: WinData = {
+                id: newWinData.id,
+                user_name: Array.isArray(newWinData.user) ? newWinData.user[0]?.full_name || 'Usuário' : 'Usuário',
+                item_name: Array.isArray(newWinData.item) ? newWinData.item[0]?.name || 'Item' : newWinData.item?.name || 'Item',
+                item_image: Array.isArray(newWinData.item) ? newWinData.item[0]?.image_url || '' : newWinData.item?.image_url || '',  
+                item_rarity: (Array.isArray(newWinData.item) ? newWinData.item[0]?.rarity : newWinData.item?.rarity) as 'common' | 'rare' | 'epic' | 'legendary' || 'common',
+                won_at: newWinData.won_at,
+                isReal: true
+              };
 
-            // Adicionar à lista completa
-            setAllWins(prev => [newWin, ...prev]);
-            
-            // Delay natural antes de mostrar a nova vitória
-            setTimeout(() => {
-              setCurrentItems(prev => [newWin, ...prev.slice(0, 11)]);
-            }, Math.random() * 2000 + 1000); // 1-3 segundos
+              // Adicionar à lista de vitórias reais
+              setRealWins(prev => [newWin, ...prev]);
+              
+              // Delay natural antes de mostrar a nova vitória real
+              setTimeout(() => {
+                setCurrentItems(prev => [newWin, ...prev.slice(0, 11)]);
+              }, Math.random() * 2000 + 1000);
+            }
+          } catch (error) {
+            console.error('Erro ao processar nova vitória:', error);
           }
         }
       )
@@ -164,6 +229,22 @@ const RealtimeWinsCarousel = ({ showIcons = true, className = "" }: RealtimeWins
       supabase.removeChannel(channel);
     };
   }, []);
+
+  // Carregar dados iniciais
+  useEffect(() => {
+    const loadData = async () => {
+      await Promise.all([fetchRecentWins(), fetchAvailableItems()]);
+    };
+    loadData();
+  }, []);
+
+  // Inicializar carrossel quando os dados estiverem prontos
+  useEffect(() => {
+    if (!isLoading && availableItems.length > 0) {
+      initializeCarousel();
+      startNaturalFlow();
+    }
+  }, [isLoading, availableItems, realWins]);
 
   if (isLoading) {
     return (
@@ -227,6 +308,8 @@ const RealtimeWinsCarousel = ({ showIcons = true, className = "" }: RealtimeWins
                   showRarity={false}
                   className={`${
                     index === 0 ? 'border-primary/50 shadow-md shadow-primary/30 bg-gradient-to-b from-primary/10 to-card/60' : ''
+                  } ${
+                    item.isReal ? 'ring-2 ring-green-500/30' : ''
                   }`}
                 />
                 <p className="text-xs text-center text-primary/80 font-medium truncate w-full mt-1">
