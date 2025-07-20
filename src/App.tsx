@@ -19,6 +19,10 @@ import Admin from "./pages/Admin";
 import MinhasEntregas from "./pages/MinhasEntregas";
 import Configuracoes from "./pages/Configuracoes";
 import NotFound from "./pages/NotFound";
+import CentralAjuda from "./pages/CentralAjuda";
+import TermosUso from "./pages/TermosUso";
+import PoliticaPrivacidade from "./pages/PoliticaPrivacidade";
+import FAQ from "./pages/FAQ";
 import { WalletProvider } from "@/hooks/useWalletProvider";
 
 const queryClient = new QueryClient();
@@ -43,14 +47,18 @@ const App = () => {
                 <main className="flex-1 pb-20 md:pb-0">
                   <Routes>
                     <Route path="/" element={<Index />} />
-            <Route path="/baus" element={<Premios />} />
-            <Route path="/premios" element={<Premios />} />
+                    <Route path="/baus" element={<Premios />} />
+                    <Route path="/premios" element={<Premios />} />
                     <Route path="/sobre" element={<Sobre />} />
                     <Route path="/ranking" element={<Ranking />} />
                     <Route path="/perfil" element={<Perfil />} />
                     <Route path="/entregas" element={<MinhasEntregas />} />
                     <Route path="/configuracoes" element={<Configuracoes />} />
                     <Route path="/admin" element={<Admin />} />
+                    <Route path="/central-ajuda" element={<CentralAjuda />} />
+                    <Route path="/termos-uso" element={<TermosUso />} />
+                    <Route path="/politica-privacidade" element={<PoliticaPrivacidade />} />
+                    <Route path="/faq" element={<FAQ />} />
                     <Route path="*" element={<NotFound />} />
                   </Routes>
                 </main>

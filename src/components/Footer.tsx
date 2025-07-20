@@ -1,4 +1,3 @@
-
 import { Shield, Lock, Award, Phone } from 'lucide-react';
 import { Link } from 'react-router-dom';
 
@@ -15,10 +14,9 @@ const Footer = () => {
                 alt="Baú Premiado" 
                 className="w-8 h-8 rounded-full"
               />
-            <h3 className="text-lg font-bold bg-gradient-to-r from-yellow-400 to-orange-500 bg-clip-text text-transparent">
-              Baú Premiado
-            </h3>
-
+              <h3 className="text-lg font-bold bg-gradient-to-r from-yellow-400 to-orange-500 bg-clip-text text-transparent">
+                Baú Premiado
+              </h3>
             </div>
             <p className="text-sm text-muted-foreground">
               A plataforma mais confiável para sorteios online. 
@@ -31,7 +29,7 @@ const Footer = () => {
             <h4 className="font-semibold text-primary">Links Rápidos</h4>
             <ul className="space-y-2 text-sm">
               <li><Link to="/" className="text-muted-foreground hover:text-primary transition-colors">Página Inicial</Link></li>
-              <li><Link to="/baus" className="text-muted-foreground hover:text-primary transition-colors">Baús</Link></li>
+              <li><Link to="/premios" className="text-muted-foreground hover:text-primary transition-colors">Prêmios</Link></li>
               <li><Link to="/sobre" className="text-muted-foreground hover:text-primary transition-colors">Sobre</Link></li>
               <li><Link to="/ranking" className="text-muted-foreground hover:text-primary transition-colors">Ranking</Link></li>
             </ul>
@@ -41,10 +39,10 @@ const Footer = () => {
           <div className="space-y-4">
             <h4 className="font-semibold text-primary">Suporte</h4>
             <ul className="space-y-2 text-sm">
-              <li><Link to="/suporte" className="text-muted-foreground hover:text-primary transition-colors">Central de Ajuda</Link></li>
-              <li><a href="#" className="text-muted-foreground hover:text-primary transition-colors">Termos de Uso</a></li>
-              <li><a href="#" className="text-muted-foreground hover:text-primary transition-colors">Política de Privacidade</a></li>
-              <li><a href="#" className="text-muted-foreground hover:text-primary transition-colors">FAQ</a></li>
+              <li><Link to="/central-ajuda" className="text-muted-foreground hover:text-primary transition-colors">Central de Ajuda</Link></li>
+              <li><Link to="/termos-uso" className="text-muted-foreground hover:text-primary transition-colors">Termos de Uso</Link></li>
+              <li><Link to="/politica-privacidade" className="text-muted-foreground hover:text-primary transition-colors">Política de Privacidade</Link></li>
+              <li><Link to="/faq" className="text-muted-foreground hover:text-primary transition-colors">FAQ</Link></li>
             </ul>
           </div>
 
