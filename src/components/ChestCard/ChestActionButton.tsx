@@ -57,6 +57,16 @@ const ChestActionButton = ({
       );
     }
 
+    // Para não-usuários, sempre mostrar "Abrir Baú" sem mensagem de saldo
+    if (!isAuthenticated) {
+      return (
+        <>
+          <Sparkles className="w-4 h-4 mr-2" />
+          Abrir Baú
+        </>
+      );
+    }
+
     if (shouldShowAddBalance) {
       return (
         <>
@@ -79,6 +89,11 @@ const ChestActionButton = ({
       return 'Baú indisponível no momento';
     }
 
+    // Não mostrar mensagem de saldo para não-usuários
+    if (!isAuthenticated) {
+      return null;
+    }
+
     if (!canAfford) {
       return `Faltam R$ ${(price - balance).toFixed(2).replace('.', ',')}`;
     }
@@ -98,9 +113,9 @@ const ChestActionButton = ({
     <div className="mt-auto pt-6">
       <Button
         onClick={handleClick}
-        disabled={(!canPurchase && !shouldShowAddBalance) || loading}
+        disabled={(!canPurchase && !shouldShowAddBalance && isAuthenticated) || loading}
         className={`w-full font-bold transition-all duration-300 text-xl py-8 ${
-          (canPurchase || shouldShowAddBalance)
+          (canPurchase || shouldShowAddBalance || !isAuthenticated)
             ? `bg-gradient-to-r ${chestColor} text-black hover:opacity-90 hover:scale-105 shadow-lg` 
             : 'bg-gray-600 text-gray-300 cursor-not-allowed'
         }`}

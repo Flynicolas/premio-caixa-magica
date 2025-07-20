@@ -25,12 +25,28 @@ const RealtimeWinsCarousel = ({ showIcons = true, className = "" }: RealtimeWins
   const [availableItems, setAvailableItems] = useState<any[]>([]);
   const [isLoading, setIsLoading] = useState(true);
 
-  // Nomes simulados para as vitórias
+  // Nomes simulados variados (completos, abreviados e nicknames)
   const simulatedUserNames = [
+    // Nomes completos tradicionais
     'João Silva', 'Maria Santos', 'Pedro Oliveira', 'Ana Costa', 'Carlos Lima',
     'Fernanda Rocha', 'Roberto Alves', 'Juliana Souza', 'Diego Ferreira', 'Camila Ribeiro',
-    'Bruno Martins', 'Larissa Pereira', 'Rafael Gonçalves', 'Gabriela Cardoso', 'Lucas Barbosa',
-    'Amanda Nascimento', 'Thiago Melo', 'Patrícia Dias', 'Felipe Castro', 'Bianca Moreira'
+    
+    // Nomes com sobrenomes abreviados
+    'Bruno M.', 'Larissa P.', 'Rafael G.', 'Gabriela C.', 'Lucas B.',
+    'Amanda N.', 'Thiago M.', 'Patrícia D.', 'Felipe C.', 'Bianca M.',
+    'Ricardo S.', 'Isabela F.', 'Mateus R.', 'Vanessa L.', 'André P.',
+    
+    // Nicknames e apelidos gamers/digitais
+    'GamerPro', 'TechLover', 'QueenStyle', 'FastRunner', 'CyberNinja',
+    'PixelMaster', 'StarHunter', 'NightWolf', 'GoldenEagle', 'IronFist',
+    'SkyWalker', 'FireStorm', 'IceQueen', 'ThunderBolt', 'MysticSoul',
+    'NetRider', 'CodeMaster', 'DigitalDream', 'WebCrawler', 'ByteHero',
+    
+    // Nomes curtos com números e palavras
+    'Alex99', 'Nina2K', 'Zé_Tech', 'Lu123', 'Max_Pro',
+    'Sam404', 'Rio_Gamer', 'Ace_2024', 'Neo_X', 'Vix_99',
+    'Kat_Stars', 'Rex_Code', 'Blu_Sky', 'Jet_Fast', 'Fox_Digital',
+    'Ray_Tech', 'Zen_Master', 'Nyx_Pro', 'Kai_2K', 'Liv_X'
   ];
 
   // Buscar vitórias reais do banco de dados
@@ -158,8 +174,10 @@ const RealtimeWinsCarousel = ({ showIcons = true, className = "" }: RealtimeWins
       
       setCurrentItems(prev => [newItem, ...prev.slice(0, 11)]);
 
-      // Delay variável entre 3 a 8 segundos para comportamento natural
-      const nextDelay = Math.random() * 5000 + 3000;
+      // Delay variável - mais rápido para vitórias reais (8s), mais lento para simuladas (5-12s)
+      const nextDelay = newItem.isReal 
+        ? 8000 // Vitórias reais aparecem em 8 segundos
+        : Math.random() * 7000 + 5000; // Simuladas entre 5-12 segundos
       setTimeout(addNewItem, nextDelay);
     };
 

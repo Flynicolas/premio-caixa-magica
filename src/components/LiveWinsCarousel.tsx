@@ -18,10 +18,25 @@ const LiveWinsCarousel = () => {
   const [availableItems, setAvailableItems] = useState<any[]>([]);
   const [isLoading, setIsLoading] = useState(true);
 
-  // Nomes simulados
+  // Nomes simulados variados (completos, abreviados e nicknames)
   const simulatedUserNames = [
+    // Nomes completos tradicionais
     'João Silva', 'Maria Santos', 'Pedro Oliveira', 'Ana Costa', 'Carlos Lima',
-    'Fernanda Rocha', 'Roberto Alves', 'Juliana Souza', 'Diego Ferreira', 'Camila Ribeiro'
+    'Fernanda Rocha', 'Roberto Alves', 'Juliana Souza', 'Diego Ferreira', 'Camila Ribeiro',
+    
+    // Nomes com sobrenomes abreviados
+    'Bruno M.', 'Larissa P.', 'Rafael G.', 'Gabriela C.', 'Lucas B.',
+    'Amanda N.', 'Thiago M.', 'Patrícia D.', 'Felipe C.', 'Bianca M.',
+    
+    // Nicknames e apelidos gamers/digitais
+    'GamerPro', 'TechLover', 'QueenStyle', 'FastRunner', 'CyberNinja',
+    'PixelMaster', 'StarHunter', 'NightWolf', 'GoldenEagle', 'IronFist',
+    'NetRider', 'CodeMaster', 'DigitalDream', 'WebCrawler', 'ByteHero',
+    
+    // Nomes curtos com números e palavras
+    'Alex99', 'Nina2K', 'Zé_Tech', 'Lu123', 'Max_Pro',
+    'Sam404', 'Rio_Gamer', 'Ace_2024', 'Neo_X', 'Vix_99',
+    'Kat_Stars', 'Rex_Code', 'Blu_Sky', 'Jet_Fast', 'Fox_Digital'
   ];
 
   // Buscar vitórias reais
@@ -143,8 +158,10 @@ const LiveWinsCarousel = () => {
       
       setWins(prev => [newWin, ...prev.slice(0, 3)]);
 
-      // Delay natural entre 4-9 segundos
-      const nextDelay = Math.random() * 5000 + 4000;
+      // Delay - mais rápido para vitórias reais (8s), mais lento para simuladas (6-12s)
+      const nextDelay = newWin.isReal 
+        ? 8000 // Vitórias reais aparecem em 8 segundos
+        : Math.random() * 6000 + 6000; // Simuladas entre 6-12 segundos
       setTimeout(rotateWins, nextDelay);
     };
 
