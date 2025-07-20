@@ -1,63 +1,111 @@
 
 import { useState, useEffect } from 'react';
 import { Trophy, Gift, Radio } from 'lucide-react';
+import { supabase } from '@/integrations/supabase/client';
 
-const prizes = [
-  { name: 'iPhone 16 Pro Max', image: '/lovable-uploads/afe8c6a0-043b-45e3-a2d2-f0016ed54fac.png' },
-  { name: 'Smartwatch Apple', image: '/lovable-uploads/e7b617c4-f45a-4596-994a-75c0e3553f78.png' },
-  { name: 'Xiaomi Phone', image: '/lovable-uploads/0d9f41b3-5ac9-4467-9987-5f9f55b48b43.png' },
-  { name: 'Tablet Samsung', image: '/lovable-uploads/853054fe-7848-4ab3-9499-041705d241d2.png' },
-  { name: 'Bicicleta Dobrável', image: '/lovable-uploads/3c51402c-67ee-4d20-8b11-9a334ca0e2db.png' },
-  { name: 'Câmera Segurança', image: '/lovable-uploads/24dbf933-dd9b-4ea9-b253-022bd366da2f.png' },
-  { name: 'Viagem Dubai', image: '/lovable-uploads/262848fe-da75-4887-bb6d-b88247901100.png' },
-  { name: 'Resort 5 Estrelas', image: '/lovable-uploads/b7b47eb2-d95e-46cf-a21c-f76ac2a74d20.png' },
-  { name: 'Viagem Nacional', image: '/lovable-uploads/ced3cdc6-a614-4fa0-9afe-f0f73ff917b5.png' },
-  { name: 'Vale Compras', image: '/lovable-uploads/68d2bf66-08db-4fad-8f22-0bbfbbd2f16d.png' }
-];
-
-const names = [
-  'João', 'Maria', 'Pedro', 'Ana', 'Carlos', 'Lucia', 'Bruno', 'Paula',
-  'Rafael', 'Camila', 'Diego', 'Fernanda', 'Lucas', 'Juliana', 'Marcos',
-  'Beatriz', 'Gabriel', 'Sofia', 'Rodrigo', 'Amanda', 'Felipe', 'Carla',
-  'Thiago', 'Leticia', 'Vinicius', 'Gabriela', 'André', 'Mariana', 'Daniel', 'Isabela'
-];
+interface WinData {
+  id: string;
+  name: string;
+  prize: string;
+  image: string;
+  time: string;
+}
 
 const LiveWinsCarousel = () => {
-  const [wins, setWins] = useState<Array<{name: string, prize: string, image: string, time: string, id: number}>>([]);
-  const [nextId, setNextId] = useState(0);
+  const [wins, setWins] = useState<WinData[]>([]);
+  const [allWins, setAllWins] = useState<WinData[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+
+  // Buscar vitórias reais do banco de dados
+  const fetchRecentWins = async () => {
+    try {
+      const { data, error } = await supabase
+        .from('user_inventory')
+        .select(`
+          id,
+          won_at,
+          item:items(
+            name,
+            image_url
+          ),
+          user:profiles(
+            full_name
+          )
+        `)
+        .not('item', 'is', null)
+        .not('user', 'is', null)
+        .order('won_at', { ascending: false })
+        .limit(30);
+
+      if (error) {
+        console.error('Erro ao buscar vitórias:', error);
+        return;
+      }
+
+      const formattedWins: WinData[] = (data || [])
+        .filter(win => win.item && win.user)
+        .map(win => ({
+          id: win.id,
+          name: win.user?.full_name || 'Usuário',
+          prize: win.item?.name || 'Item',
+          image: win.item?.image_url || '',
+          time: 'Agora mesmo'
+        }));
+
+      setAllWins(formattedWins);
+      setWins(formattedWins.slice(0, 4));
+      setIsLoading(false);
+    } catch (error) {
+      console.error('Erro na busca:', error);
+      setIsLoading(false);
+    }
+  };
+
+  // Função para rotacionar vitórias de forma natural
+  const startNaturalRotation = () => {
+    if (allWins.length === 0) return;
+
+    let currentIndex = 4;
+    
+    const rotateWins = () => {
+      if (currentIndex >= allWins.length) {
+        currentIndex = 0;
+      }
+
+      const newWin = allWins[currentIndex];
+      setWins(prev => [newWin, ...prev.slice(0, 3)]);
+      currentIndex++;
+
+      // Delay natural entre 4-9 segundos
+      const nextDelay = Math.random() * 5000 + 4000;
+      setTimeout(rotateWins, nextDelay);
+    };
+
+    // Pausa inicial
+    const initialDelay = Math.random() * 3000 + 2000;
+    setTimeout(rotateWins, initialDelay);
+  };
 
   useEffect(() => {
-    // Generate initial wins
-    const initialWins = Array.from({ length: 4 }, (_, index) => {
-      const prize = prizes[Math.floor(Math.random() * prizes.length)];
-      return {
-        id: index,
-        name: names[Math.floor(Math.random() * names.length)],
-        prize: prize.name,
-        image: prize.image,
-        time: 'Agora mesmo'
-      };
-    });
-    setWins(initialWins);
-    setNextId(4);
+    fetchRecentWins();
+  }, []);
 
-    // Add new wins every 4-7 seconds with smoother animations
-    const interval = setInterval(() => {
-      const prize = prizes[Math.floor(Math.random() * prizes.length)];
-      const newWin = {
-        id: nextId,
-        name: names[Math.floor(Math.random() * names.length)],
-        prize: prize.name,
-        image: prize.image,
-        time: 'Agora mesmo'
-      };
-      
-      setWins(prev => [newWin, ...prev.slice(0, 3)]);
-      setNextId(prev => prev + 1);
-    }, Math.random() * 3000 + 4000); // Random between 4-7 seconds
+  useEffect(() => {
+    if (allWins.length > 0 && !isLoading) {
+      startNaturalRotation();
+    }
+  }, [allWins, isLoading]);
 
-    return () => clearInterval(interval);
-  }, [nextId]);
+  if (isLoading) {
+    return (
+      <div className="bg-gradient-to-r from-green-900/20 to-green-700/20 border border-green-500/20 rounded-lg p-6 mb-12">
+        <div className="flex items-center justify-center py-8">
+          <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-primary"></div>
+          <span className="ml-3 text-primary">Carregando vitórias...</span>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="bg-gradient-to-r from-green-900/20 to-green-700/20 border border-green-500/20 rounded-lg p-6 mb-12">
@@ -65,7 +113,6 @@ const LiveWinsCarousel = () => {
         <div className="flex items-center space-x-3">
           <div className="flex items-center space-x-2">
             <Radio className="w-5 h-5 text-red-500 animate-pulse" />
-            <span className="text-red-500 font-bold text-sm animate-pulse">AO VIVO</span>
           </div>
           <Trophy className="w-6 h-6 text-yellow-400" />
           <h2 className="text-xl font-bold text-center text-primary">
@@ -108,7 +155,6 @@ const LiveWinsCarousel = () => {
               {index === 0 && (
                 <div className="flex items-center space-x-1 text-green-400">
                   <Radio className="w-3 h-3 animate-pulse" />
-                  <span className="text-xs font-medium">NOVO</span>
                 </div>
               )}
             </div>

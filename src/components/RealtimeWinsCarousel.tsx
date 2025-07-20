@@ -1,27 +1,17 @@
+
 import { useState, useEffect } from 'react';
 import { Radio, Trophy, Gift } from 'lucide-react';
 import ItemCard from './ItemCard';
+import { supabase } from '@/integrations/supabase/client';
 
-const prizes = [
-  { name: 'iPhone 16', winner: 'João M.', image: '/lovable-uploads/afe8c6a0-043b-45e3-a2d2-f0016ed54fac.png', rarity: 'legendary' },
-  { name: 'Apple Watch', winner: 'Maria S.', image: '/lovable-uploads/e7b617c4-f45a-4596-994a-75c0e3553f78.png', rarity: 'epic' },
-  { name: 'Xiaomi Phone', winner: 'Pedro L.', image: '/lovable-uploads/0d9f41b3-5ac9-4467-9987-5f9f55b48b43.png', rarity: 'rare' },
-  { name: 'Samsung Tablet', winner: 'Ana R.', image: '/lovable-uploads/853054fe-7848-4ab3-9499-041705d241d2.png', rarity: 'rare' },
-  { name: 'Bicicleta', winner: 'Carlos M.', image: '/lovable-uploads/3c51402c-67ee-4d20-8b11-9a334ca0e2db.png', rarity: 'epic' },
-  { name: 'Câmera', winner: 'Lucia F.', image: '/lovable-uploads/24dbf933-dd9b-4ea9-b253-022bd366da2f.png', rarity: 'rare' },
-  { name: 'Dubai', winner: 'Roberto K.', image: '/lovable-uploads/262848fe-da75-4887-bb6d-b88247901100.png', rarity: 'legendary' },
-  { name: 'Resort', winner: 'Fernanda G.', image: '/lovable-uploads/b7b47eb2-d95e-46cf-a21c-f76ac2a74d20.png', rarity: 'epic' },
-  { name: 'Viagem', winner: 'Miguel A.', image: '/lovable-uploads/ced3cdc6-a614-4fa0-9afe-f0f73ff917b5.png', rarity: 'rare' },
-  { name: 'Vale Compras', winner: 'Juliana B.', image: '/lovable-uploads/68d2bf66-08db-4fad-8f22-0bbfbbd2f16d.png', rarity: 'common' },
-  { name: 'MacBook Pro', winner: 'Diego C.', image: '/lovable-uploads/24dbf933-dd9b-4ea9-b253-022bd366da2f.png', rarity: 'legendary' },
-  { name: 'AirPods Pro', winner: 'Camila D.', image: '/lovable-uploads/3c51402c-67ee-4d20-8b11-9a334ca0e2db.png', rarity: 'epic' },
-  { name: 'Smart TV', winner: 'Bruno H.', image: '/lovable-uploads/68d2bf66-08db-4fad-8f22-0bbfbbd2f16d.png', rarity: 'rare' },
-  { name: 'PlayStation', winner: 'Larissa P.', image: '/lovable-uploads/70a08625-c438-4292-8356-821b05c265bc.png', rarity: 'legendary' },
-  { name: 'PIX R$ 1000', winner: 'Rafael T.', image: '/lovable-uploads/1e75dbed-c6dc-458b-bf5f-867f613d6c3f.png', rarity: 'epic' },
-  { name: 'Notebook', winner: 'Beatriz V.', image: '/lovable-uploads/24dbf933-dd9b-4ea9-b253-022bd366da2f.png', rarity: 'rare' },
-  { name: 'Smartphone', winner: 'Gustavo N.', image: '/lovable-uploads/0d9f41b3-5ac9-4467-9987-5f9f55b48b43.png', rarity: 'rare' },
-  { name: 'Headphone', winner: 'Isabela Q.', image: '/lovable-uploads/3c51402c-67ee-4d20-8b11-9a334ca0e2db.png', rarity: 'common' }
-];
+interface WinData {
+  id: string;
+  user_name: string;
+  item_name: string;
+  item_image: string;
+  item_rarity: 'common' | 'rare' | 'epic' | 'legendary';
+  won_at: string;
+}
 
 interface RealtimeWinsCarouselProps {
   showIcons?: boolean;
@@ -29,28 +19,163 @@ interface RealtimeWinsCarouselProps {
 }
 
 const RealtimeWinsCarousel = ({ showIcons = true, className = "" }: RealtimeWinsCarouselProps) => {
-  const [currentItems, setCurrentItems] = useState<typeof prizes>([]);
-  const [nextId, setNextId] = useState(0);
+  const [currentItems, setCurrentItems] = useState<WinData[]>([]);
+  const [allWins, setAllWins] = useState<WinData[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+
+  // Buscar vitórias reais do banco de dados
+  const fetchRecentWins = async () => {
+    try {
+      const { data, error } = await supabase
+        .from('user_inventory')
+        .select(`
+          id,
+          won_at,
+          rarity,
+          item:items(
+            name,
+            image_url,
+            rarity
+          ),
+          user:profiles(
+            full_name
+          )
+        `)
+        .not('item', 'is', null)
+        .not('user', 'is', null)
+        .order('won_at', { ascending: false })
+        .limit(50);
+
+      if (error) {
+        console.error('Erro ao buscar vitórias:', error);
+        return;
+      }
+
+      const formattedWins: WinData[] = (data || [])
+        .filter(win => win.item && win.user)
+        .map(win => ({
+          id: win.id,
+          user_name: win.user?.full_name || 'Usuário',
+          item_name: win.item?.name || 'Item',
+          item_image: win.item?.image_url || '',
+          item_rarity: (win.item?.rarity as 'common' | 'rare' | 'epic' | 'legendary') || 'common',
+          won_at: win.won_at
+        }));
+
+      setAllWins(formattedWins);
+      
+      // Inicializar com os primeiros 12 itens
+      setCurrentItems(formattedWins.slice(0, 12));
+      setIsLoading(false);
+    } catch (error) {
+      console.error('Erro na busca:', error);
+      setIsLoading(false);
+    }
+  };
+
+  // Função para criar comportamento mais natural
+  const startNaturalFlow = () => {
+    if (allWins.length === 0) return;
+
+    let currentIndex = 12; // Começamos após os 12 primeiros
+    
+    const addNewWin = () => {
+      if (currentIndex >= allWins.length) {
+        currentIndex = 0; // Reiniciar do começo quando acabar
+      }
+
+      const newWin = allWins[currentIndex];
+      
+      setCurrentItems(prev => [newWin, ...prev.slice(0, 11)]);
+      currentIndex++;
+
+      // Delay variável entre 3 a 8 segundos para comportamento natural
+      const nextDelay = Math.random() * 5000 + 3000; // 3-8 segundos
+      setTimeout(addNewWin, nextDelay);
+    };
+
+    // Pausa inicial antes de começar o fluxo
+    const initialDelay = Math.random() * 3000 + 2000; // 2-5 segundos
+    setTimeout(addNewWin, initialDelay);
+  };
 
   useEffect(() => {
-    // Initialize with 12 random items
-    const initialItems = Array.from({ length: 12 }, () => 
-      prizes[Math.floor(Math.random() * prizes.length)]
-    );
-    setCurrentItems(initialItems);
-    setNextId(12);
-
-    // Auto-slide every 3 seconds
-    const interval = setInterval(() => {
-      setCurrentItems(prev => {
-        const newItem = prizes[Math.floor(Math.random() * prizes.length)];
-        return [newItem, ...prev.slice(0, 11)];
-      });
-      setNextId(prev => prev + 1);
-    }, 3000);
-
-    return () => clearInterval(interval);
+    fetchRecentWins();
   }, []);
+
+  useEffect(() => {
+    if (allWins.length > 0 && !isLoading) {
+      startNaturalFlow();
+    }
+  }, [allWins, isLoading]);
+
+  // Configurar realtime para novas vitórias
+  useEffect(() => {
+    const channel = supabase
+      .channel('new-wins')
+      .on('postgres_changes', 
+        { 
+          event: 'INSERT', 
+          schema: 'public', 
+          table: 'user_inventory' 
+        },
+        async (payload) => {
+          // Buscar dados completos da nova vitória
+          const { data: newWinData } = await supabase
+            .from('user_inventory')
+            .select(`
+              id,
+              won_at,
+              rarity,
+              item:items(
+                name,
+                image_url,
+                rarity
+              ),
+              user:profiles(
+                full_name
+              )
+            `)
+            .eq('id', payload.new.id)
+            .single();
+
+          if (newWinData && newWinData.item && newWinData.user) {
+            const newWin: WinData = {
+              id: newWinData.id,
+              user_name: newWinData.user.full_name || 'Usuário',
+              item_name: newWinData.item.name || 'Item',
+              item_image: newWinData.item.image_url || '',
+              item_rarity: (newWinData.item.rarity as 'common' | 'rare' | 'epic' | 'legendary') || 'common',
+              won_at: newWinData.won_at
+            };
+
+            // Adicionar à lista completa
+            setAllWins(prev => [newWin, ...prev]);
+            
+            // Delay natural antes de mostrar a nova vitória
+            setTimeout(() => {
+              setCurrentItems(prev => [newWin, ...prev.slice(0, 11)]);
+            }, Math.random() * 2000 + 1000); // 1-3 segundos
+          }
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, []);
+
+  if (isLoading) {
+    return (
+      <div className={`relative bg-gradient-to-r from-gray-900/40 via-gray-800/30 to-gray-900/40 border-2 border-primary/30 rounded-xl p-6 shadow-2xl overflow-hidden ${className}`}>
+        <div className="flex items-center justify-center py-12">
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+          <span className="ml-3 text-primary">Carregando vitórias...</span>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className={`relative bg-gradient-to-r from-gray-900/40 via-gray-800/30 to-gray-900/40 border-2 border-primary/30 rounded-xl p-6 shadow-2xl overflow-hidden ${className}`}>
@@ -68,9 +193,8 @@ const RealtimeWinsCarousel = ({ showIcons = true, className = "" }: RealtimeWins
       {showIcons && (
         <div className="relative z-10 flex items-center justify-between mb-6">
           <div className="flex items-center space-x-3">
-            <div className="flex items-center space-x-2 bg-red-500/20 px-3 py-1 rounded-full border border-red-500/30">
-              <Radio className="w-4 h-4 text-red-500 animate-pulse" />
-              <span className="text-red-500 font-bold text-sm animate-pulse">AO VIVO</span>
+            <div className="flex items-center space-x-2">
+              <Radio className="w-5 h-5 text-red-500 animate-pulse" />
             </div>
             <div className="w-px h-6 bg-primary/30" />
             <h2 className="text-xl font-bold text-primary flex items-center gap-2">
@@ -86,7 +210,7 @@ const RealtimeWinsCarousel = ({ showIcons = true, className = "" }: RealtimeWins
         <div className="flex space-x-4 transition-transform duration-500 ease-out">
           {currentItems.map((item, index) => (
             <div
-              key={`${item.name}-${item.winner}-${nextId}-${index}`}
+              key={`${item.id}-${index}`}
               className={`flex-shrink-0 transition-all duration-500 ${
                 index === 0 ? 'animate-slide-in-left' : ''
               } ${
@@ -96,9 +220,9 @@ const RealtimeWinsCarousel = ({ showIcons = true, className = "" }: RealtimeWins
               <div className="flex flex-col items-center">
                 <ItemCard
                   item={{
-                    name: item.name,
-                    image_url: item.image,
-                    rarity: item.rarity as 'common' | 'rare' | 'epic' | 'legendary',
+                    name: item.item_name,
+                    image_url: item.item_image,
+                    rarity: item.item_rarity,
                   }}
                   size="sm"
                   showRarity={false}
@@ -107,7 +231,7 @@ const RealtimeWinsCarousel = ({ showIcons = true, className = "" }: RealtimeWins
                   }`}
                 />
                 <p className="text-xs text-center text-primary/80 font-medium truncate w-full mt-1">
-                  {item.winner} ganhou
+                  {item.user_name} ganhou
                 </p>
               </div>
               
