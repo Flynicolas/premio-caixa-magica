@@ -43,12 +43,12 @@ const LiveWinsCarousel = () => {
       }
 
       const formattedWins: WinData[] = (data || [])
-        .filter(win => win.item && win.user)
+        .filter(win => win.item && win.user && Array.isArray(win.user) && win.user.length > 0)
         .map(win => ({
           id: win.id,
-          name: win.user?.full_name || 'Usuário',
-          prize: win.item?.name || 'Item',
-          image: win.item?.image_url || '',
+          name: Array.isArray(win.user) ? win.user[0]?.full_name || 'Usuário' : 'Usuário',
+          prize: Array.isArray(win.item) ? win.item[0]?.name || 'Item' : win.item?.name || 'Item',
+          image: Array.isArray(win.item) ? win.item[0]?.image_url || '' : win.item?.image_url || '',
           time: 'Agora mesmo'
         }));
 

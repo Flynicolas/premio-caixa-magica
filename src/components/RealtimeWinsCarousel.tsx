@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { Radio, Trophy, Gift } from 'lucide-react';
 import ItemCard from './ItemCard';
@@ -52,13 +51,13 @@ const RealtimeWinsCarousel = ({ showIcons = true, className = "" }: RealtimeWins
       }
 
       const formattedWins: WinData[] = (data || [])
-        .filter(win => win.item && win.user)
+        .filter(win => win.item && win.user && Array.isArray(win.user) && win.user.length > 0)
         .map(win => ({
           id: win.id,
-          user_name: win.user?.full_name || 'Usuário',
-          item_name: win.item?.name || 'Item',
-          item_image: win.item?.image_url || '',
-          item_rarity: (win.item?.rarity as 'common' | 'rare' | 'epic' | 'legendary') || 'common',
+          user_name: Array.isArray(win.user) ? win.user[0]?.full_name || 'Usuário' : 'Usuário',
+          item_name: Array.isArray(win.item) ? win.item[0]?.name || 'Item' : win.item?.name || 'Item',
+          item_image: Array.isArray(win.item) ? win.item[0]?.image_url || '' : win.item?.image_url || '',
+          item_rarity: (Array.isArray(win.item) ? win.item[0]?.rarity : win.item?.rarity) as 'common' | 'rare' | 'epic' | 'legendary' || 'common',
           won_at: win.won_at
         }));
 
@@ -139,13 +138,13 @@ const RealtimeWinsCarousel = ({ showIcons = true, className = "" }: RealtimeWins
             .eq('id', payload.new.id)
             .single();
 
-          if (newWinData && newWinData.item && newWinData.user) {
+          if (newWinData && newWinData.item && newWinData.user && Array.isArray(newWinData.user) && newWinData.user.length > 0) {
             const newWin: WinData = {
               id: newWinData.id,
-              user_name: newWinData.user.full_name || 'Usuário',
-              item_name: newWinData.item.name || 'Item',
-              item_image: newWinData.item.image_url || '',
-              item_rarity: (newWinData.item.rarity as 'common' | 'rare' | 'epic' | 'legendary') || 'common',
+              user_name: Array.isArray(newWinData.user) ? newWinData.user[0]?.full_name || 'Usuário' : 'Usuário',
+              item_name: Array.isArray(newWinData.item) ? newWinData.item[0]?.name || 'Item' : newWinData.item?.name || 'Item',
+              item_image: Array.isArray(newWinData.item) ? newWinData.item[0]?.image_url || '' : newWinData.item?.image_url || '',  
+              item_rarity: (Array.isArray(newWinData.item) ? newWinData.item[0]?.rarity : newWinData.item?.rarity) as 'common' | 'rare' | 'epic' | 'legendary' || 'common',
               won_at: newWinData.won_at
             };
 
