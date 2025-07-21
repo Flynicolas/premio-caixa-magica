@@ -20,7 +20,9 @@ import {
   Package, 
   Trophy,
   Gift,
-  Shield
+  Shield,
+  Menu,
+  Plus
 } from 'lucide-react';
 import { useAdminCheck } from '@/hooks/useAdminCheck';
 import AuthModal from './AuthModal';
@@ -59,7 +61,7 @@ const Header = () => {
             </span>
           </Link>
 
-          {/* Navigation */}
+          {/* Navigation - Desktop */}
           <nav className="hidden md:flex items-center space-x-6">
             <Link to="/" className="text-muted-foreground hover:text-primary transition-colors">
               Início
@@ -75,17 +77,70 @@ const Header = () => {
             </Link>
           </nav>
 
+          {/* Mobile Menu */}
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button variant="ghost" size="sm" className="md:hidden">
+                <Menu className="w-5 h-5" />
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent className="w-48" align="end">
+              <DropdownMenuItem asChild>
+                <Link to="/" className="cursor-pointer">
+                  Início
+                </Link>
+              </DropdownMenuItem>
+              <DropdownMenuItem asChild>
+                <Link to="/premios" className="cursor-pointer">
+                  Prêmios
+                </Link>
+              </DropdownMenuItem>
+              <DropdownMenuItem asChild>
+                <Link to="/sobre" className="cursor-pointer">
+                  Sobre
+                </Link>
+              </DropdownMenuItem>
+              <DropdownMenuItem asChild>
+                <Link to="/ranking" className="cursor-pointer">
+                  Ranking
+                </Link>
+              </DropdownMenuItem>
+              {user && (
+                <>
+                  <DropdownMenuSeparator />
+                  <DropdownMenuItem asChild>
+                    <Link to="/perfil" className="cursor-pointer">
+                      <User className="mr-2 h-4 w-4" />
+                      Perfil
+                    </Link>
+                  </DropdownMenuItem>
+                  <DropdownMenuItem asChild>
+                    <Link to="/meus-premios" className="cursor-pointer">
+                      <Gift className="mr-2 h-4 w-4" />
+                      Meus Prêmios
+                    </Link>
+                  </DropdownMenuItem>
+                </>
+              )}
+            </DropdownMenuContent>
+          </DropdownMenu>
+
           {/* User Section */}
           <div className="flex items-center space-x-4">
             {user ? (
               <>
-                {/* Balance Display */}
-                <div className="hidden sm:flex items-center space-x-2 bg-primary/10 px-3 py-1 rounded-full">
+                {/* Balance Display - Clickable */}
+                <Button 
+                  variant="ghost" 
+                  className="hidden sm:flex items-center space-x-2 bg-primary/10 hover:bg-primary/20 px-3 py-1 rounded-full h-auto"
+                  onClick={() => navigate('/configuracoes')}
+                >
                   <Wallet className="w-4 h-4 text-primary" />
                   <span className="text-sm font-medium">
                     R$ {balance.toFixed(2).replace('.', ',')}
                   </span>
-                </div>
+                  <Plus className="w-3 h-3 text-primary/70 ml-1" />
+                </Button>
 
                 {/* User Menu */}
                 <DropdownMenu>
