@@ -2,43 +2,28 @@
 import { useState } from 'react';
 import { useAuth } from '@/hooks/useAuth';
 import { useWallet } from '@/hooks/useWallet';
-import { useInventory } from '@/hooks/useInventory';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Sparkles, Crown, Diamond, Heart, Flame, Star, Gift, Eye, ShoppingCart, Radio, Package } from 'lucide-react';
+import { Sparkles, Crown, Diamond, Heart, Flame, Star, ShoppingCart, Radio, Trophy, Package } from 'lucide-react';
 import { chestData, ChestType } from '@/data/chestData';
 import RealtimeWinsCarousel from '@/components/RealtimeWinsCarousel';
+import ChestCard from '@/components/ChestCard';
 import ItemCard from '@/components/ItemCard';
-import { useWithdrawItem } from '@/hooks/useWithdrawItem';
-import { useToast } from '@/hooks/use-toast';
-import { useProfile } from '@/hooks/useProfile';
+import { useInventory } from '@/hooks/useInventory';
+import { DatabaseItem } from '@/types/database';
 import { useNavigate } from 'react-router-dom';
-import { Dialog as ConfirmDialog } from "@/components/ui/dialog"; // reutilizando Dialog
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog";
-
-import Cookies from "js-cookie";
 
 const Premios = () => {
-  const { userChests, userItems, getChestCounts, getItemsByCategory, getChestItems, loading } = useInventory();
-    const { toast } = useToast();
-    const navigate = useNavigate();
-    const { profile } = useProfile();
+  const { user } = useAuth();
+  const { walletData } = useWallet();
+  const { userItems, getChestItems, loading } = useInventory();
+  const navigate = useNavigate();
   const [selectedChest, setSelectedChest] = useState<ChestType>('silver');
   const [chestItems, setChestItems] = useState<any[]>([]);
-const { entregas } = useWithdrawItem();
-  const [selectedPrize, setSelectedPrize] = useState<any>(null);
-  const [isProcessing, setIsProcessing] = useState(false);
-  const { solicitarRetirada } = useWithdrawItem();
-  const { user } = useAuth();
 
-  // Buscar itens do baú selecionado
+  // Carregar itens do baú selecionado
   const loadChestItems = async (chestType: ChestType) => {
     const items = await getChestItems(chestType);
     setChestItems(items);
@@ -48,9 +33,6 @@ const { entregas } = useWithdrawItem();
   useState(() => {
     loadChestItems(selectedChest);
   });
-
-  const chestCounts = getChestCounts();
-  const itemsByCategory = getItemsByCategory();
 
   const chestThemes = {
     silver: { color: 'from-gray-400 to-gray-600', icon: Star, description: 'Perfeito para iniciantes que querem experimentar com baixo investimento' },
@@ -70,12 +52,35 @@ const { entregas } = useWithdrawItem();
     premium: '/lovable-uploads/d43f06a5-1532-42ba-8362-5aefb160b408.png'
   };
 
+  // Ordem específica dos baús
+  const chestOrder: ChestType[] = ['silver', 'gold', 'diamond', 'ruby', 'premium', 'delas'];
+
+  const handleChestOpen = (chestType: ChestType) => {
+    // Lógica para abrir baú será implementada
+    console.log('Abrir baú:', chestType);
+  };
+
+  const handleChestViewItems = (chestType: ChestType) => {
+    // Lógica para ver itens será implementada
+    console.log('Ver itens do baú:', chestType);
+  };
+
+  const handleDirectChestOpening = (prize: DatabaseItem) => {
+    // Lógica para abertura direta será implementada
+    console.log('Prêmio ganho:', prize);
+  };
+
+  const handleOpenWallet = () => {
+    // Lógica para abrir carteira será implementada
+    console.log('Abrir carteira');
+  };
+
   if (loading) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-gray-900 via-black to-gray-900 flex items-center justify-center">
         <div className="text-center">
           <div className="w-12 h-12 border-4 border-primary border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
-          <p className="text-lg">Carregando inventário...</p>
+          <p className="text-lg text-white">Carregando baús...</p>
         </div>
       </div>
     );
@@ -85,7 +90,7 @@ const { entregas } = useWithdrawItem();
     <div className="min-h-screen bg-gradient-to-br from-gray-900 via-black to-gray-900">
       <div className="container mx-auto px-4 py-8">
         
-        {/* Vitórias em Tempo Real - Minimizada */}
+        {/* Vitórias em Tempo Real */}
         <div className="mb-8">
           <div className="flex items-center space-x-2 mb-3">
             <Radio className="w-4 h-4 text-red-500 animate-pulse" />
@@ -94,157 +99,88 @@ const { entregas } = useWithdrawItem();
           <RealtimeWinsCarousel showIcons={false} className="bg-gradient-to-r from-gray-900/20 to-gray-800/20 border border-green-500/10 p-3" />
         </div>
 
-        {/* Carteira de Baús do Usuário */}
+        {/* Seção de Escolha de Baús - Duplicada da Home */}
         <section className="mb-12">
           <div className="text-center mb-8">
-            <h1 className="text-4xl font-bold text-primary mb-4">Meus Prêmios</h1>
-            <p className="text-lg text-muted-foreground">Gerencie sua coleção e descubra novos tesouros</p>
+            <h1 className="text-4xl font-bold text-primary mb-4">🎰 Sorteios & Entretenimento 🎰</h1>
+            <p className="text-lg text-muted-foreground">Escolha seu baú e teste sua sorte! Cada baú oferece diferentes chances de prêmios.</p>
           </div>
 
-          {/* Inventário de Baús */}
-          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4 mb-8">
-            {Object.entries(chestData).map(([chestType, chest]) => {
-              const theme = chestThemes[chestType as ChestType];
-              const IconComponent = theme.icon;
-              const count = chestCounts[chestType] || 0;
-              
-              return (
-                <Card key={chestType} className="relative overflow-hidden border-2 border-opacity-30 bg-card/50 hover:bg-card/70 transition-all duration-300 group">
-                  <CardContent className="p-4 text-center">
-                    <div className="w-16 h-16 mx-auto mb-3 rounded-lg flex items-center justify-center">
-                      <img 
-                        src={chestImages[chestType as ChestType]} 
-                        alt={chest.name}
-                        className="w-full h-full object-contain"
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 max-w-6xl mx-auto">
+            {chestOrder.map((chestType) => (
+              <div key={chestType}>
+                <ChestCard
+                  chest={chestData[chestType]}
+                  chestType={chestType}
+                  onOpen={() => handleChestOpen(chestType)}
+                  onViewItems={() => handleChestViewItems(chestType)}
+                  balance={walletData?.balance || 0}
+                  isAuthenticated={!!user}
+                  onPrizeWon={handleDirectChestOpening}
+                  onAddBalance={handleOpenWallet}
+                />
+              </div>
+            ))}
+          </div>
+        </section>
+
+        {/* Resumo dos Prêmios do Usuário - Seção Minimalizada */}
+        {user && userItems.length > 0 && (
+          <section className="mb-12">
+            <Card className="bg-gradient-to-r from-purple-900/20 to-blue-900/20 border-purple-500/30 max-w-4xl mx-auto">
+              <CardHeader className="pb-3">
+                <CardTitle className="flex items-center justify-between">
+                  <div className="flex items-center gap-2">
+                    <Trophy className="w-5 h-5 text-purple-400" />
+                    <span className="text-lg">Seus Prêmios</span>
+                  </div>
+                  <Button 
+                    variant="outline" 
+                    size="sm"
+                    onClick={() => navigate('/meus-premios')}
+                    className="border-purple-500/30 text-purple-300 hover:bg-purple-500/20"
+                  >
+                    Ver Todos
+                  </Button>
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="pt-0">
+                <div className="flex items-center justify-between mb-4">
+                  <div className="flex items-center gap-6">
+                    <div className="text-center">
+                      <div className="text-2xl font-bold text-purple-300">{userItems.length}</div>
+                      <div className="text-sm text-muted-foreground">Total</div>
+                    </div>
+                    <div className="text-center">
+                      <div className="text-2xl font-bold text-green-300">{userItems.filter(item => !item.is_redeemed).length}</div>
+                      <div className="text-sm text-muted-foreground">Disponíveis</div>
+                    </div>
+                    <div className="text-center">
+                      <div className="text-2xl font-bold text-yellow-300">{userItems.filter(item => item.item?.rarity === 'legendary').length}</div>
+                      <div className="text-sm text-muted-foreground">Lendários</div>
+                    </div>
+                  </div>
+                </div>
+                
+                {/* Últimos prêmios conquistados */}
+                <div className="flex gap-2 overflow-x-auto pb-2">
+                  {userItems.slice(0, 6).map((userItem, index) => (
+                    <div key={index} className="flex-shrink-0 w-16 h-16 bg-zinc-800/50 rounded-lg border border-zinc-700/50 flex items-center justify-center">
+                      <img
+                        src={userItem.item?.image_url || '/placeholder.png'}
+                        alt={userItem.item?.name}
+                        className="w-12 h-12 object-contain drop-shadow-sm"
                       />
                     </div>
-                    <h3 className="font-bold text-sm mb-1">{chest.name}</h3>
-                    <Badge className={`bg-gradient-to-r ${theme.color} text-white mb-2`}>
-                      {count} Baús
-                    </Badge>
-                    {count > 0 && (
-                      <Button size="sm" className="w-full text-xs">
-                        <Gift className="w-3 h-3 mr-1" />
-                        Abrir
-                      </Button>
-                    )}
-                  </CardContent>
-                </Card>
-              );
-            })}
-          </div>
-        </section>
-
-        {/* Inventário de Itens Ganhos */}
-        <section className="mb-12">
-          <Card className="bg-card/50 border-primary/20">
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <Package className="w-6 h-6 text-primary" />
-                Meus Prêmios Conquistados ({userItems.length} itens)
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              {userItems.length === 0 ? (
-                <div className="text-center py-12">
-                  <Package className="w-16 h-16 mx-auto text-muted-foreground mb-4" />
-                  <h3 className="text-lg font-semibold mb-2">Nenhum prêmio ainda</h3>
-                  <p className="text-muted-foreground">
-                    Abra alguns baús para conquistar prêmios incríveis!
-                  </p>
-                </div>
-              ) : (
-                <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
-                  {userItems.map((userItem, index) => (
-                  <div
-  key={index}
-  className="relative flex flex-col items-center bg-gradient-to-br from-zinc-800 via-zinc-900 to-black rounded-xl p-3 shadow-md hover:shadow-lg transition-all group"
-  title={userItem.item?.name}
->
-  <div className="relative w-full flex flex-col items-center">
-    <img
-      src={userItem.item?.image_url || '/placeholder.png'}
-      alt={userItem.item?.name}
-      className="w-20 h-20 object-contain mb-2 rounded-md border border-zinc-700"
-    />
-
-    <span className="text-sm font-semibold text-center text-white line-clamp-2 capitalize">
-      {userItem.item?.name || 'Item Desconhecido'}
-    </span>
-
-    <Badge
-      className={`mt-1 capitalize px-2 py-0.5 text-xs rounded-full text-white ${
-        userItem.item?.rarity === 'legendary'
-          ? 'bg-gradient-to-r from-yellow-400 to-yellow-600'
-          : userItem.item?.rarity === 'epic'
-          ? 'bg-gradient-to-r from-purple-500 to-fuchsia-600'
-          : userItem.item?.rarity === 'rare'
-          ? 'bg-gradient-to-r from-blue-400 to-blue-600'
-          : 'bg-gradient-to-r from-gray-400 to-gray-600'
-      }`}
-    >
-      {userItem.item?.rarity}
-    </Badge>
-
-    <Badge
-      variant="secondary"
-      className="absolute top-0 right-0 text-xs font-semibold bg-black/80 border border-zinc-700 rounded-full px-2 py-0.5"
-    >
-      1x
-    </Badge>
-  </div>
-
-  {userItem.is_redeemed ? (
-    <Badge className="w-full mt-3 bg-green-500/20 text-green-500 border-green-500/30 text-xs font-semibold py-2 justify-center">
-      Resgatado
-    </Badge>
-  ) : (
-    <Button
-      size="sm"
-      className="w-full mt-3 bg-yellow-400 hover:bg-yellow-300 text-black font-bold text-xs rounded-md transition-all"
-       onClick={() => {
-                const fullName = profile?.full_name;
-                const cpf = profile?.cpf;
-                const addressComplete =
-                  profile?.zip_code &&
-                  profile?.street &&
-                  profile?.number &&
-                  profile?.neighborhood &&
-                  profile?.city &&
-                  profile?.state;
-      
-                if (!fullName || !cpf || !addressComplete) {
-                  toast({
-                    title: "Complete seu cadastro",
-                    description:
-                      "Você precisa informar nome completo, CPF e endereço para retirar prêmios.",
-                    variant: "destructive",
-                  });
-      
-                  Cookies.set("redirected_from_retirada", "true", {
-                    path: "/",
-                  });
-                  navigate("/configuracoes");
-                  return;
-                }
-          setSelectedPrize(userItem);
-      
-              }}
-    >
-      Resgatar
-    </Button>
-  )}
-</div>
-
                   ))}
                 </div>
-              )}
-            </CardContent>
-          </Card>
-        </section>
+              </CardContent>
+            </Card>
+          </section>
+        )}
 
         {/* Catálogo de Baús */}
-        <section>
+        <section className="mb-12">
           <div className="text-center mb-8">
             <h2 className="text-3xl font-bold text-primary mb-4">Catálogo de Baús</h2>
             <p className="text-lg text-muted-foreground">Explore todos os tipos de baús e suas recompensas exclusivas</p>
@@ -284,7 +220,7 @@ const { entregas } = useWithdrawItem();
                             <img 
                               src={chestImages[chestType as ChestType]} 
                               alt={chest.name}
-                              className="w-12 h-12 object-contain"
+                              className="w-12 h-12 object-contain drop-shadow-lg"
                             />
                           </div>
                           <div>
@@ -299,91 +235,6 @@ const { entregas } = useWithdrawItem();
                       </div>
                     </CardHeader>
                     <CardContent className="p-6">
-                          {selectedPrize && (
-                  <ConfirmDialog open={true} onOpenChange={() => setSelectedPrize(null)}>
-                    <DialogContent className="bg-card border border-yellow-400">
-                      <DialogHeader>
-                        <DialogTitle>Confirmar Retirada</DialogTitle>
-                      </DialogHeader>
-          
-                      <div className="space-y-4">
-                        <p className="text-sm text-muted-foreground">
-                          Para receber o prêmio <strong>{selectedPrize.name}</strong>, é
-                          necessário pagar a taxa de entrega de <strong>R$ 25,00</strong>.
-                        </p>
-                        <p className="text-xs text-muted-foreground">
-                          Após o pagamento, sua entrega será iniciada. Você poderá
-                          acompanhar o status na área <strong>Minhas Entregas</strong>.
-                        </p>
-          
-                        <Button
-                          className="w-full gold-gradient text-black font-bold hover:opacity-90 mt-2"
-                          disabled={isProcessing}
-                          onClick={async () => {
-                            if (!user || !selectedPrize) return;
-          
-                            const fullName = profile?.full_name;
-                            const cpf = profile?.cpf;
-                            const addressComplete =
-                              profile?.zip_code &&
-                              profile?.street &&
-                              profile?.number &&
-                              profile?.neighborhood &&
-                              profile?.city &&
-                              profile?.state;
-          
-                            if (!fullName || !cpf || !addressComplete) {
-                              toast({
-                                title: "Complete seu cadastro",
-                                description:
-                                  "Você precisa informar nome completo, CPF e endereço para retirar prêmios.",
-                                variant: "destructive",
-                              });
-          
-                              Cookies.set("redirected_from_retirada", "true", {
-                                path: "/",
-                              });
-                              navigate("/configuracoes");
-                              return;
-                            }
-          
-                            try {
-                              setIsProcessing(true);
-          
-                              await solicitarRetirada({
-                                itemId: selectedPrize.itemId,
-                                inventoryId: selectedPrize.inventoryId,
-                                fullName,
-                                cpf,
-                                address: {
-                                  zip_code: profile.zip_code,
-                                  street: profile.street,
-                                  number: profile.number,
-                                  complement: profile.complement,
-                                  neighborhood: profile.neighborhood,
-                                  city: profile.city,
-                                  state: profile.state,
-                                },
-                              });
-          
-                              setSelectedPrize(null);
-                            } catch (error) {
-                              toast({
-                                title: "Erro ao solicitar retirada",
-                                description: "Tente novamente em instantes.",
-                                variant: "destructive",
-                              });
-                            } finally {
-                              setIsProcessing(false);
-                            }
-                          }}
-                        >
-                          {isProcessing ? "Processando..." : "Retirar meu prêmio"}
-                        </Button>
-                      </div>
-                    </DialogContent>
-                  </ConfirmDialog>
-                )}
                       <div className="grid md:grid-cols-2 gap-6">
                         <div>
                           <h4 className="text-lg font-bold mb-3 text-primary">Sobre este Baú</h4>
@@ -428,18 +279,16 @@ const { entregas } = useWithdrawItem();
               );
             })}
           </Tabs>
-          
-            
         </section>
         
-        {/* Contagem de Baús Abertos */}
+        {/* Estatísticas finais */}
         <section className="text-center py-8">
           <Card className="bg-card/50 border-primary/20 max-w-md mx-auto">
             <CardContent className="p-6">
-              <h3 className="text-lg font-bold text-primary mb-2">Estatística de Baús</h3>
-              <p className="text-3xl font-bold mb-1">{userItems.length}</p>
+              <Package className="w-12 h-12 text-primary mx-auto mb-4" />
+              <h3 className="text-lg font-bold text-primary mb-2">Diversão Garantida</h3>
               <p className="text-muted-foreground text-sm">
-                Baús abertos até agora
+                Milhares de prêmios já foram distribuídos para nossa comunidade
               </p>
             </CardContent>
           </Card>

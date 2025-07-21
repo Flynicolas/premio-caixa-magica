@@ -119,13 +119,12 @@ const ItemCard = ({ item, size = 'md', showRarity = true, className = '' }: Item
         </div>
       )}
 
-      {/* Item Image */}
-      <div className={`${sizing.image} rounded-lg overflow-hidden mb-2 flex items-center justify-center bg-background/20`}>
+      {/* Imagem flutuante do item sem container */}
+      <div className={`${sizing.image} rounded-lg overflow-hidden mb-2 flex items-center justify-center`}>
         <img 
           src={item.image_url || '/placeholder.svg'} 
           alt={item.name}
-          className="max-w-full max-h-full object-contain"
-          style={{ filter: 'drop-shadow(0 2px 4px rgba(0,0,0,0.3))' }}
+          className="max-w-full max-h-full object-contain drop-shadow-lg"
         />
       </div>
 

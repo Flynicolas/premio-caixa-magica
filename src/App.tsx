@@ -12,6 +12,7 @@ import BottomNavBar from "./components/BottomNavBar";
 import WalletPanel from "./components/WalletPanel";
 import Index from "./pages/Index";
 import Premios from "./pages/Premios";
+import MeusPremios from "./pages/MeusPremios";
 import Sobre from "./pages/Sobre";
 import Ranking from "./pages/Ranking";
 import Perfil from "./pages/Perfil";
@@ -49,6 +50,7 @@ const App = () => {
                     <Route path="/" element={<Index />} />
                     <Route path="/baus" element={<Premios />} />
                     <Route path="/premios" element={<Premios />} />
+                    <Route path="/meus-premios" element={<MeusPremios />} />
                     <Route path="/sobre" element={<Sobre />} />
                     <Route path="/ranking" element={<Ranking />} />
                     <Route path="/perfil" element={<Perfil />} />

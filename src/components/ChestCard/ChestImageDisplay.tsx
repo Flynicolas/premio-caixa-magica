@@ -1,3 +1,4 @@
+
 import { Eye } from 'lucide-react';
 import { ChestType } from '@/data/chestData';
 
@@ -31,13 +32,12 @@ const ChestImageDisplay = ({ chestType, chestName, onViewItems }: ChestImageDisp
 
   return (
     <div className="relative mb-8 flex justify-center">
-      <div className="w-40 h-40 rounded-xl flex items-center justify-center shadow-2xl group-hover:scale-110 transition-transform duration-300 bg-gradient-to-br from-white/10 to-white/5 backdrop-blur-sm">
-        <img 
-          src={chestImage} 
-          alt={chestName}
-          className="w-full h-full object-contain drop-shadow-2xl"
-        />
-      </div>
+      {/* Imagem flutuante do baú sem container */}
+      <img 
+        src={chestImage} 
+        alt={chestName}
+        className="w-40 h-40 object-contain drop-shadow-2xl group-hover:scale-110 transition-transform duration-300"
+      />
       
       <button
         onClick={onViewItems}
