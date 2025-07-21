@@ -15,6 +15,7 @@ import WinModal from '@/components/WinModal';
 import { chestData, ChestType, Chest } from '@/data/chestData';
 import { DatabaseItem } from '@/types/database';
 import { useInventory } from '@/hooks/useInventory';
+import ChestSimulator from '@/components/ChestSimulator';
 
 const Index = () => {
   const { user } = useAuth();
@@ -103,6 +104,13 @@ const Index = () => {
 
         {/* Real-time Wins Carousel */}
         <RealtimeWinsCarousel className="mb-12" />
+
+        {/* Chest Simulator for non-authenticated users */}
+        {!user && (
+          <div className="mb-8">
+            <ChestSimulator />
+          </div>
+        )}
 
         {/* Featured Chests - 3 columns, 2 rows */}
         <section className="mb-16">

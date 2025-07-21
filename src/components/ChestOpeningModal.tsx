@@ -29,6 +29,7 @@ interface ChestOpeningModalProps {
   chestName: string;
   chestPrice: number;
   onPrizeWon: (prize: DatabaseItem) => void;
+  isSimulation?: boolean;
 }
 
 const ChestOpeningModal = ({
@@ -38,6 +39,7 @@ const ChestOpeningModal = ({
   chestName,
   chestPrice,
   onPrizeWon,
+  isSimulation = false,
 }: ChestOpeningModalProps) => {
   const [phase, setPhase] = useState<"preview" | "spinning" | "result">(
     "preview",

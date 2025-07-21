@@ -1,5 +1,5 @@
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useAuth } from '@/hooks/useAuth';
 import { useWallet } from '@/hooks/useWallet';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -14,6 +14,7 @@ import ItemCard from '@/components/ItemCard';
 import { useInventory } from '@/hooks/useInventory';
 import { DatabaseItem } from '@/types/database';
 import { useNavigate } from 'react-router-dom';
+import DynamicMessage from '@/components/DynamicMessage';
 
 const Premios = () => {
   const { user } = useAuth();
@@ -99,14 +100,15 @@ const Premios = () => {
           <RealtimeWinsCarousel showIcons={false} className="bg-gradient-to-r from-gray-900/20 to-gray-800/20 border border-green-500/10 p-3" />
         </div>
 
-        {/* Seção de Escolha de Baús - Duplicada da Home */}
-        <section className="mb-12">
-          <div className="text-center mb-8">
-            <h1 className="text-4xl font-bold text-primary mb-4">🎰 Sorteios & Entretenimento 🎰</h1>
+        {/* Seção de Escolha de Baús - Mensagens Dinâmicas */}
+        <section className="mb-8">
+          <DynamicMessage />
+          
+          <div className="text-center mb-6">
             <p className="text-lg text-muted-foreground">Escolha seu baú e teste sua sorte! Cada baú oferece diferentes chances de prêmios.</p>
           </div>
 
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 max-w-6xl mx-auto">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 max-w-5xl mx-auto px-4">
             {chestOrder.map((chestType) => (
               <div key={chestType}>
                 <ChestCard
