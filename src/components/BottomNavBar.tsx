@@ -1,6 +1,7 @@
 
+import { useState, useEffect } from "react";
 import { Link, useLocation } from "react-router-dom";
-import { Home, Trophy, User, Wallet, Plus } from "lucide-react";
+import { Home, Trophy, User, Wallet, Eye, EyeOff } from "lucide-react";
 import { Button } from "./ui/button";
 import { cn } from "@/lib/utils";
 import { useWallet } from "@/hooks/useWallet";
@@ -14,6 +15,29 @@ const BottomNavBar = ({ onAddBalance }: BottomNavBarProps) => {
   const location = useLocation();
   const { walletData } = useWallet();
   const { user } = useAuth();
+  const [showBalance, setShowBalance] = useState(true);
+
+  // Load balance visibility preference from localStorage
+  useEffect(() => {
+    const savedPreference = localStorage.getItem("showBalance");
+    if (savedPreference !== null) {
+      setShowBalance(savedPreference === "true");
+    }
+  }, []);
+
+  // Save balance visibility preference to localStorage
+  const toggleBalanceVisibility = (e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    const newShowBalance = !showBalance;
+    setShowBalance(newShowBalance);
+    localStorage.setItem("showBalance", newShowBalance.toString());
+  };
+
+  const handleBalanceClick = (e: React.MouseEvent) => {
+    e.preventDefault();
+    onAddBalance();
+  };
 
   const isActive = (path: string) => {
     return location.pathname === path;
@@ -21,7 +45,7 @@ const BottomNavBar = ({ onAddBalance }: BottomNavBarProps) => {
 
   const navItems = [
     { path: "/", icon: Home, label: "Início" },
-    { path: "/premios", icon: Trophy, label: "Prêmios" },
+    { path: "/meus-premios", icon: Trophy, label: "Prêmios" },
     { path: "/carteira", icon: Wallet, label: "Carteira" },
     { path: "/perfil", icon: User, label: "Perfil" },
   ];
@@ -48,23 +72,37 @@ const BottomNavBar = ({ onAddBalance }: BottomNavBarProps) => {
           ))}
         </div>
 
-        {/* Center - Balance Display */}
+        {/* Center - Clickable Balance Display */}
         {user && (
-          <Link
-            to="/carteira"
+          <div
+            onClick={handleBalanceClick}
             className={cn(
-              "flex flex-col items-center justify-center py-2 px-3 rounded-xl transition-colors bg-gradient-to-r from-primary/20 to-secondary/20 border border-primary/30",
+              "flex flex-col items-center justify-center py-2 px-3 rounded-xl transition-all cursor-pointer bg-gradient-to-r from-primary/20 to-secondary/20 border border-primary/30 hover:from-primary/30 hover:to-secondary/30 hover:border-primary/50 hover:scale-105 active:scale-95 relative",
               isActive("/carteira")
                 ? "from-primary/30 to-secondary/30 border-primary/50"
-                : "hover:from-primary/25 hover:to-secondary/25"
+                : ""
             )}
           >
             <Wallet className="w-4 h-4 mb-1 text-primary" />
             <span className="text-xs font-bold text-primary">
-              R$ {(walletData?.balance || 0).toFixed(2)}
+              {showBalance ? `R$ ${(walletData?.balance || 0).toFixed(2)}` : "R$ ●●●●"}
             </span>
             <span className="text-xs text-muted-foreground">Saldo</span>
-          </Link>
+            
+            {/* Eye toggle button */}
+            <Button
+              onClick={toggleBalanceVisibility}
+              size="sm"
+              variant="ghost"
+              className="absolute -top-1 -right-1 w-6 h-6 p-0 bg-primary/20 hover:bg-primary/30 rounded-full"
+            >
+              {showBalance ? (
+                <Eye className="w-3 h-3 text-primary" />
+              ) : (
+                <EyeOff className="w-3 h-3 text-primary" />
+              )}
+            </Button>
+          </div>
         )}
 
         {/* Right side navigation */}
@@ -84,16 +122,6 @@ const BottomNavBar = ({ onAddBalance }: BottomNavBarProps) => {
               <span className="text-xs font-medium">{item.label}</span>
             </Link>
           ))}
-          
-          {/* Add Balance Button */}
-          <Button
-            onClick={onAddBalance}
-            size="sm"
-            className="flex flex-col items-center justify-center py-2 px-2 rounded-lg bg-primary/10 hover:bg-primary/20 text-primary min-w-[55px] h-auto"
-          >
-            <Plus className="w-4 h-4 mb-1" />
-            <span className="text-xs font-medium">Adicionar</span>
-          </Button>
         </div>
       </div>
     </nav>
