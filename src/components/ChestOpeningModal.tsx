@@ -139,7 +139,7 @@ const ChestOpeningModal = ({
         
         // Gerar item simulado após delay para simular o processo
         setTimeout(() => {
-          const simulatedItem = {
+          const simulatedItem: SpinItem = {
             id: Math.random().toString(),
             name: "Item Simulado",
             image_url: "/lovable-uploads/a4e45f22-07f1-459a-a5c2-de5eabb4144a.png",
