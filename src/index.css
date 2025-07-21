@@ -68,6 +68,12 @@
   .spin-slow {
     animation: spin 3s linear infinite;
   }
+  
+  /* Text stroke utility for silver chest titles */
+  .text-stroke-white {
+    -webkit-text-stroke: 0.5px rgba(255, 255, 255, 0.3);
+    text-stroke: 0.5px rgba(255, 255, 255, 0.3);
+  }
 }
 
 @keyframes shine {

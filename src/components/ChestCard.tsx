@@ -48,47 +48,59 @@ const ChestCard = ({
   
   const chestThemes = {
     silver: {
-      border: 'border-gray-400/30',
-      titleGradient: 'bg-gradient-to-r from-gray-300 via-gray-100 to-gray-300 bg-clip-text text-transparent',
-      cardGlow: 'shadow-gray-400/20'
+      border: 'border-slate-300/40',
+      titleGradient: 'bg-gradient-to-r from-slate-200 via-gray-100 to-slate-300 bg-clip-text text-transparent',
+      titleStyle: 'text-stroke-white',
+      cardGlow: 'shadow-slate-400/30',
+      cardBg: 'bg-gradient-to-br from-slate-50/5 to-gray-100/10'
     },
     gold: {
-      border: 'border-yellow-400/30', 
-      titleGradient: 'bg-gradient-to-r from-yellow-300 via-yellow-100 to-yellow-300 bg-clip-text text-transparent',
-      cardGlow: 'shadow-yellow-400/20'
+      border: 'border-yellow-400/50', 
+      titleGradient: 'bg-gradient-to-r from-yellow-200 via-amber-100 to-yellow-300 bg-clip-text text-transparent',
+      titleStyle: '',
+      cardGlow: 'shadow-yellow-500/40',
+      cardBg: 'bg-gradient-to-br from-yellow-50/5 to-amber-100/10'
     },
     delas: {
-      border: 'border-pink-400/30',
-      titleGradient: 'bg-gradient-to-r from-pink-300 via-rose-200 to-pink-300 bg-clip-text text-transparent', 
-      cardGlow: 'shadow-pink-400/20'
+      border: 'border-pink-400/50',
+      titleGradient: 'bg-gradient-to-r from-pink-200 via-rose-100 to-fuchsia-300 bg-clip-text text-transparent', 
+      titleStyle: '',
+      cardGlow: 'shadow-pink-500/40',
+      cardBg: 'bg-gradient-to-br from-pink-50/5 to-rose-100/10'
     },
     diamond: {
-      border: 'border-blue-400/30',
-      titleGradient: 'bg-gradient-to-r from-blue-300 via-cyan-200 to-blue-300 bg-clip-text text-transparent',
-      cardGlow: 'shadow-blue-400/20'
+      border: 'border-cyan-400/50',
+      titleGradient: 'bg-gradient-to-r from-cyan-200 via-blue-100 to-sky-300 bg-clip-text text-transparent',
+      titleStyle: '',
+      cardGlow: 'shadow-cyan-500/40',
+      cardBg: 'bg-gradient-to-br from-cyan-50/5 to-blue-100/10'
     },
     ruby: {
-      border: 'border-red-400/30',
-      titleGradient: 'bg-gradient-to-r from-red-300 via-pink-200 to-red-300 bg-clip-text text-transparent',
-      cardGlow: 'shadow-red-400/20'
+      border: 'border-red-400/50',
+      titleGradient: 'bg-gradient-to-r from-red-200 via-rose-100 to-pink-300 bg-clip-text text-transparent',
+      titleStyle: '',
+      cardGlow: 'shadow-red-500/40',
+      cardBg: 'bg-gradient-to-br from-red-50/5 to-rose-100/10'
     },
     premium: {
-      border: 'border-purple-500/30',
-      titleGradient: 'bg-gradient-to-r from-purple-300 via-pink-200 to-purple-300 bg-clip-text text-transparent',
-      cardGlow: 'shadow-purple-400/20'
+      border: 'border-purple-500/50',
+      titleGradient: 'bg-gradient-to-r from-purple-200 via-violet-100 to-fuchsia-300 bg-clip-text text-transparent',
+      titleStyle: '',
+      cardGlow: 'shadow-purple-500/40',
+      cardBg: 'bg-gradient-to-br from-purple-50/5 to-violet-100/10'
     }
   };
 
   const chestTheme = chestThemes[chestType] || chestThemes.silver;
 
   return (
-    <Card className={`relative overflow-hidden ${chestTheme.border} bg-card/50 hover:bg-card/70 transition-all duration-300 group h-full border-2 hover:${chestTheme.cardGlow} hover:shadow-lg`}
+    <Card className={`relative overflow-hidden ${chestTheme.border} ${chestTheme.cardBg} bg-card/50 hover:bg-card/70 transition-all duration-300 group h-full border-2 hover:${chestTheme.cardGlow} hover:shadow-lg`}
       key={chest.name + chest.price}
     >
       <CardContent className="p-8 flex flex-col h-full min-h-[520px]">
         {/* Header com nome e preço tematizado */}
         <div className="text-center mb-8">
-          <h3 className={`text-2xl font-bold mb-3 ${chestTheme.titleGradient} drop-shadow-sm`}>
+          <h3 className={`text-2xl font-bold mb-3 ${chestTheme.titleGradient} ${chestTheme.titleStyle} drop-shadow-sm`}>
             {chest.name}
           </h3>
           <div className="text-3xl font-bold text-white">
