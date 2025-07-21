@@ -1,5 +1,6 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
 import { Label } from '@/components/ui/label';
+import { toISODate, debugDate, isValidDate } from '@/utils/dateUtils';
 
 interface iOSDatePickerProps {
   id: string;
@@ -85,9 +86,18 @@ const IOSDatePicker = ({ id, label, value, onChange }: iOSDatePickerProps) => {
   useEffect(() => {
     if (isInitialized && selectedDay && selectedMonth && selectedYear) {
       const newDate = `${selectedYear}-${selectedMonth}-${selectedDay}`;
-      onChange(newDate);
+      
+      debugDate(`iOSDatePicker date change for ${id}`, newDate);
+      
+      // Validar antes de notificar
+      const isoDate = toISODate(newDate);
+      if (isoDate) {
+        onChange(newDate);
+      } else {
+        console.warn('Data inválida no iOSDatePicker:', newDate);
+      }
     }
-  }, [selectedDay, selectedMonth, selectedYear, onChange, isInitialized]);
+  }, [selectedDay, selectedMonth, selectedYear, onChange, isInitialized, id]);
 
   const handleScroll = useCallback((
     column: HTMLDivElement,

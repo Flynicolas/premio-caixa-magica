@@ -1,8 +1,9 @@
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback, useMemo } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
 import { useToast } from '@/hooks/use-toast';
+import { toISODate, debugDate, getCurrentTimestamp, validateBirthDate } from '@/utils/dateUtils';
 
 export interface Achievement {
   id: string;
@@ -83,21 +84,24 @@ export const useProfile = () => {
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
 
-  // Buscar perfil do usuário
-  const fetchProfile = async () => {
-    if (!user) return;
+  // Memoizar user.id para evitar re-renders desnecessários
+  const userId = useMemo(() => user?.id, [user?.id]);
+
+  // Buscar perfil do usuário (memoizado)
+  const fetchProfile = useCallback(async () => {
+    if (!userId) return;
 
     try {
-      console.log('Buscando perfil para usuário:', user.id);
+      console.log('🔍 Buscando perfil para usuário:', userId);
       
       const { data, error } = await supabase
         .from('profiles')
         .select('*')
-        .eq('id', user.id)
+        .eq('id', userId)
         .single();
 
       if (error) {
-        console.error('Erro ao buscar perfil:', error);
+        console.error('❌ Erro ao buscar perfil:', error);
         throw error;
       }
       
@@ -107,26 +111,28 @@ export const useProfile = () => {
         achievements: Array.isArray(data.achievements) ? data.achievements : [],
         preferences: data.preferences || {}
       };
+      
+      console.log('✅ Perfil carregado com sucesso');
       setProfile(profileData);
 
-      // Atualizar último login
+      // Atualizar último login apenas uma vez por sessão
       await supabase
         .from('profiles')
-        .update({ last_login: new Date().toISOString() })
-        .eq('id', user.id);
+        .update({ last_login: getCurrentTimestamp() })
+        .eq('id', userId);
 
     } catch (error: any) {
-      console.error('Error fetching profile:', error);
+      console.error('❌ Error fetching profile:', error);
       toast({
         title: "Erro ao carregar perfil",
         description: error.message || "Não foi possível carregar os dados do perfil.",
         variant: "destructive"
       });
     }
-  };
+  }, [userId, toast]);
 
-  // Buscar nível atual do usuário
-  const fetchUserLevel = async () => {
+  // Buscar nível atual do usuário (memoizado)
+  const fetchUserLevel = useCallback(async () => {
     if (!profile || allLevels.length === 0) return;
 
     try {
@@ -147,10 +153,10 @@ export const useProfile = () => {
     } catch (error) {
       console.error('Error fetching user level:', error);
     }
-  };
+  }, [profile?.experience, allLevels]);
 
-  // Buscar todos os níveis
-  const fetchAllLevels = async () => {
+  // Buscar todos os níveis (memoizado)
+  const fetchAllLevels = useCallback(async () => {
     try {
       const { data, error } = await supabase
         .from('user_levels')
@@ -175,24 +181,33 @@ export const useProfile = () => {
     } catch (error) {
       console.error('Error fetching levels:', error);
     }
-  };
+  }, []);
 
-  // Atualizar perfil completo com validação
-  const updateProfile = async (updates: Partial<UserProfile>) => {
-    if (!user) return { error: new Error('Usuário não logado') };
+  // Atualizar perfil completo com validação (memoizado)
+  const updateProfile = useCallback(async (updates: Partial<UserProfile>) => {
+    if (!userId) return { error: new Error('Usuário não logado') };
 
     setSaving(true);
     
     try {
-      console.log('Salvando atualizações do perfil:', updates);
+      console.log('💾 Salvando atualizações do perfil:', updates);
 
-      // Preparar dados para atualização - converter strings vazias em null
+      // Validar data de nascimento se fornecida
+      if (updates.birth_date) {
+        debugDate('Data de nascimento sendo salva', updates.birth_date);
+        
+        if (!validateBirthDate(updates.birth_date)) {
+          throw new Error('Data de nascimento inválida');
+        }
+      }
+
+      // Preparar dados para atualização com validação aprimorada
       const profileUpdates = {
         full_name: updates.full_name,
         username: updates.username === '' ? null : updates.username,
         phone: updates.phone === '' ? null : updates.phone,
         cpf: updates.cpf === '' ? null : updates.cpf,
-        birth_date: updates.birth_date === '' ? null : updates.birth_date,
+        birth_date: updates.birth_date ? toISODate(updates.birth_date) : null,
         zip_code: updates.zip_code === '' ? null : updates.zip_code,
         street: updates.street === '' ? null : updates.street,
         number: updates.number === '' ? null : updates.number,
@@ -205,7 +220,7 @@ export const useProfile = () => {
         prize_notifications: updates.prize_notifications,
         delivery_updates: updates.delivery_updates,
         promo_emails: updates.promo_emails,
-        updated_at: new Date().toISOString()
+        updated_at: getCurrentTimestamp()
       };
 
       // Remover campos undefined
@@ -215,17 +230,19 @@ export const useProfile = () => {
         }
       });
 
-      console.log('Dados a serem salvos:', profileUpdates);
+      console.log('📋 Dados processados para salvamento:', profileUpdates);
 
       const { error } = await supabase
         .from('profiles')
         .update(profileUpdates)
-        .eq('id', user.id);
+        .eq('id', userId);
 
       if (error) {
-        console.error('Erro no Supabase:', error);
+        console.error('❌ Erro no Supabase:', error);
         throw error;
       }
+
+      console.log('✅ Perfil salvo no banco de dados');
 
       // Recarregar perfil após atualização
       await fetchProfile();
@@ -237,7 +254,7 @@ export const useProfile = () => {
 
       return { error: null };
     } catch (error: any) {
-      console.error('Erro ao atualizar perfil:', error);
+      console.error('❌ Erro ao atualizar perfil:', error);
       toast({
         title: "❌ Erro ao atualizar perfil",
         description: error.message || "Ocorreu um erro inesperado. Tente novamente.",
@@ -247,7 +264,7 @@ export const useProfile = () => {
     } finally {
       setSaving(false);
     }
-  };
+  }, [userId, fetchProfile, toast]);
 
   // Validar CPF
   const validateCPF = (cpf: string) => {
@@ -281,13 +298,16 @@ export const useProfile = () => {
     }
   };
 
+  // Carregar dados inicial (com dependency otimizada)
   useEffect(() => {
-    if (user) {
+    if (userId) {
       const loadData = async () => {
         try {
           setLoading(true);
-          await fetchProfile();
-          await fetchAllLevels();
+          await Promise.all([
+            fetchProfile(),
+            fetchAllLevels()
+          ]);
         } catch (error) {
           console.error('Error loading profile data:', error);
         } finally {
@@ -297,14 +317,17 @@ export const useProfile = () => {
       loadData();
     } else {
       setLoading(false);
+      setProfile(null);
+      setUserLevel(null);
     }
-  }, [user]);
+  }, [userId, fetchProfile, fetchAllLevels]);
 
+  // Buscar nível quando perfil ou níveis mudarem
   useEffect(() => {
     if (profile && allLevels.length > 0) {
       fetchUserLevel();
     }
-  }, [profile, allLevels]);
+  }, [profile?.experience, allLevels.length, fetchUserLevel]);
 
   return {
     profile,

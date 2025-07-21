@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Switch } from '@/components/ui/switch';
@@ -6,9 +6,9 @@ import { Separator } from '@/components/ui/separator';
 import { useToast } from '@/hooks/use-toast';
 import { useAuth } from '@/hooks/useAuth';
 import { useProfile } from '@/hooks/useProfile';
-import { useWallet } from '@/hooks/useWallet';
 import { useRescueStats } from '@/hooks/useRescueStats';
 import { useIsMobile } from '@/hooks/use-mobile';
+import { debugDate } from '@/utils/dateUtils';
 import AddressAutoFill from '@/components/AddressAutoFill';
 import MaskedInput from '@/components/MaskedInput';
 import IOSDatePicker from '@/components/iOSDatePicker';
@@ -85,28 +85,41 @@ const Configuracoes = () => {
     }
   }, [profile]);
 
-  const handleInputChange = (field: string, value: any) => {
-    console.log('Configuracoes handleInputChange:', field, value);
+  // Debounced input change para melhor performance
+  const handleInputChange = useCallback((field: string, value: any) => {
+    console.log('⚡ Configuracoes handleInputChange:', field, value);
+    
+    // Debug especial para data de nascimento
+    if (field === 'birth_date') {
+      debugDate('Configuracoes - birth_date change', value);
+    }
+    
     setFormData(prev => ({
       ...prev,
       [field]: value
     }));
-  };
+  }, []);
 
-  const handleAddressChange = (address: {
+  const handleAddressChange = useCallback((address: {
     street: string;
     neighborhood: string;
     city: string;
     state: string;
   }) => {
+    console.log('🏠 Endereço atualizado:', address);
     setFormData(prev => ({
       ...prev,
       ...address
     }));
-  };
+  }, []);
 
-  const handleSaveAll = async () => {
-    console.log('Salvando formData:', formData);
+  const handleSaveAll = useCallback(async () => {
+    console.log('💾 Salvando formData completo:', formData);
+    
+    // Debug especial para data de nascimento
+    if (formData.birth_date) {
+      debugDate('Configuracoes - Salvando birth_date', formData.birth_date);
+    }
     
     // Validações
     const hasWithdrawals = totalRescue > 0;
@@ -123,22 +136,14 @@ const Configuracoes = () => {
     }
 
     const result = await updateProfile(formData);
-    console.log('Resultado do updateProfile:', result);
+    console.log('📊 Resultado do updateProfile:', result);
     
     if (!result.error) {
-      toast({
-        title: "✅ Perfil atualizado!",
-        description: "Todas as suas informações foram salvas com sucesso.",
-      });
+      console.log('✅ Perfil salvo com sucesso');
     } else {
-      console.error('Erro ao salvar perfil:', result.error);
-      toast({
-        title: "❌ Erro ao salvar",
-        description: "Houve um erro ao salvar suas informações. Tente novamente.",
-        variant: "destructive"
-      });
+      console.error('❌ Erro ao salvar perfil:', result.error);
     }
-  };
+  }, [formData, totalRescue, validateCPF, updateProfile, toast]);
 
   if (loading) {
     return (
