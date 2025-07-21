@@ -1,4 +1,4 @@
-import { Shield, Lock, Award, Phone } from 'lucide-react';
+import { Shield, Lock, Award, Phone, Home, Gift, Info, Trophy, HelpCircle, FileText, Users } from 'lucide-react';
 import { Link } from 'react-router-dom';
 
 const Footer = () => {
@@ -52,33 +52,37 @@ const Footer = () => {
               <li>
                 <Link 
                   to="/" 
-                  className="text-muted-foreground hover:text-primary transition-all duration-300 hover:translate-x-1 inline-block"
+                  className="text-muted-foreground hover:text-primary transition-all duration-300 hover:translate-x-1 inline-flex items-center space-x-2"
                 >
-                  🏠 Página Inicial
+                  <Home className="w-4 h-4" />
+                  <span>Página Inicial</span>
                 </Link>
               </li>
               <li>
                 <Link 
                   to="/premios" 
-                  className="text-muted-foreground hover:text-primary transition-all duration-300 hover:translate-x-1 inline-block"
+                  className="text-muted-foreground hover:text-primary transition-all duration-300 hover:translate-x-1 inline-flex items-center space-x-2"
                 >
-                  🎁 Prêmios
+                  <Gift className="w-4 h-4" />
+                  <span>Prêmios</span>
                 </Link>
               </li>
               <li>
                 <Link 
                   to="/sobre" 
-                  className="text-muted-foreground hover:text-primary transition-all duration-300 hover:translate-x-1 inline-block"
+                  className="text-muted-foreground hover:text-primary transition-all duration-300 hover:translate-x-1 inline-flex items-center space-x-2"
                 >
-                  ℹ️ Sobre
+                  <Info className="w-4 h-4" />
+                  <span>Sobre</span>
                 </Link>
               </li>
               <li>
                 <Link 
                   to="/ranking" 
-                  className="text-muted-foreground hover:text-primary transition-all duration-300 hover:translate-x-1 inline-block"
+                  className="text-muted-foreground hover:text-primary transition-all duration-300 hover:translate-x-1 inline-flex items-center space-x-2"
                 >
-                  🏆 Ranking
+                  <Trophy className="w-4 h-4" />
+                  <span>Ranking</span>
                 </Link>
               </li>
             </ul>
@@ -94,33 +98,37 @@ const Footer = () => {
               <li>
                 <Link 
                   to="/central-ajuda" 
-                  className="text-muted-foreground hover:text-primary transition-all duration-300 hover:translate-x-1 inline-block"
+                  className="text-muted-foreground hover:text-primary transition-all duration-300 hover:translate-x-1 inline-flex items-center space-x-2"
                 >
-                  📞 Central de Ajuda
+                  <Users className="w-4 h-4" />
+                  <span>Central de Ajuda</span>
                 </Link>
               </li>
               <li>
                 <Link 
                   to="/termos-uso" 
-                  className="text-muted-foreground hover:text-primary transition-all duration-300 hover:translate-x-1 inline-block"
+                  className="text-muted-foreground hover:text-primary transition-all duration-300 hover:translate-x-1 inline-flex items-center space-x-2"
                 >
-                  📋 Termos de Uso
+                  <FileText className="w-4 h-4" />
+                  <span>Termos de Uso</span>
                 </Link>
               </li>
               <li>
                 <Link 
                   to="/politica-privacidade" 
-                  className="text-muted-foreground hover:text-primary transition-all duration-300 hover:translate-x-1 inline-block"
+                  className="text-muted-foreground hover:text-primary transition-all duration-300 hover:translate-x-1 inline-flex items-center space-x-2"
                 >
-                  🔒 Política de Privacidade
+                  <Lock className="w-4 h-4" />
+                  <span>Política de Privacidade</span>
                 </Link>
               </li>
               <li>
                 <Link 
                   to="/faq" 
-                  className="text-muted-foreground hover:text-primary transition-all duration-300 hover:translate-x-1 inline-block"
+                  className="text-muted-foreground hover:text-primary transition-all duration-300 hover:translate-x-1 inline-flex items-center space-x-2"
                 >
-                  ❓ FAQ
+                  <HelpCircle className="w-4 h-4" />
+                  <span>FAQ</span>
                 </Link>
               </li>
             </ul>
