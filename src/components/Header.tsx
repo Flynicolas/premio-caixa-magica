@@ -25,13 +25,17 @@ import {
   Plus
 } from 'lucide-react';
 import { useAdminCheck } from '@/hooks/useAdminCheck';
+import { useInventory } from '@/hooks/useInventory';
 import AuthModal from './AuthModal';
+import WalletPanel from './WalletPanel';
 
 const Header = () => {
   const { user, signOut } = useAuth();
   const { walletData } = useWallet();
+  const { userItems } = useInventory();
   const { isAdmin } = useAdminCheck();
   const [showAuthModal, setShowAuthModal] = useState(false);
+  const [showWalletPanel, setShowWalletPanel] = useState(false);
   const navigate = useNavigate();
 
   const handleSignOut = async () => {
@@ -44,6 +48,20 @@ const Header = () => {
   };
 
   const balance = walletData?.balance || 0;
+
+  // Mapear userItems para o formato esperado pelo WalletPanel
+  const mappedPrizes = userItems.map(item => ({
+    ...item.item,
+    id: item.item?.id || '',
+    name: item.item?.name || '',
+    image: item.item?.image_url || '/placeholder.svg',
+    value: `R$ ${item.item?.base_value?.toFixed(2) || '0,00'}`,
+    rarity: item.rarity as 'common' | 'rare' | 'epic' | 'legendary',
+    chestType: 'silver' as const,
+    timestamp: new Date(item.won_at),
+    itemId: item.item?.id || '',
+    inventoryId: item.id
+  }));
 
   return (
     <header className="bg-card border-b border-primary/20 sticky top-0 z-50 backdrop-blur-sm">
@@ -115,6 +133,12 @@ const Header = () => {
                     </Link>
                   </DropdownMenuItem>
                   <DropdownMenuItem asChild>
+                    <Link to="/carteira" className="cursor-pointer">
+                      <Wallet className="mr-2 h-4 w-4" />
+                      Carteira
+                    </Link>
+                  </DropdownMenuItem>
+                  <DropdownMenuItem asChild>
                     <Link to="/meus-premios" className="cursor-pointer">
                       <Gift className="mr-2 h-4 w-4" />
                       Meus Prêmios
@@ -133,7 +157,7 @@ const Header = () => {
                 <Button 
                   variant="ghost" 
                   className="hidden sm:flex items-center space-x-2 bg-primary/10 hover:bg-primary/20 px-3 py-1 rounded-full h-auto"
-                  onClick={() => navigate('/configuracoes')}
+                  onClick={() => setShowWalletPanel(true)}
                 >
                   <Wallet className="w-4 h-4 text-primary" />
                   <span className="text-sm font-medium">
@@ -168,6 +192,12 @@ const Header = () => {
                       <Link to="/perfil" className="cursor-pointer">
                         <User className="mr-2 h-4 w-4" />
                         <span>Perfil</span>
+                      </Link>
+                    </DropdownMenuItem>
+                    <DropdownMenuItem asChild>
+                      <Link to="/carteira" className="cursor-pointer">
+                        <Wallet className="mr-2 h-4 w-4" />
+                        <span>Carteira</span>
                       </Link>
                     </DropdownMenuItem>
                     <DropdownMenuItem asChild>
@@ -222,6 +252,13 @@ const Header = () => {
       <AuthModal 
         isOpen={showAuthModal} 
         onClose={() => setShowAuthModal(false)} 
+      />
+
+      <WalletPanel 
+        isOpen={showWalletPanel} 
+        onClose={() => setShowWalletPanel(false)}
+        balance={balance}
+        prizes={mappedPrizes}
       />
     </header>
   );

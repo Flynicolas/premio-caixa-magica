@@ -19,6 +19,7 @@ import Perfil from "./pages/Perfil";
 import Admin from "./pages/Admin";
 import MinhasEntregas from "./pages/MinhasEntregas";
 import Configuracoes from "./pages/Configuracoes";
+import Carteira from "./pages/Carteira";
 import NotFound from "./pages/NotFound";
 import CentralAjuda from "./pages/CentralAjuda";
 import TermosUso from "./pages/TermosUso";
@@ -54,6 +55,7 @@ const App = () => {
                     <Route path="/sobre" element={<Sobre />} />
                     <Route path="/ranking" element={<Ranking />} />
                     <Route path="/perfil" element={<Perfil />} />
+                    <Route path="/carteira" element={<Carteira />} />
                     <Route path="/entregas" element={<MinhasEntregas />} />
                     <Route path="/configuracoes" element={<Configuracoes />} />
                     <Route path="/admin" element={<Admin />} />
