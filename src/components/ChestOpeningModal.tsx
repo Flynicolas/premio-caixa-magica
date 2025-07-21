@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from "react";
 import {
   Dialog,
@@ -52,7 +53,7 @@ const ChestOpeningModal = ({
   const { user } = useAuth();
   const { refreshData } = useWallet();
   const { generateRoulette, rouletteData, isLoading } = useRouletteLogic();
-const { processGamification } = useGamification();
+  const { processGamification } = useGamification();
 
   const configMap = {
     silver: {
@@ -118,7 +119,8 @@ const { processGamification } = useGamification();
   }, [phase]);
 
   const handleOpenChest = async () => {
-    if (!user) {
+    // Para simulação, pular verificação de usuário
+    if (!isSimulation && !user) {
       toast({
         title: "Erro",
         description: "Você precisa estar logado para abrir baús.",
@@ -126,10 +128,33 @@ const { processGamification } = useGamification();
       });
       return;
     }
-    console.log("[BOTÃO] Girar clicado");
 
+    console.log("[BOTÃO] Girar clicado");
     setIsProcessing(true);
+
     try {
+      // Se for simulação, usar lógica simulada
+      if (isSimulation) {
+        setPhase("spinning");
+        
+        // Gerar item simulado após delay para simular o processo
+        setTimeout(() => {
+          const simulatedItem = {
+            id: Math.random().toString(),
+            name: "Item Simulado",
+            image_url: "/lovable-uploads/a4e45f22-07f1-459a-a5c2-de5eabb4144a.png",
+            rarity: "legendary"
+          };
+          setWonItem(simulatedItem);
+          setPhase("result");
+          setIsSpinning(false);
+          setIsProcessing(false);
+        }, 3000);
+        
+        return;
+      }
+
+      // Lógica normal para usuários autenticados
       const { data: result, error } = await supabase.functions.invoke(
         "draw-item-from-chest",
         {
@@ -190,12 +215,12 @@ const { processGamification } = useGamification();
     toast({ title: "🎉 Parabéns!", description: `Você ganhou: ${item.name}` });
 
     if (user) {
-    try {
-      await processGamification(user.id, item, chestPrice);
-    } catch (err) {
-      console.error("Erro ao processar gamificação:", err);
+      try {
+        await processGamification(user.id, item, chestPrice);
+      } catch (err) {
+        console.error("Erro ao processar gamificação:", err);
+      }
     }
-  }
   };
 
   const handleClose = () => {
@@ -264,19 +289,27 @@ const { processGamification } = useGamification();
                   <Sparkles className="w-12 h-12 text-yellow-300 animate-ping-slow drop-shadow-xl" />
                 </div>
                 <h3 className="text-3xl font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-yellow-300 via-pink-300 to-purple-400 mb-4 drop-shadow-lg text-center">
-                  Prepare-se para o sorteio!
+                  {isSimulation ? "Experimente grátis!" : "Prepare-se para o sorteio!"}
                 </h3>
 
                 <p className="text-white/90 text-lg text-center mb-6">
-                  Custo do baú:{" "}
-                  <span className="font-bold text-white">
-                    R$ {chestPrice.toFixed(2)}
-                  </span>
+                  {isSimulation ? (
+                    "Esta é uma demonstração gratuita"
+                  ) : (
+                    <>
+                      Custo do baú:{" "}
+                      <span className="font-bold text-white">
+                        R$ {chestPrice.toFixed(2)}
+                      </span>
+                    </>
+                  )}
                 </p>
 
                 <p className="text-sm text-white/70 text-center max-w-md mx-auto">
-                  A roleta mágica está pronta para girar e revelar o seu prêmio.
-                  Você está com sorte hoje?
+                  {isSimulation 
+                    ? "Veja como funciona a abertura de baús sem compromisso!"
+                    : "A roleta mágica está pronta para girar e revelar o seu prêmio. Você está com sorte hoje?"
+                  }
                 </p>
               </div>
 
@@ -301,13 +334,13 @@ const { processGamification } = useGamification();
             </>
           )}
 
-          {phase === "spinning" && rouletteData && (
-            <RouletteDisplay
-              prizes={rouletteData.prizes}
-              prizeIndex={rouletteData.prizeIndex}
-              start={isSpinning}
-              onPrizeDefined={() => handleSpinComplete(rouletteData.winnerItem)}
-            />
+          {phase === "spinning" && (
+            <div className="flex flex-col items-center gap-6">
+              <div className="w-16 h-16 border-4 border-yellow-400 border-t-transparent rounded-full animate-spin"></div>
+              <p className="text-white text-xl font-bold">
+                {isSimulation ? "Simulando sorteio..." : "Sorteando seu prêmio..."}
+              </p>
+            </div>
           )}
 
           {phase === "result" && wonItem && (
@@ -319,7 +352,7 @@ const { processGamification } = useGamification();
                   🎉 Parabéns!
                 </h2>
                 <p className="text-lg text-white/80 text-center mb-6">
-                  Você ganhou um item {wonItem.rarity?.toUpperCase()}:
+                  {isSimulation ? "Você ganhou na simulação:" : `Você ganhou um item ${wonItem.rarity?.toUpperCase()}:`}
                 </p>
 
                 <div className="flex flex-col items-center gap-4">
@@ -349,21 +382,25 @@ const { processGamification } = useGamification();
                 >
                   Fechar
                 </Button>
-                <Button
-                  className={`bg-white/20 backdrop-blur-sm hover:bg-white/30 text-white font-bold border border-white/30 ${config.glow}`}
-                  onClick={() => (window.location.href = "/baus")}
-                >
-                  Ver Inventário
-                </Button>
-                <Button
-                  className="bg-gradient-to-r from-indigo-400 to-pink-400 text-white font-bold shadow-md hover:scale-105 transition-transform"
-                  onClick={() => {
-                    setPhase("preview");
-                    setWonItem(null);
-                  }}
-                >
-                  Abrir Outro Baú
-                </Button>
+                {!isSimulation && (
+                  <>
+                    <Button
+                      className={`bg-white/20 backdrop-blur-sm hover:bg-white/30 text-white font-bold border border-white/30 ${config.glow}`}
+                      onClick={() => (window.location.href = "/baus")}
+                    >
+                      Ver Inventário
+                    </Button>
+                    <Button
+                      className="bg-gradient-to-r from-indigo-400 to-pink-400 text-white font-bold shadow-md hover:scale-105 transition-transform"
+                      onClick={() => {
+                        setPhase("preview");
+                        setWonItem(null);
+                      }}
+                    >
+                      Abrir Outro Baú
+                    </Button>
+                  </>
+                )}
               </div>
             </div>
           )}
