@@ -85,7 +85,7 @@ export const useWithdrawItem = () => {
       // Buscar carteira do usuário
       const { data: walletData, error: walletError } = await supabase
         .from('user_wallets')
-        .select('id, balance')
+        .select('id, balance, total_spent')
         .eq('user_id', user.id)
         .single();
 
@@ -103,7 +103,7 @@ export const useWithdrawItem = () => {
         .from('user_wallets')
         .update({ 
           balance: walletData.balance - deliveryFee,
-          total_spent: supabase.sql`total_spent + ${deliveryFee}`
+          total_spent: (walletData.total_spent || 0) + deliveryFee
         })
         .eq('user_id', user.id);
 

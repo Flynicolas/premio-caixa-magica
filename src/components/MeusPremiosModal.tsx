@@ -21,7 +21,7 @@ interface MeusPremiosModalProps {
 
 const MeusPremiosModal = ({ isOpen, onClose }: MeusPremiosModalProps) => {
   const { user } = useAuth();
-  const { userItems, loading, refreshUserItems } = useInventory();
+  const { userItems, loading, refreshInventory } = useInventory();
   const { walletData, refreshData: refreshWallet, showPaymentModalForAmount, PaymentModalComponent } = useWallet();
   const { toast } = useToast();
   const navigate = useNavigate();
@@ -302,7 +302,7 @@ const MeusPremiosModal = ({ isOpen, onClose }: MeusPremiosModalProps) => {
                       });
 
                       if (result.success) {
-                        await refreshUserItems();
+                        await refreshInventory();
                         await refreshWallet();
                         setSelectedPrize(null);
                       } else if (result.insufficientBalance) {
