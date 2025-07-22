@@ -6,11 +6,12 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-import { Package, Gift, Star, Trophy, Clock, X } from 'lucide-react';
+import { Package, Gift, Star, Trophy, Clock, X, Wallet, Plus } from 'lucide-react';
 import { useWithdrawItem } from '@/hooks/useWithdrawItem';
 import { useToast } from '@/hooks/use-toast';
 import { useProfile } from '@/hooks/useProfile';
 import { useNavigate } from 'react-router-dom';
+import { useWallet } from '@/hooks/useWallet';
 import Cookies from "js-cookie";
 
 interface MeusPremiosModalProps {
@@ -20,13 +21,14 @@ interface MeusPremiosModalProps {
 
 const MeusPremiosModal = ({ isOpen, onClose }: MeusPremiosModalProps) => {
   const { user } = useAuth();
-  const { userItems, loading } = useInventory();
+  const { userItems, loading, refreshUserItems } = useInventory();
+  const { walletData, refreshData: refreshWallet, showPaymentModalForAmount, PaymentModalComponent } = useWallet();
   const { toast } = useToast();
   const navigate = useNavigate();
   const { profile } = useProfile();
   const [selectedPrize, setSelectedPrize] = useState<any>(null);
   const [isProcessing, setIsProcessing] = useState(false);
-  const { solicitarRetirada } = useWithdrawItem();
+  const { resgateComCarteira } = useWithdrawItem();
 
   if (loading) {
     return (
@@ -52,6 +54,11 @@ const MeusPremiosModal = ({ isOpen, onClose }: MeusPremiosModalProps) => {
     acc[rarity] = (acc[rarity] || 0) + 1;
     return acc;
   }, {} as Record<string, number>);
+
+  const deliveryFee = 25.0;
+  const currentBalance = walletData?.balance || 0;
+  const balanceAfterRedemption = currentBalance - deliveryFee;
+  const hasSufficientBalance = currentBalance >= deliveryFee;
 
   return (
     <>
@@ -101,6 +108,34 @@ const MeusPremiosModal = ({ isOpen, onClose }: MeusPremiosModalProps) => {
                 </CardContent>
               </Card>
             </div>
+
+            {/* Wallet Balance Card */}
+            {user && (
+              <Card className="bg-gradient-to-br from-emerald-900/20 to-emerald-800/20 border-emerald-500/30">
+                <CardContent className="p-4">
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-3">
+                      <Wallet className="w-6 h-6 text-emerald-400" />
+                      <div>
+                        <div className="text-lg font-bold text-emerald-300">
+                          R$ {currentBalance.toFixed(2).replace('.', ',')}
+                        </div>
+                        <div className="text-xs text-muted-foreground">Saldo disponível</div>
+                      </div>
+                    </div>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => showPaymentModalForAmount()}
+                      className="border-emerald-500/30 text-emerald-300 hover:bg-emerald-500/20"
+                    >
+                      <Plus className="w-4 h-4 mr-2" />
+                      Adicionar
+                    </Button>
+                  </div>
+                </CardContent>
+              </Card>
+            )}
 
             {/* Prizes Grid */}
             <div className="space-y-4">
@@ -180,7 +215,7 @@ const MeusPremiosModal = ({ isOpen, onClose }: MeusPremiosModalProps) => {
         <Dialog open={true} onOpenChange={() => setSelectedPrize(null)}>
           <DialogContent className="bg-card border border-yellow-400/50 max-w-md">
             <DialogHeader>
-              <DialogTitle className="text-center">Confirmar Retirada</DialogTitle>
+              <DialogTitle className="text-center">Confirmar Resgate</DialogTitle>
             </DialogHeader>
 
             <div className="space-y-4">
@@ -193,92 +228,132 @@ const MeusPremiosModal = ({ isOpen, onClose }: MeusPremiosModalProps) => {
                 <h3 className="font-semibold text-lg mb-2">{selectedPrize.item?.name}</h3>
               </div>
 
-              <div className="bg-yellow-500/10 border border-yellow-500/30 rounded-lg p-4">
-                <p className="text-sm text-center mb-2">
-                  Para receber seu prêmio, é necessário pagar a taxa de entrega de
-                </p>
-                <p className="text-2xl font-bold text-yellow-400 text-center">R$ 25,00</p>
+              {/* Balance Information */}
+              <div className="bg-blue-500/10 border border-blue-500/30 rounded-lg p-4 space-y-2">
+                <div className="flex justify-between text-sm">
+                  <span>Saldo atual:</span>
+                  <span className="font-semibold">R$ {currentBalance.toFixed(2).replace('.', ',')}</span>
+                </div>
+                <div className="flex justify-between text-sm">
+                  <span>Taxa de entrega:</span>
+                  <span className="font-semibold text-yellow-400">R$ {deliveryFee.toFixed(2).replace('.', ',')}</span>
+                </div>
+                <div className="border-t border-blue-500/20 pt-2">
+                  <div className="flex justify-between text-sm font-bold">
+                    <span>Saldo após resgate:</span>
+                    <span className={balanceAfterRedemption >= 0 ? 'text-green-400' : 'text-red-400'}>
+                      R$ {balanceAfterRedemption.toFixed(2).replace('.', ',')}
+                    </span>
+                  </div>
+                </div>
               </div>
 
               <p className="text-xs text-muted-foreground text-center">
-                Após o pagamento, sua entrega será iniciada. Você poderá acompanhar o status na área <strong>Minhas Entregas</strong>.
+                Após o resgate, sua entrega será iniciada. Você poderá acompanhar o status na área <strong>Minhas Entregas</strong>.
               </p>
 
-              <Button
-                className="w-full bg-gradient-to-r from-yellow-400 to-yellow-500 hover:from-yellow-500 hover:to-yellow-600 text-black font-bold"
-                disabled={isProcessing}
-                onClick={async () => {
-                  if (!user || !selectedPrize) return;
+              {hasSufficientBalance ? (
+                <Button
+                  className="w-full bg-gradient-to-r from-yellow-400 to-yellow-500 hover:from-yellow-500 hover:to-yellow-600 text-black font-bold"
+                  disabled={isProcessing}
+                  onClick={async () => {
+                    if (!user || !selectedPrize) return;
 
-                  const fullName = profile?.full_name;
-                  const cpf = profile?.cpf;
-                  const addressComplete =
-                    profile?.zip_code &&
-                    profile?.street &&
-                    profile?.number &&
-                    profile?.neighborhood &&
-                    profile?.city &&
-                    profile?.state;
+                    const fullName = profile?.full_name;
+                    const cpf = profile?.cpf;
+                    const addressComplete =
+                      profile?.zip_code &&
+                      profile?.street &&
+                      profile?.number &&
+                      profile?.neighborhood &&
+                      profile?.city &&
+                      profile?.state;
 
-                  if (!fullName || !cpf || !addressComplete) {
-                    toast({
-                      title: "Complete seu cadastro",
-                      description: "Você precisa informar nome completo, CPF e endereço para retirar prêmios.",
-                      variant: "destructive",
-                    });
+                    if (!fullName || !cpf || !addressComplete) {
+                      toast({
+                        title: "Complete seu cadastro",
+                        description: "Você precisa informar nome completo, CPF e endereço para retirar prêmios.",
+                        variant: "destructive",
+                      });
 
-                    Cookies.set("redirected_from_retirada", "true", { path: "/" });
-                    navigate("/configuracoes");
-                    return;
-                  }
+                      Cookies.set("redirected_from_retirada", "true", { path: "/" });
+                      navigate("/configuracoes");
+                      return;
+                    }
 
-                  try {
-                    setIsProcessing(true);
+                    try {
+                      setIsProcessing(true);
 
-                    await solicitarRetirada({
-                      itemId: selectedPrize.item?.id,
-                      inventoryId: selectedPrize.id,
-                      fullName,
-                      cpf,
-                      address: {
-                        zip_code: profile.zip_code,
-                        street: profile.street,
-                        number: profile.number,
-                        complement: profile.complement,
-                        neighborhood: profile.neighborhood,
-                        city: profile.city,
-                        state: profile.state,
-                      },
-                    });
+                      const result = await resgateComCarteira({
+                        itemId: selectedPrize.item?.id,
+                        inventoryId: selectedPrize.id,
+                        fullName,
+                        cpf,
+                        address: {
+                          zip_code: profile.zip_code,
+                          street: profile.street,
+                          number: profile.number,
+                          complement: profile.complement,
+                          neighborhood: profile.neighborhood,
+                          city: profile.city,
+                          state: profile.state,
+                        },
+                        userBalance: currentBalance
+                      });
 
+                      if (result.success) {
+                        await refreshUserItems();
+                        await refreshWallet();
+                        setSelectedPrize(null);
+                      } else if (result.insufficientBalance) {
+                        toast({
+                          title: "Saldo insuficiente",
+                          description: "Adicione saldo à sua carteira para continuar.",
+                          variant: "destructive",
+                        });
+                      }
+                    } catch (error) {
+                      toast({
+                        title: "Erro ao processar resgate",
+                        description: "Tente novamente em instantes.",
+                        variant: "destructive",
+                      });
+                    } finally {
+                      setIsProcessing(false);
+                    }
+                  }}
+                >
+                  {isProcessing ? (
+                    <>
+                      <Clock className="w-4 h-4 mr-2 animate-spin" />
+                      Processando...
+                    </>
+                  ) : (
+                    <>
+                      <Wallet className="w-4 h-4 mr-2" />
+                      Resgatar por R$ {deliveryFee.toFixed(2).replace('.', ',')}
+                    </>
+                  )}
+                </Button>
+              ) : (
+                <Button
+                  className="w-full bg-gradient-to-r from-blue-400 to-blue-500 hover:from-blue-500 hover:to-blue-600 text-white font-bold"
+                  onClick={() => {
+                    const missingAmount = deliveryFee - currentBalance;
+                    showPaymentModalForAmount(missingAmount);
                     setSelectedPrize(null);
-                  } catch (error) {
-                    toast({
-                      title: "Erro ao solicitar retirada",
-                      description: "Tente novamente em instantes.",
-                      variant: "destructive",
-                    });
-                  } finally {
-                    setIsProcessing(false);
-                  }
-                }}
-              >
-                {isProcessing ? (
-                  <>
-                    <Clock className="w-4 h-4 mr-2 animate-spin" />
-                    Processando...
-                  </>
-                ) : (
-                  <>
-                    <Gift className="w-4 h-4 mr-2" />
-                    Retirar meu prêmio
-                  </>
-                )}
-              </Button>
+                  }}
+                >
+                  <Plus className="w-4 h-4 mr-2" />
+                  Adicionar R$ {(deliveryFee - currentBalance).toFixed(2).replace('.', ',')}
+                </Button>
+              )}
             </div>
           </DialogContent>
         </Dialog>
       )}
+
+      <PaymentModalComponent />
     </>
   );
 };

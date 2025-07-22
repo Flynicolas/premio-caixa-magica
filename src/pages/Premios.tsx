@@ -5,7 +5,7 @@ import { useWallet } from '@/hooks/useWallet';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Sparkles, Crown, Diamond, Heart, Flame, Star, ShoppingCart, Radio, Package } from 'lucide-react';
+import { Sparkles, Crown, Diamond, Heart, Flame, Star, Radio, Package } from 'lucide-react';
 import { chestData, ChestType } from '@/data/chestData';
 import RealtimeWinsCarousel from '@/components/RealtimeWinsCarousel';
 import ChestCard from '@/components/ChestCard';
@@ -14,7 +14,6 @@ import { useInventory } from '@/hooks/useInventory';
 import { DatabaseItem } from '@/types/database';
 import DynamicMessage from '@/components/DynamicMessage';
 import MeusPremiosMinified from '@/components/MeusPremiosMinified';
-import QuickChestAccess from '@/components/QuickChestAccess';
 
 const Premios = () => {
   const { user } = useAuth();
@@ -72,10 +71,6 @@ const Premios = () => {
     console.log('Abrir carteira');
   };
 
-  const scrollToCatalog = () => {
-    catalogRef.current?.scrollIntoView({ behavior: 'smooth' });
-  };
-
   if (loading) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-gray-900 via-black to-gray-900 flex items-center justify-center">
@@ -107,9 +102,6 @@ const Premios = () => {
         <section className="mb-8">
           <DynamicMessage />
         </section>
-
-        {/* Quick Access aos Baús */}
-        <QuickChestAccess onScrollToCatalog={scrollToCatalog} />
 
         {/* Catálogo de Baús - Seção Principal */}
         <section className="mb-12" ref={catalogRef}>

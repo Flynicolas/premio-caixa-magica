@@ -4,12 +4,14 @@ import { useAuth } from '@/hooks/useAuth';
 import { useInventory } from '@/hooks/useInventory';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Package, Gift, Star, Trophy, Eye } from 'lucide-react';
+import { Package, Gift, Star, Trophy, Eye, Wallet } from 'lucide-react';
+import { useWallet } from '@/hooks/useWallet';
 import MeusPremiosModal from './MeusPremiosModal';
 
 const MeusPremiosMinified = () => {
   const { user } = useAuth();
   const { userItems, loading } = useInventory();
+  const { walletData } = useWallet();
   const [showModal, setShowModal] = useState(false);
 
   // Se não está logado, não mostrar nada
@@ -61,7 +63,7 @@ const MeusPremiosMinified = () => {
           </CardHeader>
           <CardContent className="pt-0">
             {/* Stats Row */}
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
+            <div className="grid grid-cols-2 md:grid-cols-5 gap-4 mb-6">
               <div className="text-center bg-blue-500/10 rounded-lg p-3 border border-blue-500/20">
                 <div className="text-2xl font-bold text-blue-300">{totalPrizes}</div>
                 <div className="text-sm text-muted-foreground">Total</div>
@@ -77,6 +79,15 @@ const MeusPremiosMinified = () => {
               <div className="text-center bg-yellow-500/10 rounded-lg p-3 border border-yellow-500/20">
                 <div className="text-2xl font-bold text-yellow-300">{rarityStats.legendary || 0}</div>
                 <div className="text-sm text-muted-foreground">Lendários</div>
+              </div>
+              <div className="text-center bg-emerald-500/10 rounded-lg p-3 border border-emerald-500/20">
+                <div className="flex items-center justify-center gap-1 mb-1">
+                  <Wallet className="w-4 h-4 text-emerald-300" />
+                </div>
+                <div className="text-lg font-bold text-emerald-300">
+                  R$ {(walletData?.balance || 0).toFixed(2).replace('.', ',')}
+                </div>
+                <div className="text-sm text-muted-foreground">Saldo</div>
               </div>
             </div>
             

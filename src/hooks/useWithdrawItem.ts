@@ -43,6 +43,139 @@ export const useWithdrawItem = () => {
       setLoading(false);
     }
   };
+
+  const resgateComCarteira = async ({
+    itemId,
+    inventoryId,
+    fullName,
+    cpf,
+    address,
+    userBalance
+  }: {
+    itemId: string;
+    inventoryId: string;
+    fullName: string;
+    cpf: string;
+    address: {
+      zip_code: string;
+      street: string;
+      number: string;
+      complement?: string;
+      neighborhood: string;
+      city: string;
+      state: string;
+    };
+    userBalance: number;
+  }) => {
+    const deliveryFee = 25.0;
+
+    if (!user) {
+      toast({ title: 'Erro', description: 'Usuário não autenticado.', variant: 'destructive' });
+      return { success: false, insufficientBalance: false };
+    }
+
+    // Verificar saldo suficiente
+    if (userBalance < deliveryFee) {
+      return { success: false, insufficientBalance: true };
+    }
+    
+    try {
+      const addressString = `${address.street}, ${address.number}${address.complement ? `, ${address.complement}` : ''}, ${address.neighborhood}, ${address.city} - ${address.state}, CEP: ${address.zip_code}`;
+      
+      // Buscar carteira do usuário
+      const { data: walletData, error: walletError } = await supabase
+        .from('user_wallets')
+        .select('id, balance')
+        .eq('user_id', user.id)
+        .single();
+
+      if (walletError || !walletData) {
+        throw new Error('Carteira não encontrada');
+      }
+
+      // Verificar saldo novamente no banco
+      if (walletData.balance < deliveryFee) {
+        return { success: false, insufficientBalance: true };
+      }
+
+      // Debitar da carteira
+      const { error: debitError } = await supabase
+        .from('user_wallets')
+        .update({ 
+          balance: walletData.balance - deliveryFee,
+          total_spent: supabase.sql`total_spent + ${deliveryFee}`
+        })
+        .eq('user_id', user.id);
+
+      if (debitError) throw debitError;
+
+      // Criar transação da compra
+      const { error: transactionError } = await supabase
+        .from('transactions')
+        .insert({
+          user_id: user.id,
+          wallet_id: walletData.id,
+          type: 'purchase',
+          amount: deliveryFee,
+          status: 'completed',
+          description: `Taxa de entrega - Resgate de prêmio`,
+          metadata: { 
+            item_id: itemId,
+            inventory_id: inventoryId,
+            withdrawal_type: 'wallet_payment'
+          }
+        });
+
+      if (transactionError) throw transactionError;
+
+      // Criar registro de retirada
+      const { data: retirada, error: retiradaError } = await supabase
+        .from('item_withdrawals')
+        .insert({
+          user_id: user.id,
+          item_id: itemId,
+          inventory_id: inventoryId,
+          full_name: fullName,
+          cpf,
+          delivery_address: addressString,
+          delivery_fee: deliveryFee,
+          payment_status: 'paid',
+          delivery_status: 'aguardando_envio'
+        })
+        .select()
+        .single();
+        
+      if (retiradaError || !retirada) throw retiradaError;
+
+      // Marcar item como resgatado no inventário
+      const { error: inventoryError } = await supabase
+        .from('user_inventory')
+        .update({ 
+          is_redeemed: true, 
+          redeemed_at: new Date().toISOString() 
+        })
+        .eq('id', inventoryId);
+
+      if (inventoryError) throw inventoryError;
+
+      toast({
+        title: 'Resgate realizado!',
+        description: `Seu prêmio foi resgatado com sucesso. Acompanhe a entrega em "Minhas Entregas".`,
+        variant: 'default',
+      });
+
+      return { success: true, insufficientBalance: false };
+      
+    } catch (err: any) {
+      console.error('Erro ao resgatar com carteira:', err);
+      toast({ 
+        title: 'Erro', 
+        description: err.message || 'Erro inesperado ao processar resgate.', 
+        variant: 'destructive' 
+      });
+      return { success: false, insufficientBalance: false };
+    }
+  };
     
   const solicitarRetirada = async ({
     itemId,
@@ -108,12 +241,6 @@ export const useWithdrawItem = () => {
         return;
       }
       
-      // REMOVIDO: Não marcar como resgatado aqui - só após confirmação do pagamento via webhook
-      // await supabase
-      //   .from('user_inventory')
-      //   .update({ is_redeemed: true, redeemed_at: new Date().toISOString() })
-      //   .eq('id', inventoryId);
-      
       redirectToPayment(payment);
     } catch (err: any) {
       console.error('Erro ao solicitar retirada:', err);
@@ -121,5 +248,11 @@ export const useWithdrawItem = () => {
     }
   };
 
-  return { solicitarRetirada, fetchEntregas, entregas, loading };
+  return { 
+    solicitarRetirada, 
+    resgateComCarteira,
+    fetchEntregas, 
+    entregas, 
+    loading 
+  };
 };
