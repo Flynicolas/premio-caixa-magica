@@ -1,3 +1,4 @@
+
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
 
@@ -107,9 +108,10 @@ serve(async (req) => {
         if (description.startsWith('Retirada do prêmio #')) {
           const withdrawalId = description.replace('Retirada do prêmio #', '').trim();
 
+          // Atualizar status do pagamento
           const { error: payError } = await supabase
             .from('item_withdrawal_payments')
-            .update({ status: 'paid' })
+            .update({ status: paymentData.status === 'approved' ? 'paid' : paymentData.status })
             .eq('withdrawal_id', withdrawalId)
             .eq('transaction_id', paymentId.toString());
 
@@ -117,21 +119,66 @@ serve(async (req) => {
             console.error('Erro ao atualizar item_withdrawal_payments:', payError);
           }
 
-          const { error: withdrawalError } = await supabase
-            .from('item_withdrawals')
-            .update({
-              payment_status: 'paid',
-              delivery_status: 'aguardando_envio'
-            })
-            .eq('id', withdrawalId);
+          // Se pagamento aprovado, processar retirada
+          if (paymentData.status === 'approved') {
+            // Buscar dados da retirada
+            const { data: withdrawal, error: withdrawalFetchError } = await supabase
+              .from('item_withdrawals')
+              .select('inventory_id')
+              .eq('id', withdrawalId)
+              .single();
 
-          if (withdrawalError) {
-            console.error('Erro ao atualizar item_withdrawals:', withdrawalError);
+            if (withdrawalFetchError) {
+              console.error('Erro ao buscar dados da retirada:', withdrawalFetchError);
+            } else {
+              // Marcar item como resgatado no inventário APENAS APÓS PAGAMENTO CONFIRMADO
+              const { error: inventoryError } = await supabase
+                .from('user_inventory')
+                .update({ 
+                  is_redeemed: true, 
+                  redeemed_at: new Date().toISOString() 
+                })
+                .eq('id', withdrawal.inventory_id);
+
+              if (inventoryError) {
+                console.error('Erro ao marcar item como resgatado:', inventoryError);
+              }
+            }
+
+            // Atualizar status da retirada
+            const { error: withdrawalError } = await supabase
+              .from('item_withdrawals')
+              .update({
+                payment_status: 'paid',
+                delivery_status: 'aguardando_envio'
+              })
+              .eq('id', withdrawalId);
+
+            if (withdrawalError) {
+              console.error('Erro ao atualizar item_withdrawals:', withdrawalError);
+            }
+          } else if (paymentData.status === 'cancelled' || paymentData.status === 'rejected') {
+            // Se pagamento cancelado/rejeitado, manter item disponível no inventário
+            console.log(`Pagamento ${paymentData.status} - item permanece disponível no inventário`);
+            
+            // Atualizar status da retirada para refletir falha no pagamento
+            const { error: withdrawalError } = await supabase
+              .from('item_withdrawals')
+              .update({
+                payment_status: paymentData.status,
+                delivery_status: 'pagamento_falhado'
+              })
+              .eq('id', withdrawalId);
+
+            if (withdrawalError) {
+              console.error('Erro ao atualizar status da retirada falhada:', withdrawalError);
+            }
           }
 
           return new Response('Retirada processada com sucesso', { status: 200, headers: corsHeaders });
         }
 
+        // Processar outros tipos de pagamento (wallet, etc.)
         const { data: result, error } = await supabase.rpc('process_mercadopago_webhook', {
           p_preference_id: preferenceId,
           p_payment_id: paymentId.toString(),

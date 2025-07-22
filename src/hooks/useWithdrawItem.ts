@@ -1,3 +1,4 @@
+
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from './useAuth';
 import { useToast } from './use-toast';
@@ -17,75 +18,62 @@ export const useWithdrawItem = () => {
     setLoading(true);
     try {
       const { data, error } = await supabase
-      .from('item_withdrawals')
-      .select(`
-    id,
-    created_at,
-    tracking_code,
-    delivery_status,
-    item:item_id(name, image_url),
-    payments:item_withdrawal_payments(status),
-    profile:profiles(
-      full_name,
-      cpf,
-      zip_code,
-      street,
-      number,
-      complement,
-      neighborhood,
-      city,
-      state
-    )
-  `)
+        .from('item_withdrawals')
+        .select(`
+          id,
+          created_at,
+          tracking_code,
+          delivery_status,
+          payment_status,
+          item:item_id(name, image_url),
+          payments:item_withdrawal_payments(status)
+        `)
         .eq('user_id', user.id)
         .order('created_at', { ascending: false });
         
-        
-        
-        if (error) throw error;
-        setEntregas(data || []);
-      } catch (err) {
-        toast({
-          title: 'Erro',
-          description: 'Não foi possível carregar suas entregas.',
-          variant: 'destructive',
-        });
-      } finally {
-        setLoading(false);
-      }
-    };
+      if (error) throw error;
+      setEntregas(data || []);
+    } catch (err) {
+      toast({
+        title: 'Erro',
+        description: 'Não foi possível carregar suas entregas.',
+        variant: 'destructive',
+      });
+    } finally {
+      setLoading(false);
+    }
+  };
     
-    const solicitarRetirada = async ({
-      itemId,
-      inventoryId,
-      fullName,
-      cpf,
-      address
-    }: {
-      itemId: string;
-      inventoryId: string;
-      fullName: string;
-      cpf: string;
-      address: {
-        zip_code: string;
-        street: string;
-        number: string;
-        complement?: string;
-        neighborhood: string;
-        city: string;
-        state: string;
-      };
+  const solicitarRetirada = async ({
+    itemId,
+    inventoryId,
+    fullName,
+    cpf,
+    address
+  }: {
+    itemId: string;
+    inventoryId: string;
+    fullName: string;
+    cpf: string;
+    address: {
+      zip_code: string;
+      street: string;
+      number: string;
+      complement?: string;
+      neighborhood: string;
+      city: string;
+      state: string;
+    };
+  }) => {
+    if (!user) {
+      toast({ title: 'Erro', description: 'Usuário não autenticado.', variant: 'destructive' });
+      return;
+    }
+    
+    try {
+      const addressString = `${address.street}, ${address.number}${address.complement ? `, ${address.complement}` : ''}, ${address.neighborhood}, ${address.city} - ${address.state}, CEP: ${address.zip_code}`;
       
-    }) => {
-      if (!user) {
-        toast({ title: 'Erro', description: 'Usuário não autenticado.', variant: 'destructive' });
-        return;
-      }
-      
-      try {
-        const addressString = `${address.street}, ${address.number}${address.complement ? `, ${address.complement}` : ''}, ${address.neighborhood}, ${address.city} - ${address.state}, CEP: ${address.zip_code}`;
-        
-        const { data: retirada, error: retiradaError } = await supabase
+      const { data: retirada, error: retiradaError } = await supabase
         .from('item_withdrawals')
         .insert({
           user_id: user.id,
@@ -99,12 +87,12 @@ export const useWithdrawItem = () => {
         .select()
         .single();
         
-        if (retiradaError || !retirada) throw retiradaError;
-        
-        const payment = await createPayment(25.0, `Retirada do prêmio #${retirada.id}`);
-        if (!payment) return;
-        
-        const { error: payError } = await supabase
+      if (retiradaError || !retirada) throw retiradaError;
+      
+      const payment = await createPayment(25.0, `Retirada do prêmio #${retirada.id}`);
+      if (!payment) return;
+      
+      const { error: payError } = await supabase
         .from('item_withdrawal_payments')
         .insert({
           withdrawal_id: retirada.id,
@@ -113,29 +101,25 @@ export const useWithdrawItem = () => {
           transaction_id: payment.transaction_id,
           status: 'pending'
         });
-        
-        // Marcar item como resgatado no inventário
-        await supabase
-        .from('user_inventory')
-        .update({ is_redeemed: true, redeemed_at: new Date().toISOString() })
-        .eq('id', inventoryId);
-        
-        if (payError) {
-          console.error('Erro ao salvar pagamento da retirada:', payError);
-          toast({ title: 'Erro', description: 'Falha ao vincular pagamento à retirada.', variant: 'destructive' });
-          return;
-        }
-        
-        redirectToPayment(payment);
-      } catch (err: any) {
-        console.error('Erro ao solicitar retirada:', err);
-        toast({ title: 'Erro', description: err.message || 'Erro inesperado.', variant: 'destructive' });
+      
+      if (payError) {
+        console.error('Erro ao salvar pagamento da retirada:', payError);
+        toast({ title: 'Erro', description: 'Falha ao vincular pagamento à retirada.', variant: 'destructive' });
+        return;
       }
-    };
-
-
-    
-
-    return { solicitarRetirada, fetchEntregas, entregas, loading };
+      
+      // REMOVIDO: Não marcar como resgatado aqui - só após confirmação do pagamento via webhook
+      // await supabase
+      //   .from('user_inventory')
+      //   .update({ is_redeemed: true, redeemed_at: new Date().toISOString() })
+      //   .eq('id', inventoryId);
+      
+      redirectToPayment(payment);
+    } catch (err: any) {
+      console.error('Erro ao solicitar retirada:', err);
+      toast({ title: 'Erro', description: err.message || 'Erro inesperado.', variant: 'destructive' });
+    }
   };
-  
+
+  return { solicitarRetirada, fetchEntregas, entregas, loading };
+};
