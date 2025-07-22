@@ -1,28 +1,28 @@
 
-import { useState, useEffect } from 'react';
+import { useState, useRef } from 'react';
 import { useAuth } from '@/hooks/useAuth';
 import { useWallet } from '@/hooks/useWallet';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Sparkles, Crown, Diamond, Heart, Flame, Star, ShoppingCart, Radio, Trophy, Package } from 'lucide-react';
+import { Sparkles, Crown, Diamond, Heart, Flame, Star, ShoppingCart, Radio, Package } from 'lucide-react';
 import { chestData, ChestType } from '@/data/chestData';
 import RealtimeWinsCarousel from '@/components/RealtimeWinsCarousel';
 import ChestCard from '@/components/ChestCard';
 import ItemCard from '@/components/ItemCard';
 import { useInventory } from '@/hooks/useInventory';
 import { DatabaseItem } from '@/types/database';
-import { useNavigate } from 'react-router-dom';
 import DynamicMessage from '@/components/DynamicMessage';
+import MeusPremiosMinified from '@/components/MeusPremiosMinified';
+import QuickChestAccess from '@/components/QuickChestAccess';
 
 const Premios = () => {
   const { user } = useAuth();
   const { walletData } = useWallet();
-  const { userItems, getChestItems, loading } = useInventory();
-  const navigate = useNavigate();
+  const { getChestItems, loading } = useInventory();
   const [selectedChest, setSelectedChest] = useState<ChestType>('silver');
   const [chestItems, setChestItems] = useState<any[]>([]);
+  const catalogRef = useRef<HTMLElement>(null);
 
   // Carregar itens do baú selecionado
   const loadChestItems = async (chestType: ChestType) => {
@@ -57,23 +57,23 @@ const Premios = () => {
   const chestOrder: ChestType[] = ['silver', 'gold', 'diamond', 'ruby', 'premium', 'delas'];
 
   const handleChestOpen = (chestType: ChestType) => {
-    // Lógica para abrir baú será implementada
     console.log('Abrir baú:', chestType);
   };
 
   const handleChestViewItems = (chestType: ChestType) => {
-    // Lógica para ver itens será implementada
     console.log('Ver itens do baú:', chestType);
   };
 
   const handleDirectChestOpening = (prize: DatabaseItem) => {
-    // Lógica para abertura direta será implementada
     console.log('Prêmio ganho:', prize);
   };
 
   const handleOpenWallet = () => {
-    // Lógica para abrir carteira será implementada
     console.log('Abrir carteira');
+  };
+
+  const scrollToCatalog = () => {
+    catalogRef.current?.scrollIntoView({ behavior: 'smooth' });
   };
 
   if (loading) {
@@ -100,89 +100,19 @@ const Premios = () => {
           <RealtimeWinsCarousel showIcons={false} className="bg-gradient-to-r from-gray-900/20 to-gray-800/20 border border-green-500/10 p-3" />
         </div>
 
-        {/* Seção de Escolha de Baús - Mensagens Dinâmicas */}
+        {/* Meus Prêmios Minimizado (apenas para usuários logados) */}
+        <MeusPremiosMinified />
+
+        {/* Mensagens Dinâmicas */}
         <section className="mb-8">
           <DynamicMessage />
-          
-          <div className="text-center mb-6">
-            <p className="text-lg text-muted-foreground">Escolha seu baú e teste sua sorte! Cada baú oferece diferentes chances de prêmios.</p>
-          </div>
-
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 max-w-5xl mx-auto px-4">
-            {chestOrder.map((chestType) => (
-              <div key={chestType}>
-                <ChestCard
-                  chest={chestData[chestType]}
-                  chestType={chestType}
-                  onOpen={() => handleChestOpen(chestType)}
-                  onViewItems={() => handleChestViewItems(chestType)}
-                  balance={walletData?.balance || 0}
-                  isAuthenticated={!!user}
-                  onPrizeWon={handleDirectChestOpening}
-                  onAddBalance={handleOpenWallet}
-                />
-              </div>
-            ))}
-          </div>
         </section>
 
-        {/* Resumo dos Prêmios do Usuário - Seção Minimalizada */}
-        {user && userItems.length > 0 && (
-          <section className="mb-12">
-            <Card className="bg-gradient-to-r from-purple-900/20 to-blue-900/20 border-purple-500/30 max-w-4xl mx-auto">
-              <CardHeader className="pb-3">
-                <CardTitle className="flex items-center justify-between">
-                  <div className="flex items-center gap-2">
-                    <Trophy className="w-5 h-5 text-purple-400" />
-                    <span className="text-lg">Seus Prêmios</span>
-                  </div>
-                  <Button 
-                    variant="outline" 
-                    size="sm"
-                    onClick={() => navigate('/meus-premios')}
-                    className="border-purple-500/30 text-purple-300 hover:bg-purple-500/20"
-                  >
-                    Ver Todos
-                  </Button>
-                </CardTitle>
-              </CardHeader>
-              <CardContent className="pt-0">
-                <div className="flex items-center justify-between mb-4">
-                  <div className="flex items-center gap-6">
-                    <div className="text-center">
-                      <div className="text-2xl font-bold text-purple-300">{userItems.length}</div>
-                      <div className="text-sm text-muted-foreground">Total</div>
-                    </div>
-                    <div className="text-center">
-                      <div className="text-2xl font-bold text-green-300">{userItems.filter(item => !item.is_redeemed).length}</div>
-                      <div className="text-sm text-muted-foreground">Disponíveis</div>
-                    </div>
-                    <div className="text-center">
-                      <div className="text-2xl font-bold text-yellow-300">{userItems.filter(item => item.item?.rarity === 'legendary').length}</div>
-                      <div className="text-sm text-muted-foreground">Lendários</div>
-                    </div>
-                  </div>
-                </div>
-                
-                {/* Últimos prêmios conquistados */}
-                <div className="flex gap-2 overflow-x-auto pb-2">
-                  {userItems.slice(0, 6).map((userItem, index) => (
-                    <div key={index} className="flex-shrink-0 w-16 h-16 bg-zinc-800/50 rounded-lg border border-zinc-700/50 flex items-center justify-center">
-                      <img
-                        src={userItem.item?.image_url || '/placeholder.png'}
-                        alt={userItem.item?.name}
-                        className="w-12 h-12 object-contain drop-shadow-sm"
-                      />
-                    </div>
-                  ))}
-                </div>
-              </CardContent>
-            </Card>
-          </section>
-        )}
+        {/* Quick Access aos Baús */}
+        <QuickChestAccess onScrollToCatalog={scrollToCatalog} />
 
-        {/* Catálogo de Baús */}
-        <section className="mb-12">
+        {/* Catálogo de Baús - Seção Principal */}
+        <section className="mb-12" ref={catalogRef}>
           <div className="text-center mb-8">
             <h2 className="text-3xl font-bold text-primary mb-4">Catálogo de Baús</h2>
             <p className="text-lg text-muted-foreground">Explore todos os tipos de baús e suas recompensas exclusivas</p>
@@ -230,10 +160,16 @@ const Premios = () => {
                             <p className="text-lg font-bold">R$ {chest.price.toFixed(2).replace('.', ',')}</p>
                           </div>
                         </div>
-                        <Button className="bg-white/20 hover:bg-white/30 text-white border-white/30">
-                          <ShoppingCart className="w-4 h-4 mr-2" />
-                          Comprar Baú
-                        </Button>
+                        <ChestCard
+                          chest={chest}
+                          chestType={chestType as ChestType}
+                          onOpen={() => handleChestOpen(chestType as ChestType)}
+                          onViewItems={() => handleChestViewItems(chestType as ChestType)}
+                          balance={walletData?.balance || 0}
+                          isAuthenticated={!!user}
+                          onPrizeWon={handleDirectChestOpening}
+                          onAddBalance={handleOpenWallet}
+                        />
                       </div>
                     </CardHeader>
                     <CardContent className="p-6">
