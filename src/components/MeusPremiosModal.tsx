@@ -29,7 +29,7 @@ const MeusPremiosModal = ({ isOpen, onClose }: MeusPremiosModalProps) => {
   const { profile } = useProfile();
   const [selectedPrize, setSelectedPrize] = useState<any>(null);
   const [isProcessing, setIsProcessing] = useState(false);
-  const { solicitarRetirada } = useWithdrawItem();
+  const { resgateComCarteira } = useWithdrawItem();
 
   if (!user) return null;
 
@@ -97,7 +97,7 @@ const MeusPremiosModal = ({ isOpen, onClose }: MeusPremiosModalProps) => {
       setIsProcessing(true);
       setSelectedPrize(userItem);
 
-      const result = await solicitarRetirada({
+      const result = await resgateComCarteira({
         itemId: userItem.item?.id,
         inventoryId: userItem.id,
         fullName,
@@ -111,6 +111,7 @@ const MeusPremiosModal = ({ isOpen, onClose }: MeusPremiosModalProps) => {
           city: profile.city,
           state: profile.state,
         },
+        userBalance: walletData?.balance || 0,
       });
 
       if (result.success) {
