@@ -52,9 +52,6 @@ const Premios = () => {
     premium: '/lovable-uploads/d43f06a5-1532-42ba-8362-5aefb160b408.png'
   };
 
-  // Ordem específica dos baús
-  const chestOrder: ChestType[] = ['silver', 'gold', 'diamond', 'ruby', 'premium', 'delas'];
-
   const handleChestOpen = (chestType: ChestType) => {
     console.log('Abrir baú:', chestType);
   };
@@ -114,7 +111,7 @@ const Premios = () => {
             setSelectedChest(value as ChestType);
             loadChestItems(value as ChestType);
           }} className="w-full">
-            <TabsList className="grid w-full grid-cols-3 lg:grid-cols-6 mb-8">
+            <TabsList className="grid w-full grid-cols-2 md:grid-cols-3 lg:grid-cols-6 mb-8 h-auto">
               {Object.entries(chestData).map(([chestType, chest]) => {
                 const theme = chestThemes[chestType as ChestType];
                 const IconComponent = theme.icon;
@@ -122,10 +119,10 @@ const Premios = () => {
                   <TabsTrigger 
                     key={chestType} 
                     value={chestType}
-                    className="flex flex-col items-center p-2 data-[state=active]:bg-gradient-to-r data-[state=active]:from-primary/20 data-[state=active]:to-accent/20"
+                    className="flex flex-col items-center p-3 h-auto data-[state=active]:bg-gradient-to-r data-[state=active]:from-primary/20 data-[state=active]:to-accent/20"
                   >
-                    <IconComponent className="w-4 h-4 mb-1" />
-                    <span className="text-xs">{chest.name}</span>
+                    <IconComponent className="w-4 h-4 md:w-5 md:h-5 mb-1" />
+                    <span className="text-xs md:text-sm font-medium">{chest.name}</span>
                   </TabsTrigger>
                 );
               })}
@@ -138,39 +135,41 @@ const Premios = () => {
                 <TabsContent key={chestType} value={chestType}>
                   <Card className="border-2 border-opacity-30 bg-card/50">
                     <CardHeader className={`bg-gradient-to-r ${theme.color} text-white rounded-t-lg`}>
-                      <div className="flex items-center justify-between">
+                      <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
                         <div className="flex items-center gap-3">
-                          <div className="w-16 h-16 rounded-lg bg-white/20 flex items-center justify-center">
+                          <div className="w-12 h-12 md:w-16 md:h-16 rounded-lg bg-white/20 flex items-center justify-center flex-shrink-0">
                             <img 
                               src={chestImages[chestType as ChestType]} 
                               alt={chest.name}
-                              className="w-12 h-12 object-contain drop-shadow-lg"
+                              className="w-8 h-8 md:w-12 md:h-12 object-contain drop-shadow-lg"
                             />
                           </div>
                           <div>
-                            <h3 className="text-2xl font-bold">{chest.name}</h3>
-                            <p className="text-lg font-bold">R$ {chest.price.toFixed(2).replace('.', ',')}</p>
+                            <h3 className="text-xl md:text-2xl font-bold">{chest.name}</h3>
+                            <p className="text-lg md:text-xl font-bold">R$ {chest.price.toFixed(2).replace('.', ',')}</p>
                           </div>
                         </div>
-                        <ChestCard
-                          chest={chest}
-                          chestType={chestType as ChestType}
-                          onOpen={() => handleChestOpen(chestType as ChestType)}
-                          onViewItems={() => handleChestViewItems(chestType as ChestType)}
-                          balance={walletData?.balance || 0}
-                          isAuthenticated={!!user}
-                          onPrizeWon={handleDirectChestOpening}
-                          onAddBalance={handleOpenWallet}
-                        />
+                        <div className="w-full md:w-auto">
+                          <ChestCard
+                            chest={chest}
+                            chestType={chestType as ChestType}
+                            onOpen={() => handleChestOpen(chestType as ChestType)}
+                            onViewItems={() => handleChestViewItems(chestType as ChestType)}
+                            balance={walletData?.balance || 0}
+                            isAuthenticated={!!user}
+                            onPrizeWon={handleDirectChestOpening}
+                            onAddBalance={handleOpenWallet}
+                          />
+                        </div>
                       </div>
                     </CardHeader>
-                    <CardContent className="p-6">
+                    <CardContent className="p-4 md:p-6">
                       <div className="grid md:grid-cols-2 gap-6">
                         <div>
                           <h4 className="text-lg font-bold mb-3 text-primary">Sobre este Baú</h4>
-                          <p className="text-muted-foreground mb-4">{theme.description}</p>
+                          <p className="text-muted-foreground mb-4 text-sm md:text-base">{theme.description}</p>
                           
-                          <div className="space-y-2 mb-4">
+                          <div className="space-y-2 mb-4 text-sm md:text-base">
                             <div className="flex justify-between">
                               <span>Valor Investido:</span>
                               <span className="font-bold">R$ {chest.price.toFixed(2).replace('.', ',')}</span>
@@ -184,8 +183,8 @@ const Premios = () => {
 
                         <div>
                           <h4 className="text-lg font-bold mb-3 text-primary">Prêmios Disponíveis</h4>
-                          <div className="grid grid-cols-4 gap-2 max-h-64 overflow-y-auto">
-                            {chestItems.slice(0, 20).map((chestItem, index) => (
+                          <div className="grid grid-cols-2 md:grid-cols-4 gap-2 max-h-64 overflow-y-auto">
+                            {chestItems.slice(0, 16).map((chestItem, index) => (
                               <div key={index} className="flex flex-col items-center">
                                 <ItemCard
                                   item={{
@@ -196,7 +195,7 @@ const Premios = () => {
                                   }}
                                   size="sm"
                                   showRarity={false}
-                                  className="hover:transform-none hover:shadow-none"
+                                  className="hover:transform-none hover:shadow-none w-full h-16 md:h-20"
                                 />
                               </div>
                             ))}

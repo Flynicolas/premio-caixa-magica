@@ -5,12 +5,13 @@ import { useInventory } from '@/hooks/useInventory';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { Package, Gift, Star, Trophy, Clock } from 'lucide-react';
+import { Package, Gift, Star, Trophy } from 'lucide-react';
 import { useWithdrawItem } from '@/hooks/useWithdrawItem';
 import { useToast } from '@/hooks/use-toast';
 import { useProfile } from '@/hooks/useProfile';
 import { useNavigate } from 'react-router-dom';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import RedeemButton from '@/components/RedeemButton';
 import Cookies from "js-cookie";
 
 const MeusPremios = () => {
@@ -43,6 +44,63 @@ const MeusPremios = () => {
     acc[rarity] = (acc[rarity] || 0) + 1;
     return acc;
   }, {} as Record<string, number>);
+
+  const handleRedeemPrize = async (userItem: any) => {
+    if (!user || !userItem) return;
+
+    const fullName = profile?.full_name;
+    const cpf = profile?.cpf;
+    const addressComplete =
+      profile?.zip_code &&
+      profile?.street &&
+      profile?.number &&
+      profile?.neighborhood &&
+      profile?.city &&
+      profile?.state;
+
+    if (!fullName || !cpf || !addressComplete) {
+      toast({
+        title: "Complete seu cadastro",
+        description: "Você precisa informar nome completo, CPF e endereço para retirar prêmios.",
+        variant: "destructive",
+      });
+
+      Cookies.set("redirected_from_retirada", "true", { path: "/" });
+      navigate("/configuracoes");
+      return;
+    }
+
+    try {
+      setIsProcessing(true);
+      setSelectedPrize(userItem);
+
+      await solicitarRetirada({
+        itemId: userItem.item?.id,
+        inventoryId: userItem.id,
+        fullName,
+        cpf,
+        address: {
+          zip_code: profile.zip_code,
+          street: profile.street,
+          number: profile.number,
+          complement: profile.complement,
+          neighborhood: profile.neighborhood,
+          city: profile.city,
+          state: profile.state,
+        },
+      });
+
+      setSelectedPrize(null);
+    } catch (error) {
+      toast({
+        title: "Erro ao solicitar retirada",
+        description: "Tente novamente em instantes.",
+        variant: "destructive",
+      });
+    } finally {
+      setIsProcessing(false);
+    }
+  };
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-900 via-black to-gray-900">
@@ -113,7 +171,7 @@ const MeusPremios = () => {
                 </Button>
               </div>
             ) : (
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 md:gap-6">
                 {userItems.map((userItem, index) => (
                   <Card key={index} className="bg-gradient-to-br from-zinc-800/50 via-zinc-900/50 to-black/50 border-zinc-700/50 hover:border-zinc-600/50 transition-all group">
                     <CardContent className="p-4">
@@ -121,7 +179,7 @@ const MeusPremios = () => {
                         <img
                           src={userItem.item?.image_url || '/placeholder.png'}
                           alt={userItem.item?.name}
-                          className="w-full h-32 object-contain rounded-md drop-shadow-lg"
+                          className="w-full h-24 md:h-32 object-contain rounded-md drop-shadow-lg"
                         />
                         
                         {/* Rarity indicator */}
@@ -150,20 +208,12 @@ const MeusPremios = () => {
                           </p>
                         </div>
 
-                        {userItem.is_redeemed ? (
-                          <div className="flex items-center gap-2 text-green-400">
-                            <Package className="w-4 h-4" />
-                            <span className="text-sm font-medium">Resgatado</span>
-                          </div>
-                        ) : (
-                          <Button
-                            onClick={() => setSelectedPrize(userItem)}
-                            className="w-full bg-gradient-to-r from-yellow-400 to-yellow-500 hover:from-yellow-500 hover:to-yellow-600 text-black font-semibold"
-                          >
-                            <Gift className="w-4 h-4 mr-2" />
-                            Resgatar Prêmio
-                          </Button>
-                        )}
+                        <RedeemButton
+                          isRedeemed={userItem.is_redeemed}
+                          isProcessing={isProcessing && selectedPrize?.id === userItem.id}
+                          onClick={() => handleRedeemPrize(userItem)}
+                          className="w-full"
+                        />
                       </div>
                     </CardContent>
                   </Card>
@@ -202,77 +252,12 @@ const MeusPremios = () => {
                   Após o pagamento, sua entrega será iniciada. Você poderá acompanhar o status na área <strong>Minhas Entregas</strong>.
                 </p>
 
-                <Button
-                  className="w-full bg-gradient-to-r from-yellow-400 to-yellow-500 hover:from-yellow-500 hover:to-yellow-600 text-black font-bold"
-                  disabled={isProcessing}
-                  onClick={async () => {
-                    if (!user || !selectedPrize) return;
-
-                    const fullName = profile?.full_name;
-                    const cpf = profile?.cpf;
-                    const addressComplete =
-                      profile?.zip_code &&
-                      profile?.street &&
-                      profile?.number &&
-                      profile?.neighborhood &&
-                      profile?.city &&
-                      profile?.state;
-
-                    if (!fullName || !cpf || !addressComplete) {
-                      toast({
-                        title: "Complete seu cadastro",
-                        description: "Você precisa informar nome completo, CPF e endereço para retirar prêmios.",
-                        variant: "destructive",
-                      });
-
-                      Cookies.set("redirected_from_retirada", "true", { path: "/" });
-                      navigate("/configuracoes");
-                      return;
-                    }
-
-                    try {
-                      setIsProcessing(true);
-
-                      await solicitarRetirada({
-                        itemId: selectedPrize.item?.id,
-                        inventoryId: selectedPrize.id,
-                        fullName,
-                        cpf,
-                        address: {
-                          zip_code: profile.zip_code,
-                          street: profile.street,
-                          number: profile.number,
-                          complement: profile.complement,
-                          neighborhood: profile.neighborhood,
-                          city: profile.city,
-                          state: profile.state,
-                        },
-                      });
-
-                      setSelectedPrize(null);
-                    } catch (error) {
-                      toast({
-                        title: "Erro ao solicitar retirada",
-                        description: "Tente novamente em instantes.",
-                        variant: "destructive",
-                      });
-                    } finally {
-                      setIsProcessing(false);
-                    }
-                  }}
-                >
-                  {isProcessing ? (
-                    <>
-                      <Clock className="w-4 h-4 mr-2 animate-spin" />
-                      Processando...
-                    </>
-                  ) : (
-                    <>
-                      <Gift className="w-4 h-4 mr-2" />
-                      Retirar meu prêmio
-                    </>
-                  )}
-                </Button>
+                <RedeemButton
+                  isRedeemed={false}
+                  isProcessing={isProcessing}
+                  onClick={() => handleRedeemPrize(selectedPrize)}
+                  className="w-full"
+                />
               </div>
             </DialogContent>
           </Dialog>
