@@ -21,9 +21,10 @@ export interface ScratchBlockState {
   symbol: ScratchSymbol | null;
 }
 
-export type ScratchCardType = 'silver' | 'gold' | 'delas' | 'diamond' | 'ruby' | 'premium';
+export type ScratchCardType = 'basic' | 'silver' | 'gold' | 'delas' | 'diamond' | 'ruby' | 'premium';
 
 export const scratchCardTypes = {
+  basic: { name: 'Raspadinha Básica', price: 1 },
   silver: { name: 'Raspadinha de Prata', price: 5 },
   gold: { name: 'Raspadinha de Ouro', price: 12 },
   delas: { name: 'Raspadinha Delas', price: 25 },

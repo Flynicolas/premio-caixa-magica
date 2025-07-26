@@ -21,6 +21,19 @@ Deno.serve(async (req) => {
 
     console.log('Generating scratch card for chest type:', chestType);
 
+    // Mapear tipos de raspadinha para tipos de baú equivalentes
+    const chestTypeMapping = {
+      basic: 'silver', // Raspadinha básica usa itens do baú de prata
+      silver: 'silver',
+      gold: 'gold', 
+      delas: 'delas',
+      diamond: 'diamond',
+      ruby: 'ruby',
+      premium: 'premium'
+    };
+
+    const mappedChestType = chestTypeMapping[chestType] || chestType;
+
     // Buscar itens e probabilidades
     const { data: probabilities, error } = await supabase
       .from('chest_item_probabilities')
@@ -28,7 +41,7 @@ Deno.serve(async (req) => {
         *,
         item:items(*)
       `)
-      .eq('chest_type', chestType)
+      .eq('chest_type', mappedChestType)
       .eq('is_active', true)
       .eq('item.is_active', true);
 
