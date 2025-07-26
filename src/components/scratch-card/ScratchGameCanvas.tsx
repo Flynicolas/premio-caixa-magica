@@ -16,7 +16,7 @@ const ScratchGameCanvas = ({ symbols, onWin, onComplete, className }: ScratchGam
   const [isRevealed, setIsRevealed] = useState(false);
   const [scratchProgress, setScratchProgress] = useState(0);
   const lastProgressCheck = useRef(Date.now());
-  const progressCheckInterval = 150; // Check progress every 150ms
+  const progressCheckInterval = 50; // Check progress every 50ms for better responsivity
 
   const rarityColors = {
     common: '#aaa',
@@ -177,25 +177,33 @@ const ScratchGameCanvas = ({ symbols, onWin, onComplete, className }: ScratchGam
 
   // Função de raspagem
   const draw = useCallback((e: MouseEvent | TouchEvent) => {
-    if (!isScratching || isRevealed) return;
-
     const canvas = canvasRef.current;
-    if (!canvas) return;
+    if (!canvas || isRevealed) return;
 
     const ctx = canvas.getContext('2d');
     if (!ctx) return;
 
     const rect = canvas.getBoundingClientRect();
-    const x = ('clientX' in e ? e.clientX : e.touches?.[0]?.clientX || 0) - rect.left;
-    const y = ('clientY' in e ? e.clientY : e.touches?.[0]?.clientY || 0) - rect.top;
+    
+    // Calcular coordenadas corretas considerando o scale do canvas
+    const scaleX = canvas.width / rect.width;
+    const scaleY = canvas.height / rect.height;
+    
+    const clientX = 'clientX' in e ? e.clientX : e.touches?.[0]?.clientX || 0;
+    const clientY = 'clientY' in e ? e.clientY : e.touches?.[0]?.clientY || 0;
+    
+    const x = (clientX - rect.left) * scaleX;
+    const y = (clientY - rect.top) * scaleY;
+
+    console.log('Drawing at:', { x, y, isScratching }); // Debug log
 
     ctx.globalCompositeOperation = 'destination-out';
     ctx.beginPath();
-    ctx.arc(x, y, 20, 0, Math.PI * 2);
+    ctx.arc(x, y, 25, 0, Math.PI * 2); // Aumentar raio para melhor experiência
     ctx.fill();
     
     checkScratchProgress();
-  }, [isScratching, isRevealed, checkScratchProgress]);
+  }, [isRevealed, checkScratchProgress]);
 
   // Eventos do canvas
   useEffect(() => {
@@ -207,19 +215,36 @@ const ScratchGameCanvas = ({ symbols, onWin, onComplete, className }: ScratchGam
       draw(e);
     };
 
-    const handleMouseMove = (e: MouseEvent) => draw(e);
-    const handleMouseUp = () => setIsScratching(false);
-    const handleMouseLeave = () => setIsScratching(false);
+    const handleMouseMove = (e: MouseEvent) => {
+      if (isScratching) {
+        console.log('Mouse move - scratching'); // Debug log
+        draw(e);
+      }
+    };
+    
+    const handleMouseUp = () => {
+      console.log('Mouse up - stopping scratch'); // Debug log
+      setIsScratching(false);
+    };
+    
+    const handleMouseLeave = () => {
+      console.log('Mouse leave - stopping scratch'); // Debug log
+      setIsScratching(false);
+    };
 
     const handleTouchStart = (e: TouchEvent) => {
       e.preventDefault();
+      console.log('Touch start'); // Debug log
       setIsScratching(true);
       draw(e);
     };
 
     const handleTouchMove = (e: TouchEvent) => {
       e.preventDefault();
-      draw(e);
+      if (isScratching) {
+        console.log('Touch move - scratching'); // Debug log
+        draw(e);
+      }
     };
 
     const handleTouchEnd = (e: TouchEvent) => {
@@ -282,8 +307,8 @@ const ScratchGameCanvas = ({ symbols, onWin, onComplete, className }: ScratchGam
       {/* Canvas de raspagem */}
       <canvas
         ref={canvasRef}
-        width={300}
-        height={300}
+        width={400}
+        height={400}
         className="absolute top-0 left-0 w-full h-full rounded-xl cursor-pointer z-20"
         style={{ touchAction: 'none' }}
       />
