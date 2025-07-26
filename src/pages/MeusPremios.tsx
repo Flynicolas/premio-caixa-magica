@@ -162,6 +162,7 @@ const MeusPremios = () => {
                           isProcessing={isProcessing && selectedPrize?.id === userItem.id}
                           onClick={() => handleRedeemPrize(userItem)}
                           className="w-full"
+                          inventoryId={userItem.id}
                         />
                       </div>
                     </CardContent>

@@ -6,36 +6,27 @@ import { useAuth } from '@/hooks/useAuth';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { 
   Wallet, 
   Plus, 
-  Trophy, 
   Clock, 
   CreditCard, 
   Gift,
-  ArrowLeft
+  ArrowLeft,
+  Package,
+  Truck,
+  ExternalLink
 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import PaymentModal from '@/components/PaymentModal';
-import { useToast } from '@/hooks/use-toast';
-import { useRedemptionFlow } from '@/hooks/useRedemptionFlow';
-import RedemptionModal from '@/components/RedemptionModal';
-import { useProfile } from '@/hooks/useProfile';
-import Cookies from 'js-cookie';
 
 const Carteira = () => {
   const navigate = useNavigate();
   const { user } = useAuth();
   const { walletData, transactions, loading } = useWallet();
   const { userItems } = useInventory();
-  const { toast } = useToast();
-  const { profile } = useProfile();
-  const { isProcessing } = useRedemptionFlow();
   
   const [showPaymentModal, setShowPaymentModal] = useState(false);
-  const [selectedPrize, setSelectedPrize] = useState<any>(null);
-  const [showRedemptionModal, setShowRedemptionModal] = useState(false);
 
   const quickAmounts = [10, 25, 50, 100, 200];
   const balance = walletData?.balance || 0;
@@ -75,10 +66,7 @@ const Carteira = () => {
     }
   };
 
-  const handlePrizeWithdraw = (prize: any) => {
-    setSelectedPrize(prize);
-    setShowRedemptionModal(true);
-  };
+  const availablePrizes = userItems.filter(item => !item.is_redeemed).length;
 
   if (loading) {
     return (
@@ -161,135 +149,111 @@ const Carteira = () => {
         </Button>
       </div>
 
-      {/* Tabs */}
-      <Tabs defaultValue="prizes" className="w-full">
-        <TabsList className="grid w-full grid-cols-2 bg-gradient-to-r from-secondary to-secondary/80 p-1 rounded-xl border border-primary/20">
-          <TabsTrigger
-            value="prizes"
-            className="flex items-center data-[state=active]:bg-gradient-to-r data-[state=active]:from-primary data-[state=active]:to-primary/80 data-[state=active]:text-white rounded-lg transition-all duration-200"
+      {/* Navigation Shortcuts */}
+      <div className="mb-8">
+        <h3 className="text-xl font-bold mb-4">Acesso Rápido</h3>
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <Card 
+            className="p-4 bg-gradient-to-br from-primary/10 to-secondary/10 border-primary/30 hover:border-primary/50 transition-all cursor-pointer group"
+            onClick={() => navigate('/premios')}
           >
-            <Trophy className="w-4 h-4 mr-2" />
-            Prêmios ({userItems.length})
-          </TabsTrigger>
-          <TabsTrigger
-            value="history"
-            className="flex items-center data-[state=active]:bg-gradient-to-r data-[state=active]:from-primary data-[state=active]:to-primary/80 data-[state=active]:text-white rounded-lg transition-all duration-200"
-          >
-            <Clock className="w-4 h-4 mr-2" />
-            Histórico
-          </TabsTrigger>
-        </TabsList>
-
-        {/* Prizes Tab */}
-        <TabsContent value="prizes" className="mt-6">
-          {/* Horizontal Carousel for Prizes */}
-          <div className="mb-6">
-            <h3 className="text-lg font-semibold mb-3">Prêmios Conquistados ({userItems.length})</h3>
-            {userItems.length === 0 ? (
-              <div className="text-center py-8 bg-secondary/20 rounded-lg border border-primary/10">
-                <Gift className="w-12 h-12 mx-auto text-muted-foreground mb-3" />
-                <p className="text-muted-foreground">Nenhum prêmio ainda. Abra baús para conquistar!</p>
-              </div>
-            ) : (
-              <div className="overflow-x-auto pb-2">
-                <div className="flex gap-3 min-w-max">
-                  {userItems.map((item, index) => (
-                    <Card key={index} className="flex-shrink-0 w-80 p-3 bg-secondary/30 border border-primary/10 hover:border-primary/30 transition-all">
-                      <div className="flex items-center gap-3">
-                        <img
-                          src={item.item?.image_url || '/placeholder.svg'}
-                          alt={item.item?.name || 'Prêmio'}
-                          className="w-12 h-12 rounded object-cover border border-border flex-shrink-0"
-                        />
-                        <div className="flex-1 min-w-0">
-                          <div className="flex items-center gap-2 mb-1">
-                            <h4 className="font-medium text-sm truncate">{item.item?.name}</h4>
-                            <Badge className={`px-1.5 py-0.5 text-xs bg-gradient-to-r ${rarityColors[item.rarity as keyof typeof rarityColors]} text-white`}>
-                              {item.rarity}
-                            </Badge>
-                          </div>
-                          <div className="flex items-center justify-between text-xs text-muted-foreground">
-                            <span className="font-medium text-primary">R$ {item.item?.base_value?.toFixed(2)}</span>
-                            <span className="opacity-70">ID: {item.id.slice(0, 8)}</span>
-                          </div>
-                        </div>
-                        <Button
-                          size="sm"
-                          onClick={() => handlePrizeWithdraw(item)}
-                          className="gold-gradient text-black font-bold hover:opacity-90 h-8 px-3 text-xs flex-shrink-0"
-                        >
-                          Resgatar
-                        </Button>
-                      </div>
-                    </Card>
-                  ))}
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-3">
+                <div className="w-12 h-12 bg-gradient-to-r from-yellow-400 to-orange-500 rounded-full flex items-center justify-center">
+                  <Gift className="w-6 h-6 text-black" />
+                </div>
+                <div>
+                  <h4 className="font-semibold text-primary">Meus Prêmios</h4>
+                  <p className="text-sm text-muted-foreground">
+                    {availablePrizes} prêmios disponíveis
+                  </p>
                 </div>
               </div>
-            )}
-          </div>
-        </TabsContent>
+              <ExternalLink className="w-5 h-5 text-muted-foreground group-hover:text-primary transition-colors" />
+            </div>
+          </Card>
 
-        {/* History Tab - Highlighted Section */}
-        <TabsContent value="history" className="mt-6">
-          <div className="mb-4">
-            <h3 className="text-xl font-bold mb-2 text-primary">Histórico de Transações</h3>
-            <p className="text-muted-foreground text-sm">Acompanhe todas as movimentações da sua carteira</p>
-          </div>
-          <div className="space-y-4">
-            {transactions.length === 0 ? (
-              <div className="text-center py-12">
-                <Clock className="w-16 h-16 mx-auto text-muted-foreground mb-4" />
-                <h3 className="text-lg font-semibold mb-2">Sem histórico</h3>
-                <p className="text-muted-foreground">Suas transações aparecerão aqui</p>
+          <Card 
+            className="p-4 bg-gradient-to-br from-blue-500/10 to-cyan-500/10 border-blue-500/30 hover:border-blue-500/50 transition-all cursor-pointer group"
+            onClick={() => navigate('/entregas')}
+          >
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-3">
+                <div className="w-12 h-12 bg-gradient-to-r from-blue-400 to-cyan-500 rounded-full flex items-center justify-center">
+                  <Truck className="w-6 h-6 text-white" />
+                </div>
+                <div>
+                  <h4 className="font-semibold text-blue-400">Minhas Entregas</h4>
+                  <p className="text-sm text-muted-foreground">
+                    Acompanhar resgates
+                  </p>
+                </div>
               </div>
-            ) : (
-              transactions.map((transaction) => (
-                <Card key={transaction.id} className="p-4 bg-secondary/20 border-primary/10">
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center space-x-3">
-                      <div className={`w-10 h-10 rounded-full flex items-center justify-center text-lg ${
-                        transaction.type === "deposit" ? "bg-green-500/20" :
-                        transaction.type === "purchase" ? "bg-orange-500/20" : "bg-gray-500/20"
-                      }`}>
-                        <span className={getTransactionTypeColor(transaction.type)}>
-                          {getTransactionIcon(transaction.type)}
-                        </span>
-                      </div>
-                      <div>
-                        <h4 className="font-medium">{transaction.description}</h4>
-                        <p className="text-sm text-muted-foreground">
-                          {new Date(transaction.created_at).toLocaleDateString()} às{" "}
-                          {new Date(transaction.created_at).toLocaleTimeString()}
-                        </p>
-                        <Badge variant={transaction.status === "completed" ? "default" : "secondary"} className="text-xs mt-1">
-                          {transaction.status}
-                        </Badge>
-                      </div>
-                    </div>
-                    <div className="text-right">
-                      <span className={`font-bold ${getTransactionTypeColor(transaction.type)}`}>
-                        {transaction.type === "deposit" ? "+" : "-"}R$ {transaction.amount.toFixed(2)}
+              <ExternalLink className="w-5 h-5 text-muted-foreground group-hover:text-blue-400 transition-colors" />
+            </div>
+          </Card>
+        </div>
+      </div>
+
+      {/* History Section - Main Focus */}
+      <div className="mb-8">
+        <div className="mb-4">
+          <h3 className="text-xl font-bold mb-2 text-primary">Histórico de Transações</h3>
+          <p className="text-muted-foreground text-sm">Acompanhe todas as movimentações da sua carteira</p>
+        </div>
+        <div className="space-y-4">
+          {transactions.length === 0 ? (
+            <Card className="p-8 text-center bg-secondary/20 border-primary/10">
+              <Clock className="w-16 h-16 mx-auto text-muted-foreground mb-4" />
+              <h3 className="text-lg font-semibold mb-2">Sem histórico</h3>
+              <p className="text-muted-foreground">Suas transações aparecerão aqui</p>
+            </Card>
+          ) : (
+            transactions.slice(0, 5).map((transaction) => (
+              <Card key={transaction.id} className="p-4 bg-secondary/20 border-primary/10">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center space-x-3">
+                    <div className={`w-10 h-10 rounded-full flex items-center justify-center text-lg ${
+                      transaction.type === "deposit" ? "bg-green-500/20" :
+                      transaction.type === "purchase" ? "bg-orange-500/20" : "bg-gray-500/20"
+                    }`}>
+                      <span className={getTransactionTypeColor(transaction.type)}>
+                        {getTransactionIcon(transaction.type)}
                       </span>
                     </div>
+                    <div>
+                      <h4 className="font-medium">{transaction.description}</h4>
+                      <p className="text-sm text-muted-foreground">
+                        {new Date(transaction.created_at).toLocaleDateString()} às{" "}
+                        {new Date(transaction.created_at).toLocaleTimeString()}
+                      </p>
+                      <Badge variant={transaction.status === "completed" ? "default" : "secondary"} className="text-xs mt-1">
+                        {transaction.status}
+                      </Badge>
+                    </div>
                   </div>
-                </Card>
-              ))
-            )}
-          </div>
-        </TabsContent>
-      </Tabs>
+                  <div className="text-right">
+                    <span className={`font-bold ${getTransactionTypeColor(transaction.type)}`}>
+                      {transaction.type === "deposit" ? "+" : "-"}R$ {transaction.amount.toFixed(2)}
+                    </span>
+                  </div>
+                </div>
+              </Card>
+            ))
+          )}
+          {transactions.length > 5 && (
+            <Button 
+              variant="outline" 
+              onClick={() => navigate('/carteira')}
+              className="w-full"
+            >
+              Ver todas as transações
+            </Button>
+          )}
+        </div>
+      </div>
 
       {/* Modals */}
-      <RedemptionModal
-        isOpen={showRedemptionModal}
-        onClose={() => {
-          setShowRedemptionModal(false);
-          setSelectedPrize(null);
-        }}
-        item={selectedPrize}
-        onAddBalance={() => setShowPaymentModal(true)}
-      />
-
       <PaymentModal
         isOpen={showPaymentModal}
         onClose={() => setShowPaymentModal(false)}

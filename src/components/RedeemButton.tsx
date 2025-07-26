@@ -1,6 +1,8 @@
 
 import { Button } from '@/components/ui/button';
-import { Gift, Package, Clock } from 'lucide-react';
+import { Gift, Package, Clock, Timer } from 'lucide-react';
+import { useRedemptionControl } from '@/hooks/useRedemptionControl';
+import { useEffect, useState } from 'react';
 
 interface RedeemButtonProps {
   isRedeemed: boolean;
@@ -8,6 +10,7 @@ interface RedeemButtonProps {
   onClick?: () => void;
   size?: 'sm' | 'default' | 'lg';
   className?: string;
+  inventoryId?: string; // Para controle global
 }
 
 const RedeemButton = ({ 
@@ -15,8 +18,42 @@ const RedeemButton = ({
   isProcessing = false, 
   onClick, 
   size = 'default',
-  className = '' 
+  className = '',
+  inventoryId
 }: RedeemButtonProps) => {
+  const { checkItemRedemptionStatus } = useRedemptionControl();
+  const [redemptionStatus, setRedemptionStatus] = useState<any>(null);
+
+  // Verificar status de resgate quando o componente carregar
+  useEffect(() => {
+    if (inventoryId) {
+      checkItemRedemptionStatus(inventoryId).then(setRedemptionStatus);
+    }
+  }, [inventoryId, checkItemRedemptionStatus]);
+
+  // Se temos controle global e o item não pode ser resgatado
+  if (inventoryId && redemptionStatus) {
+    if (redemptionStatus.isRedeemed) {
+      return (
+        <div className={`flex items-center gap-2 text-green-400 ${className}`}>
+          <Package className="w-4 h-4" />
+          <span className="text-sm font-medium">Resgatado</span>
+        </div>
+      );
+    }
+
+    if (redemptionStatus.isPending) {
+      const hoursRemaining = Math.ceil(redemptionStatus.timeRemaining || 0);
+      return (
+        <div className={`flex items-center gap-2 text-orange-400 ${className}`}>
+          <Timer className="w-4 h-4" />
+          <span className="text-sm font-medium">
+            Aguardando ({hoursRemaining}h restantes)
+          </span>
+        </div>
+      );
+    }
+  }
   if (isRedeemed) {
     return (
       <div className={`flex items-center gap-2 text-green-400 ${className}`}>

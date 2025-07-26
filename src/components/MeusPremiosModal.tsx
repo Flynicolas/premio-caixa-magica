@@ -181,6 +181,7 @@ const MeusPremiosModal = ({ isOpen, onClose }: MeusPremiosModalProps) => {
                           onClick={() => handleRedeemPrize(userItem)}
                           size="sm"
                           className="w-full"
+                          inventoryId={userItem.id}
                         />
                       </div>
                     </CardContent>
