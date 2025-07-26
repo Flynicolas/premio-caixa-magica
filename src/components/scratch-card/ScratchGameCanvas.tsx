@@ -109,9 +109,13 @@ const ScratchGameCanvas = ({ symbols, onWin, onComplete, className }: ScratchGam
 
     // Throttling - só verifica progresso ocasionalmente
     const now = Date.now();
-    if (now - lastProgressCheck.current < progressCheckInterval) return;
+    if (now - lastProgressCheck.current < progressCheckInterval) {
+      console.log('🔍 Throttling checkScratchProgress');
+      return;
+    }
     lastProgressCheck.current = now;
 
+    console.log('🔍 Checking scratch progress...');
     const ctx = canvas.getContext('2d');
     if (!ctx) return;
 
@@ -131,10 +135,12 @@ const ScratchGameCanvas = ({ symbols, onWin, onComplete, className }: ScratchGam
     }
     
     const percent = (cleared / total) * 100;
+    console.log('🔍 Scratch progress calculated:', percent, '%');
     setScratchProgress(Math.round(percent));
     
     // Revelação quando atingir 75% (meio do range 70-80%)
     if (percent >= 75) {
+      console.log('🔍 Revealing at 75%');
       canvas.style.display = 'none';
       setIsRevealed(true);
       setScratchProgress(100);
