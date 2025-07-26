@@ -10,6 +10,8 @@ interface ScratchGameCanvasProps {
 }
 
 const ScratchGameCanvas = ({ symbols, onWin, onComplete, className }: ScratchGameCanvasProps) => {
+  console.log('🎯 ScratchGameCanvas mounted/rendered, symbols.length:', symbols.length);
+  
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const gridRef = useRef<HTMLDivElement>(null);
   const [isScratching, setIsScratching] = useState(false);
@@ -210,6 +212,7 @@ const ScratchGameCanvas = ({ symbols, onWin, onComplete, className }: ScratchGam
 
   useEffect(() => {
     const canvas = canvasRef.current;
+    console.log('🎯 Setting up canvas events, canvas exists:', !!canvas);
     if (!canvas) return;
 
     const handleMouseDown = (e: MouseEvent) => {
@@ -281,9 +284,11 @@ const ScratchGameCanvas = ({ symbols, onWin, onComplete, className }: ScratchGam
 
   // Inicializar quando símbolos mudarem
   useEffect(() => {
+    console.log('🎯 ScratchGameCanvas useEffect called with symbols:', symbols.length);
     if (symbols.length > 0) {
       renderGrid();
       resetCanvas();
+      console.log('🎯 Grid and canvas initialized');
     }
   }, [symbols, renderGrid, resetCanvas]);
 

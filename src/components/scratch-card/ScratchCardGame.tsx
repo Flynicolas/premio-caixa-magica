@@ -19,6 +19,7 @@ const ScratchCardGame = () => {
   const [hasWin, setHasWin] = useState(false);
 
   const generateScratchCard = async (forcedWin = false) => {
+    console.log('🎯 Generating scratch card, type:', selectedType, 'forcedWin:', forcedWin);
     setIsLoading(true);
     setResultMessage("Carregando raspadinha...");
     
@@ -32,6 +33,7 @@ const ScratchCardGame = () => {
 
       if (error) throw error;
 
+      console.log('🎯 Scratch card data received:', data);
       setSymbols(data.symbols || []);
       setHasWin(data.hasWin);
       setResultMessage("Raspe para revelar");
