@@ -50,9 +50,19 @@ const MinhasEntregas = () => {
     });
   };
 
+  const getPaymentStatus = (entrega: any) => {
+    // Priorizar payment_status da tabela principal se existir
+    if (entrega.payment_status) {
+      return entrega.payment_status;
+    }
+    // Caso contrário, usar o status dos pagamentos relacionados
+    return entrega.payments?.[0]?.status || 'pending';
+  };
+
   const filteredEntregas = entregas.filter((entrega) => {
     const itemName = entrega.item?.name?.toLowerCase() || '';
-    const status = entrega.payments?.[0]?.status === 'paid' ? entrega.delivery_status : entrega.payments?.[0]?.status;
+    const paymentStatus = getPaymentStatus(entrega);
+    const status = paymentStatus === 'paid' ? entrega.delivery_status : paymentStatus;
     const matchesSearch = itemName.includes(search.toLowerCase());
     const matchesStatus = statusFilter === 'all' || status === statusFilter;
     return matchesSearch && matchesStatus;
@@ -105,7 +115,7 @@ const MinhasEntregas = () => {
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
             {filteredEntregas.map((entrega) => {
-              const paymentStatus = entrega.payments?.[0]?.status;
+              const paymentStatus = getPaymentStatus(entrega);
               const isPaid = paymentStatus === 'paid';
               const status = isPaid ? entrega.delivery_status : paymentStatus;
               const label = getStatusBadgeLabel(status);
@@ -140,28 +150,25 @@ const MinhasEntregas = () => {
                     <div className="flex items-center gap-2 text-muted-foreground">
                       <Calendar className="h-4 w-4" /> Pedido em: {formatDate(entrega.created_at)}
                     </div>
-                    <div className="flex items-center gap-2 text-muted-foreground">
-                       <CreditCard className="h-4 w-4" /> 
-                       Status do Pagamento: 
-                       <Badge className={`ml-1 text-xs ${paymentStatus === 'paid' ? 'bg-green-500/20 text-green-500 border-green-500/30' : 'bg-yellow-500/20 text-yellow-500 border-yellow-500/30'}`}>
-                         {paymentStatus === 'paid' ? 'Pago' : paymentStatus || 'Indefinido'}
-                       </Badge>
+                     <div className="flex items-center gap-2 text-muted-foreground">
+                        <CreditCard className="h-4 w-4" /> 
+                        Status do Pagamento: 
+                        <Badge className={`ml-1 text-xs ${paymentStatus === 'paid' ? 'bg-green-500/20 text-green-500 border-green-500/30' : 'bg-yellow-500/20 text-yellow-500 border-yellow-500/30'}`}>
+                          {paymentStatus === 'paid' ? 'Pago' : getStatusBadgeLabel(paymentStatus)}
+                        </Badge>
+                      </div>
+                     <div className="flex items-center gap-2 text-muted-foreground">
+                      <User className="h-4 w-4" /> Destinatário: {entrega.full_name}
                      </div>
-                    <div className="flex items-center gap-2 text-muted-foreground">
-                     <User className="h-4 w-4" /> Destinatário: {entrega.profile?.full_name}
-
-                    </div>
-                    <div className="flex items-center gap-2 text-muted-foreground">
-<Barcode className="h-4 w-4" /> CPF: {entrega.profile?.cpf}
-                    </div>
-                    <div className="flex items-start gap-2 text-muted-foreground">
-                      <MapPin className="h-4 w-4 mt-0.5" />
+                     <div className="flex items-center gap-2 text-muted-foreground">
+<Barcode className="h-4 w-4" /> CPF: {entrega.cpf}
+                     </div>
+                     <div className="flex items-start gap-2 text-muted-foreground">
+                       <MapPin className="h-4 w-4 mt-0.5" />
             <span>
-  {entrega.profile?.street}, {entrega.profile?.number}<br />
-  {entrega.profile?.neighborhood} - {entrega.profile?.city}/{entrega.profile?.state}<br />
-  CEP: {entrega.profile?.zip_code}
+  {entrega.delivery_address}
 </span>
-                    </div>
+                     </div>
                     {isPaid && entrega.delivery_status === 'shipped' && (
                       <div className="bg-blue-500/10 border border-blue-500/20 rounded-lg p-3">
                         <p className="text-blue-600 text-sm">

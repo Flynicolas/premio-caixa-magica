@@ -25,6 +25,9 @@ export const useWithdrawItem = () => {
           tracking_code,
           delivery_status,
           payment_status,
+          full_name,
+          cpf,
+          delivery_address,
           item:item_id(name, image_url),
           payments:item_withdrawal_payments(status)
         `)
