@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { useAuth } from '@/hooks/useAuth';
 import { useAdminData } from '@/hooks/useAdminData';
@@ -13,7 +12,8 @@ import EnhancedChestProbabilityManager from '@/components/admin/EnhancedChestPro
 import DeliveryManagementTab from '@/components/admin/DeliveryManagementTab';
 import UsersManagement from '@/components/admin/UsersManagement';
 import ChestGoalsManager from '@/components/admin/ChestGoalsManager';
-import { Shield, Package, Settings, Users, Wallet, Target, Truck } from 'lucide-react';
+import { AdminErrorDashboard } from '@/components/admin/AdminErrorDashboard';
+import { Shield, Package, Settings, Users, Wallet, Target, Truck, AlertTriangle } from 'lucide-react';
 
 const Admin = () => {
   const { user } = useAuth();
@@ -80,7 +80,7 @@ const Admin = () => {
       </div>
 
       <Tabs defaultValue="items" className="space-y-6">
-        <TabsList className="grid w-full grid-cols-6">
+        <TabsList className="grid w-full grid-cols-7">
           <TabsTrigger value="items" className="flex items-center gap-2">
             <Package className="w-4 h-4" />
             Itens
@@ -104,6 +104,10 @@ const Admin = () => {
           <TabsTrigger value="collaborators" className="flex items-center gap-2">
             <Users className="w-4 h-4" />
             Colaboradores
+          </TabsTrigger>
+          <TabsTrigger value="errors" className="flex items-center gap-2">
+            <AlertTriangle className="w-4 h-4" />
+            Erros
           </TabsTrigger>
         </TabsList>
 
@@ -150,6 +154,10 @@ const Admin = () => {
 
         <TabsContent value="collaborators">
           <CollaboratorManagement />
+        </TabsContent>
+
+        <TabsContent value="errors">
+          <AdminErrorDashboard />
         </TabsContent>
       </Tabs>
       </div>

@@ -123,7 +123,7 @@ const WalletPanel = ({
 
 
           <Tabs defaultValue="balance" className="w-full mt-4">
-            <TabsList className="grid w-full grid-cols-3 bg-gradient-to-r from-secondary to-secondary/80 p-1 rounded-xl border border-primary/20">
+            <TabsList className="grid w-full grid-cols-2 bg-gradient-to-r from-secondary to-secondary/80 p-1 rounded-xl border border-primary/20">
               <TabsTrigger
                 value="balance"
                 className="flex items-center data-[state=active]:bg-gradient-to-r data-[state=active]:from-primary data-[state=active]:to-primary/80 data-[state=active]:text-white rounded-lg transition-all duration-200 text-xs md:text-sm"
@@ -131,14 +131,6 @@ const WalletPanel = ({
                 <CreditCard className="w-3 h-3 md:w-4 md:h-4 mr-1 md:mr-2" />
                 <span className="hidden sm:inline">Saldo</span>
                 <span className="sm:hidden">💰</span>
-              </TabsTrigger>
-              <TabsTrigger
-                value="prizes"
-                className="flex items-center data-[state=active]:bg-gradient-to-r data-[state=active]:from-primary data-[state=active]:to-primary/80 data-[state=active]:text-white rounded-lg transition-all duration-200 text-xs md:text-sm"
-              >
-                <Trophy className="w-3 h-3 md:w-4 md:h-4 mr-1 md:mr-2" />
-                <span className="hidden sm:inline">Prêmios ({prizes.length})</span>
-                <span className="sm:hidden">🏆 {prizes.length}</span>
               </TabsTrigger>
               <TabsTrigger
                 value="history"
@@ -214,88 +206,44 @@ const WalletPanel = ({
                     PIX instantâneo • Cartão • Boleto via Mercado Pago
                   </p>
                 </div>
+
+                {/* Acesso Rápido */}
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-3 mt-4">
+                  <Card className="p-3 md:p-4 bg-gradient-to-br from-yellow-500/10 to-orange-500/10 border-2 border-yellow-500/30 hover:border-yellow-500/50 transition-all cursor-pointer group"
+                        onClick={() => {
+                          onClose();
+                          navigate('/premios');
+                        }}>
+                    <div className="flex items-center space-x-3">
+                      <div className="w-10 h-10 bg-gradient-to-r from-yellow-400 to-orange-500 rounded-full flex items-center justify-center group-hover:scale-110 transition-transform">
+                        <Trophy className="w-5 h-5 text-black" />
+                      </div>
+                      <div>
+                        <h4 className="font-semibold text-sm">Meus Prêmios</h4>
+                        <p className="text-xs text-muted-foreground">Ver prêmios disponíveis</p>
+                      </div>
+                    </div>
+                  </Card>
+
+                  <Card className="p-3 md:p-4 bg-gradient-to-br from-blue-500/10 to-cyan-500/10 border-2 border-blue-500/30 hover:border-blue-500/50 transition-all cursor-pointer group"
+                        onClick={() => {
+                          onClose();
+                          navigate('/entregas');
+                        }}>
+                    <div className="flex items-center space-x-3">
+                      <div className="w-10 h-10 bg-gradient-to-r from-blue-400 to-cyan-500 rounded-full flex items-center justify-center group-hover:scale-110 transition-transform">
+                        <Gift className="w-5 h-5 text-black" />
+                      </div>
+                      <div>
+                        <h4 className="font-semibold text-sm">Minhas Entregas</h4>
+                        <p className="text-xs text-muted-foreground">Acompanhar entregas</p>
+                      </div>
+                    </div>
+                  </Card>
+                </div>
               </div>
             </TabsContent>
 
-            {/* Prizes Tab */}
-            <TabsContent value="prizes" className="space-y-4">
-              <div className="max-h-80 md:max-h-96 overflow-y-auto space-y-3">
-                {prizes.length === 0 ? (
-                  <div className="text-center py-12">
-                    <Gift className="w-16 h-16 mx-auto text-muted-foreground mb-4" />
-                    <h3 className="text-lg font-semibold mb-2">
-                      Nenhum prêmio ainda
-                    </h3>
-                    <p className="text-muted-foreground">
-                      Abra baús para conquistar prêmios incríveis!
-                    </p>
-                  </div>
-                ) : (
-                 prizes.map((prize, index) => (
-  <Card key={index} className="p-3 md:p-4 bg-secondary/30 border border-primary/10 rounded-xl shadow-sm hover:shadow-md transition-all">
-    <div className="flex items-center gap-3 md:gap-4">
-      <img
-        src={prize.image}
-        alt={prize.name}
-        className="w-12 h-12 md:w-16 md:h-16 rounded-md object-cover border border-border shadow-sm flex-shrink-0"
-      />
-      <div className="flex-1 space-y-1 min-w-0">
-        <div className="flex flex-col md:flex-row md:items-center gap-1 md:gap-2">
-          <h4 className="text-sm md:text-base font-semibold text-foreground capitalize truncate">{prize.name}</h4>
-          <Badge className={`px-2 py-0.5 text-xs rounded-full bg-gradient-to-r ${rarityColors[prize.rarity]} text-white capitalize w-fit`}>
-            {prize.rarity}
-          </Badge>
-        </div>
-        <div className="flex flex-col text-xs md:text-sm text-muted-foreground">
-          <span className="font-medium text-primary">{prize.value}</span>
-          <span className={`font-medium ${chestColors[prize.chestType]}`}>
-            🎁 Baú {prize.chestType}
-          </span>
-        </div>
-      </div>
-      <Button
-        size="sm"
-        onClick={() => {
-          const fullName = profile?.full_name;
-          const cpf = profile?.cpf;
-          const addressComplete =
-            profile?.zip_code &&
-            profile?.street &&
-            profile?.number &&
-            profile?.neighborhood &&
-            profile?.city &&
-            profile?.state;
-
-          if (!fullName || !cpf || !addressComplete) {
-            toast({
-              title: "Complete seu cadastro",
-              description:
-                "Você precisa informar nome completo, CPF e endereço para retirar prêmios.",
-              variant: "destructive",
-            });
-
-            Cookies.set("redirected_from_retirada", "true", {
-              path: "/",
-            });
-            onClose();
-            navigate("/configuracoes");
-            return;
-          }
-
-                  setSelectedPrize(prize);
-                  setShowRedemptionModal(true);
-                }}
-                className="gold-gradient text-black font-bold hover:opacity-90 h-8 md:h-9 rounded-md px-2 md:px-4 text-xs md:text-sm flex-shrink-0"
-              >
-                Resgatar
-              </Button>
-    </div>
-  </Card>
-))
-
-                )}
-              </div>
-            </TabsContent>
 
             {/* History Tab */}
             <TabsContent value="history" className="space-y-4">
