@@ -14,6 +14,9 @@ const ScratchGameCanvas = ({ symbols, onWin, onComplete, className }: ScratchGam
   const gridRef = useRef<HTMLDivElement>(null);
   const [isScratching, setIsScratching] = useState(false);
   const [isRevealed, setIsRevealed] = useState(false);
+  const [scratchProgress, setScratchProgress] = useState(0);
+  const lastProgressCheck = useRef(Date.now());
+  const progressCheckInterval = 150; // Check progress every 150ms
 
   const rarityColors = {
     common: '#aaa',
@@ -93,31 +96,49 @@ const ScratchGameCanvas = ({ symbols, onWin, onComplete, className }: ScratchGam
     ctx.fillRect(0, 0, canvas.width, canvas.height);
     canvas.style.display = 'block';
     setIsRevealed(false);
+    setScratchProgress(0);
+    lastProgressCheck.current = Date.now();
   }, []);
 
-  // Verificar progresso da raspagem
+  // Verificar progresso da raspagem com otimização
   const checkScratchProgress = useCallback(() => {
     const canvas = canvasRef.current;
     if (!canvas || isRevealed) return;
 
+    // Throttling - só verifica progresso ocasionalmente
+    const now = Date.now();
+    if (now - lastProgressCheck.current < progressCheckInterval) return;
+    lastProgressCheck.current = now;
+
     const ctx = canvas.getContext('2d');
     if (!ctx) return;
 
-    const imgData = ctx.getImageData(0, 0, canvas.width, canvas.height).data;
+    // Amostragem otimizada - verifica apenas alguns pixels
+    const sampleSize = 50; // Verifica 50x50 pontos distribuídos
+    const stepX = canvas.width / sampleSize;
+    const stepY = canvas.height / sampleSize;
     let cleared = 0;
-    
-    for (let i = 3; i < imgData.length; i += 4) {
-      if (imgData[i] === 0) cleared++;
+    let total = 0;
+
+    for (let x = 0; x < canvas.width; x += stepX) {
+      for (let y = 0; y < canvas.height; y += stepY) {
+        const pixelData = ctx.getImageData(Math.floor(x), Math.floor(y), 1, 1).data;
+        if (pixelData[3] === 0) cleared++; // Canal alpha = 0 (transparente)
+        total++;
+      }
     }
     
-    const percent = (cleared / (canvas.width * canvas.height)) * 100;
+    const percent = (cleared / total) * 100;
+    setScratchProgress(Math.round(percent));
     
-    if (percent > 70) {
+    // Revelação quando atingir 75% (meio do range 70-80%)
+    if (percent >= 75) {
       canvas.style.display = 'none';
       setIsRevealed(true);
+      setScratchProgress(100);
       checkWin();
     }
-  }, [isRevealed]);
+  }, [isRevealed, progressCheckInterval]);
 
   // Verificar vitória
   const checkWin = useCallback(() => {
@@ -235,6 +256,22 @@ const ScratchGameCanvas = ({ symbols, onWin, onComplete, className }: ScratchGam
 
   return (
     <div className={cn("relative w-full max-w-sm mx-auto", className)}>
+      {/* Indicador de progresso */}
+      {scratchProgress > 0 && scratchProgress < 100 && (
+        <div className="absolute top-2 left-2 z-30 bg-black/70 text-white px-2 py-1 rounded text-xs">
+          Raspado: {scratchProgress}%
+        </div>
+      )}
+      
+      {/* Instrução inicial */}
+      {scratchProgress === 0 && (
+        <div className="absolute inset-0 z-30 flex items-center justify-center">
+          <div className="bg-black/70 text-white px-4 py-2 rounded-lg text-sm font-medium">
+            👆 Raspe gradualmente para revelar os prêmios
+          </div>
+        </div>
+      )}
+
       {/* Grid de símbolos */}
       <div
         ref={gridRef}
