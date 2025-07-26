@@ -9,6 +9,7 @@ import Cookies from 'js-cookie';
 
 export interface RedemptionItem {
   id: string;
+  item_id: string;
   item?: {
     id: string;
     name: string;
@@ -73,6 +74,27 @@ export const useRedemptionFlow = () => {
       return { success: false, requiresProfile: true };
     }
 
+    // Validar dados do item
+    if (!item) {
+      toast({
+        title: 'Erro',
+        description: 'Item não encontrado.',
+        variant: 'destructive',
+      });
+      return { success: false };
+    }
+
+    // Usar item_id diretamente ou pegar do item aninhado
+    const itemId = item.item?.id || item.item_id;
+    if (!itemId) {
+      toast({
+        title: 'Erro',
+        description: 'ID do item não encontrado.',
+        variant: 'destructive',
+      });
+      return { success: false };
+    }
+
     const userBalance = walletData?.balance || 0;
     const method = forceMethod || getPaymentMethod(userBalance);
 
@@ -91,7 +113,7 @@ export const useRedemptionFlow = () => {
 
       if (method === 'wallet') {
         const result = await resgateComCarteira({
-          itemId: item.item!.id,
+          itemId,
           inventoryId: item.id,
           fullName: profile.full_name!,
           cpf: profile.cpf!,
@@ -116,7 +138,7 @@ export const useRedemptionFlow = () => {
         return result;
       } else {
         await solicitarRetirada({
-          itemId: item.item!.id,
+          itemId,
           inventoryId: item.id,
           fullName: profile.full_name!,
           cpf: profile.cpf!,

@@ -3,7 +3,8 @@ import { useAuth } from '@/hooks/useAuth';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { Truck, Package, ExternalLink, Calendar, Search, Filter, MapPin, User, Barcode, CreditCard, DollarSign } from 'lucide-react';
+import { Truck, Package, ExternalLink, Calendar, Search, Filter, MapPin, User, Barcode, CreditCard } from 'lucide-react';
+import DeliveryStatusTracker from '@/components/DeliveryStatusTracker';
 import { useWithdrawItem } from '@/hooks/useWithdrawItem';
 import { Input } from '@/components/ui/input';
 import { Select, SelectTrigger, SelectContent, SelectItem, SelectValue } from '@/components/ui/select';
@@ -129,7 +130,10 @@ const MinhasEntregas = () => {
                         )}
 
                       </CardTitle>
-                      <Badge className={color}>{label}</Badge>
+                      <DeliveryStatusTracker 
+                        status={status} 
+                        size="sm" 
+                      />
                     </div>
                   </CardHeader>
                   <CardContent className="space-y-4 text-sm">

@@ -215,7 +215,9 @@ export const useWithdrawItem = () => {
           full_name: fullName,
           cpf,
           delivery_address: addressString,
-          delivery_fee: 25.0
+          delivery_fee: 25.0,
+          payment_status: 'pending',
+          delivery_status: 'aguardando_pagamento'
         })
         .select()
         .single();

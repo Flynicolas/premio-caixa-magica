@@ -7,7 +7,8 @@ import { Badge } from '@/components/ui/badge';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
-import { Edit, Search, ExternalLink, Package, Truck, CheckCircle, Clock, XCircle } from 'lucide-react';
+import { Edit, Search, ExternalLink } from 'lucide-react';
+import DeliveryStatusTracker from '@/components/DeliveryStatusTracker';
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
 
@@ -69,41 +70,9 @@ const DeliveryManagementTab = () => {
     }
   };
 
-   const getStatusColor = (status: string) => {
-  switch (status) {
-    case 'aguardando_envio':
-    case 'Pendente':
-      return 'bg-yellow-500';
-    case 'a_caminho':
-    case 'A Caminho':
-      return 'bg-blue-500';
-    case 'entregue':
-    case 'Entregue':
-      return 'bg-green-600';
-    case 'cancelado':
-    case 'Cancelado':
-      return 'bg-red-500';
-    default:
-      return 'bg-gray-400';
-  }
-};
-
-
   const formatDate = (dateString: string) => new Date(dateString).toLocaleDateString('pt-BR', {
     day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit'
   });
-
-  const formatDeliveryStatus = (status: string): string => {
-    const map: Record<string, string> = {
-    aguardando_envio: 'Aguardando Envio',
-    a_caminho: 'A Caminho',
-    entregue: 'Entregue',
-    cancelado: 'Cancelado',
-    pendente: 'Pendente'
-  };
-
-  return map[status] || status;
-};
 
   const updateDelivery = async () => {
     if (!editingDelivery) return;
@@ -123,26 +92,6 @@ const DeliveryManagementTab = () => {
       setIsEditDialogOpen(false);
     }
   };
-
-
- const getStatusIcon = (status: string) => {
-  switch (status) {
-    case 'aguardando_envio':
-    case 'Pendente':
-      return <Clock className="w-4 h-4" />;
-    case 'a_caminho':
-    case 'A Caminho':
-      return <Truck className="w-4 h-4" />;
-    case 'entregue':
-    case 'Entregue':
-      return <CheckCircle className="w-4 h-4" />;
-    case 'cancelado':
-    case 'Cancelado':
-      return <XCircle className="w-4 h-4" />;
-    default:
-      return null;
-  }
-};
   const filtered = deliveries.filter(d => {
     return (
       (statusFilter === 'all' || d.delivery_status === statusFilter) &&
@@ -172,7 +121,8 @@ const DeliveryManagementTab = () => {
               <SelectTrigger><SelectValue placeholder="Status" /></SelectTrigger>
               <SelectContent>
                 <SelectItem value="all">Todos</SelectItem>
-                <SelectItem value="aguardando_envio">Pendente</SelectItem>
+                <SelectItem value="aguardando_envio">Aguardando Envio</SelectItem>
+                <SelectItem value="aguardando_pagamento">Aguardando Pagamento</SelectItem>
                 <SelectItem value="a_caminho">A Caminho</SelectItem>
                 <SelectItem value="entregue">Entregue</SelectItem>
                 <SelectItem value="cancelado">Cancelado</SelectItem>
@@ -207,13 +157,12 @@ const DeliveryManagementTab = () => {
                       </Badge>
                     </TableCell>
                     
-                    <TableCell><Badge className={`text-white ${getStatusColor(delivery.delivery_status)}`}>
-  <div className="flex items-center gap-1">
-    {getStatusIcon(delivery.delivery_status)}
-    {formatDeliveryStatus(delivery.delivery_status)}
-  </div>
-</Badge>
-</TableCell>
+                     <TableCell>
+                       <DeliveryStatusTracker 
+                         status={delivery.delivery_status} 
+                         size="sm" 
+                       />
+                     </TableCell>
                     <TableCell className="text-sm">
                       {delivery.profile.street}, {delivery.profile.number}<br />
                       {delivery.profile.neighborhood}, {delivery.profile.city}-{delivery.profile.state}<br />
@@ -268,6 +217,7 @@ const DeliveryManagementTab = () => {
                 >
                   <SelectTrigger><SelectValue /></SelectTrigger>
                   <SelectContent>
+                    <SelectItem value="aguardando_pagamento">Aguardando Pagamento</SelectItem>
                     <SelectItem value="aguardando_envio">Aguardando Envio</SelectItem>
                     <SelectItem value="a_caminho">A Caminho</SelectItem>
                     <SelectItem value="entregue">Entregue</SelectItem>
