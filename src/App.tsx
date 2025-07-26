@@ -26,6 +26,7 @@ import CentralAjuda from "./pages/CentralAjuda";
 import TermosUso from "./pages/TermosUso";
 import PoliticaPrivacidade from "./pages/PoliticaPrivacidade";
 import FAQ from "./pages/FAQ";
+import Raspadinha from "./pages/Raspadinha";
 import { WalletProvider } from "@/hooks/useWalletProvider";
 
 const queryClient = new QueryClient();
@@ -61,6 +62,7 @@ const App = () => {
                     <Route path="/entregas" element={<MinhasEntregas />} />
                     <Route path="/configuracoes" element={<Configuracoes />} />
                     <Route path="/admin" element={<Admin />} />
+                    <Route path="/raspadinha" element={<Raspadinha />} />
                     <Route path="/central-ajuda" element={<CentralAjuda />} />
                     <Route path="/termos-uso" element={<TermosUso />} />
                     <Route path="/politica-privacidade" element={<PoliticaPrivacidade />} />
