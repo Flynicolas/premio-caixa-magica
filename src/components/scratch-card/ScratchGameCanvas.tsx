@@ -170,13 +170,10 @@ const ScratchGameCanvas = ({ symbols, onWin, onComplete, className }: ScratchGam
 
     ctx.globalCompositeOperation = 'destination-out';
     ctx.beginPath();
-    ctx.arc(x, y, 15, 0, Math.PI * 2);
+    ctx.arc(x, y, 20, 0, Math.PI * 2);
     ctx.fill();
     
-    // Verificar progresso apenas a cada algumas raspadas para performance
-    if (Math.random() < 0.3) {
-      checkScratchProgress();
-    }
+    checkScratchProgress();
   }, [isRevealed, checkScratchProgress]);
 
   // Eventos do canvas
@@ -190,7 +187,9 @@ const ScratchGameCanvas = ({ symbols, onWin, onComplete, className }: ScratchGam
     };
 
     const handleMouseMove = (e: MouseEvent) => {
-      if (isScratching) draw(e);
+      if (isScratching) {
+        draw(e);
+      }
     };
     const handleMouseUp = () => setIsScratching(false);
     const handleMouseLeave = () => setIsScratching(false);
@@ -203,7 +202,9 @@ const ScratchGameCanvas = ({ symbols, onWin, onComplete, className }: ScratchGam
 
     const handleTouchMove = (e: TouchEvent) => {
       e.preventDefault();
-      if (isScratching) draw(e);
+      if (isScratching) {
+        draw(e);
+      }
     };
 
     const handleTouchEnd = (e: TouchEvent) => {
