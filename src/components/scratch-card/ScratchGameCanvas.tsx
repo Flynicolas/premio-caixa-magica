@@ -282,6 +282,11 @@ const ScratchGameCanvas = ({ symbols, onWin, onComplete, className }: ScratchGam
     };
   }, [draw]); // Apenas 'draw' como dependência
 
+  // Debug: verificar se os useEffects estão executando na ordem correta
+  useEffect(() => {
+    console.log('🎯 Canvas ref changed, current canvas:', !!canvasRef.current);
+  }, [canvasRef.current]);
+
   // Inicializar quando símbolos mudarem
   useEffect(() => {
     console.log('🎯 ScratchGameCanvas useEffect called with symbols:', symbols.length);
