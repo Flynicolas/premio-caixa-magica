@@ -74,10 +74,16 @@ const ScratchCanvas = ({
     context.lineWidth = SCRATCH_RADIUS;
   }, []);
 
-  // Auto-revelar quando atingir o threshold
+  // Auto-revelar quando atingir o threshold - baseado no HTML
   useEffect(() => {
     if (scratchedPercentage >= REVEAL_THRESHOLD && !isRevealed && hasStartedScratching) {
-      onComplete();
+      // Revelar com transição suave
+      const canvas = canvasRef.current;
+      if (canvas) {
+        canvas.style.transition = 'opacity 0.3s ease-out';
+        canvas.style.opacity = '0';
+        setTimeout(() => onComplete(), 300);
+      }
     }
   }, [scratchedPercentage, isRevealed, hasStartedScratching, onComplete]);
 
@@ -98,15 +104,14 @@ const ScratchCanvas = ({
 
     const imageData = context.getImageData(0, 0, canvas.width, canvas.height);
     const pixels = imageData.data;
-    let transparentPixels = 0;
-
+    let clearedPixels = 0;
+    
+    // Algoritmo otimizado baseado no código HTML
     for (let i = 3; i < pixels.length; i += 4) {
-      if (pixels[i] === 0) {
-        transparentPixels++;
-      }
+      if (pixels[i] === 0) clearedPixels++;
     }
-
-    const percentage = (transparentPixels / (pixels.length / 4)) * 100;
+    
+    const percentage = (clearedPixels / (canvas.width * canvas.height)) * 100;
     setScratchedPercentage(percentage);
     return percentage;
   }, []);
@@ -123,8 +128,10 @@ const ScratchCanvas = ({
     const canvasX = (x - rect.left) * scaleX;
     const canvasY = (y - rect.top) * scaleY;
 
+    // Configurar modo de raspagem mais eficiente
+    context.globalCompositeOperation = 'destination-out';
     context.beginPath();
-    context.arc(canvasX, canvasY, SCRATCH_RADIUS, 0, 2 * Math.PI);
+    context.arc(canvasX, canvasY, SCRATCH_RADIUS, 0, Math.PI * 2, false);
     context.fill();
 
     if (!hasStartedScratching) {
@@ -132,7 +139,10 @@ const ScratchCanvas = ({
       onScratch();
     }
 
-    calculateScratchedPercentage();
+    // Debounce para otimizar performance
+    if (Math.random() < 0.3) {
+      calculateScratchedPercentage();
+    }
   }, [disabled, isRevealed, hasStartedScratching, onScratch, calculateScratchedPercentage]);
 
   // Mouse events

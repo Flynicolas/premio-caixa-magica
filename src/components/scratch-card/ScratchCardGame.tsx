@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
+import { cn } from "@/lib/utils";
 import ScratchBlock from "./ScratchBlock";
 import ScratchCardControls from "./ScratchCardControls";
 import ScratchCardResult from "./ScratchCardResult";
@@ -86,17 +87,29 @@ const ScratchCardGame = () => {
                   animate={{ opacity: 1, scale: 1 }}
                   className="bg-card rounded-xl p-6 border shadow-lg"
                 >
-                  <div className="grid grid-cols-3 gap-4 max-w-sm mx-auto">
+                  {/* Grid 3x3 otimizado baseado no HTML */}
+                  <div className="grid grid-cols-3 gap-3 max-w-xs mx-auto bg-muted/20 p-4 rounded-xl">
                     {blocks.map((block, index) => (
-                      <ScratchBlock
+                      <motion.div
                         key={block.id}
-                        block={block}
-                        onScratch={scratchBlock}
-                        isWinning={
-                          winningCombination?.pattern.includes(index) || false
-                        }
-                        disabled={gameComplete}
-                      />
+                        initial={{ opacity: 0, scale: 0.8 }}
+                        animate={{ opacity: 1, scale: 1 }}
+                        transition={{ delay: index * 0.1 }}
+                        className={cn(
+                          "relative",
+                          winningCombination?.pattern.includes(index) && 
+                          "ring-2 ring-yellow-400 ring-offset-2 ring-offset-background"
+                        )}
+                      >
+                        <ScratchBlock
+                          block={block}
+                          onScratch={scratchBlock}
+                          isWinning={
+                            winningCombination?.pattern.includes(index) || false
+                          }
+                          disabled={gameComplete}
+                        />
+                      </motion.div>
                     ))}
                   </div>
 

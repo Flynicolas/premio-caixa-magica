@@ -72,31 +72,36 @@ export const useScratchCard = () => {
   }, [gameComplete]);
 
   const checkWinningCombination = useCallback(() => {
-    if (!scratchCard) return null;
+    if (!scratchCard || !gameComplete) return null;
 
-    // Padrões de vitória (linhas, colunas, diagonais)
-    const winPatterns = [
-      [0, 1, 2], [3, 4, 5], [6, 7, 8], // linhas
-      [0, 3, 6], [1, 4, 7], [2, 5, 8], // colunas
-      [0, 4, 8], [2, 4, 6] // diagonais
-    ];
+    // Sistema de contagem baseado no código HTML - 3 símbolos iguais
+    const symbolCount: Record<string, number[]> = {};
+    
+    blocks.forEach((block, index) => {
+      if (block.symbol && block.isScratched) {
+        const symbolId = block.symbol.id;
+        if (!symbolCount[symbolId]) {
+          symbolCount[symbolId] = [];
+        }
+        symbolCount[symbolId].push(index);
+      }
+    });
 
-    for (const pattern of winPatterns) {
-      const symbols = pattern.map(index => blocks[index]?.symbol);
-      const firstSymbol = symbols[0];
-      
-      if (firstSymbol && symbols.every(symbol => 
-        symbol && symbol.id === firstSymbol.id
-      )) {
-        return {
-          pattern,
-          winningSymbol: firstSymbol
-        };
+    // Verificar se algum símbolo aparece 3 ou mais vezes
+    for (const [symbolId, positions] of Object.entries(symbolCount)) {
+      if (positions.length >= 3) {
+        const winningSymbol = blocks[positions[0]]?.symbol;
+        if (winningSymbol) {
+          return {
+            pattern: positions.slice(0, 3), // Pegar os primeiros 3
+            winningSymbol
+          };
+        }
       }
     }
 
     return null;
-  }, [blocks, scratchCard]);
+  }, [blocks, scratchCard, gameComplete]);
 
   const resetGame = () => {
     setScratchCard(null);
