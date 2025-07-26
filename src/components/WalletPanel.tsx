@@ -14,7 +14,8 @@ import { Prize, ChestType } from "@/data/chestData";
 import { useEffect, useState } from "react";
 import PaymentModal from "./PaymentModal";
 import { useWallet } from "@/hooks/useWallet";
-import { useWithdrawItem } from "@/hooks/useWithdrawItem";
+import { useRedemptionFlow } from "@/hooks/useRedemptionFlow";
+import RedemptionModal from "./RedemptionModal";
 import { useAuth } from "@/hooks/useAuth";
 import { Dialog as ConfirmDialog } from "@/components/ui/dialog"; // reutilizando Dialog
 import { useToast } from "@/hooks/use-toast";
@@ -39,7 +40,8 @@ const WalletPanel = ({
   const [showPaymentModal, setShowPaymentModal] = useState(false);
   const { transactions } = useWallet();
   const [selectedPrize, setSelectedPrize] = useState<any>(null);
-  const { solicitarRetirada } = useWithdrawItem();
+  const [showRedemptionModal, setShowRedemptionModal] = useState(false);
+  const { isProcessing } = useRedemptionFlow();
   const { user } = useAuth();
   const quickAmounts = [10, 25, 50, 100, 200];
   const { toast } = useToast();
@@ -47,7 +49,6 @@ const WalletPanel = ({
   const { profile } = useProfile();
   const [showSuccessModal, setShowSuccessModal] = useState(false);
   const [confirmedPrize, setConfirmedPrize] = useState<any>(null);
-  const [isProcessing, setIsProcessing] = useState(false);
 
   const handleAddBalance = (amount: number) => {
     setShowPaymentModal(true);
@@ -281,12 +282,13 @@ const WalletPanel = ({
             return;
           }
 
-          setSelectedPrize(prize);
-        }}
-        className="gold-gradient text-black font-bold hover:opacity-90 h-8 md:h-9 rounded-md px-2 md:px-4 text-xs md:text-sm flex-shrink-0"
-      >
-        Resgatar
-      </Button>
+                  setSelectedPrize(prize);
+                  setShowRedemptionModal(true);
+                }}
+                className="gold-gradient text-black font-bold hover:opacity-90 h-8 md:h-9 rounded-md px-2 md:px-4 text-xs md:text-sm flex-shrink-0"
+              >
+                Resgatar
+              </Button>
     </div>
   </Card>
 ))
@@ -376,102 +378,15 @@ const WalletPanel = ({
         </DialogContent>
       </Dialog>
 
-      {selectedPrize && (
-        <ConfirmDialog open={true} onOpenChange={() => setSelectedPrize(null)}>
-          <DialogContent className="bg-card border border-yellow-400">
-            <DialogHeader>
-              <div className="flex items-center justify-between">
-                <DialogTitle>Confirmar Retirada</DialogTitle>
-                <DialogClose asChild>
-                  <Button variant="ghost" size="sm" className="h-8 w-8 p-0">
-                    <X className="h-4 w-4" />
-                  </Button>
-                </DialogClose>
-              </div>
-            </DialogHeader>
-
-            <div className="space-y-4">
-              <p className="text-sm text-muted-foreground">
-                Para receber o prêmio <strong>{selectedPrize.name}</strong>, é
-                necessário pagar a taxa de entrega de <strong>R$ 25,00</strong>.
-              </p>
-              <p className="text-xs text-muted-foreground">
-                Após o pagamento, sua entrega será iniciada. Você poderá
-                acompanhar o status na área <strong>Minhas Entregas</strong>.
-              </p>
-
-              <Button
-                className="w-full gold-gradient text-black font-bold hover:opacity-90 mt-2"
-                disabled={isProcessing}
-                onClick={async () => {
-                  if (!user || !selectedPrize) return;
-
-                  const fullName = profile?.full_name;
-                  const cpf = profile?.cpf;
-                  const addressComplete =
-                    profile?.zip_code &&
-                    profile?.street &&
-                    profile?.number &&
-                    profile?.neighborhood &&
-                    profile?.city &&
-                    profile?.state;
-
-                  if (!fullName || !cpf || !addressComplete) {
-                    toast({
-                      title: "Complete seu cadastro",
-                      description:
-                        "Você precisa informar nome completo, CPF e endereço para retirar prêmios.",
-                      variant: "destructive",
-                    });
-
-                    Cookies.set("redirected_from_retirada", "true", {
-                      path: "/",
-                    });
-                    onClose();
-                    navigate("/configuracoes");
-                    return;
-                  }
-
-                  try {
-                    setIsProcessing(true);
-
-                    await solicitarRetirada({
-                      itemId: selectedPrize.itemId,
-                      inventoryId: selectedPrize.inventoryId,
-                      fullName,
-                      cpf,
-                      address: {
-                        zip_code: profile.zip_code,
-                        street: profile.street,
-                        number: profile.number,
-                        complement: profile.complement,
-                        neighborhood: profile.neighborhood,
-                        city: profile.city,
-                        state: profile.state,
-                      },
-                    });
-
-                    setSelectedPrize(null);
-                    onClose();
-                    setConfirmedPrize(selectedPrize);
-                    setShowSuccessModal(true);
-                  } catch (error) {
-                    toast({
-                      title: "Erro ao solicitar retirada",
-                      description: "Tente novamente em instantes.",
-                      variant: "destructive",
-                    });
-                  } finally {
-                    setIsProcessing(false);
-                  }
-                }}
-              >
-                {isProcessing ? "Processando..." : "Retirar meu prêmio"}
-              </Button>
-            </div>
-          </DialogContent>
-        </ConfirmDialog>
-      )}
+      <RedemptionModal
+        isOpen={showRedemptionModal}
+        onClose={() => {
+          setShowRedemptionModal(false);
+          setSelectedPrize(null);
+        }}
+        item={selectedPrize}
+        onAddBalance={() => setShowPaymentModal(true)}
+      />
 
       <Dialog open={showSuccessModal} onOpenChange={setShowSuccessModal}>
         <DialogContent className="max-w-md text-center bg-gradient-to-br from-yellow-50 via-white to-yellow-100 border border-yellow-300 shadow-2xl rounded-2xl">

@@ -11,8 +11,9 @@ import { useToast } from '@/hooks/use-toast';
 import { useProfile } from '@/hooks/useProfile';
 import { useNavigate } from 'react-router-dom';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-import { useWithdrawItem } from '@/hooks/useWithdrawItem';
+import { useRedemptionFlow } from '@/hooks/useRedemptionFlow';
 import RedeemButton from './RedeemButton';
+import RedemptionModal from './RedemptionModal';
 import Cookies from "js-cookie";
 
 interface MeusPremiosModalProps {
@@ -28,8 +29,8 @@ const MeusPremiosModal = ({ isOpen, onClose }: MeusPremiosModalProps) => {
   const navigate = useNavigate();
   const { profile } = useProfile();
   const [selectedPrize, setSelectedPrize] = useState<any>(null);
-  const [isProcessing, setIsProcessing] = useState(false);
-  const { resgateComCarteira } = useWithdrawItem();
+  const [showRedemptionModal, setShowRedemptionModal] = useState(false);
+  const { isProcessing } = useRedemptionFlow();
 
   if (!user) return null;
 
@@ -56,88 +57,9 @@ const MeusPremiosModal = ({ isOpen, onClose }: MeusPremiosModalProps) => {
     return acc;
   }, {} as Record<string, number>);
 
-  const handleRedeemPrize = async (userItem: any) => {
-    if (!user || !userItem) return;
-
-    const fullName = profile?.full_name;
-    const cpf = profile?.cpf;
-    const addressComplete =
-      profile?.zip_code &&
-      profile?.street &&
-      profile?.number &&
-      profile?.neighborhood &&
-      profile?.city &&
-      profile?.state;
-
-    if (!fullName || !cpf || !addressComplete) {
-      toast({
-        title: "Complete seu cadastro",
-        description: "Você precisa informar nome completo, CPF e endereço para retirar prêmios.",
-        variant: "destructive",
-      });
-
-      Cookies.set("redirected_from_retirada", "true", { path: "/" });
-      onClose();
-      navigate("/configuracoes");
-      return;
-    }
-
-    if ((walletData?.balance || 0) < 25) {
-      toast({
-        title: "Saldo insuficiente",
-        description: "Você precisa de R$ 25,00 para pagar a taxa de entrega.",
-        variant: "destructive",
-      });
-      
-      showPaymentModalForAmount(25);
-      return;
-    }
-
-    try {
-      setIsProcessing(true);
-      setSelectedPrize(userItem);
-
-      const result = await resgateComCarteira({
-        itemId: userItem.item?.id,
-        inventoryId: userItem.id,
-        fullName,
-        cpf,
-        address: {
-          zip_code: profile.zip_code,
-          street: profile.street,
-          number: profile.number,
-          complement: profile.complement,
-          neighborhood: profile.neighborhood,
-          city: profile.city,
-          state: profile.state,
-        },
-        userBalance: walletData?.balance || 0,
-      });
-
-      if (result.success) {
-        await refreshInventory();
-        await refreshWallet();
-        setSelectedPrize(null);
-      } else if (result.insufficientBalance) {
-        toast({
-          title: "Saldo insuficiente",
-          description: "Você precisa de R$ 25,00 para pagar a taxa de entrega.",
-          variant: "destructive",
-        });
-        
-        showPaymentModalForAmount(25);
-      }
-
-    } catch (error) {
-      console.error('Erro ao solicitar retirada:', error);
-      toast({
-        title: "Erro ao solicitar retirada",
-        description: "Tente novamente em instantes.",
-        variant: "destructive",
-      });
-    } finally {
-      setIsProcessing(false);
-    }
+  const handleRedeemPrize = (userItem: any) => {
+    setSelectedPrize(userItem);
+    setShowRedemptionModal(true);
   };
 
   return (
@@ -269,6 +191,16 @@ const MeusPremiosModal = ({ isOpen, onClose }: MeusPremiosModalProps) => {
           </div>
         </DialogContent>
       </Dialog>
+
+      <RedemptionModal
+        isOpen={showRedemptionModal}
+        onClose={() => {
+          setShowRedemptionModal(false);
+          setSelectedPrize(null);
+        }}
+        item={selectedPrize}
+        onAddBalance={() => showPaymentModalForAmount()}
+      />
 
       <PaymentModalComponent />
     </>

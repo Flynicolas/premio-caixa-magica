@@ -19,7 +19,8 @@ import {
 import { useNavigate } from 'react-router-dom';
 import PaymentModal from '@/components/PaymentModal';
 import { useToast } from '@/hooks/use-toast';
-import { useWithdrawItem } from '@/hooks/useWithdrawItem';
+import { useRedemptionFlow } from '@/hooks/useRedemptionFlow';
+import RedemptionModal from '@/components/RedemptionModal';
 import { useProfile } from '@/hooks/useProfile';
 import Cookies from 'js-cookie';
 
@@ -30,11 +31,11 @@ const Carteira = () => {
   const { userItems } = useInventory();
   const { toast } = useToast();
   const { profile } = useProfile();
-  const { solicitarRetirada } = useWithdrawItem();
+  const { isProcessing } = useRedemptionFlow();
   
   const [showPaymentModal, setShowPaymentModal] = useState(false);
   const [selectedPrize, setSelectedPrize] = useState<any>(null);
-  const [isProcessing, setIsProcessing] = useState(false);
+  const [showRedemptionModal, setShowRedemptionModal] = useState(false);
 
   const quickAmounts = [10, 25, 50, 100, 200];
   const balance = walletData?.balance || 0;
@@ -74,60 +75,9 @@ const Carteira = () => {
     }
   };
 
-  const handlePrizeWithdraw = async (prize: any) => {
-    if (!user || !profile) return;
-
-    const fullName = profile?.full_name;
-    const cpf = profile?.cpf;
-    const addressComplete = profile?.zip_code && profile?.street && profile?.number && 
-                           profile?.neighborhood && profile?.city && profile?.state;
-
-    if (!fullName || !cpf || !addressComplete) {
-      toast({
-        title: "Complete seu cadastro",
-        description: "Você precisa informar nome completo, CPF e endereço para retirar prêmios.",
-        variant: "destructive",
-      });
-      
-      Cookies.set("redirected_from_retirada", "true", { path: "/" });
-      navigate("/configuracoes");
-      return;
-    }
-
-    try {
-      setIsProcessing(true);
-      await solicitarRetirada({
-        itemId: prize.itemId,
-        inventoryId: prize.inventoryId,
-        fullName,
-        cpf,
-        address: {
-          zip_code: profile.zip_code,
-          street: profile.street,
-          number: profile.number,
-          complement: profile.complement,
-          neighborhood: profile.neighborhood,
-          city: profile.city,
-          state: profile.state,
-        },
-      });
-
-      toast({
-        title: "Solicitação enviada!",
-        description: "Sua solicitação foi registrada com sucesso.",
-        variant: "default",
-      });
-      
-      setSelectedPrize(null);
-    } catch (error) {
-      toast({
-        title: "Erro ao solicitar retirada",
-        description: "Tente novamente em instantes.",
-        variant: "destructive",
-      });
-    } finally {
-      setIsProcessing(false);
-    }
+  const handlePrizeWithdraw = (prize: any) => {
+    setSelectedPrize(prize);
+    setShowRedemptionModal(true);
   };
 
   if (loading) {
@@ -259,13 +209,13 @@ const Carteira = () => {
                         <span className="text-xs">Ganho em {new Date(item.won_at).toLocaleDateString()}</span>
                       </div>
                     </div>
-                    <Button
-                      size="sm"
-                      onClick={() => setSelectedPrize(item)}
-                      className="gold-gradient text-black font-bold hover:opacity-90 h-9 rounded-md px-4 text-sm"
-                    >
-                      Resgatar
-                    </Button>
+                     <Button
+                       size="sm"
+                       onClick={() => handlePrizeWithdraw(item)}
+                       className="gold-gradient text-black font-bold hover:opacity-90 h-9 rounded-md px-4 text-sm"
+                     >
+                       Resgatar
+                     </Button>
                   </div>
                 </Card>
               ))
@@ -319,7 +269,17 @@ const Carteira = () => {
         </TabsContent>
       </Tabs>
 
-      {/* Payment Modal */}
+      {/* Modals */}
+      <RedemptionModal
+        isOpen={showRedemptionModal}
+        onClose={() => {
+          setShowRedemptionModal(false);
+          setSelectedPrize(null);
+        }}
+        item={selectedPrize}
+        onAddBalance={() => setShowPaymentModal(true)}
+      />
+
       <PaymentModal
         isOpen={showPaymentModal}
         onClose={() => setShowPaymentModal(false)}

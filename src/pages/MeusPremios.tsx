@@ -6,7 +6,8 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Package, Gift, Star, Trophy } from 'lucide-react';
-import { useWithdrawItem } from '@/hooks/useWithdrawItem';
+import { useRedemptionFlow } from '@/hooks/useRedemptionFlow';
+import RedemptionModal from '@/components/RedemptionModal';
 import { useToast } from '@/hooks/use-toast';
 import { useProfile } from '@/hooks/useProfile';
 import { useNavigate } from 'react-router-dom';
@@ -21,8 +22,8 @@ const MeusPremios = () => {
   const navigate = useNavigate();
   const { profile } = useProfile();
   const [selectedPrize, setSelectedPrize] = useState<any>(null);
-  const [isProcessing, setIsProcessing] = useState(false);
-  const { solicitarRetirada } = useWithdrawItem();
+  const [showRedemptionModal, setShowRedemptionModal] = useState(false);
+  const { isProcessing } = useRedemptionFlow();
 
   if (loading) {
     return (
@@ -45,61 +46,9 @@ const MeusPremios = () => {
     return acc;
   }, {} as Record<string, number>);
 
-  const handleRedeemPrize = async (userItem: any) => {
-    if (!user || !userItem) return;
-
-    const fullName = profile?.full_name;
-    const cpf = profile?.cpf;
-    const addressComplete =
-      profile?.zip_code &&
-      profile?.street &&
-      profile?.number &&
-      profile?.neighborhood &&
-      profile?.city &&
-      profile?.state;
-
-    if (!fullName || !cpf || !addressComplete) {
-      toast({
-        title: "Complete seu cadastro",
-        description: "Você precisa informar nome completo, CPF e endereço para retirar prêmios.",
-        variant: "destructive",
-      });
-
-      Cookies.set("redirected_from_retirada", "true", { path: "/" });
-      navigate("/configuracoes");
-      return;
-    }
-
-    try {
-      setIsProcessing(true);
-      setSelectedPrize(userItem);
-
-      await solicitarRetirada({
-        itemId: userItem.item?.id,
-        inventoryId: userItem.id,
-        fullName,
-        cpf,
-        address: {
-          zip_code: profile.zip_code,
-          street: profile.street,
-          number: profile.number,
-          complement: profile.complement,
-          neighborhood: profile.neighborhood,
-          city: profile.city,
-          state: profile.state,
-        },
-      });
-
-      setSelectedPrize(null);
-    } catch (error) {
-      toast({
-        title: "Erro ao solicitar retirada",
-        description: "Tente novamente em instantes.",
-        variant: "destructive",
-      });
-    } finally {
-      setIsProcessing(false);
-    }
+  const handleRedeemPrize = (userItem: any) => {
+    setSelectedPrize(userItem);
+    setShowRedemptionModal(true);
   };
 
   return (
@@ -223,45 +172,14 @@ const MeusPremios = () => {
           </CardContent>
         </Card>
 
-        {/* Withdrawal Modal */}
-        {selectedPrize && (
-          <Dialog open={true} onOpenChange={() => setSelectedPrize(null)}>
-            <DialogContent className="bg-card border border-yellow-400/50 max-w-md">
-              <DialogHeader>
-                <DialogTitle className="text-center">Confirmar Retirada</DialogTitle>
-              </DialogHeader>
-
-              <div className="space-y-4">
-                <div className="text-center">
-                  <img
-                    src={selectedPrize.item?.image_url || '/placeholder.png'}
-                    alt={selectedPrize.item?.name}
-                    className="w-24 h-24 object-contain mx-auto mb-4 drop-shadow-lg"
-                  />
-                  <h3 className="font-semibold text-lg mb-2">{selectedPrize.item?.name}</h3>
-                </div>
-
-                <div className="bg-yellow-500/10 border border-yellow-500/30 rounded-lg p-4">
-                  <p className="text-sm text-center mb-2">
-                    Para receber seu prêmio, é necessário pagar a taxa de entrega de
-                  </p>
-                  <p className="text-2xl font-bold text-yellow-400 text-center">R$ 25,00</p>
-                </div>
-
-                <p className="text-xs text-muted-foreground text-center">
-                  Após o pagamento, sua entrega será iniciada. Você poderá acompanhar o status na área <strong>Minhas Entregas</strong>.
-                </p>
-
-                <RedeemButton
-                  isRedeemed={false}
-                  isProcessing={isProcessing}
-                  onClick={() => handleRedeemPrize(selectedPrize)}
-                  className="w-full"
-                />
-              </div>
-            </DialogContent>
-          </Dialog>
-        )}
+        <RedemptionModal
+          isOpen={showRedemptionModal}
+          onClose={() => {
+            setShowRedemptionModal(false);
+            setSelectedPrize(null);
+          }}
+          item={selectedPrize}
+        />
       </div>
     </div>
   );
