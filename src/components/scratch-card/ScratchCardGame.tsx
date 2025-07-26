@@ -87,8 +87,8 @@ const ScratchCardGame = () => {
                   animate={{ opacity: 1, scale: 1 }}
                   className="bg-card rounded-xl p-6 border shadow-lg"
                 >
-                  {/* Grid 3x3 otimizado baseado no HTML */}
-                  <div className="grid grid-cols-3 gap-3 max-w-xs mx-auto bg-muted/20 p-4 rounded-xl">
+                  {/* Grid 3x3 melhorado para raspadinha */}
+                  <div className="grid grid-cols-3 gap-4 max-w-md mx-auto bg-muted/10 p-6 rounded-xl">
                     {blocks.map((block, index) => (
                       <motion.div
                         key={block.id}

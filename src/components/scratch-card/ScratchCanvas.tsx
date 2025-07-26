@@ -22,27 +22,15 @@ const ScratchCanvas = ({
   className 
 }: ScratchCanvasProps) => {
   const canvasRef = useRef<HTMLCanvasElement>(null);
-  const contextRef = useRef<CanvasRenderingContext2D | null>(null);
   const [isScratching, setIsScratching] = useState(false);
   const [scratchedPercentage, setScratchedPercentage] = useState(0);
   const [hasStartedScratching, setHasStartedScratching] = useState(false);
 
-  const REVEAL_THRESHOLD = 70; // Porcentagem para revelar automaticamente
-  const SCRATCH_RADIUS = 20;
+  const REVEAL_THRESHOLD = 70;
+  const SCRATCH_RADIUS = 15;
 
-  const getRarityColor = (rarity: string) => {
-    switch (rarity) {
-      case 'common': return 'border-gray-400 bg-gray-100';
-      case 'uncommon': return 'border-green-400 bg-green-100';
-      case 'rare': return 'border-blue-400 bg-blue-100';
-      case 'epic': return 'border-purple-400 bg-purple-100';
-      case 'legendary': return 'border-yellow-400 bg-yellow-100';
-      case 'special': return 'border-pink-400 bg-pink-100';
-      default: return 'border-gray-400 bg-gray-100';
-    }
-  };
 
-  // Inicializar o canvas
+  // Inicializar canvas baseado no HTML fornecido
   useEffect(() => {
     const canvas = canvasRef.current;
     if (!canvas) return;
@@ -50,76 +38,58 @@ const ScratchCanvas = ({
     const context = canvas.getContext('2d');
     if (!context) return;
 
-    contextRef.current = context;
+    // Tamanho fixo para melhor controle
+    canvas.width = 120;
+    canvas.height = 120;
 
-    // Configurar o canvas
-    const rect = canvas.getBoundingClientRect();
-    const scale = window.devicePixelRatio || 1;
-    
-    canvas.width = rect.width * scale;
-    canvas.height = rect.height * scale;
-    
-    context.scale(scale, scale);
-    canvas.style.width = rect.width + 'px';
-    canvas.style.height = rect.height + 'px';
-
-    // Desenhar a cobertura inicial
-    context.fillStyle = '#9ca3af'; // gray-400
-    context.fillRect(0, 0, rect.width, rect.height);
-
-    // Configurar para raspagem
-    context.globalCompositeOperation = 'destination-out';
-    context.lineJoin = 'round';
-    context.lineCap = 'round';
-    context.lineWidth = SCRATCH_RADIUS;
+    // Cobertura cinza inicial (como no HTML)
+    context.fillStyle = '#999';
+    context.fillRect(0, 0, canvas.width, canvas.height);
   }, []);
 
-  // Auto-revelar quando atingir o threshold - baseado no código HTML otimizado
+  // Auto-revelar baseado no HTML fornecido
   useEffect(() => {
     if (scratchedPercentage >= REVEAL_THRESHOLD && !isRevealed && hasStartedScratching) {
-      // Efeito de desaparecimento suave do canvas como no código HTML
       const canvas = canvasRef.current;
       if (canvas) {
-        canvas.style.transition = 'opacity 0.5s ease-out';
-        canvas.style.opacity = '0';
-        setTimeout(() => {
-          canvas.style.display = 'none';
-          onComplete();
-        }, 500);
+        canvas.style.display = 'none';
+        onComplete();
       }
     }
   }, [scratchedPercentage, isRevealed, hasStartedScratching, onComplete]);
 
-  // Revelar completamente quando isRevealed for true
+  // Revelar quando isRevealed for true
   useEffect(() => {
-    if (isRevealed && contextRef.current && canvasRef.current) {
+    if (isRevealed) {
       const canvas = canvasRef.current;
-      const context = contextRef.current;
-      context.clearRect(0, 0, canvas.width, canvas.height);
+      if (canvas) {
+        canvas.style.display = 'none';
+      }
       setScratchedPercentage(100);
     }
   }, [isRevealed]);
 
-  const calculateScratchedPercentage = useCallback(() => {
+  // Algoritmo de detecção exato do HTML fornecido
+  const checkReveal = useCallback(() => {
     const canvas = canvasRef.current;
-    const context = contextRef.current;
-    if (!canvas || !context) return 0;
+    if (!canvas) return;
+
+    const context = canvas.getContext('2d');
+    if (!context) return;
 
     const imageData = context.getImageData(0, 0, canvas.width, canvas.height);
     const pixels = imageData.data;
-    let clearedPixels = 0;
+    let transparent = 0;
     
-    // Algoritmo otimizado baseado no código HTML
     for (let i = 3; i < pixels.length; i += 4) {
-      if (pixels[i] === 0) clearedPixels++;
+      if (pixels[i] === 0) transparent++;
     }
     
-    const percentage = (clearedPixels / (canvas.width * canvas.height)) * 100;
-    setScratchedPercentage(percentage);
-    return percentage;
+    const percent = (transparent / (canvas.width * canvas.height)) * 100;
+    setScratchedPercentage(percent);
   }, []);
 
-  // Função otimizada para obter posição baseada no código HTML
+  // Função para obter posição (igual ao HTML)
   const getPos = useCallback((e: MouseEvent | TouchEvent | React.MouseEvent | React.TouchEvent) => {
     const canvas = canvasRef.current;
     if (!canvas) return { x: 0, y: 0 };
@@ -134,11 +104,14 @@ const ScratchCanvas = ({
     };
   }, []);
 
+  // Função de raspagem (exata do HTML)
   const scratch = useCallback((x: number, y: number) => {
-    const context = contextRef.current;
-    if (!context || disabled || isRevealed) return;
+    const canvas = canvasRef.current;
+    if (!canvas || disabled || isRevealed) return;
 
-    // Algoritmo otimizado baseado no código HTML
+    const context = canvas.getContext('2d');
+    if (!context) return;
+
     context.globalCompositeOperation = 'destination-out';
     context.beginPath();
     context.arc(x, y, SCRATCH_RADIUS, 0, Math.PI * 2);
@@ -148,56 +121,31 @@ const ScratchCanvas = ({
       setHasStartedScratching(true);
       onScratch();
     }
+  }, [disabled, isRevealed, hasStartedScratching, onScratch]);
 
-    // Verificar progresso com debounce
-    if (Math.random() < 0.2) {
-      calculateScratchedPercentage();
-    }
-  }, [disabled, isRevealed, hasStartedScratching, onScratch, calculateScratchedPercentage]);
-
-  // Eventos de mouse otimizados baseados no código HTML
-  const handleMouseDown = useCallback((e: React.MouseEvent) => {
+  // Eventos exatos do HTML fornecido
+  const handleStart = useCallback((e: React.MouseEvent | React.TouchEvent) => {
     if (disabled || isRevealed) return;
     setIsScratching(true);
     const { x, y } = getPos(e);
     scratch(x, y);
   }, [disabled, isRevealed, scratch, getPos]);
 
-  const handleMouseMove = useCallback((e: React.MouseEvent) => {
+  const handleMove = useCallback((e: React.MouseEvent | React.TouchEvent) => {
     if (!isScratching || disabled || isRevealed) return;
     const { x, y } = getPos(e);
     scratch(x, y);
-  }, [isScratching, disabled, isRevealed, scratch, getPos]);
+    checkReveal();
+  }, [isScratching, disabled, isRevealed, scratch, getPos, checkReveal]);
 
-  const handleMouseUp = useCallback(() => {
-    setIsScratching(false);
-  }, []);
-
-  // Eventos de touch otimizados
-  const handleTouchStart = useCallback((e: React.TouchEvent) => {
-    if (disabled || isRevealed) return;
-    e.preventDefault();
-    setIsScratching(true);
-    const { x, y } = getPos(e);
-    scratch(x, y);
-  }, [disabled, isRevealed, scratch, getPos]);
-
-  const handleTouchMove = useCallback((e: React.TouchEvent) => {
-    if (!isScratching || disabled || isRevealed) return;
-    e.preventDefault();
-    const { x, y } = getPos(e);
-    scratch(x, y);
-  }, [isScratching, disabled, isRevealed, scratch, getPos]);
-
-  const handleTouchEnd = useCallback((e: React.TouchEvent) => {
-    e.preventDefault();
+  const handleEnd = useCallback(() => {
     setIsScratching(false);
   }, []);
 
   return (
     <div 
       className={cn(
-        "relative w-24 h-24 sm:w-28 sm:h-28 rounded-lg border-2 overflow-hidden",
+        "relative w-32 h-32 rounded-xl border-2 overflow-hidden shadow-lg",
         "transition-all duration-300",
         isWinning && isRevealed && "ring-4 ring-yellow-400 animate-pulse",
         disabled && "cursor-not-allowed opacity-50",
@@ -205,69 +153,50 @@ const ScratchCanvas = ({
         className
       )}
     >
-      {/* Conteúdo do símbolo (sempre presente, mas oculto) */}
+      {/* Conteúdo escondido (como no HTML fornecido) */}
       {symbol && (
-        <div
-          className={cn(
-            "absolute inset-0 flex flex-col items-center justify-center p-1",
-            getRarityColor(symbol.rarity)
-          )}
-        >
+        <div className="absolute inset-0 flex flex-col items-center justify-center p-2 bg-gradient-to-br from-yellow-400 to-orange-500">
           <img
             src={symbol.image_url}
             alt={symbol.name}
-            className="w-12 h-12 sm:w-16 sm:h-16 object-contain"
+            className="w-16 h-16 object-contain mb-2"
           />
-          <span className="text-xs font-medium text-center mt-1 leading-tight">
+          <span className="text-sm font-bold text-center text-gray-800 leading-tight">
             {symbol.name}
           </span>
         </div>
       )}
 
-      {/* Canvas de raspagem */}
+      {/* Canvas raspável */}
       <canvas
         ref={canvasRef}
-        className={cn(
-          "absolute inset-0 w-full h-full rounded-lg",
-          disabled && "pointer-events-none"
-        )}
-        onMouseDown={handleMouseDown}
-        onMouseMove={handleMouseMove}
-        onMouseUp={handleMouseUp}
-        onMouseLeave={handleMouseUp}
-        onTouchStart={handleTouchStart}
-        onTouchMove={handleTouchMove}
-        onTouchEnd={handleTouchEnd}
-        style={{ touchAction: 'none' }}
+        width={120}
+        height={120}
+        className="absolute inset-0 w-full h-full"
+        onMouseDown={handleStart}
+        onMouseMove={handleMove}
+        onMouseUp={handleEnd}
+        onMouseLeave={handleEnd}
+        onTouchStart={handleStart}
+        onTouchMove={handleMove}
+        onTouchEnd={handleEnd}
+        style={{ touchAction: 'none', zIndex: 2 }}
       />
 
-      {/* Texto de instrução */}
+      {/* Instrução de raspagem */}
       {!hasStartedScratching && !isRevealed && (
-        <div className="absolute inset-0 flex items-center justify-center text-white font-bold text-sm pointer-events-none">
-          <span className="select-none">?</span>
+        <div className="absolute inset-0 flex items-center justify-center text-white font-bold text-lg pointer-events-none" style={{ zIndex: 3 }}>
+          <span className="select-none drop-shadow-lg">Raspe aqui!</span>
         </div>
       )}
 
-      {/* Status de progresso baseado no código HTML */}
-      {hasStartedScratching && !isRevealed && scratchedPercentage > 0 && (
-        <div className="absolute bottom-1 left-1 right-1 text-center">
-          <div className="bg-black/60 text-white text-xs px-2 py-1 rounded-full">
+      {/* Status como no HTML */}
+      {hasStartedScratching && !isRevealed && (
+        <div className="absolute bottom-2 left-2 right-2 text-center pointer-events-none" style={{ zIndex: 3 }}>
+          <div className="bg-black/70 text-white text-xs px-2 py-1 rounded">
             Área raspada: {scratchedPercentage.toFixed(1)}%
           </div>
-          <div className="w-full bg-black/20 rounded-full h-1 mt-1 overflow-hidden">
-            <div 
-              className="h-full bg-white/80 transition-all duration-300"
-              style={{ width: `${Math.min(scratchedPercentage, 100)}%` }}
-            />
-          </div>
         </div>
-      )}
-
-      {/* Efeito de brilho quando vencedor */}
-      {isWinning && isRevealed && (
-        <div
-          className="absolute inset-0 bg-gradient-to-r from-transparent via-yellow-300/30 to-transparent animate-pulse"
-        />
       )}
     </div>
   );
