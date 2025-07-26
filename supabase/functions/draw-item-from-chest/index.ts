@@ -74,39 +74,85 @@ serve(async (req)=>{
       }
     }
     console.log(`Saldo deduzido: R$ ${chestPrice}`);
-    // 3. SORTEAR ITEM DO BAÚ
-    const { data: availableItems, error: itemsError } = await supabase.from('chest_item_probabilities').select(`*, item:items(*)`).eq('chest_type', chestType).eq('is_active', true).gt('probability_weight', 0);
-    if (itemsError) {
-      console.error('Erro ao buscar itens:', itemsError);
-      throw itemsError;
-    }
-    if (!availableItems || availableItems.length === 0) {
-      console.log('Nenhum item disponível para sorteio neste baú');
-      return new Response(JSON.stringify({
-        error: 'Nenhum item disponível'
-      }), {
-        status: 400,
-        headers: {
-          ...corsHeaders,
-          'Content-Type': 'application/json'
-        }
-      });
-    }
-    const totalWeight = availableItems.reduce((sum, item)=>sum + item.probability_weight, 0);
-    const random = Math.random() * totalWeight;
-    let currentWeight = 0;
+    // 3. VERIFICAR LIBERAÇÕES MANUAIS PRIMEIRO
+    const { data: manualReleases, error: manualError } = await supabase
+      .from('manual_item_releases')
+      .select(`
+        *,
+        item:items(*),
+        probability:chest_item_probabilities(*)
+      `)
+      .eq('chest_type', chestType)
+      .eq('status', 'pending')
+      .lte('released_at', new Date().toISOString())
+      .gte('expires_at', new Date().toISOString())
+      .order('released_at', { ascending: true })
+      .limit(1);
+
     let selectedItem = null;
-    for (const item of availableItems){
-      currentWeight += item.probability_weight;
-      if (random <= currentWeight) {
-        selectedItem = item;
-        break;
+    let isManualRelease = false;
+    let manualReleaseId = null;
+
+    if (manualReleases && manualReleases.length > 0) {
+      // ITEM LIBERADO MANUALMENTE ENCONTRADO
+      const manualRelease = manualReleases[0];
+      console.log(`Item liberado manualmente encontrado: ${manualRelease.item.name}`);
+      
+      selectedItem = {
+        id: manualRelease.probability_id,
+        item: manualRelease.item,
+        probability_weight: manualRelease.probability?.probability_weight || 100
+      };
+      isManualRelease = true;
+      manualReleaseId = manualRelease.id;
+    } else {
+      // SORTEAR ITEM NORMALMENTE
+      console.log('Nenhuma liberação manual encontrada, sorteando normalmente...');
+      
+      const { data: availableItems, error: itemsError } = await supabase
+        .from('chest_item_probabilities')
+        .select(`*, item:items(*)`)
+        .eq('chest_type', chestType)
+        .eq('is_active', true)
+        .gt('probability_weight', 0);
+        
+      if (itemsError) {
+        console.error('Erro ao buscar itens:', itemsError);
+        throw itemsError;
+      }
+      
+      if (!availableItems || availableItems.length === 0) {
+        console.log('Nenhum item disponível para sorteio neste baú');
+        return new Response(JSON.stringify({
+          error: 'Nenhum item disponível'
+        }), {
+          status: 400,
+          headers: {
+            ...corsHeaders,
+            'Content-Type': 'application/json'
+          }
+        });
+      }
+      
+      const totalWeight = availableItems.reduce((sum, item) => sum + item.probability_weight, 0);
+      const random = Math.random() * totalWeight;
+      let currentWeight = 0;
+      
+      for (const item of availableItems) {
+        currentWeight += item.probability_weight;
+        if (random <= currentWeight) {
+          selectedItem = item;
+          break;
+        }
+      }
+      
+      if (!selectedItem) {
+        selectedItem = availableItems[availableItems.length - 1]; // fallback
       }
     }
-    if (!selectedItem) {
-      selectedItem = availableItems[availableItems.length - 1]; // fallback
-    }
-    console.log(`Item sorteado: ${selectedItem.item.name} (probabilidade: ${selectedItem.probability_weight}%)`);
+
+    console.log(`Item selecionado: ${selectedItem.item.name} (${isManualRelease ? 'Liberação Manual' : 'Sorteio Normal'})`);
+
     // 4. ADICIONAR AO INVENTÁRIO
     const { error: inventoryError } = await supabase.from('user_inventory').insert({
       user_id: userId,
@@ -120,6 +166,25 @@ serve(async (req)=>{
       throw inventoryError;
     }
     console.log('Item adicionado ao inventário com sucesso');
+
+    // 5. MARCAR LIBERAÇÃO MANUAL COMO SORTEADA (SE APLICÁVEL)
+    if (isManualRelease && manualReleaseId) {
+      const { error: updateReleaseError } = await supabase
+        .from('manual_item_releases')
+        .update({
+          status: 'drawn',
+          winner_user_id: userId,
+          drawn_at: new Date().toISOString(),
+          updated_at: new Date().toISOString()
+        })
+        .eq('id', manualReleaseId);
+        
+      if (updateReleaseError) {
+        console.error('Erro ao atualizar liberação manual:', updateReleaseError);
+      } else {
+        console.log('Liberação manual marcada como sorteada');
+      }
+    }
     // 5. ATUALIZAR ESTATÍSTICAS DO PERFIL (corrigido)
     const { data: stats, error: statsError } = await supabase.from('profiles').select('chests_opened, total_prizes_won').eq('id', userId).single();
     if (statsError) {
@@ -147,8 +212,9 @@ serve(async (req)=>{
     return new Response(JSON.stringify({
       item: selectedItem.item,
       probability: selectedItem.probability_weight,
-      totalWeight,
-      balanceAfter: currentBalance - chestPrice
+      totalWeight: isManualRelease ? 100 : (availableItems?.reduce((sum, item) => sum + item.probability_weight, 0) || 0),
+      balanceAfter: currentBalance - chestPrice,
+      isManualRelease: isManualRelease
     }), {
       headers: {
         ...corsHeaders,

@@ -772,6 +772,76 @@ export type Database = {
         }
         Relationships: []
       }
+      manual_item_releases: {
+        Row: {
+          chest_type: string
+          created_at: string | null
+          drawn_at: string | null
+          expires_at: string
+          id: string
+          item_id: string
+          metadata: Json | null
+          probability_id: string
+          released_at: string
+          released_by: string
+          status: string
+          updated_at: string | null
+          winner_user_id: string | null
+        }
+        Insert: {
+          chest_type: string
+          created_at?: string | null
+          drawn_at?: string | null
+          expires_at?: string
+          id?: string
+          item_id: string
+          metadata?: Json | null
+          probability_id: string
+          released_at?: string
+          released_by: string
+          status?: string
+          updated_at?: string | null
+          winner_user_id?: string | null
+        }
+        Update: {
+          chest_type?: string
+          created_at?: string | null
+          drawn_at?: string | null
+          expires_at?: string
+          id?: string
+          item_id?: string
+          metadata?: Json | null
+          probability_id?: string
+          released_at?: string
+          released_by?: string
+          status?: string
+          updated_at?: string | null
+          winner_user_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "manual_item_releases_item_id_fkey"
+            columns: ["item_id"]
+            isOneToOne: false
+            referencedRelation: "items"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "manual_item_releases_probability_id_fkey"
+            columns: ["probability_id"]
+            isOneToOne: false
+            referencedRelation: "chest_item_probabilities"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "manual_item_releases_released_by_fkey"
+            columns: ["released_by"]
+            isOneToOne: false
+            referencedRelation: "admin_users"
+            referencedColumns: ["user_id"]
+          },
+        ]
+      }
       mercadopago_payments: {
         Row: {
           amount: number
@@ -1375,6 +1445,10 @@ export type Database = {
           preference_id: string
           transaction_id: string
         }[]
+      }
+      expire_old_manual_releases: {
+        Args: Record<PropertyKey, never>
+        Returns: undefined
       }
       get_ranking_top10: {
         Args: Record<PropertyKey, never>
