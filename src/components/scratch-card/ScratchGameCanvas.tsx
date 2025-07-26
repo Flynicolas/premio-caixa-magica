@@ -310,15 +310,15 @@ const ScratchGameCanvas = ({ symbols, onWin, onComplete, className }: ScratchGam
     console.log('🎯 Canvas ref changed, current canvas:', !!canvasRef.current);
   }, [canvasRef.current]);
 
-  // Inicializar quando símbolos mudarem
+  // Inicializar quando símbolos mudarem - apenas uma vez
   useEffect(() => {
     console.log('🎯 ScratchGameCanvas useEffect called with symbols:', symbols.length);
-    if (symbols.length > 0) {
+    if (symbols.length > 0 && !isRevealed) {
       renderGrid();
       resetCanvas();
       console.log('🎯 Grid and canvas initialized');
     }
-  }, [symbols, renderGrid, resetCanvas]);
+  }, [symbols.length]); // Só depende do tamanho do array, não das funções
 
   return (
     <div className={cn("relative w-full max-w-sm mx-auto", className)}>
