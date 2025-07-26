@@ -156,7 +156,7 @@ const ScratchGameCanvas = ({ symbols, onWin, onComplete, className }: ScratchGam
 
   // Função de raspagem
   const draw = useCallback((e: MouseEvent | TouchEvent) => {
-    if (!isScratching || isRevealed) return;
+    if (isRevealed) return;
 
     const canvas = canvasRef.current;
     if (!canvas) return;
@@ -170,11 +170,14 @@ const ScratchGameCanvas = ({ symbols, onWin, onComplete, className }: ScratchGam
 
     ctx.globalCompositeOperation = 'destination-out';
     ctx.beginPath();
-    ctx.arc(x, y, 20, 0, Math.PI * 2);
+    ctx.arc(x, y, 15, 0, Math.PI * 2);
     ctx.fill();
     
-    checkScratchProgress();
-  }, [isScratching, isRevealed, checkScratchProgress]);
+    // Verificar progresso apenas a cada algumas raspadas para performance
+    if (Math.random() < 0.3) {
+      checkScratchProgress();
+    }
+  }, [isRevealed, checkScratchProgress]);
 
   // Eventos do canvas
   useEffect(() => {
@@ -186,7 +189,9 @@ const ScratchGameCanvas = ({ symbols, onWin, onComplete, className }: ScratchGam
       draw(e);
     };
 
-    const handleMouseMove = (e: MouseEvent) => draw(e);
+    const handleMouseMove = (e: MouseEvent) => {
+      if (isScratching) draw(e);
+    };
     const handleMouseUp = () => setIsScratching(false);
     const handleMouseLeave = () => setIsScratching(false);
 
@@ -198,7 +203,7 @@ const ScratchGameCanvas = ({ symbols, onWin, onComplete, className }: ScratchGam
 
     const handleTouchMove = (e: TouchEvent) => {
       e.preventDefault();
-      draw(e);
+      if (isScratching) draw(e);
     };
 
     const handleTouchEnd = (e: TouchEvent) => {
