@@ -216,7 +216,7 @@ const ScratchGameCanvas = ({ symbols, onWin, onComplete, className }: ScratchGam
     if (!canvas) return;
 
     const handleMouseDown = (e: MouseEvent) => {
-      console.log('Mouse down - starting scratch'); // Debug log
+      console.log('🔥 MOUSE DOWN EVENT FIRED!', e.target);
       isReallyScratching.current = true;
       setIsScratching(true);
       draw(e);
