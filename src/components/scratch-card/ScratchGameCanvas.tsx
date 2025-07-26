@@ -229,8 +229,17 @@ const ScratchGameCanvas = ({ symbols, onWin, onComplete, className }: ScratchGam
     console.log('🎯 Setting up canvas events, canvas exists:', !!canvas);
     if (!canvas) return;
 
+    // Debug: verificar se o canvas está visível e clicável
+    console.log('🎯 Canvas style:', {
+      display: canvas.style.display,
+      zIndex: window.getComputedStyle(canvas).zIndex,
+      pointerEvents: window.getComputedStyle(canvas).pointerEvents,
+      position: window.getComputedStyle(canvas).position
+    });
+
     const handleMouseDown = (e: MouseEvent) => {
       console.log('🔥 MOUSE DOWN EVENT FIRED!', e.target);
+      console.log('🔥 Event coordinates:', e.clientX, e.clientY);
       isReallyScratching.current = true;
       setIsScratching(true);
       draw(e);
