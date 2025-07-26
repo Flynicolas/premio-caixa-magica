@@ -16,6 +16,7 @@ import { chestData, ChestType, Chest } from '@/data/chestData';
 import { DatabaseItem } from '@/types/database';
 import { useInventory } from '@/hooks/useInventory';
 import ChestSimulator from '@/components/ChestSimulator';
+import ScratchCardSection from '@/components/ScratchCardSection';
 
 const Index = () => {
   const { user } = useAuth();
@@ -97,7 +98,12 @@ const Index = () => {
   return (
     <div className="min-h-screen bg-gradient-to-br from-background via-secondary to-background">
       <div className="container mx-auto px-4 py-8">
-        {/* Hero Slider as main focus */}
+        {/* Seção da Raspadinha no Topo */}
+        <div className="mb-8">
+          <ScratchCardSection onAuthRequired={() => setShowAuthModal(true)} />
+        </div>
+
+        {/* Hero Slider */}
         <div className="mb-8">
           <HeroSlider />
         </div>

@@ -13,7 +13,8 @@ import DeliveryManagementTab from '@/components/admin/DeliveryManagementTab';
 import UsersManagement from '@/components/admin/UsersManagement';
 import ChestGoalsManager from '@/components/admin/ChestGoalsManager';
 import { AdminErrorDashboard } from '@/components/admin/AdminErrorDashboard';
-import { Shield, Package, Settings, Users, Wallet, Target, Truck, AlertTriangle } from 'lucide-react';
+import ScratchCardManager from '@/components/admin/ScratchCardManager';
+import { Shield, Package, Settings, Users, Wallet, Target, Truck, AlertTriangle, Gamepad2 } from 'lucide-react';
 
 const Admin = () => {
   const { user } = useAuth();
@@ -80,7 +81,7 @@ const Admin = () => {
       </div>
 
       <Tabs defaultValue="items" className="space-y-6">
-        <TabsList className="grid w-full grid-cols-7">
+        <TabsList className="grid w-full grid-cols-8">
           <TabsTrigger value="items" className="flex items-center gap-2">
             <Package className="w-4 h-4" />
             Itens
@@ -88,6 +89,10 @@ const Admin = () => {
           <TabsTrigger value="chests" className="flex items-center gap-2">
             <Settings className="w-4 h-4" />
             Baús
+          </TabsTrigger>
+          <TabsTrigger value="scratch" className="flex items-center gap-2">
+            <Gamepad2 className="w-4 h-4" />
+            Raspadinha
           </TabsTrigger>
           <TabsTrigger value="deliveries" className="flex items-center gap-2">
             <Truck className="w-4 h-4" />
@@ -120,6 +125,10 @@ const Admin = () => {
             items={items.filter(item => item.is_active)} 
             onRefresh={refreshItems} 
           />
+        </TabsContent>
+
+        <TabsContent value="scratch">
+          <ScratchCardManager />
         </TabsContent>
 
         <TabsContent value="deliveries">
