@@ -156,7 +156,7 @@ const ScratchGameCanvas = ({ symbols, onWin, onComplete, className }: ScratchGam
 
   // Função de raspagem
   const draw = useCallback((e: MouseEvent | TouchEvent) => {
-    if (isRevealed) return;
+    if (!isScratching || isRevealed) return;
 
     const canvas = canvasRef.current;
     if (!canvas) return;
@@ -174,42 +174,51 @@ const ScratchGameCanvas = ({ symbols, onWin, onComplete, className }: ScratchGam
     ctx.fill();
     
     checkScratchProgress();
-  }, [isRevealed, checkScratchProgress]);
+  }, [isScratching, isRevealed, checkScratchProgress]);
 
   // Eventos do canvas
   useEffect(() => {
     const canvas = canvasRef.current;
     if (!canvas) return;
 
-    const handleMouseDown = (e: MouseEvent) => {
+    let isDrawing = false;
+
+    const handleStart = (e: MouseEvent | TouchEvent) => {
+      isDrawing = true;
       setIsScratching(true);
       draw(e);
     };
 
-    const handleMouseMove = (e: MouseEvent) => {
-      if (isScratching) {
-        draw(e);
-      }
+    const handleMove = (e: MouseEvent | TouchEvent) => {
+      if (!isDrawing) return;
+      draw(e);
     };
-    const handleMouseUp = () => setIsScratching(false);
-    const handleMouseLeave = () => setIsScratching(false);
 
+    const handleEnd = () => {
+      isDrawing = false;
+      setIsScratching(false);
+    };
+
+    // Mouse events
+    const handleMouseDown = (e: MouseEvent) => handleStart(e);
+    const handleMouseMove = (e: MouseEvent) => handleMove(e);
+    const handleMouseUp = () => handleEnd();
+    const handleMouseLeave = () => handleEnd();
+
+    // Touch events
     const handleTouchStart = (e: TouchEvent) => {
       e.preventDefault();
-      setIsScratching(true);
-      draw(e);
+      handleStart(e);
     };
 
     const handleTouchMove = (e: TouchEvent) => {
       e.preventDefault();
-      if (isScratching) {
-        draw(e);
-      }
+      handleMove(e);
     };
 
     const handleTouchEnd = (e: TouchEvent) => {
       e.preventDefault();
-      setIsScratching(false);
+      handleEnd();
     };
 
     canvas.addEventListener('mousedown', handleMouseDown);
@@ -229,7 +238,7 @@ const ScratchGameCanvas = ({ symbols, onWin, onComplete, className }: ScratchGam
       canvas.removeEventListener('touchmove', handleTouchMove);
       canvas.removeEventListener('touchend', handleTouchEnd);
     };
-  }, [draw, setIsScratching]);
+  }, [draw]);
 
   // Inicializar quando símbolos mudarem
   useEffect(() => {
