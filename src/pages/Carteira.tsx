@@ -93,7 +93,8 @@ const Carteira = () => {
   }
 
   return (
-    <div className="container mx-auto px-4 py-8 max-w-6xl">
+    <div className="min-h-screen bg-gradient-to-b from-background via-background/95 to-primary/5">
+      <div className="container mx-auto px-4 py-8 max-w-6xl">
       {/* Header */}
       <div className="flex items-center justify-between mb-8">
         <div className="flex items-center gap-4">
@@ -181,50 +182,59 @@ const Carteira = () => {
 
         {/* Prizes Tab */}
         <TabsContent value="prizes" className="mt-6">
-          <div className="space-y-4">
+          {/* Horizontal Carousel for Prizes */}
+          <div className="mb-6">
+            <h3 className="text-lg font-semibold mb-3">Prêmios Conquistados ({userItems.length})</h3>
             {userItems.length === 0 ? (
-              <div className="text-center py-12">
-                <Gift className="w-16 h-16 mx-auto text-muted-foreground mb-4" />
-                <h3 className="text-lg font-semibold mb-2">Nenhum prêmio ainda</h3>
-                <p className="text-muted-foreground">Abra baús para conquistar prêmios incríveis!</p>
+              <div className="text-center py-8 bg-secondary/20 rounded-lg border border-primary/10">
+                <Gift className="w-12 h-12 mx-auto text-muted-foreground mb-3" />
+                <p className="text-muted-foreground">Nenhum prêmio ainda. Abra baús para conquistar!</p>
               </div>
             ) : (
-              userItems.map((item, index) => (
-                <Card key={index} className="p-4 bg-secondary/30 border border-primary/10 rounded-xl shadow-sm hover:shadow-md transition-all">
-                  <div className="flex items-center gap-4">
-                    <img
-                      src={item.item?.image_url || '/placeholder.svg'}
-                      alt={item.item?.name || 'Prêmio'}
-                      className="w-16 h-16 rounded-md object-cover border border-border shadow-sm flex-shrink-0"
-                    />
-                    <div className="flex-1 space-y-1">
-                      <div className="flex items-center gap-2 mb-1">
-                        <h4 className="font-semibold text-foreground capitalize">{item.item?.name}</h4>
-                        <Badge className={`px-2 py-0.5 text-xs rounded-full bg-gradient-to-r ${rarityColors[item.rarity as keyof typeof rarityColors]} text-white capitalize`}>
-                          {item.rarity}
-                        </Badge>
+              <div className="overflow-x-auto pb-2">
+                <div className="flex gap-3 min-w-max">
+                  {userItems.map((item, index) => (
+                    <Card key={index} className="flex-shrink-0 w-80 p-3 bg-secondary/30 border border-primary/10 hover:border-primary/30 transition-all">
+                      <div className="flex items-center gap-3">
+                        <img
+                          src={item.item?.image_url || '/placeholder.svg'}
+                          alt={item.item?.name || 'Prêmio'}
+                          className="w-12 h-12 rounded object-cover border border-border flex-shrink-0"
+                        />
+                        <div className="flex-1 min-w-0">
+                          <div className="flex items-center gap-2 mb-1">
+                            <h4 className="font-medium text-sm truncate">{item.item?.name}</h4>
+                            <Badge className={`px-1.5 py-0.5 text-xs bg-gradient-to-r ${rarityColors[item.rarity as keyof typeof rarityColors]} text-white`}>
+                              {item.rarity}
+                            </Badge>
+                          </div>
+                          <div className="flex items-center justify-between text-xs text-muted-foreground">
+                            <span className="font-medium text-primary">R$ {item.item?.base_value?.toFixed(2)}</span>
+                            <span className="opacity-70">ID: {item.id.slice(0, 8)}</span>
+                          </div>
+                        </div>
+                        <Button
+                          size="sm"
+                          onClick={() => handlePrizeWithdraw(item)}
+                          className="gold-gradient text-black font-bold hover:opacity-90 h-8 px-3 text-xs flex-shrink-0"
+                        >
+                          Resgatar
+                        </Button>
                       </div>
-                      <div className="flex flex-col text-sm text-muted-foreground">
-                        <span className="font-medium text-primary">R$ {item.item?.base_value?.toFixed(2)}</span>
-                        <span className="text-xs">Ganho em {new Date(item.won_at).toLocaleDateString()}</span>
-                      </div>
-                    </div>
-                     <Button
-                       size="sm"
-                       onClick={() => handlePrizeWithdraw(item)}
-                       className="gold-gradient text-black font-bold hover:opacity-90 h-9 rounded-md px-4 text-sm"
-                     >
-                       Resgatar
-                     </Button>
-                  </div>
-                </Card>
-              ))
+                    </Card>
+                  ))}
+                </div>
+              </div>
             )}
           </div>
         </TabsContent>
 
-        {/* History Tab */}
+        {/* History Tab - Highlighted Section */}
         <TabsContent value="history" className="mt-6">
+          <div className="mb-4">
+            <h3 className="text-xl font-bold mb-2 text-primary">Histórico de Transações</h3>
+            <p className="text-muted-foreground text-sm">Acompanhe todas as movimentações da sua carteira</p>
+          </div>
           <div className="space-y-4">
             {transactions.length === 0 ? (
               <div className="text-center py-12">
@@ -284,6 +294,7 @@ const Carteira = () => {
         isOpen={showPaymentModal}
         onClose={() => setShowPaymentModal(false)}
       />
+      </div>
     </div>
   );
 };

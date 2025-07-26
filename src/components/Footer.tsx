@@ -1,7 +1,10 @@
 import { Shield, Lock, Award, Phone, Home, Gift, Info, Trophy, HelpCircle, FileText, Users } from 'lucide-react';
 import { Link } from 'react-router-dom';
+import { useActiveUsers } from '@/hooks/useActiveUsers';
 
 const Footer = () => {
+  const activeUsers = useActiveUsers();
+
   return (
     <footer className="bg-gradient-to-t from-card/50 to-card border-t border-primary/20 relative overflow-hidden">
       {/* Background Pattern */}
@@ -37,7 +40,7 @@ const Footer = () => {
                 <span>Online</span>
               </div>
               <div className="text-xs text-muted-foreground">
-                +1000 usuários ativos
+                +{activeUsers.toLocaleString()} usuários ativos
               </div>
             </div>
           </div>

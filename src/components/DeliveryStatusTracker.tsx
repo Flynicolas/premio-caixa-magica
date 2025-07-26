@@ -52,6 +52,27 @@ export const DeliveryStatusTracker = ({
           color: 'bg-orange-500/20 text-orange-700 border-orange-500/30',
           icon: <Clock className="w-4 h-4" />
         };
+      case 'paid':
+        return {
+          label: 'Pago',
+          description: description || 'Pagamento confirmado, aguardando aprovação',
+          color: 'bg-blue-500/20 text-blue-700 border-blue-500/30',
+          icon: <Package className="w-4 h-4" />
+        };
+      case 'aprovado':
+        return {
+          label: 'Aprovado',
+          description: description || 'Pedido aprovado, preparando envio',
+          color: 'bg-indigo-500/20 text-indigo-700 border-indigo-500/30',
+          icon: <Package className="w-4 h-4" />
+        };
+      case 'enviado':
+        return {
+          label: 'Enviado',
+          description: description || 'Item despachado para entrega',
+          color: 'bg-purple-500/20 text-purple-700 border-purple-500/30',
+          icon: <Truck className="w-4 h-4" />
+        };
       default:
         return {
           label: status,

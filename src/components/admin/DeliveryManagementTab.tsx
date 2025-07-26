@@ -217,9 +217,10 @@ const DeliveryManagementTab = () => {
                 >
                   <SelectTrigger><SelectValue /></SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="aguardando_pagamento">Aguardando Pagamento</SelectItem>
-                    <SelectItem value="aguardando_envio">Aguardando Envio</SelectItem>
-                    <SelectItem value="a_caminho">A Caminho</SelectItem>
+                    <SelectItem value="pending">Pagamento Pendente</SelectItem>
+                    <SelectItem value="paid">Pago</SelectItem>
+                    <SelectItem value="aprovado">Aprovado</SelectItem>
+                    <SelectItem value="enviado">Enviado</SelectItem>
                     <SelectItem value="entregue">Entregue</SelectItem>
                     <SelectItem value="cancelado">Cancelado</SelectItem>
                   </SelectContent>
