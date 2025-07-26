@@ -10,6 +10,8 @@ import ScratchCardResult from "./ScratchCardResult";
 import { ScratchCardType, scratchCardTypes, ScratchSymbol } from "@/types/scratchCard";
 
 const ScratchCardGame = () => {
+  console.log('🎯 ScratchCardGame component mounted');
+  
   const [selectedType, setSelectedType] = useState<ScratchCardType>('silver');
   const [symbols, setSymbols] = useState<ScratchSymbol[]>([]);
   const [isLoading, setIsLoading] = useState(false);
@@ -17,6 +19,8 @@ const ScratchCardGame = () => {
   const [showResult, setShowResult] = useState(false);
   const [winningSymbol, setWinningSymbol] = useState<string | null>(null);
   const [hasWin, setHasWin] = useState(false);
+
+  console.log('🎯 ScratchCardGame render - symbols.length:', symbols.length);
 
   const generateScratchCard = async (forcedWin = false) => {
     console.log('🎯 Generating scratch card, type:', selectedType, 'forcedWin:', forcedWin);
