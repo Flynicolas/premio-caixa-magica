@@ -185,11 +185,18 @@ const ScratchGameCanvas = ({ symbols, onWin, onComplete, className }: ScratchGam
 
   // Função de raspagem
   const draw = useCallback((e: MouseEvent | TouchEvent) => {
+    console.log('🔥 DRAW function called');
     const canvas = canvasRef.current;
-    if (!canvas || isRevealed) return;
+    if (!canvas || isRevealed) {
+      console.log('🔥 DRAW cancelled - no canvas or already revealed');
+      return;
+    }
 
-    const ctx = canvas.getContext('2d');
-    if (!ctx) return;
+    const ctx = canvas.getContext('2d', { willReadFrequently: true });
+    if (!ctx) {
+      console.log('🔥 DRAW cancelled - no context');
+      return;
+    }
 
     const rect = canvas.getBoundingClientRect();
     
@@ -203,13 +210,14 @@ const ScratchGameCanvas = ({ symbols, onWin, onComplete, className }: ScratchGam
     const x = (clientX - rect.left) * scaleX;
     const y = (clientY - rect.top) * scaleY;
 
-    console.log('Drawing at:', { x, y, isScratching }); // Debug log
+    console.log('🔥 Drawing at coordinates:', { x, y });
 
     ctx.globalCompositeOperation = 'destination-out';
     ctx.beginPath();
-    ctx.arc(x, y, 25, 0, Math.PI * 2); // Aumentar raio para melhor experiência
+    ctx.arc(x, y, 25, 0, Math.PI * 2);
     ctx.fill();
     
+    console.log('🔥 Calling checkScratchProgress...');
     checkScratchProgress();
   }, [isRevealed, checkScratchProgress]);
 
