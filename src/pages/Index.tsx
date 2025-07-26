@@ -16,6 +16,7 @@ import { chestData, ChestType, Chest } from '@/data/chestData';
 import { DatabaseItem } from '@/types/database';
 import { useInventory } from '@/hooks/useInventory';
 import ChestSimulator from '@/components/ChestSimulator';
+import ResponsiveBanner from '@/components/ResponsiveBanner';
 
 const Index = () => {
   const { user } = useAuth();
@@ -158,6 +159,13 @@ const Index = () => {
             </button>
           </section>
         )}
+
+        {/* Banner antes do rodapé - SUBSTITUA AS URLs PELAS SUAS IMAGENS */}
+        <ResponsiveBanner 
+          imageUrlPC="/banners/home-banner-pc.jpg"
+          imageUrlMobile="/banners/home-banner-mobile.jpg"
+          altText="Banner promocional da página inicial"
+        />
       </div>
 
       <AuthModal 

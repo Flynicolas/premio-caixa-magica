@@ -14,6 +14,7 @@ import { useInventory } from '@/hooks/useInventory';
 import { DatabaseItem } from '@/types/database';
 import DynamicMessage from '@/components/DynamicMessage';
 import MeusPremiosMinified from '@/components/MeusPremiosMinified';
+import ResponsiveBanner from '@/components/ResponsiveBanner';
 
 const Premios = () => {
   const { user } = useAuth();
@@ -222,6 +223,13 @@ const Premios = () => {
             </CardContent>
           </Card>
         </section>
+
+        {/* Banner antes do rodapé - SUBSTITUA AS URLs PELAS SUAS IMAGENS */}
+        <ResponsiveBanner 
+          imageUrlPC="/banners/premios-banner-pc.jpg"
+          imageUrlMobile="/banners/premios-banner-mobile.jpg"
+          altText="Banner promocional da página de prêmios"
+        />
       </div>
     </div>
   );
