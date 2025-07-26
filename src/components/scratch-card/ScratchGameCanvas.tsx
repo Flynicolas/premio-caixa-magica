@@ -308,7 +308,7 @@ const ScratchGameCanvas = ({ symbols, onWin, onComplete, className }: ScratchGam
       
       {/* Instrução inicial */}
       {scratchProgress === 0 && (
-        <div className="absolute inset-0 z-30 flex items-center justify-center">
+        <div className="absolute inset-0 z-30 flex items-center justify-center pointer-events-none">
           <div className="bg-black/70 text-white px-4 py-2 rounded-lg text-sm font-medium">
             👆 Raspe gradualmente para revelar os prêmios
           </div>
