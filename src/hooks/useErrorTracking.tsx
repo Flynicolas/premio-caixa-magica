@@ -72,3 +72,9 @@ export const useErrorTracking = () => {
 
   return { logError };
 };
+
+// Componente para usar dentro do AuthProvider
+export const ErrorTrackingProvider = ({ children }: { children: React.ReactNode }) => {
+  useErrorTracking();
+  return <>{children}</>;
+};
