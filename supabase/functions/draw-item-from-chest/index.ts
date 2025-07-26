@@ -92,6 +92,7 @@ serve(async (req)=>{
     let selectedItem = null;
     let isManualRelease = false;
     let manualReleaseId = null;
+    let availableItems = null;
 
     if (manualReleases && manualReleases.length > 0) {
       // ITEM LIBERADO MANUALMENTE ENCONTRADO
@@ -109,7 +110,7 @@ serve(async (req)=>{
       // SORTEAR ITEM NORMALMENTE
       console.log('Nenhuma liberação manual encontrada, sorteando normalmente...');
       
-      const { data: availableItems, error: itemsError } = await supabase
+      const { data: itemsData, error: itemsError } = await supabase
         .from('chest_item_probabilities')
         .select(`*, item:items(*)`)
         .eq('chest_type', chestType)
@@ -120,6 +121,8 @@ serve(async (req)=>{
         console.error('Erro ao buscar itens:', itemsError);
         throw itemsError;
       }
+      
+      availableItems = itemsData;
       
       if (!availableItems || availableItems.length === 0) {
         console.log('Nenhum item disponível para sorteio neste baú');
