@@ -74,15 +74,18 @@ const ScratchCanvas = ({
     context.lineWidth = SCRATCH_RADIUS;
   }, []);
 
-  // Auto-revelar quando atingir o threshold - baseado no HTML
+  // Auto-revelar quando atingir o threshold - baseado no código HTML otimizado
   useEffect(() => {
     if (scratchedPercentage >= REVEAL_THRESHOLD && !isRevealed && hasStartedScratching) {
-      // Revelar com transição suave
+      // Efeito de desaparecimento suave do canvas como no código HTML
       const canvas = canvasRef.current;
       if (canvas) {
-        canvas.style.transition = 'opacity 0.3s ease-out';
+        canvas.style.transition = 'opacity 0.5s ease-out';
         canvas.style.opacity = '0';
-        setTimeout(() => onComplete(), 300);
+        setTimeout(() => {
+          canvas.style.display = 'none';
+          onComplete();
+        }, 500);
       }
     }
   }, [scratchedPercentage, isRevealed, hasStartedScratching, onComplete]);
@@ -116,22 +119,29 @@ const ScratchCanvas = ({
     return percentage;
   }, []);
 
+  // Função otimizada para obter posição baseada no código HTML
+  const getPos = useCallback((e: MouseEvent | TouchEvent | React.MouseEvent | React.TouchEvent) => {
+    const canvas = canvasRef.current;
+    if (!canvas) return { x: 0, y: 0 };
+    
+    const rect = canvas.getBoundingClientRect();
+    const clientX = 'clientX' in e ? e.clientX : e.touches?.[0]?.clientX || 0;
+    const clientY = 'clientY' in e ? e.clientY : e.touches?.[0]?.clientY || 0;
+    
+    return {
+      x: clientX - rect.left,
+      y: clientY - rect.top
+    };
+  }, []);
+
   const scratch = useCallback((x: number, y: number) => {
     const context = contextRef.current;
-    const canvas = canvasRef.current;
-    if (!context || !canvas || disabled || isRevealed) return;
+    if (!context || disabled || isRevealed) return;
 
-    const rect = canvas.getBoundingClientRect();
-    const scaleX = canvas.width / rect.width;
-    const scaleY = canvas.height / rect.height;
-
-    const canvasX = (x - rect.left) * scaleX;
-    const canvasY = (y - rect.top) * scaleY;
-
-    // Configurar modo de raspagem mais eficiente
+    // Algoritmo otimizado baseado no código HTML
     context.globalCompositeOperation = 'destination-out';
     context.beginPath();
-    context.arc(canvasX, canvasY, SCRATCH_RADIUS, 0, Math.PI * 2, false);
+    context.arc(x, y, SCRATCH_RADIUS, 0, Math.PI * 2);
     context.fill();
 
     if (!hasStartedScratching) {
@@ -139,43 +149,45 @@ const ScratchCanvas = ({
       onScratch();
     }
 
-    // Debounce para otimizar performance
-    if (Math.random() < 0.3) {
+    // Verificar progresso com debounce
+    if (Math.random() < 0.2) {
       calculateScratchedPercentage();
     }
   }, [disabled, isRevealed, hasStartedScratching, onScratch, calculateScratchedPercentage]);
 
-  // Mouse events
+  // Eventos de mouse otimizados baseados no código HTML
   const handleMouseDown = useCallback((e: React.MouseEvent) => {
     if (disabled || isRevealed) return;
     setIsScratching(true);
-    scratch(e.clientX, e.clientY);
-  }, [disabled, isRevealed, scratch]);
+    const { x, y } = getPos(e);
+    scratch(x, y);
+  }, [disabled, isRevealed, scratch, getPos]);
 
   const handleMouseMove = useCallback((e: React.MouseEvent) => {
     if (!isScratching || disabled || isRevealed) return;
-    scratch(e.clientX, e.clientY);
-  }, [isScratching, disabled, isRevealed, scratch]);
+    const { x, y } = getPos(e);
+    scratch(x, y);
+  }, [isScratching, disabled, isRevealed, scratch, getPos]);
 
   const handleMouseUp = useCallback(() => {
     setIsScratching(false);
   }, []);
 
-  // Touch events
+  // Eventos de touch otimizados
   const handleTouchStart = useCallback((e: React.TouchEvent) => {
     if (disabled || isRevealed) return;
     e.preventDefault();
     setIsScratching(true);
-    const touch = e.touches[0];
-    scratch(touch.clientX, touch.clientY);
-  }, [disabled, isRevealed, scratch]);
+    const { x, y } = getPos(e);
+    scratch(x, y);
+  }, [disabled, isRevealed, scratch, getPos]);
 
   const handleTouchMove = useCallback((e: React.TouchEvent) => {
     if (!isScratching || disabled || isRevealed) return;
     e.preventDefault();
-    const touch = e.touches[0];
-    scratch(touch.clientX, touch.clientY);
-  }, [isScratching, disabled, isRevealed, scratch]);
+    const { x, y } = getPos(e);
+    scratch(x, y);
+  }, [isScratching, disabled, isRevealed, scratch, getPos]);
 
   const handleTouchEnd = useCallback((e: React.TouchEvent) => {
     e.preventDefault();
@@ -236,13 +248,18 @@ const ScratchCanvas = ({
         </div>
       )}
 
-      {/* Barra de progresso */}
+      {/* Status de progresso baseado no código HTML */}
       {hasStartedScratching && !isRevealed && scratchedPercentage > 0 && (
-        <div className="absolute bottom-1 left-1 right-1 bg-black/20 rounded-full h-1 overflow-hidden">
-          <div 
-            className="h-full bg-white/80 transition-all duration-300"
-            style={{ width: `${Math.min(scratchedPercentage, 100)}%` }}
-          />
+        <div className="absolute bottom-1 left-1 right-1 text-center">
+          <div className="bg-black/60 text-white text-xs px-2 py-1 rounded-full">
+            Área raspada: {scratchedPercentage.toFixed(1)}%
+          </div>
+          <div className="w-full bg-black/20 rounded-full h-1 mt-1 overflow-hidden">
+            <div 
+              className="h-full bg-white/80 transition-all duration-300"
+              style={{ width: `${Math.min(scratchedPercentage, 100)}%` }}
+            />
+          </div>
         </div>
       )}
 
