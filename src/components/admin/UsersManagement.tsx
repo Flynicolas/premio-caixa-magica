@@ -38,7 +38,7 @@ import {
 } from '@/components/ui/select';
 import UserEditDialog from './UsersManagement/UserEditDialog';
 import UserToolsDialog from './UsersManagement/UserToolsDialog';
-import CreateDemoUserModal from './UsersManagement/CreateDemoUserModal';
+
 import { useAdminCheck } from '@/hooks/useAdminCheck';
 
 interface UserData {
@@ -74,7 +74,7 @@ const UsersManagement = () => {
   const [selectedUser, setSelectedUser] = useState<UserData | null>(null);
   const [showEditDialog, setShowEditDialog] = useState(false);
   const [showToolsDialog, setShowToolsDialog] = useState(false);
-  const [showCreateDemoModal, setShowCreateDemoModal] = useState(false);
+  
   const { toast } = useToast();
   const { isAdmin } = useAdminCheck();
   
@@ -213,11 +213,16 @@ const UsersManagement = () => {
               Gerenciar Usuários ({filteredUsers.length})
             </CardTitle>
             <Button
-              onClick={() => setShowCreateDemoModal(true)}
+              onClick={() => {
+                toast({
+                  title: "Funcionalidade em desenvolvimento",
+                  description: "Criação de usuários comuns será implementada em breve."
+                });
+              }}
               className="flex items-center gap-2"
             >
               <UserPlus className="w-4 h-4" />
-              Criar Demo User
+              Criar Usuário
             </Button>
           </div>
           <div className="flex gap-4 mt-4">
@@ -361,11 +366,6 @@ const UsersManagement = () => {
         }}
       />
 
-      <CreateDemoUserModal
-        isOpen={showCreateDemoModal}
-        onClose={() => setShowCreateDemoModal(false)}
-        onSuccess={fetchUsers}
-      />
     </div>
   );
 };
