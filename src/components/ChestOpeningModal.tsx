@@ -13,10 +13,10 @@ import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
 import { useInventory } from "@/hooks/useInventory";
 import { useWallet } from "@/hooks/useWalletProvider";
-import { useRouletteLogic } from "@/hooks/useRouletteLogic";
 import { useDemo } from "@/hooks/useDemo";
 import { useDemoRoulette } from "@/hooks/useDemoRoulette";
 import { useDemoWallet } from "@/hooks/useDemoWallet";
+import { useSmartRoulette } from "@/hooks/useSmartRoulette";
 import ItemCard from "./ItemCard";
 import RouletteDisplay from "@/components/roulette/RouletteDisplay";
 import { DatabaseItem } from "@/types/database";
@@ -56,8 +56,8 @@ const ChestOpeningModal = ({
   const { isDemo } = useDemo();
   const { refreshData } = useWallet();
   const { purchaseChestDemo } = useDemoWallet();
-  const { generateRoulette, rouletteData, isLoading } = useRouletteLogic();
-  const { spinDemoRoulette, generateDemoItems } = useDemoRoulette();
+  const { generateRoulette, rouletteData, isLoading } = useSmartRoulette();
+  const { spinDemoRoulette } = useDemoRoulette();
   const { processGamification } = useGamification();
 
   const configMap = {
@@ -148,9 +148,8 @@ const ChestOpeningModal = ({
         if (result.error) throw new Error(result.error);
         winner = result.winner;
         setPhase("spinning");
-        // Para demo, simular roleta com os itens gerados
-        const items = generateDemoItems(chestType);
-        const rouletteResult = await generateRoulette(chestType, 25, winner.id);
+        // Para demo, gerar roleta usando o hook inteligente
+        const rouletteResult = await generateRoulette(chestType, 25);
         if (!rouletteResult) throw new Error("Erro ao gerar roleta demo");
       } else {
         // Usar sistema real

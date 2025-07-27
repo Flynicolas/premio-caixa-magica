@@ -15,6 +15,23 @@ export const useDemoRoulette = () => {
   const { addDemoItem } = useDemoInventory();
   const [isSpinning, setIsSpinning] = useState(false);
 
+  // Helper function to reproduce array avoiding consecutive duplicates
+  const reproduceArray = function<T>(array: T[], length: number): T[] {
+    const result: T[] = [];
+    let lastItem: T | null = null;
+    
+    for (let i = 0; i < length; i++) {
+      let availableItems = array.filter(item => item !== lastItem);
+      if (availableItems.length === 0) availableItems = array;
+      
+      const randomItem = availableItems[Math.floor(Math.random() * availableItems.length)];
+      result.push(randomItem);
+      lastItem = randomItem;
+    }
+    
+    return result;
+  };
+
   const generateDemoItems = (chestType: string): DemoRouletteItem[] => {
     const baseItems = [
       { name: 'Prêmio Demo Bronze', rarity: 'common', value: 10 },
@@ -31,6 +48,45 @@ export const useDemoRoulette = () => {
       rarity: item.rarity,
       value: item.value
     }));
+  };
+
+  const generateDemoRoulette = (chestType: string, slotsCount: number = 25): {
+    rouletteSlots: DemoRouletteItem[];
+    winnerItem: DemoRouletteItem;
+    centerIndex: number;
+    totalSlots: number;
+  } => {
+    const items = generateDemoItems(chestType);
+    const centerIndex = Math.floor(slotsCount / 2);
+    
+    // Determine winner based on demo probabilities
+    const chestConfig = demoSettings?.probabilidades_chest?.[chestType];
+    const winRate = chestConfig?.win_rate || 0.8;
+    const rareRate = chestConfig?.rare_rate || 0.3;
+    
+    let winnerItem: DemoRouletteItem;
+    
+    if (Math.random() < winRate) {
+      const willGetRare = Math.random() < rareRate;
+      const availableItems = willGetRare 
+        ? items.filter(item => ['rare', 'epic', 'legendary'].includes(item.rarity))
+        : items.filter(item => ['common', 'uncommon'].includes(item.rarity));
+      
+      winnerItem = availableItems[Math.floor(Math.random() * availableItems.length)];
+    } else {
+      winnerItem = items.find(item => item.rarity === 'common') || items[0];
+    }
+    
+    // Create roulette slots with winner in center
+    const rouletteSlots = reproduceArray(items, slotsCount);
+    rouletteSlots[centerIndex] = winnerItem;
+    
+    return {
+      rouletteSlots,
+      winnerItem,
+      centerIndex,
+      totalSlots: slotsCount
+    };
   };
 
   const spinDemoRoulette = async (chestType: string) => {
@@ -92,6 +148,7 @@ export const useDemoRoulette = () => {
     isDemo,
     isSpinning,
     spinDemoRoulette,
-    generateDemoItems
+    generateDemoItems,
+    generateDemoRoulette
   };
 };
