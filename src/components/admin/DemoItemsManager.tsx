@@ -5,8 +5,9 @@ import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
-import { TestTube, Package, Settings } from 'lucide-react';
+import { TestTube, Package, Settings, Crown } from 'lucide-react';
 import DemoSettingsPanel from './DemoSettingsPanel';
+import DemoProbabilityManager from './demo/DemoProbabilityManager';
 
 interface DatabaseItem {
   id: string;
@@ -122,8 +123,12 @@ const DemoItemsManager = () => {
           </CardTitle>
         </CardHeader>
         <CardContent>
-          <Tabs defaultValue="items" className="w-full">
-            <TabsList className="grid w-full grid-cols-2">
+          <Tabs defaultValue="probabilities" className="w-full">
+            <TabsList className="grid w-full grid-cols-3">
+              <TabsTrigger value="probabilities" className="flex items-center gap-2">
+                <Crown className="w-4 h-4" />
+                Probabilidades
+              </TabsTrigger>
               <TabsTrigger value="items" className="flex items-center gap-2">
                 <Package className="w-4 h-4" />
                 Itens por Baú
@@ -133,6 +138,10 @@ const DemoItemsManager = () => {
                 Configurações
               </TabsTrigger>
             </TabsList>
+
+            <TabsContent value="probabilities">
+              <DemoProbabilityManager />
+            </TabsContent>
 
             <TabsContent value="items" className="space-y-6">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">

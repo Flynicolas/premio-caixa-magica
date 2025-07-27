@@ -53,13 +53,27 @@ export const useDemoRoulette = () => {
   }, []);
 
   const generateDemoItems = (chestType: string): DemoRouletteItem[] => {
-    // Filtrar itens reais que pertencem ao chest_type especificado
+    // Verificar se há configuração específica para este chest_type
+    const chestConfig = demoSettings?.probabilidades_chest?.[chestType];
+    
+    if (chestConfig?.items && chestConfig.items.length > 0) {
+      // Usar itens configurados no painel demo
+      return chestConfig.items.map((item: any) => ({
+        id: `demo_${item.item_id}`,
+        name: item.item_name,
+        image: item.item_image || '/placeholder.svg',
+        rarity: item.rarity,
+        value: item.base_value
+      }));
+    }
+
+    // Fallback: Filtrar itens reais que pertencem ao chest_type especificado
     const chestItems = realItems.filter(item => 
       item.chest_types && item.chest_types.includes(chestType)
     );
 
     if (chestItems.length === 0) {
-      // Fallback para itens hardcoded se não houver itens reais
+      // Fallback final para itens hardcoded se não houver configuração
       const baseItems = [
         { name: 'Prêmio Demo Bronze', rarity: 'common', value: 10 },
         { name: 'Prêmio Demo Prata', rarity: 'uncommon', value: 25 },
@@ -77,7 +91,7 @@ export const useDemoRoulette = () => {
       }));
     }
 
-    // Usar itens reais
+    // Usar itens reais como fallback
     return chestItems.map(item => ({
       id: `demo_${item.id}`,
       name: item.name,
@@ -104,14 +118,41 @@ export const useDemoRoulette = () => {
     let winnerItem: DemoRouletteItem;
     
     if (Math.random() < winRate) {
-      const willGetRare = Math.random() < rareRate;
-      const availableItems = willGetRare 
-        ? items.filter(item => ['rare', 'epic', 'legendary'].includes(item.rarity))
-        : items.filter(item => ['common', 'uncommon'].includes(item.rarity));
-      
-      winnerItem = availableItems[Math.floor(Math.random() * availableItems.length)];
+      // Se há itens configurados com probabilidades específicas, usar sistema baseado em peso
+      if (chestConfig?.items && chestConfig.items.length > 0) {
+        const configuredItems = chestConfig.items;
+        const totalWeight = configuredItems.reduce((sum: number, item: any) => sum + (item.probability_weight || 1), 0);
+        
+        let random = Math.random() * totalWeight;
+        for (const configItem of configuredItems) {
+          random -= configItem.probability_weight || 1;
+          if (random <= 0) {
+            winnerItem = {
+              id: `demo_${configItem.item_id}`,
+              name: configItem.item_name,
+              image: configItem.item_image || '/placeholder.svg',
+              rarity: configItem.rarity,
+              value: configItem.base_value
+            };
+            break;
+          }
+        }
+      } else {
+        // Sistema original baseado em raridade
+        const willGetRare = Math.random() < rareRate;
+        const availableItems = willGetRare 
+          ? items.filter(item => ['rare', 'epic', 'legendary'].includes(item.rarity))
+          : items.filter(item => ['common', 'uncommon'].includes(item.rarity));
+        
+        winnerItem = availableItems[Math.floor(Math.random() * availableItems.length)];
+      }
     } else {
       winnerItem = items.find(item => item.rarity === 'common') || items[0];
+    }
+    
+    // Garantir que winnerItem está definido
+    if (!winnerItem!) {
+      winnerItem = items[0];
     }
     
     // Create roulette slots with winner in center
