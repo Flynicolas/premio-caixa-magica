@@ -155,6 +155,8 @@ export interface UserProfile {
   is_active: boolean;
   is_demo: boolean;
   simulate_actions: boolean;
+  credito_demo: number;
+  ultimo_reset_demo: string;
   preferences: any;
   achievements: any[];
   created_at: string;

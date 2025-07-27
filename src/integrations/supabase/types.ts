@@ -936,6 +936,7 @@ export type Database = {
           complement: string | null
           cpf: string | null
           created_at: string | null
+          credito_demo: number | null
           delivery_updates: boolean | null
           email: string
           email_notifications: boolean | null
@@ -960,6 +961,7 @@ export type Database = {
           street: string | null
           total_prizes_won: number | null
           total_spent: number | null
+          ultimo_reset_demo: string | null
           updated_at: string | null
           username: string | null
           zip_code: string | null
@@ -974,6 +976,7 @@ export type Database = {
           complement?: string | null
           cpf?: string | null
           created_at?: string | null
+          credito_demo?: number | null
           delivery_updates?: boolean | null
           email: string
           email_notifications?: boolean | null
@@ -998,6 +1001,7 @@ export type Database = {
           street?: string | null
           total_prizes_won?: number | null
           total_spent?: number | null
+          ultimo_reset_demo?: string | null
           updated_at?: string | null
           username?: string | null
           zip_code?: string | null
@@ -1012,6 +1016,7 @@ export type Database = {
           complement?: string | null
           cpf?: string | null
           created_at?: string | null
+          credito_demo?: number | null
           delivery_updates?: boolean | null
           email?: string
           email_notifications?: boolean | null
@@ -1036,6 +1041,7 @@ export type Database = {
           street?: string | null
           total_prizes_won?: number | null
           total_spent?: number | null
+          ultimo_reset_demo?: string | null
           updated_at?: string | null
           username?: string | null
           zip_code?: string | null
@@ -1575,6 +1581,10 @@ export type Database = {
       purchase_chest: {
         Args: { p_user_id: string; p_chest_type: string; p_price: number }
         Returns: string
+      }
+      reset_demo_credits: {
+        Args: Record<PropertyKey, never>
+        Returns: undefined
       }
       validate_cpf_for_withdrawal: {
         Args: { cpf_input: string }

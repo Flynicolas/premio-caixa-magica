@@ -18,7 +18,8 @@ import {
   Mail,
   Plus,
   UserPlus,
-  Filter
+  Filter,
+  AlertTriangle
 } from 'lucide-react';
 import {
   Table,
@@ -60,6 +61,8 @@ interface UserData {
   total_spent: number;
   chests_opened: number;
   last_login: string | null;
+  credito_demo: number;
+  ultimo_reset_demo: string;
 }
 
 const UsersManagement = () => {
@@ -87,7 +90,7 @@ const UsersManagement = () => {
     try {
       const { data: profiles, error: profilesError } = await supabase
         .from('profiles')
-        .select('*')
+        .select('*, credito_demo, ultimo_reset_demo')
         .order('created_at', { ascending: false });
 
       if (profilesError) throw profilesError;
@@ -119,7 +122,9 @@ const UsersManagement = () => {
           balance: wallet?.balance || 0,
           total_spent: wallet?.total_spent || 0,
           chests_opened: profile.chests_opened || 0,
-          last_login: profile.last_login
+          last_login: profile.last_login,
+          credito_demo: profile.credito_demo || 0,
+          ultimo_reset_demo: profile.ultimo_reset_demo || ''
         };
       });
 
@@ -207,6 +212,37 @@ const UsersManagement = () => {
               <Users className="w-5 h-5" />
               Gerenciar Usuários ({filteredUsers.length})
             </CardTitle>
+            <Button
+              onClick={() => setShowCreateDemoModal(true)}
+              className="flex items-center gap-2"
+            >
+              <UserPlus className="w-4 h-4" />
+              Criar Demo User
+            </Button>
+          </div>
+          <div className="flex gap-4 mt-4">
+            <div className="flex-1">
+              <div className="relative">
+                <Search className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
+                <Input
+                  placeholder="Buscar por email ou nome..."
+                  value={searchTerm}
+                  onChange={(e) => setSearchTerm(e.target.value)}
+                  className="pl-8"
+                />
+              </div>
+            </div>
+            <Select value={statusFilter} onValueChange={setStatusFilter}>
+              <SelectTrigger className="w-[180px]">
+                <SelectValue placeholder="Filtrar por status" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">Todos os usuários</SelectItem>
+                <SelectItem value="active">Usuários ativos</SelectItem>
+                <SelectItem value="inactive">Usuários inativos</SelectItem>
+                <SelectItem value="demo">Usuários demo</SelectItem>
+              </SelectContent>
+            </Select>
           </div>
         </CardHeader>
         <CardContent>
@@ -231,9 +267,14 @@ const UsersManagement = () => {
                      <TableCell>
                         <div>
                           <div className="font-medium flex items-center gap-2">
+                            {user.is_demo && isAdmin && (
+                              <div title="Usuário em modo demo">
+                                <AlertTriangle className="w-4 h-4 text-yellow-500" />
+                              </div>
+                            )}
                             {user.full_name || 'Nome não informado'}
                             {user.is_demo && (
-                              <Badge variant="secondary" className="text-xs">
+                              <Badge variant="secondary" className="text-xs bg-yellow-100 text-yellow-800">
                                 DEMO
                               </Badge>
                             )}
@@ -243,7 +284,11 @@ const UsersManagement = () => {
                               </Badge>
                             )}
                           </div>
-                          <div className="text-sm text-gray-500">
+                          <div className="text-sm text-gray-500 flex items-center gap-2">
+                            <Mail className="w-3 h-3" />
+                            {user.email}
+                          </div>
+                          <div className="text-xs text-gray-400">
                             ID: {user.id.slice(0, 8)}...
                           </div>
                         </div>

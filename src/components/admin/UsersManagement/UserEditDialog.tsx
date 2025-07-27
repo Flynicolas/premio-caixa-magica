@@ -6,7 +6,8 @@ import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
-import { Save, X, History, MapPin } from 'lucide-react';
+import { Save, X, History, MapPin, AlertTriangle } from 'lucide-react';
+import { Switch } from '@/components/ui/switch';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 
 interface UserEditDialogProps {
@@ -20,7 +21,9 @@ const UserEditDialog = ({ user, isOpen, onClose, onSave }: UserEditDialogProps) 
   const [formData, setFormData] = useState({
     full_name: '',
     email: '',
-    bio: ''
+    bio: '',
+    is_demo: false,
+    credito_demo: 0
   });
   const [transactions, setTransactions] = useState<any[]>([]);
   const [loading, setLoading] = useState(false);
@@ -32,7 +35,9 @@ const UserEditDialog = ({ user, isOpen, onClose, onSave }: UserEditDialogProps) 
       setFormData({
         full_name: user.full_name || '',
         email: user.email || '',
-        bio: user.bio || ''
+        bio: user.bio || '',
+        is_demo: user.is_demo || false,
+        credito_demo: user.credito_demo || 0
       });
       fetchUserTransactions();
     }
@@ -68,7 +73,10 @@ const UserEditDialog = ({ user, isOpen, onClose, onSave }: UserEditDialogProps) 
         .from('profiles')
         .update({
           full_name: formData.full_name || null,
-          bio: formData.bio || null
+          bio: formData.bio || null,
+          is_demo: formData.is_demo,
+          credito_demo: formData.is_demo ? formData.credito_demo : 0,
+          ultimo_reset_demo: formData.is_demo ? new Date().toISOString() : null
         })
         .eq('id', user.id);
 
@@ -214,6 +222,46 @@ const UserEditDialog = ({ user, isOpen, onClose, onSave }: UserEditDialogProps) 
 
             <Card>
               <CardHeader>
+                <CardTitle className="text-lg flex items-center gap-2">
+                  <AlertTriangle className="w-4 h-4" />
+                  Configurações Demo
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <Label htmlFor="is_demo">Modo Demo</Label>
+                    <p className="text-xs text-gray-500">Ativa simulação para o usuário</p>
+                  </div>
+                  <Switch
+                    id="is_demo"
+                    checked={formData.is_demo}
+                    onCheckedChange={(checked) => setFormData(prev => ({ ...prev, is_demo: checked }))}
+                  />
+                </div>
+                
+                {formData.is_demo && (
+                  <div className="space-y-2">
+                    <Label htmlFor="credito_demo">Crédito Demo (R$)</Label>
+                    <Input
+                      id="credito_demo"
+                      type="number"
+                      step="0.01"
+                      min="0"
+                      value={formData.credito_demo}
+                      onChange={(e) => setFormData(prev => ({ ...prev, credito_demo: parseFloat(e.target.value) || 0 }))}
+                      placeholder="1000.00"
+                    />
+                    <p className="text-xs text-gray-500">
+                      Valor resetado automaticamente em 24h
+                    </p>
+                  </div>
+                )}
+              </CardContent>
+            </Card>
+
+            <Card>
+              <CardHeader>
                 <CardTitle className="text-lg">Estatísticas</CardTitle>
               </CardHeader>
               <CardContent>
@@ -234,6 +282,18 @@ const UserEditDialog = ({ user, isOpen, onClose, onSave }: UserEditDialogProps) 
                     <p className="text-gray-600">Cadastro:</p>
                     <p className="font-semibold">{formatDate(user.created_at)}</p>
                   </div>
+                  {user.is_demo && (
+                    <>
+                      <div>
+                        <p className="text-gray-600">Crédito Demo:</p>
+                        <p className="font-semibold text-yellow-600">R$ {user.credito_demo?.toFixed(2) || '0.00'}</p>
+                      </div>
+                      <div>
+                        <p className="text-gray-600">Último Reset:</p>
+                        <p className="font-semibold text-xs">{user.ultimo_reset_demo ? formatDate(user.ultimo_reset_demo) : 'Nunca'}</p>
+                      </div>
+                    </>
+                  )}
                 </div>
               </CardContent>
             </Card>

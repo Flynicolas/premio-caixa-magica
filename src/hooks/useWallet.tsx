@@ -4,6 +4,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from './useAuth';
 import { useToast } from '@/hooks/use-toast';
 import PaymentModal from '@/components/PaymentModal';
+import { useDemoWallet } from '@/hooks/useDemoWallet';
 
 interface WalletData {
   balance: number;
@@ -24,11 +25,22 @@ interface Transaction {
 export const useWallet = () => {
   const { user } = useAuth();
   const { toast } = useToast();
+  const { walletData: demoWalletData, loading: demoLoading, purchaseChestDemo } = useDemoWallet();
   const [walletData, setWalletData] = useState<WalletData | null>(null);
   const [transactions, setTransactions] = useState<Transaction[]>([]);
   const [loading, setLoading] = useState(true);
   const [showPaymentModal, setShowPaymentModal] = useState(false);
   const [requiredAmount, setRequiredAmount] = useState<number | undefined>();
+  
+  // Se usuário está em modo demo, usar dados demo
+  const effectiveWalletData = demoWalletData.is_demo ? {
+    balance: demoWalletData.balance,
+    total_deposited: demoWalletData.total_deposited,
+    total_withdrawn: demoWalletData.total_withdrawn,
+    total_spent: demoWalletData.total_spent
+  } : walletData;
+  
+  const effectiveLoading = demoWalletData.is_demo ? demoLoading : loading;
 
   const fetchWalletData = async () => {
     if (!user) {
@@ -171,7 +183,7 @@ export const useWallet = () => {
   };
 
   const purchaseChest = async (chestType: string, amount: number) => {
-    if (!user || !walletData) {
+    if (!user || !effectiveWalletData) {
       toast({
         title: "Erro",
         description: "Usuário não logado ou carteira não carregada.",
@@ -180,9 +192,14 @@ export const useWallet = () => {
       return { error: 'Usuário não logado' };
     }
 
-    if (walletData.balance < amount) {
+    // Se for modo demo, usar função específica
+    if (demoWalletData.is_demo) {
+      return await purchaseChestDemo(chestType, amount);
+    }
+
+    if (effectiveWalletData.balance < amount) {
       // Calcular valor faltante e mostrar modal de pagamento
-      const missingAmount = amount - walletData.balance;
+      const missingAmount = amount - effectiveWalletData.balance;
       setRequiredAmount(missingAmount);
       setShowPaymentModal(true);
       
@@ -310,9 +327,9 @@ export const useWallet = () => {
   }, [user]);
 
   return {
-    walletData,
+    walletData: effectiveWalletData,
     transactions,
-    loading,
+    loading: effectiveLoading,
     purchaseChest,
     showPaymentModalForAmount,
     PaymentModalComponent,
@@ -322,6 +339,5 @@ export const useWallet = () => {
         await fetchTransactions();
       }
     },
-
   };
 };
