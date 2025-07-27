@@ -1,15 +1,17 @@
 import { useRef, useEffect, useState, useCallback } from 'react';
 import { cn } from '@/lib/utils';
 import { ScratchSymbol } from '@/types/scratchCard';
+import useScratchCardBackgroundImage from '@/hooks/useScratchCardBackgroundImage';
 
 interface ScratchGameCanvasProps {
   symbols: ScratchSymbol[];
   onWin: (winningSymbol: string) => void;
   onComplete: () => void;
   className?: string;
+  backgroundImage?: string;
 }
 
-const ScratchGameCanvas = ({ symbols, onWin, onComplete, className }: ScratchGameCanvasProps) => {
+const ScratchGameCanvas = ({ symbols, onWin, onComplete, className, backgroundImage }: ScratchGameCanvasProps) => {
   console.log('🎯 ScratchGameCanvas mounted/rendered, symbols.length:', symbols.length);
   
   const canvasRef = useRef<HTMLCanvasElement>(null);
@@ -19,6 +21,8 @@ const ScratchGameCanvas = ({ symbols, onWin, onComplete, className }: ScratchGam
   const [scratchProgress, setScratchProgress] = useState(0);
   const lastProgressCheck = useRef(Date.now());
   const progressCheckInterval = 50; // Check progress every 50ms for better responsivity
+  
+  const { applyImageBackground } = useScratchCardBackgroundImage();
 
   const rarityColors = {
     common: '#aaa',
@@ -85,8 +89,8 @@ const ScratchGameCanvas = ({ symbols, onWin, onComplete, className }: ScratchGam
     });
   }, [symbols, rarityColors]);
 
-  // Resetar canvas com cobertura cinza
-  const resetCanvas = useCallback(() => {
+  // Resetar canvas com imagem de fundo ou cobertura cinza
+  const resetCanvas = useCallback(async () => {
     const canvas = canvasRef.current;
     if (!canvas) return;
 
@@ -94,13 +98,26 @@ const ScratchGameCanvas = ({ symbols, onWin, onComplete, className }: ScratchGam
     if (!ctx) return;
 
     ctx.globalCompositeOperation = 'source-over';
-    ctx.fillStyle = '#999';
-    ctx.fillRect(0, 0, canvas.width, canvas.height);
+    
+    if (backgroundImage) {
+      try {
+        await applyImageBackground(canvas, ctx, backgroundImage);
+      } catch (error) {
+        // Fallback para cobertura cinza se a imagem falhar
+        ctx.fillStyle = '#999';
+        ctx.fillRect(0, 0, canvas.width, canvas.height);
+      }
+    } else {
+      // Cobertura cinza padrão
+      ctx.fillStyle = '#999';
+      ctx.fillRect(0, 0, canvas.width, canvas.height);
+    }
+    
     canvas.style.display = 'block';
     setIsRevealed(false);
     setScratchProgress(0);
     lastProgressCheck.current = Date.now();
-  }, []);
+  }, [backgroundImage, applyImageBackground]);
 
   // Verificar progresso da raspagem com otimização
   const checkScratchProgress = useCallback(() => {

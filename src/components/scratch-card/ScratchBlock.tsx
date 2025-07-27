@@ -6,9 +6,10 @@ interface ScratchBlockProps {
   onScratch: (blockId: number) => void;
   isWinning?: boolean;
   disabled?: boolean;
+  backgroundImage?: string;
 }
 
-const ScratchBlock = ({ block, onScratch, isWinning = false, disabled = false }: ScratchBlockProps) => {
+const ScratchBlock = ({ block, onScratch, isWinning = false, disabled = false, backgroundImage }: ScratchBlockProps) => {
   const handleScratch = () => {
     if (!disabled && !block.isScratched) {
       onScratch(block.id);
@@ -29,6 +30,7 @@ const ScratchBlock = ({ block, onScratch, isWinning = false, disabled = false }:
       onComplete={handleComplete}
       isWinning={isWinning}
       disabled={disabled}
+      backgroundImage={backgroundImage}
     />
   );
 };

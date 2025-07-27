@@ -173,6 +173,7 @@ const ScratchCardSection = ({ onAuthRequired }: ScratchCardSectionProps) => {
               }}
               onComplete={handleComplete}
               className="mx-auto"
+              backgroundImage={scratchCardTypes[selectedType]?.backgroundImage}
             />
 
             <div className="flex justify-center gap-2 mt-4">
