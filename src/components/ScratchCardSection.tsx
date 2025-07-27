@@ -11,7 +11,8 @@ import { useKirvanoTest } from '@/hooks/useKirvanoTest';
 import ScratchGameCanvas from '@/components/scratch-card/ScratchGameCanvas';
 import ScratchCardResult from '@/components/scratch-card/ScratchCardResult';
 import PixTestModal from '@/components/PixTestModal';
-import { Coins, Sparkles, Trophy, CreditCard } from 'lucide-react';
+import { Coins, Sparkles, Trophy, CreditCard, TestTube } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
 
 interface ScratchCardSectionProps {
   onAuthRequired: () => void;
@@ -20,6 +21,7 @@ interface ScratchCardSectionProps {
 const ScratchCardSection = ({ onAuthRequired }: ScratchCardSectionProps) => {
   const { user } = useAuth();
   const { walletData } = useWallet();
+  const navigate = useNavigate();
   const [selectedType, setSelectedType] = useState<ScratchCardType>('basic');
   const [showResult, setShowResult] = useState(false);
   const [hasDetectedWin, setHasDetectedWin] = useState(false);
@@ -141,14 +143,13 @@ const ScratchCardSection = ({ onAuthRequired }: ScratchCardSectionProps) => {
                   </Button>
                   
                   <Button 
-                    onClick={() => createTestPayment(scratchCardTypes[selectedType].price)}
-                    disabled={isKirvanoLoading}
+                    onClick={() => navigate('/testedepagamento')}
                     variant="secondary"
                     size="sm"
                     className="flex items-center gap-2 bg-blue-600 hover:bg-blue-700 text-white"
                   >
-                    <CreditCard className="w-4 h-4" />
-                    {isKirvanoLoading ? 'Testando...' : 'Teste Kirvano'}
+                    <TestTube className="w-4 h-4" />
+                    Teste de Pagamentos
                   </Button>
                 </>
               )}
