@@ -1078,6 +1078,7 @@ export type Database = {
           created_at: string
           description: string | null
           id: string
+          kirvano_data: Json | null
           payment_data: Json | null
           payment_id: string
           payment_provider: string
@@ -1090,6 +1091,7 @@ export type Database = {
           created_at?: string
           description?: string | null
           id?: string
+          kirvano_data?: Json | null
           payment_data?: Json | null
           payment_id: string
           payment_provider?: string
@@ -1102,6 +1104,7 @@ export type Database = {
           created_at?: string
           description?: string | null
           id?: string
+          kirvano_data?: Json | null
           payment_data?: Json | null
           payment_id?: string
           payment_provider?: string

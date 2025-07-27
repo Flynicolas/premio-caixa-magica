@@ -34,59 +34,94 @@ serve(async (req) => {
     }
 
     // Parse request body
-    const { amount, description = 'Teste Kirvano' } = await req.json();
-
-    if (!amount || amount <= 0) {
-      throw new Error('Amount is required and must be greater than 0');
-    }
+    const { amount, description } = await req.json();
 
     console.log('Creating Kirvano test payment for user:', user.id, 'amount:', amount);
 
-    // Create test transaction record
-    const testTransactionId = crypto.randomUUID();
-    const testPaymentId = `KIRVANO_TEST_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+    // Generate unique IDs for the test
+    const paymentId = `KIRVANO_TEST_${Date.now()}_${Math.random().toString(36).substring(2, 15)}`;
+    const transactionId = crypto.randomUUID();
 
-    // Store test payment in database
-    const { error: insertError } = await supabase
+    // Call Kirvano API to generate real PIX
+    const kirvanoPayload = {
+      checkout_id: paymentId,
+      customer: {
+        name: "Usuário Teste",
+        document: "00000000000",
+        email: "teste@exemplo.com",
+        phone_number: "5511999999999"
+      },
+      products: [
+        {
+          id: transactionId,
+          name: "Recarga de Saldo",
+          description: description || "Recarga de saldo para teste",
+          price: `R$ ${amount.toFixed(2).replace('.', ',')}`,
+          is_order_bump: false
+        }
+      ],
+      total_price: `R$ ${amount.toFixed(2).replace('.', ',')}`,
+      payment_method: "PIX"
+    };
+
+    // Simulate Kirvano response for now (replace with real API call when ready)
+    const kirvanoResponse = {
+      event: "PIX_GENERATED",
+      event_description: "PIX gerado",
+      checkout_id: paymentId,
+      sale_id: transactionId,
+      payment_method: "PIX",
+      total_price: `R$ ${amount.toFixed(2).replace('.', ',')}`,
+      type: "ONE_TIME",
+      status: "PENDING",
+      created_at: new Date().toISOString().replace('T', ' ').substring(0, 19),
+      customer: kirvanoPayload.customer,
+      payment: {
+        method: "PIX",
+        qrcode: `00020126360014BR.GOV.BCB.PIX0114+5511999999999520400005303986540${amount.toFixed(2)}5802BR5925KIRVANO TESTE PAGAMENTO6009SAO PAULO62290525TESTE${paymentId.slice(-8)}6304`,
+        qrcode_image: `https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=${encodeURIComponent(`00020126360014BR.GOV.BCB.PIX0114+5511999999999520400005303986540${amount.toFixed(2)}5802BR5925KIRVANO TESTE PAGAMENTO6009SAO PAULO62290525TESTE${paymentId.slice(-8)}6304`)}`,
+        expires_at: new Date(Date.now() + 30 * 60 * 1000).toISOString().replace('T', ' ').substring(0, 19)
+      },
+      products: kirvanoPayload.products
+    };
+
+    // Insert test payment into database with Kirvano data
+    const { data: paymentData, error: insertError } = await supabase
       .from('test_payments')
       .insert({
-        id: testTransactionId,
         user_id: user.id,
-        payment_provider: 'kirvano_test',
-        payment_id: testPaymentId,
+        payment_id: paymentId,
+        transaction_id: transactionId,
         amount: amount,
-        description: description,
+        description: description || 'Teste de pagamento Kirvano',
         status: 'pending',
-        payment_data: {
-          test_mode: true,
-          provider: 'kirvano',
-          created_at: new Date().toISOString()
-        }
-      });
+        kirvano_data: kirvanoResponse
+      })
+      .select()
+      .single();
 
     if (insertError) {
-      console.error('Error inserting test payment:', insertError);
       throw new Error('Failed to create test payment record');
     }
 
-    // Return success response with test payment data
-    const response = {
+    const responseData = {
       success: true,
-      payment_id: testPaymentId,
-      transaction_id: testTransactionId,
-      payment_url: `https://demo.kirvano.com/pay/${testPaymentId}`,
+      payment_id: paymentId,
+      transaction_id: transactionId,
+      payment_url: `https://demo.kirvano.com/pay/${paymentId}`,
       status: 'pending',
       amount: amount,
       test_mode: true,
+      kirvano_response: kirvanoResponse,
       return_urls: {
-        success: 'https://premio-caixa-magica.lovable.app/teste-sucesso',
-        error: 'https://premio-caixa-magica.lovable.app/teste-erro'
+        success: `${Deno.env.get('SUPABASE_URL')?.replace('supabase.co', 'lovable.app') || 'https://premio-caixa-magica.lovable.app'}/teste-sucesso`,
+        error: `${Deno.env.get('SUPABASE_URL')?.replace('supabase.co', 'lovable.app') || 'https://premio-caixa-magica.lovable.app'}/teste-erro`
       }
     };
 
-    console.log('Kirvano test payment created successfully:', response);
+    console.log('Kirvano test payment created successfully:', responseData);
 
-    return new Response(JSON.stringify(response), {
+    return new Response(JSON.stringify(responseData), {
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },
       status: 200,
     });
