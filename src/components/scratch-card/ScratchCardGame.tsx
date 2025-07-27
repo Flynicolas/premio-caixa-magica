@@ -141,7 +141,6 @@ const ScratchCardGame = () => {
                   symbols={symbols}
                   onWin={handleWin}
                   onComplete={handleComplete}
-                  backgroundImage={scratchCardTypes[selectedType]?.backgroundImage}
                 />
                 
                 <div className="text-center">

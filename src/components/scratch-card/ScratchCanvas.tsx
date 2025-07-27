@@ -1,7 +1,6 @@
 import { useRef, useEffect, useState, useCallback } from 'react';
 import { cn } from '@/lib/utils';
 import { ScratchSymbol } from '@/types/scratchCard';
-import useScratchCardBackgroundImage from '@/hooks/useScratchCardBackgroundImage';
 
 interface ScratchCanvasProps {
   symbol: ScratchSymbol | null;
@@ -11,7 +10,6 @@ interface ScratchCanvasProps {
   isWinning?: boolean;
   disabled?: boolean;
   className?: string;
-  backgroundImage?: string;
 }
 
 const ScratchCanvas = ({ 
@@ -21,8 +19,7 @@ const ScratchCanvas = ({
   onComplete, 
   isWinning = false, 
   disabled = false,
-  className,
-  backgroundImage
+  className 
 }: ScratchCanvasProps) => {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const [isScratching, setIsScratching] = useState(false);
@@ -32,10 +29,8 @@ const ScratchCanvas = ({
   const REVEAL_THRESHOLD = 70;
   const SCRATCH_RADIUS = 15;
 
-  const { applyImageBackground } = useScratchCardBackgroundImage();
 
-
-  // Inicializar canvas com imagem de fundo ou cobertura cinza
+  // Inicializar canvas baseado no HTML fornecido
   useEffect(() => {
     const canvas = canvasRef.current;
     if (!canvas) return;
@@ -47,19 +42,10 @@ const ScratchCanvas = ({
     canvas.width = 120;
     canvas.height = 120;
 
-    if (backgroundImage) {
-      // Aplicar imagem de fundo
-      applyImageBackground(canvas, context, backgroundImage).catch(() => {
-        // Fallback para cobertura cinza se a imagem falhar
-        context.fillStyle = '#999';
-        context.fillRect(0, 0, canvas.width, canvas.height);
-      });
-    } else {
-      // Cobertura cinza padrão
-      context.fillStyle = '#999';
-      context.fillRect(0, 0, canvas.width, canvas.height);
-    }
-  }, [backgroundImage, applyImageBackground]);
+    // Cobertura cinza inicial (como no HTML)
+    context.fillStyle = '#999';
+    context.fillRect(0, 0, canvas.width, canvas.height);
+  }, []);
 
   // Auto-revelar baseado no HTML fornecido
   useEffect(() => {
