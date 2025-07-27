@@ -51,18 +51,21 @@ const CreateUserModal: React.FC<CreateUserModalProps> = ({
         return;
       }
 
-      // Criar usuário via admin
-      const { data, error } = await supabase.auth.admin.createUser({
-        email: formData.email,
-        password: formData.password,
-        user_metadata: {
+      // Criar usuário via edge function
+      const { data, error } = await supabase.functions.invoke('create-admin-user', {
+        body: {
+          email: formData.email,
+          password: formData.password,
           full_name: formData.fullName
-        },
-        email_confirm: true // Auto-confirma o email
+        }
       });
 
       if (error) {
         throw error;
+      }
+
+      if (data.error) {
+        throw new Error(data.error);
       }
 
       toast({
