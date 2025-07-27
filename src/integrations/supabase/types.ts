@@ -429,6 +429,78 @@ export type Database = {
         }
         Relationships: []
       }
+      demo_inventory: {
+        Row: {
+          chest_type: string
+          created_at: string
+          id: string
+          is_redeemed: boolean
+          item_id: string | null
+          item_image: string | null
+          item_name: string
+          rarity: string
+          redeemed_at: string | null
+          user_id: string
+          won_at: string
+        }
+        Insert: {
+          chest_type: string
+          created_at?: string
+          id?: string
+          is_redeemed?: boolean
+          item_id?: string | null
+          item_image?: string | null
+          item_name: string
+          rarity?: string
+          redeemed_at?: string | null
+          user_id: string
+          won_at?: string
+        }
+        Update: {
+          chest_type?: string
+          created_at?: string
+          id?: string
+          is_redeemed?: boolean
+          item_id?: string | null
+          item_image?: string | null
+          item_name?: string
+          rarity?: string
+          redeemed_at?: string | null
+          user_id?: string
+          won_at?: string
+        }
+        Relationships: []
+      }
+      demo_settings: {
+        Row: {
+          created_at: string
+          id: string
+          itens_demo: Json
+          probabilidades_chest: Json
+          saldo_inicial: number
+          tempo_reset_horas: number
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          itens_demo?: Json
+          probabilidades_chest?: Json
+          saldo_inicial?: number
+          tempo_reset_horas?: number
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          itens_demo?: Json
+          probabilidades_chest?: Json
+          saldo_inicial?: number
+          tempo_reset_horas?: number
+          updated_at?: string
+        }
+        Relationships: []
+      }
       entregas: {
         Row: {
           bairro: string
