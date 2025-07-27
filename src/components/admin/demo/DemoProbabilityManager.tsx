@@ -28,10 +28,12 @@ interface DemoProbability {
 }
 
 const CHEST_TYPES = [
-  { value: 'basic', label: 'Baú Básico', color: 'bg-gray-500', price: 5.0 },
-  { value: 'silver', label: 'Baú Prata', color: 'bg-slate-400', price: 10.0 },
-  { value: 'gold', label: 'Baú Ouro', color: 'bg-yellow-500', price: 25.0 },
-  { value: 'diamond', label: 'Baú Diamante', color: 'bg-blue-500', price: 50.0 }
+  { value: 'silver', label: 'Baú de Prata', color: 'bg-slate-400', price: 10 },
+  { value: 'gold', label: 'Baú de Ouro', color: 'bg-yellow-500', price: 25 },
+  { value: 'delas', label: 'Baú Delas', color: 'bg-pink-500', price: 50 },
+  { value: 'diamond', label: 'Baú de Diamante', color: 'bg-blue-500', price: 100 },
+  { value: 'ruby', label: 'Baú de Rubi', color: 'bg-red-500', price: 250 },
+  { value: 'premium', label: 'Baú Premium', color: 'bg-purple-600', price: 500 }
 ];
 
 const DemoProbabilityManager = () => {
@@ -67,10 +69,14 @@ const DemoProbabilityManager = () => {
         .limit(1)
         .single();
 
-      if (settingsError && settingsError.code !== 'PGRST116') throw settingsError;
+      if (settingsError && settingsError.code !== 'PGRST116') {
+        // Se não existir configuração demo, criar uma com base no sistema real
+        await createDemoSettingsFromReal();
+      } else {
+        setDemoSettings(settingsData);
+      }
 
       setItems(itemsData || []);
-      setDemoSettings(settingsData);
       
       // Processar probabilidades demo
       if (settingsData?.probabilidades_chest) {
@@ -103,6 +109,69 @@ const DemoProbabilityManager = () => {
       });
     } finally {
       setLoading(false);
+    }
+  };
+
+  const createDemoSettingsFromReal = async () => {
+    try {
+      // Buscar probabilidades do sistema real
+      const { data: realProbabilities, error: realError } = await supabase
+        .from('chest_item_probabilities')
+        .select(`
+          *,
+          item:items(*)
+        `)
+        .eq('is_active', true);
+
+      if (realError) throw realError;
+
+      // Organizar probabilidades por chest_type
+      const probabilitiesByChest: Record<string, any> = {};
+      
+      CHEST_TYPES.forEach(chest => {
+        const chestProbs = realProbabilities?.filter(p => p.chest_type === chest.value) || [];
+        probabilitiesByChest[chest.value] = {
+          win_rate: 0.8,
+          rare_rate: 0.3,
+          items: chestProbs.map(p => ({
+            item_id: p.item_id,
+            item_name: p.item?.name || '',
+            item_image: p.item?.image_url || null,
+            rarity: p.item?.rarity || 'common',
+            base_value: p.item?.base_value || 0,
+            probability_weight: p.probability_weight
+          }))
+        };
+      });
+
+      // Criar configurações demo
+      const { data: newSettings, error: createError } = await supabase
+        .from('demo_settings')
+        .insert({
+          saldo_inicial: 1000,
+          tempo_reset_horas: 24,
+          probabilidades_chest: probabilitiesByChest,
+          itens_demo: []
+        })
+        .select()
+        .single();
+
+      if (createError) throw createError;
+      
+      setDemoSettings(newSettings);
+      setDemoProbabilities(probabilitiesByChest);
+
+      toast({
+        title: "Configuração criada!",
+        description: "Sistema demo configurado com base no sistema real",
+      });
+    } catch (error: any) {
+      console.error('Erro ao criar configurações demo:', error);
+      toast({
+        title: "Erro",
+        description: error.message,
+        variant: "destructive"
+      });
     }
   };
 
