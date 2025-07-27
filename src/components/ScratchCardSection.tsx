@@ -10,6 +10,7 @@ import { useScratchCard } from '@/hooks/useScratchCard';
 import { useKirvanoTest } from '@/hooks/useKirvanoTest';
 import ScratchGameCanvas from '@/components/scratch-card/ScratchGameCanvas';
 import ScratchCardResult from '@/components/scratch-card/ScratchCardResult';
+import PixTestModal from '@/components/PixTestModal';
 import { Coins, Sparkles, Trophy, CreditCard } from 'lucide-react';
 
 interface ScratchCardSectionProps {
@@ -34,7 +35,7 @@ const ScratchCardSection = ({ onAuthRequired }: ScratchCardSectionProps) => {
     resetGame
   } = useScratchCard();
 
-  const { createTestPayment, isLoading: isKirvanoLoading } = useKirvanoTest();
+  const { createTestPayment, processTestPayment, isLoading: isKirvanoLoading, showPixModal, setShowPixModal, pixData } = useKirvanoTest();
 
   const handleGenerate = async (forcedWin = false) => {
     if (!user) {
@@ -263,6 +264,14 @@ const ScratchCardSection = ({ onAuthRequired }: ScratchCardSectionProps) => {
           </div>
         </CardContent>
       </Card>
+      
+      {/* Modal PIX Teste */}
+      <PixTestModal
+        isOpen={showPixModal}
+        onClose={() => setShowPixModal(false)}
+        onProcess={processTestPayment}
+        pixData={pixData}
+      />
     </div>
   );
 };

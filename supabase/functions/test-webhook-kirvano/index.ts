@@ -41,17 +41,26 @@ serve(async (req) => {
         })
         .eq('payment_id', payment_id);
 
-      // Add to test balance
+      // Update user's test balance
+      const { data: walletData, error: walletError } = await supabase
+        .from('user_wallets')
+        .select('test_balance')
+        .eq('user_id', testPayment.user_id)
+        .single();
+
+      if (walletError) {
+        throw new Error('User wallet not found');
+      }
+
+      const newTestBalance = (walletData.test_balance || 0) + amount;
+
       await supabase
-        .from('test_balance')
-        .upsert({
-          user_id: testPayment.user_id,
-          balance: amount,
-          total_deposited: amount
-        }, {
-          onConflict: 'user_id',
-          ignoreDuplicates: false
-        });
+        .from('user_wallets')
+        .update({ 
+          test_balance: newTestBalance,
+          updated_at: new Date().toISOString()
+        })
+        .eq('user_id', testPayment.user_id);
 
       console.log('Kirvano test payment processed successfully');
     }
