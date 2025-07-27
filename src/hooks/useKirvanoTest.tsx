@@ -33,34 +33,16 @@ export const useKirvanoTest = () => {
 
       console.log('Pagamento de teste criado:', data);
       
-      // Mostrar modal do PIX simulado
+      // Usar dados reais da Kirvano
+      const kirvanoData = data.kirvano_response;
+      
       setPixData({
         ...data,
         amount,
-        pixCode: `00020126360014BR.GOV.BCB.PIX0114+5511999999999520400005303986540${amount.toFixed(2)}5802BR5925KIRVANO TESTE PAGAMENTO6009SAO PAULO62290525TESTE${data.transaction_id.slice(0, 8)}6304`,
-        qrCode: `data:image/svg+xml,${encodeURIComponent(`
-          <svg width="200" height="200" xmlns="http://www.w3.org/2000/svg">
-            <rect width="200" height="200" fill="white"/>
-            <rect x="20" y="20" width="20" height="20" fill="black"/>
-            <rect x="60" y="20" width="20" height="20" fill="black"/>
-            <rect x="100" y="20" width="20" height="20" fill="black"/>
-            <rect x="140" y="20" width="20" height="20" fill="black"/>
-            <rect x="20" y="60" width="20" height="20" fill="black"/>
-            <rect x="100" y="60" width="20" height="20" fill="black"/>
-            <rect x="160" y="60" width="20" height="20" fill="black"/>
-            <rect x="40" y="100" width="20" height="20" fill="black"/>
-            <rect x="80" y="100" width="20" height="20" fill="black"/>
-            <rect x="120" y="100" width="20" height="20" fill="black"/>
-            <rect x="160" y="100" width="20" height="20" fill="black"/>
-            <rect x="60" y="140" width="20" height="20" fill="black"/>
-            <rect x="100" y="140" width="20" height="20" fill="black"/>
-            <rect x="140" y="140" width="20" height="20" fill="black"/>
-            <rect x="20" y="180" width="20" height="20" fill="black"/>
-            <rect x="80" y="180" width="20" height="20" fill="black"/>
-            <rect x="160" y="180" width="20" height="20" fill="black"/>
-            <text x="100" y="195" text-anchor="middle" font-size="8" fill="black">PIX TESTE</text>
-          </svg>
-        `)}`
+        pixCode: kirvanoData.payment.qrcode,
+        qrCodeImage: kirvanoData.payment.qrcode_image,
+        kirvanoData: kirvanoData,
+        expiresAt: kirvanoData.payment.expires_at
       });
       
       setShowPixModal(true);

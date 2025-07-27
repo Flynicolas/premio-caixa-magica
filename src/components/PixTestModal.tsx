@@ -63,18 +63,18 @@ const PixTestModal = ({ isOpen, onClose, onProcess, pixData }: PixTestModalProps
         </DialogHeader>
 
         <div className="space-y-4">
-          {/* QR Code Simulado */}
+          {/* QR Code da Kirvano */}
           <Card>
             <CardContent className="p-4 text-center">
               <div className="bg-white p-4 rounded-lg border-2 border-dashed border-gray-300 mb-3">
                 <img 
-                  src={pixData.qrCode} 
-                  alt="QR Code PIX Teste" 
+                  src={pixData.qrCodeImage || pixData.qrCode} 
+                  alt="QR Code PIX Kirvano" 
                   className="w-32 h-32 mx-auto"
                 />
               </div>
               <p className="text-sm text-muted-foreground mb-2">
-                Escaneie o QR Code ou copie o código PIX
+                Escaneie o QR Code ou copie o código PIX da Kirvano
               </p>
               <Button 
                 onClick={copyPixCode}
@@ -87,6 +87,24 @@ const PixTestModal = ({ isOpen, onClose, onProcess, pixData }: PixTestModalProps
               </Button>
             </CardContent>
           </Card>
+
+          {/* Informações da Kirvano */}
+          {pixData.kirvanoData && (
+            <div className="bg-blue-50 p-3 rounded-lg space-y-1 text-sm">
+              <div className="flex justify-between">
+                <span className="text-muted-foreground">Checkout ID:</span>
+                <span className="font-mono">{pixData.kirvanoData.checkout_id}</span>
+              </div>
+              <div className="flex justify-between">
+                <span className="text-muted-foreground">Status:</span>
+                <span className="font-medium">{pixData.kirvanoData.status}</span>
+              </div>
+              <div className="flex justify-between">
+                <span className="text-muted-foreground">Expira em:</span>
+                <span className="text-xs">{pixData.expiresAt}</span>
+              </div>
+            </div>
+          )}
 
           {/* Status e Countdown */}
           <div className="text-center space-y-2">
