@@ -38,7 +38,7 @@ import {
 } from '@/components/ui/select';
 import UserEditDialog from './UsersManagement/UserEditDialog';
 import UserToolsDialog from './UsersManagement/UserToolsDialog';
-
+import CreateUserModal from './UsersManagement/CreateUserModal';
 import { useAdminCheck } from '@/hooks/useAdminCheck';
 
 interface UserData {
@@ -74,6 +74,7 @@ const UsersManagement = () => {
   const [selectedUser, setSelectedUser] = useState<UserData | null>(null);
   const [showEditDialog, setShowEditDialog] = useState(false);
   const [showToolsDialog, setShowToolsDialog] = useState(false);
+  const [showCreateUserModal, setShowCreateUserModal] = useState(false);
   
   const { toast } = useToast();
   const { isAdmin } = useAdminCheck();
@@ -213,12 +214,7 @@ const UsersManagement = () => {
               Gerenciar Usuários ({filteredUsers.length})
             </CardTitle>
             <Button
-              onClick={() => {
-                toast({
-                  title: "Funcionalidade em desenvolvimento",
-                  description: "Criação de usuários comuns será implementada em breve."
-                });
-              }}
+              onClick={() => setShowCreateUserModal(true)}
               className="flex items-center gap-2"
             >
               <UserPlus className="w-4 h-4" />
@@ -364,6 +360,12 @@ const UsersManagement = () => {
         onUpdate={() => {
           fetchUsers();
         }}
+      />
+
+      <CreateUserModal
+        isOpen={showCreateUserModal}
+        onClose={() => setShowCreateUserModal(false)}
+        onSuccess={fetchUsers}
       />
 
     </div>
