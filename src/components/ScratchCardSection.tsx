@@ -20,6 +20,7 @@ const ScratchCardSection = ({ onAuthRequired }: ScratchCardSectionProps) => {
   const { walletData } = useWallet();
   const [selectedType, setSelectedType] = useState<ScratchCardType>('basic');
   const [showResult, setShowResult] = useState(false);
+  const [hasDetectedWin, setHasDetectedWin] = useState(false);
   
   const {
     scratchCard,
@@ -50,8 +51,15 @@ const ScratchCardSection = ({ onAuthRequired }: ScratchCardSectionProps) => {
     setShowResult(true);
   };
 
+  const handleWin = (winningSymbol: string) => {
+    console.log('🏆 Win detected with symbol:', winningSymbol);
+    setHasDetectedWin(true);
+    setShowResult(true);
+  };
+
   const handlePlayAgain = () => {
     setShowResult(false);
+    setHasDetectedWin(false);
     resetGame();
   };
 
@@ -167,10 +175,7 @@ const ScratchCardSection = ({ onAuthRequired }: ScratchCardSectionProps) => {
 
             <ScratchGameCanvas
               symbols={scratchCard.symbols}
-              onWin={(winningSymbol) => {
-                // Handle win logic here if needed
-                console.log('Won with symbol:', winningSymbol);
-              }}
+              onWin={handleWin}
               onComplete={handleComplete}
               className="mx-auto"
             />
@@ -201,11 +206,11 @@ const ScratchCardSection = ({ onAuthRequired }: ScratchCardSectionProps) => {
           isOpen={showResult}
           onClose={() => setShowResult(false)}
           onPlayAgain={handlePlayAgain}
-          winningCombination={scratchCard.hasWin ? {
+          winningCombination={(scratchCard.hasWin || hasDetectedWin) && scratchCard.winningItem ? {
             pattern: [0, 1, 2], // Mock pattern
-            winningSymbol: scratchCard.winningItem!
+            winningSymbol: scratchCard.winningItem
           } : null}
-          hasWin={scratchCard.hasWin}
+          hasWin={scratchCard.hasWin || hasDetectedWin}
         />
       )}
 
