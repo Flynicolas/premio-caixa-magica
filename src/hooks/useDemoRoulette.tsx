@@ -1,6 +1,7 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useDemo } from './useDemo';
 import { useDemoInventory } from './useDemoInventory';
+import { supabase } from '@/integrations/supabase/client';
 
 interface DemoRouletteItem {
   id: string;
@@ -14,6 +15,7 @@ export const useDemoRoulette = () => {
   const { isDemo, demoSettings } = useDemo();
   const { addDemoItem } = useDemoInventory();
   const [isSpinning, setIsSpinning] = useState(false);
+  const [realItems, setRealItems] = useState<any[]>([]);
 
   // Helper function to reproduce array avoiding consecutive duplicates
   const reproduceArray = function<T>(array: T[], length: number): T[] {
@@ -32,21 +34,56 @@ export const useDemoRoulette = () => {
     return result;
   };
 
-  const generateDemoItems = (chestType: string): DemoRouletteItem[] => {
-    const baseItems = [
-      { name: 'Prêmio Demo Bronze', rarity: 'common', value: 10 },
-      { name: 'Prêmio Demo Prata', rarity: 'uncommon', value: 25 },
-      { name: 'Prêmio Demo Ouro', rarity: 'rare', value: 50 },
-      { name: 'Prêmio Demo Diamante', rarity: 'epic', value: 100 },
-      { name: 'Prêmio Demo Supremo', rarity: 'legendary', value: 250 }
-    ];
+  const fetchRealItems = async () => {
+    try {
+      const { data, error } = await supabase
+        .from('items')
+        .select('*')
+        .eq('is_active', true);
+      
+      if (error) throw error;
+      setRealItems(data || []);
+    } catch (error) {
+      console.error('Erro ao buscar itens reais:', error);
+    }
+  };
 
-    return baseItems.map((item, index) => ({
-      id: `demo_${chestType}_${index}`,
+  useEffect(() => {
+    fetchRealItems();
+  }, []);
+
+  const generateDemoItems = (chestType: string): DemoRouletteItem[] => {
+    // Filtrar itens reais que pertencem ao chest_type especificado
+    const chestItems = realItems.filter(item => 
+      item.chest_types && item.chest_types.includes(chestType)
+    );
+
+    if (chestItems.length === 0) {
+      // Fallback para itens hardcoded se não houver itens reais
+      const baseItems = [
+        { name: 'Prêmio Demo Bronze', rarity: 'common', value: 10 },
+        { name: 'Prêmio Demo Prata', rarity: 'uncommon', value: 25 },
+        { name: 'Prêmio Demo Ouro', rarity: 'rare', value: 50 },
+        { name: 'Prêmio Demo Diamante', rarity: 'epic', value: 100 },
+        { name: 'Prêmio Demo Supremo', rarity: 'legendary', value: 250 }
+      ];
+
+      return baseItems.map((item, index) => ({
+        id: `demo_${chestType}_${index}`,
+        name: item.name,
+        image: '/placeholder.svg',
+        rarity: item.rarity,
+        value: item.value
+      }));
+    }
+
+    // Usar itens reais
+    return chestItems.map(item => ({
+      id: `demo_${item.id}`,
       name: item.name,
-      image: '/placeholder.svg',
+      image: item.image_url || '/placeholder.svg',
       rarity: item.rarity,
-      value: item.value
+      value: item.base_value
     }));
   };
 
@@ -128,7 +165,8 @@ export const useDemoRoulette = () => {
         item_name: winner.name,
         item_image: winner.image,
         chest_type: chestType,
-        rarity: winner.rarity
+        rarity: winner.rarity,
+        item_id: winner.id.replace('demo_', '') // Se for um item real, remover o prefixo
       });
 
       return { 

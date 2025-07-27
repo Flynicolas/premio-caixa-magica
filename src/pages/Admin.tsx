@@ -14,7 +14,8 @@ import UsersManagement from '@/components/admin/UsersManagement';
 import ChestGoalsManager from '@/components/admin/ChestGoalsManager';
 import { AdminErrorDashboard } from '@/components/admin/AdminErrorDashboard';
 import ScratchCardManager from '@/components/admin/ScratchCardManager';
-import { Shield, Package, Settings, Users, Wallet, Target, Truck, AlertTriangle, Gamepad2 } from 'lucide-react';
+import DemoItemsManager from '@/components/admin/DemoItemsManager';
+import { Shield, Package, Settings, Users, Wallet, Target, Truck, AlertTriangle, Gamepad2, TestTube } from 'lucide-react';
 
 const Admin = () => {
   const { user } = useAuth();
@@ -81,7 +82,7 @@ const Admin = () => {
       </div>
 
       <Tabs defaultValue="items" className="space-y-6">
-        <TabsList className="grid w-full grid-cols-8">
+        <TabsList className="grid w-full grid-cols-9">
           <TabsTrigger value="items" className="flex items-center gap-2">
             <Package className="w-4 h-4" />
             Itens
@@ -113,6 +114,10 @@ const Admin = () => {
           <TabsTrigger value="errors" className="flex items-center gap-2">
             <AlertTriangle className="w-4 h-4" />
             Erros
+          </TabsTrigger>
+          <TabsTrigger value="demo" className="flex items-center gap-2">
+            <TestTube className="w-4 h-4" />
+            Demo
           </TabsTrigger>
         </TabsList>
 
@@ -167,6 +172,10 @@ const Admin = () => {
 
         <TabsContent value="errors">
           <AdminErrorDashboard />
+        </TabsContent>
+
+        <TabsContent value="demo">
+          <DemoItemsManager />
         </TabsContent>
       </Tabs>
       </div>

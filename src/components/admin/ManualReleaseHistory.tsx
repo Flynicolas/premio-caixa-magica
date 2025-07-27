@@ -7,7 +7,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
-import { Search, Clock, CheckCircle, XCircle, Users, Crown } from 'lucide-react';
+import { Search, Clock, CheckCircle, XCircle, Users, Crown, Activity, TrendingUp } from 'lucide-react';
 
 interface ManualRelease {
   id: string;
@@ -28,6 +28,12 @@ const ManualReleaseHistory = () => {
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState<string>('all');
+  const [stats, setStats] = useState({
+    total: 0,
+    pending: 0,
+    drawn: 0,
+    expired: 0
+  });
   const { toast } = useToast();
 
   useEffect(() => {
@@ -61,6 +67,15 @@ const ManualReleaseHistory = () => {
 
       if (error) throw error;
       setReleases(data || []);
+      
+      // Calcular estatísticas
+      const releaseData = data || [];
+      setStats({
+        total: releaseData.length,
+        pending: releaseData.filter(r => r.status === 'pending').length,
+        drawn: releaseData.filter(r => r.status === 'drawn').length,
+        expired: releaseData.filter(r => r.status === 'expired').length
+      });
     } catch (error: any) {
       console.error('Erro ao buscar liberações:', error);
       toast({
@@ -161,12 +176,64 @@ const ManualReleaseHistory = () => {
   }
 
   return (
-    <Card>
-      <CardHeader>
-        <CardTitle className="flex items-center gap-2">
-          <Crown className="w-5 h-5" />
-          Histórico de Liberações Manuais
-        </CardTitle>
+    <div className="space-y-6">
+      {/* Cards de Estatísticas */}
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+        <Card>
+          <CardContent className="p-4">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm text-muted-foreground">Total</p>
+                <p className="text-2xl font-bold">{stats.total}</p>
+              </div>
+              <Activity className="w-8 h-8 text-blue-500" />
+            </div>
+          </CardContent>
+        </Card>
+        
+        <Card>
+          <CardContent className="p-4">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm text-muted-foreground">Pendentes</p>
+                <p className="text-2xl font-bold text-yellow-600">{stats.pending}</p>
+              </div>
+              <Clock className="w-8 h-8 text-yellow-500" />
+            </div>
+          </CardContent>
+        </Card>
+        
+        <Card>
+          <CardContent className="p-4">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm text-muted-foreground">Sorteados</p>
+                <p className="text-2xl font-bold text-green-600">{stats.drawn}</p>
+              </div>
+              <CheckCircle className="w-8 h-8 text-green-500" />
+            </div>
+          </CardContent>
+        </Card>
+        
+        <Card>
+          <CardContent className="p-4">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm text-muted-foreground">Expirados</p>
+                <p className="text-2xl font-bold text-red-600">{stats.expired}</p>
+              </div>
+              <XCircle className="w-8 h-8 text-red-500" />
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <Crown className="w-5 h-5" />
+            Histórico de Liberações Manuais
+          </CardTitle>
         
         <div className="flex gap-4 items-center">
           <div className="relative flex-1">
@@ -289,6 +356,7 @@ const ManualReleaseHistory = () => {
         )}
       </CardContent>
     </Card>
+    </div>
   );
 };
 
