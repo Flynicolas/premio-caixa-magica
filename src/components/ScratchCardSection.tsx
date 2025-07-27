@@ -7,9 +7,10 @@ import { useAuth } from '@/hooks/useAuth';
 import { useWallet } from '@/hooks/useWallet';
 import { scratchCardTypes, ScratchCardType } from '@/types/scratchCard';
 import { useScratchCard } from '@/hooks/useScratchCard';
+import { useKirvanoTest } from '@/hooks/useKirvanoTest';
 import ScratchGameCanvas from '@/components/scratch-card/ScratchGameCanvas';
 import ScratchCardResult from '@/components/scratch-card/ScratchCardResult';
-import { Coins, Sparkles, Trophy } from 'lucide-react';
+import { Coins, Sparkles, Trophy, CreditCard } from 'lucide-react';
 
 interface ScratchCardSectionProps {
   onAuthRequired: () => void;
@@ -32,6 +33,8 @@ const ScratchCardSection = ({ onAuthRequired }: ScratchCardSectionProps) => {
     scratchAll,
     resetGame
   } = useScratchCard();
+
+  const { createTestPayment, isLoading: isKirvanoLoading } = useKirvanoTest();
 
   const handleGenerate = async (forcedWin = false) => {
     if (!user) {
@@ -115,7 +118,7 @@ const ScratchCardSection = ({ onAuthRequired }: ScratchCardSectionProps) => {
               </SelectContent>
             </Select>
 
-            <div className="flex gap-2">
+            <div className="flex gap-2 flex-wrap justify-center">
               <Button 
                 onClick={() => handleGenerate(false)}
                 disabled={isLoading || !canAfford || !!scratchCard}
@@ -126,14 +129,27 @@ const ScratchCardSection = ({ onAuthRequired }: ScratchCardSectionProps) => {
               </Button>
               
               {user && (
-                <Button 
-                  onClick={() => handleGenerate(true)}
-                  disabled={isLoading || !!scratchCard}
-                  variant="outline"
-                  size="sm"
-                >
-                  Teste (Vitória)
-                </Button>
+                <>
+                  <Button 
+                    onClick={() => handleGenerate(true)}
+                    disabled={isLoading || !!scratchCard}
+                    variant="outline"
+                    size="sm"
+                  >
+                    Teste (Vitória)
+                  </Button>
+                  
+                  <Button 
+                    onClick={() => createTestPayment(scratchCardTypes[selectedType].price)}
+                    disabled={isKirvanoLoading}
+                    variant="secondary"
+                    size="sm"
+                    className="flex items-center gap-2 bg-blue-600 hover:bg-blue-700 text-white"
+                  >
+                    <CreditCard className="w-4 h-4" />
+                    {isKirvanoLoading ? 'Testando...' : 'Teste Kirvano'}
+                  </Button>
+                </>
               )}
             </div>
           </div>

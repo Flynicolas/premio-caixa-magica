@@ -27,6 +27,9 @@ import TermosUso from "./pages/TermosUso";
 import PoliticaPrivacidade from "./pages/PoliticaPrivacidade";
 import FAQ from "./pages/FAQ";
 import Raspadinha from "./pages/Raspadinha";
+import TestePagamento from "./pages/TestePagamento";
+import TesteSucesso from "./pages/TesteSucesso";
+import TesteErro from "./pages/TesteErro";
 import { WalletProvider } from "@/hooks/useWalletProvider";
 
 const queryClient = new QueryClient();
@@ -67,6 +70,9 @@ const App = () => {
                     <Route path="/termos-uso" element={<TermosUso />} />
                     <Route path="/politica-privacidade" element={<PoliticaPrivacidade />} />
                     <Route path="/faq" element={<FAQ />} />
+                    <Route path="/teste-pagamento" element={<TestePagamento />} />
+                    <Route path="/teste-sucesso" element={<TesteSucesso />} />
+                    <Route path="/teste-erro" element={<TesteErro />} />
                     <Route path="*" element={<NotFound />} />
                   </Routes>
                 </main>
