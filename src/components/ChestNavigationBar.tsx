@@ -51,7 +51,7 @@ const ChestNavigationBar = ({ onChestSelect, selectedChest }: ChestNavigationBar
   };
 
   return (
-    <div className="sticky top-4 z-30 bg-card/80 backdrop-blur-sm border border-border/50 rounded-xl p-3 mx-4 mb-6 shadow-lg">
+    <div className="sticky top-4 z-10 bg-card/80 backdrop-blur-sm border border-border/50 rounded-xl p-3 mx-4 mb-6 shadow-lg">
       <div className="flex items-center justify-between overflow-x-auto scrollbar-hide">
         <div className="flex space-x-2">
           {chestOrder.map((chestType) => {
