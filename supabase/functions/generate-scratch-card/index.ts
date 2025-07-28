@@ -1,198 +1,223 @@
-import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.50.2'
+import { serve } from "https://deno.land/std@0.168.0/http/server.ts"
+import { createClient } from 'https://esm.sh/@supabase/supabase-js@2'
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 }
 
-// Handle CORS preflight requests
-Deno.serve(async (req) => {
+serve(async (req) => {
   if (req.method === 'OPTIONS') {
-    return new Response(null, { headers: corsHeaders });
+    return new Response('ok', { headers: corsHeaders })
   }
 
   try {
     const supabase = createClient(
       Deno.env.get('SUPABASE_URL') ?? '',
-      Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
-    );
+      Deno.env.get('SUPABASE_ANON_KEY') ?? ''
+    )
 
-    const { chestType, forcedWin = false } = await req.json();
+    const { scratchType, forcedWin = false } = await req.json()
+    console.log('Generating scratch card for type:', scratchType, 'forcedWin:', forcedWin)
 
-    console.log('Generating scratch card for chest type:', chestType);
+    // Mapear scratchType para chestType compatível
+    const chestTypeMapping: { [key: string]: string } = {
+      'sorte': 'silver',
+      'dupla': 'gold', 
+      'ouro': 'gold',
+      'diamante': 'diamond',
+      'premium': 'premium'
+    }
 
-    // Mapear tipos de raspadinha para tipos de baú equivalentes
-    const chestTypeMapping = {
-      basic: 'silver', // Raspadinha básica usa itens do baú de prata
-      silver: 'silver',
-      gold: 'gold', 
-      delas: 'delas',
-      diamond: 'diamond',
-      ruby: 'ruby',
-      premium: 'premium'
-    };
+    const mappedChestType = chestTypeMapping[scratchType] || 'silver'
 
-    const mappedChestType = chestTypeMapping[chestType] || chestType;
-
-    // Buscar itens e probabilidades
-    const { data: probabilities, error } = await supabase
-      .from('chest_item_probabilities')
+    // Buscar probabilidades dos itens para este tipo de raspadinha
+    const { data: probabilities, error: probError } = await supabase
+      .from('scratch_card_probabilities')
       .select(`
         *,
         item:items(*)
       `)
-      .eq('chest_type', mappedChestType)
+      .eq('scratch_type', scratchType)
       .eq('is_active', true)
-      .eq('item.is_active', true);
 
-    if (error) {
-      console.error('Error fetching probabilities:', error);
-      throw error;
+    if (probError) {
+      console.error('Error fetching scratch probabilities:', probError)
+      // Fallback para chest_item_probabilities se não houver dados específicos
+      const { data: chestProbs, error: chestError } = await supabase
+        .from('chest_item_probabilities')
+        .select(`
+          *,
+          item:items(*)
+        `)
+        .eq('chest_type', mappedChestType)
+        .eq('is_active', true)
+
+      if (chestError) throw chestError
+      
+      // Converter para formato de scratch card
+      const scratchProbs = chestProbs?.map(p => ({
+        ...p,
+        scratch_type: scratchType
+      })) || []
+      
+      return generateFromProbabilities(scratchProbs, scratchType, forcedWin)
     }
 
-    if (!probabilities || probabilities.length === 0) {
-      throw new Error(`No items found for chest type: ${chestType}`);
-    }
+    return generateFromProbabilities(probabilities || [], scratchType, forcedWin)
 
-    console.log(`Found ${probabilities.length} items for chest type ${chestType}`);
-
-    // Criar array com pesos
-    const weightedItems: any[] = [];
-    probabilities.forEach(prob => {
-      if (prob.item) {
-        for (let i = 0; i < prob.probability_weight; i++) {
-          weightedItems.push(prob.item);
-        }
-      }
-    });
-
-    // Determinar se haverá vitória (30% de chance ou forçado)
-    const willWin = forcedWin || Math.random() < 0.3;
-    
-    // Gerar os 9 símbolos
-    const symbols: any[] = [];
-    let winningItem = null;
-
-    if (willWin) {
-      // Selecionar item vencedor
-      winningItem = weightedItems[Math.floor(Math.random() * weightedItems.length)];
-      
-      // Colocar 3 símbolos iguais em posições aleatórias
-      const winPositions = [];
-      while (winPositions.length < 3) {
-        const pos = Math.floor(Math.random() * 9);
-        if (!winPositions.includes(pos)) {
-          winPositions.push(pos);
-        }
-      }
-      
-      // Preencher grid
-      for (let i = 0; i < 9; i++) {
-        if (winPositions.includes(i)) {
-          symbols.push({
-            ...winningItem,
-            symbolId: `${winningItem.id}-win-${i}`,
-            isWinning: true
-          });
-        } else {
-          // Símbolos diferentes para as outras posições
-          let randomItem;
-          do {
-            randomItem = weightedItems[Math.floor(Math.random() * weightedItems.length)];
-          } while (randomItem.id === winningItem.id);
-          
-          symbols.push({
-            ...randomItem,
-            symbolId: `${randomItem.id}-lose-${i}`,
-            isWinning: false
-          });
-        }
-      }
-    } else {
-      // Sem vitória - garantir que não haja 3 iguais
-      const usedItems = new Set();
-      
-      for (let i = 0; i < 9; i++) {
-        let randomItem;
-        let attempts = 0;
-        
-        do {
-          randomItem = weightedItems[Math.floor(Math.random() * weightedItems.length)];
-          attempts++;
-        } while (attempts < 50 && shouldAvoidItem(symbols, randomItem.id, i));
-        
-        symbols.push({
-          ...randomItem,
-          symbolId: `${randomItem.id}-${i}`,
-          isWinning: false
-        });
-      }
-    }
-
-    console.log('Generated scratch card:', {
-      willWin,
-      winningItem: winningItem?.name,
-      symbolsCount: symbols.length
-    });
-
+  } catch (error) {
+    console.error('Error:', error)
     return new Response(
-      JSON.stringify({
-        symbols,
-        winningItem,
-        hasWin: willWin,
-        chestType
-      }),
-      {
-        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      JSON.stringify({ error: error.message }),
+      { 
+        status: 500,
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' }
       }
-    );
+    )
+  }
+})
 
-  } catch (error: any) {
-    console.error('Error in generate-scratch-card function:', error);
+function generateFromProbabilities(probabilities: any[], scratchType: string, forcedWin: boolean) {
+  if (!probabilities.length) {
     return new Response(
       JSON.stringify({ 
-        error: error.message || 'Failed to generate scratch card' 
+        error: 'Nenhum item configurado para este tipo de raspadinha' 
       }),
-      {
-        status: 500,
-        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      { 
+        status: 400,
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' }
       }
-    );
+    )
   }
-});
 
-// Função auxiliar para evitar 3 iguais quando não deve haver vitória
-function shouldAvoidItem(existingSymbols: any[], itemId: string, currentIndex: number): boolean {
-  const itemCount = existingSymbols.filter(symbol => symbol.id === itemId).length;
-  
-  // Se já temos 2 do mesmo item, não adicionar mais
-  if (itemCount >= 2) {
-    return true;
+  // Criar lista ponderada de itens
+  const weightedItems: any[] = []
+  probabilities.forEach(prob => {
+    if (prob.item) {
+      for (let i = 0; i < prob.probability_weight; i++) {
+        weightedItems.push(prob.item)
+      }
+    }
+  })
+
+  if (!weightedItems.length) {
+    throw new Error('Nenhum item válido encontrado')
   }
-  
-  // Verificar se criaria 3 em linha
-  const positions = existingSymbols
-    .map((symbol, index) => symbol.id === itemId ? index : -1)
-    .filter(index => index !== -1);
-  
-  if (positions.length >= 2) {
-    // Verificar combinações vencedoras
-    const winPatterns = [
-      [0, 1, 2], [3, 4, 5], [6, 7, 8], // linhas
-      [0, 3, 6], [1, 4, 7], [2, 5, 8], // colunas
-      [0, 4, 8], [2, 4, 6] // diagonais
-    ];
+
+  // Determinar se haverá vitória (30% de chance ou forçada)
+  const willWin = forcedWin || Math.random() < 0.30
+
+  // Gerar 9 símbolos para a grade 3x3
+  const symbols: any[] = []
+  let winningItem: any = null
+
+  if (willWin) {
+    // Selecionar item vencedor
+    winningItem = weightedItems[Math.floor(Math.random() * weightedItems.length)]
     
-    for (const pattern of winPatterns) {
-      const matches = pattern.filter(pos => 
-        positions.includes(pos) || pos === currentIndex
-      ).length;
+    // Posições vencedoras (primeira linha, primeira coluna ou diagonal)
+    const winningPositions = [0, 1, 2] // Primeira linha por simplicidade
+    
+    // Preencher posições vencedoras
+    winningPositions.forEach(pos => {
+      symbols[pos] = {
+        id: `${pos}`,
+        symbolId: winningItem.id,
+        name: winningItem.name,
+        image_url: winningItem.image_url,
+        rarity: winningItem.rarity,
+        base_value: winningItem.base_value,
+        isWinning: true
+      }
+    })
+
+    // Preencher posições restantes com itens diferentes
+    for (let i = 3; i < 9; i++) {
+      const availableItems = weightedItems.filter(item => item.id !== winningItem.id)
+      const randomItem = availableItems.length > 0 
+        ? availableItems[Math.floor(Math.random() * availableItems.length)]
+        : weightedItems[Math.floor(Math.random() * weightedItems.length)]
       
-      if (matches >= 3) {
-        return true;
+      symbols[i] = {
+        id: `${i}`,
+        symbolId: randomItem.id,
+        name: randomItem.name,
+        image_url: randomItem.image_url,
+        rarity: randomItem.rarity,
+        base_value: randomItem.base_value,
+        isWinning: false
+      }
+    }
+  } else {
+    // Sem vitória - garantir que não há 3 iguais
+    for (let i = 0; i < 9; i++) {
+      let selectedItem
+      let attempts = 0
+      
+      do {
+        selectedItem = weightedItems[Math.floor(Math.random() * weightedItems.length)]
+        attempts++
+      } while (attempts < 10 && shouldAvoidItem(symbols, selectedItem.id, i))
+      
+      symbols[i] = {
+        id: `${i}`,
+        symbolId: selectedItem.id,
+        name: selectedItem.name,
+        image_url: selectedItem.image_url,
+        rarity: selectedItem.rarity,
+        base_value: selectedItem.base_value,
+        isWinning: false
       }
     }
   }
+
+  const result = {
+    symbols,
+    winningItem,
+    hasWin: willWin,
+    scratchType
+  }
+
+  return new Response(
+    JSON.stringify(result),
+    {
+      headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+    }
+  )
+}
+
+// Função para evitar criar combinações vencedoras quando não deve haver vitória
+function shouldAvoidItem(existingSymbols: any[], itemId: string, currentIndex: number): boolean {
+  // Verificar se adicionar este item criaria 3 iguais em linha, coluna ou diagonal
+  const tempSymbols = [...existingSymbols]
+  tempSymbols[currentIndex] = { symbolId: itemId }
   
-  return false;
+  // Verificar linhas
+  for (let row = 0; row < 3; row++) {
+    const start = row * 3
+    const line = [tempSymbols[start], tempSymbols[start + 1], tempSymbols[start + 2]]
+    if (line.every(s => s && s.symbolId === itemId)) {
+      return true
+    }
+  }
+  
+  // Verificar colunas
+  for (let col = 0; col < 3; col++) {
+    const column = [tempSymbols[col], tempSymbols[col + 3], tempSymbols[col + 6]]
+    if (column.every(s => s && s.symbolId === itemId)) {
+      return true
+    }
+  }
+  
+  // Verificar diagonais
+  const diagonal1 = [tempSymbols[0], tempSymbols[4], tempSymbols[8]]
+  const diagonal2 = [tempSymbols[2], tempSymbols[4], tempSymbols[6]]
+  
+  if (diagonal1.every(s => s && s.symbolId === itemId) || 
+      diagonal2.every(s => s && s.symbolId === itemId)) {
+    return true
+  }
+  
+  return false
 }

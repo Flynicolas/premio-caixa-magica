@@ -1150,6 +1150,120 @@ export type Database = {
         }
         Relationships: []
       }
+      scratch_card_financial_control: {
+        Row: {
+          cards_played: number | null
+          created_at: string | null
+          date: string
+          goal_reached: boolean | null
+          id: string
+          net_profit: number | null
+          profit_goal: number | null
+          scratch_type: string
+          total_prizes_given: number | null
+          total_sales: number | null
+          updated_at: string | null
+        }
+        Insert: {
+          cards_played?: number | null
+          created_at?: string | null
+          date?: string
+          goal_reached?: boolean | null
+          id?: string
+          net_profit?: number | null
+          profit_goal?: number | null
+          scratch_type: string
+          total_prizes_given?: number | null
+          total_sales?: number | null
+          updated_at?: string | null
+        }
+        Update: {
+          cards_played?: number | null
+          created_at?: string | null
+          date?: string
+          goal_reached?: boolean | null
+          id?: string
+          net_profit?: number | null
+          profit_goal?: number | null
+          scratch_type?: string
+          total_prizes_given?: number | null
+          total_sales?: number | null
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
+      scratch_card_probabilities: {
+        Row: {
+          created_at: string | null
+          id: string
+          is_active: boolean | null
+          item_id: string
+          max_quantity: number | null
+          min_quantity: number | null
+          probability_weight: number
+          scratch_type: string
+        }
+        Insert: {
+          created_at?: string | null
+          id?: string
+          is_active?: boolean | null
+          item_id: string
+          max_quantity?: number | null
+          min_quantity?: number | null
+          probability_weight?: number
+          scratch_type: string
+        }
+        Update: {
+          created_at?: string | null
+          id?: string
+          is_active?: boolean | null
+          item_id?: string
+          max_quantity?: number | null
+          min_quantity?: number | null
+          probability_weight?: number
+          scratch_type?: string
+        }
+        Relationships: []
+      }
+      scratch_card_settings: {
+        Row: {
+          background_image: string | null
+          created_at: string | null
+          house_edge: number | null
+          id: string
+          is_active: boolean | null
+          name: string
+          price: number
+          scratch_type: string
+          updated_at: string | null
+          win_probability: number | null
+        }
+        Insert: {
+          background_image?: string | null
+          created_at?: string | null
+          house_edge?: number | null
+          id?: string
+          is_active?: boolean | null
+          name: string
+          price: number
+          scratch_type: string
+          updated_at?: string | null
+          win_probability?: number | null
+        }
+        Update: {
+          background_image?: string | null
+          created_at?: string | null
+          house_edge?: number | null
+          id?: string
+          is_active?: boolean | null
+          name?: string
+          price?: number
+          scratch_type?: string
+          updated_at?: string | null
+          win_probability?: number | null
+        }
+        Relationships: []
+      }
       test_payments: {
         Row: {
           amount: number

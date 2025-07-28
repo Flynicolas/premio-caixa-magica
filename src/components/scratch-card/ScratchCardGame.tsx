@@ -12,7 +12,7 @@ import { ScratchCardType, scratchCardTypes, ScratchSymbol } from "@/types/scratc
 const ScratchCardGame = () => {
   console.log('🎯 ScratchCardGame component mounted');
   
-  const [selectedType, setSelectedType] = useState<ScratchCardType>('silver');
+  const [selectedType, setSelectedType] = useState<ScratchCardType>('sorte');
   const [symbols, setSymbols] = useState<ScratchSymbol[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [resultMessage, setResultMessage] = useState("Escolha um tipo e gere sua raspadinha");
@@ -30,7 +30,7 @@ const ScratchCardGame = () => {
     try {
       const { data, error } = await supabase.functions.invoke('generate-scratch-card', {
         body: { 
-          chestType: selectedType,
+          scratchType: selectedType,
           forcedWin 
         }
       });
@@ -96,12 +96,10 @@ const ScratchCardGame = () => {
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="basic">Básica - R${scratchCardTypes.basic.price}</SelectItem>
-                  <SelectItem value="silver">Prata - R${scratchCardTypes.silver.price}</SelectItem>
-                  <SelectItem value="gold">Ouro - R${scratchCardTypes.gold.price}</SelectItem>
-                  <SelectItem value="delas">Delas - R${scratchCardTypes.delas.price}</SelectItem>
-                  <SelectItem value="diamond">Diamante - R${scratchCardTypes.diamond.price}</SelectItem>
-                  <SelectItem value="ruby">Rubi - R${scratchCardTypes.ruby.price}</SelectItem>
+                  <SelectItem value="sorte">Sorte - R${scratchCardTypes.sorte.price}</SelectItem>
+                  <SelectItem value="dupla">Dupla - R${scratchCardTypes.dupla.price}</SelectItem>
+                  <SelectItem value="ouro">Ouro - R${scratchCardTypes.ouro.price}</SelectItem>
+                  <SelectItem value="diamante">Diamante - R${scratchCardTypes.diamante.price}</SelectItem>
                   <SelectItem value="premium">Premium - R${scratchCardTypes.premium.price}</SelectItem>
                 </SelectContent>
               </Select>

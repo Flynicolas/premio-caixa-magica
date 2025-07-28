@@ -1,30 +1,22 @@
 import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { useToast } from '@/hooks/use-toast';
+import { Input } from '@/components/ui/input';
+import { Button } from '@/components/ui/button';
+import { Badge } from '@/components/ui/badge';
+import { Label } from '@/components/ui/label';
+import { Progress } from '@/components/ui/progress';
 import { supabase } from '@/integrations/supabase/client';
-import { 
-  Target, 
-  TrendingUp, 
-  Settings, 
-  RefreshCw, 
-  AlertCircle,
-  DollarSign,
-  Activity,
-  Award
-} from 'lucide-react';
+import { toast } from 'sonner';
 import { scratchCardTypes, ScratchCardType } from '@/types/scratchCard';
+import { TrendingUp, Target, DollarSign, RotateCcw, Settings } from 'lucide-react';
 
 interface ScratchCardStats {
-  chestType: string;
+  scratchType: string;
   totalSales: number;
-  totalPrizes: number;
+  totalPrizesGiven: number;
   netProfit: number;
-  cardsGenerated: number;
+  cardsPlayed: number;
   profitGoal: number;
   goalReached: boolean;
   profitPercentage: number;
@@ -32,8 +24,8 @@ interface ScratchCardStats {
 
 interface ScratchCardSettings {
   isEnabled: boolean;
-  minBetAmount: number;
-  maxBetAmount: number;
+  minBet: number;
+  maxBet: number;
   winProbability: number;
   houseFee: number;
 }
@@ -42,13 +34,12 @@ const ScratchCardManager = () => {
   const [stats, setStats] = useState<ScratchCardStats[]>([]);
   const [settings, setSettings] = useState<ScratchCardSettings>({
     isEnabled: true,
-    minBetAmount: 1,
-    maxBetAmount: 250,
-    winProbability: 30,
-    houseFee: 20
+    minBet: 1,
+    maxBet: 100,
+    winProbability: 0.30,
+    houseFee: 0.20
   });
   const [loading, setLoading] = useState(true);
-  const { toast } = useToast();
 
   useEffect(() => {
     fetchStats();
@@ -57,336 +48,347 @@ const ScratchCardManager = () => {
 
   const fetchStats = async () => {
     try {
-      // Buscar estatísticas da raspadinha
-      const { data: financialData, error } = await supabase
-        .from('chest_financial_control')
+      const { data, error } = await supabase
+        .from('scratch_card_financial_control')
         .select('*')
-        .in('chest_type', Object.keys(scratchCardTypes));
+        .order('scratch_type');
 
       if (error) throw error;
 
-      const statsData = Object.keys(scratchCardTypes).map(chestType => {
-        const typeData = financialData?.find(d => d.chest_type === chestType);
+      const processedStats: ScratchCardStats[] = Object.keys(scratchCardTypes).map(type => {
+        const typeStats = data?.find(s => s.scratch_type === type);
+        const profitPercentage = typeStats?.profit_goal > 0 
+          ? (typeStats.net_profit / typeStats.profit_goal) * 100 
+          : 0;
+
         return {
-          chestType,
-          totalSales: typeData?.total_sales || 0,
-          totalPrizes: typeData?.total_prizes_given || 0,
-          netProfit: typeData?.net_profit || 0,
-          cardsGenerated: typeData?.chests_opened || 0,
-          profitGoal: typeData?.profit_goal || 100,
-          goalReached: typeData?.goal_reached || false,
-          profitPercentage: typeData?.net_profit && typeData?.profit_goal 
-            ? (typeData.net_profit / typeData.profit_goal) * 100 
-            : 0
+          scratchType: type,
+          totalSales: typeStats?.total_sales || 0,
+          totalPrizesGiven: typeStats?.total_prizes_given || 0,
+          netProfit: typeStats?.net_profit || 0,
+          cardsPlayed: typeStats?.cards_played || 0,
+          profitGoal: typeStats?.profit_goal || 100,
+          goalReached: typeStats?.goal_reached || false,
+          profitPercentage
         };
       });
 
-      setStats(statsData);
+      setStats(processedStats);
     } catch (error) {
       console.error('Erro ao buscar estatísticas:', error);
-      toast({
-        title: 'Erro',
-        description: 'Erro ao carregar estatísticas da raspadinha',
-        variant: 'destructive'
-      });
+      toast.error('Erro ao carregar estatísticas');
     } finally {
       setLoading(false);
     }
   };
 
   const fetchSettings = async () => {
-    // Aqui você pode buscar configurações específicas do banco se necessário
-    // Por ora, usando valores padrão
+    try {
+      // Buscar configurações gerais (implementar conforme necessário)
+      // Por enquanto, manter valores padrão
+    } catch (error) {
+      console.error('Erro ao buscar configurações:', error);
+    }
   };
 
-  const updateProfitGoal = async (chestType: string, newGoal: number) => {
+  const updateProfitGoal = async (scratchType: string, newGoal: number) => {
     try {
       const { error } = await supabase
-        .from('chest_financial_control')
+        .from('scratch_card_financial_control')
         .upsert({
-          chest_type: chestType,
+          scratch_type: scratchType,
           profit_goal: newGoal,
           date: new Date().toISOString().split('T')[0]
+        }, {
+          onConflict: 'scratch_type,date'
         });
 
       if (error) throw error;
 
-      toast({
-        title: 'Sucesso',
-        description: 'Meta atualizada com sucesso!'
-      });
-
+      toast.success('Meta de lucro atualizada');
       fetchStats();
     } catch (error) {
-      toast({
-        title: 'Erro',
-        description: 'Erro ao atualizar meta',
-        variant: 'destructive'
-      });
+      console.error('Erro ao atualizar meta:', error);
+      toast.error('Erro ao atualizar meta');
     }
   };
 
-  const resetStats = async (chestType: string) => {
+  const resetStats = async (scratchType: string) => {
     try {
       const { error } = await supabase
-        .from('chest_financial_control')
+        .from('scratch_card_financial_control')
         .update({
           total_sales: 0,
           total_prizes_given: 0,
           net_profit: 0,
-          chests_opened: 0,
+          cards_played: 0,
           goal_reached: false
         })
-        .eq('chest_type', chestType);
+        .eq('scratch_type', scratchType)
+        .eq('date', new Date().toISOString().split('T')[0]);
 
       if (error) throw error;
 
-      toast({
-        title: 'Sucesso',
-        description: 'Estatísticas resetadas com sucesso!'
-      });
-
+      toast.success(`Estatísticas resetadas para ${scratchCardTypes[scratchType as ScratchCardType].name}`);
       fetchStats();
     } catch (error) {
-      toast({
-        title: 'Erro',
-        description: 'Erro ao resetar estatísticas',
-        variant: 'destructive'
-      });
+      console.error('Erro ao resetar estatísticas:', error);
+      toast.error('Erro ao resetar estatísticas');
     }
   };
 
   if (loading) {
     return (
-      <div className="flex items-center justify-center p-8">
-        <div className="w-8 h-8 border-4 border-primary border-t-transparent rounded-full animate-spin"></div>
-      </div>
+      <Card>
+        <CardContent className="p-6">
+          <div className="flex items-center justify-center">
+            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+          </div>
+        </CardContent>
+      </Card>
     );
   }
+
+  const totalStats = stats.reduce((acc, stat) => ({
+    sales: acc.sales + stat.totalSales,
+    prizes: acc.prizes + stat.totalPrizesGiven,
+    profit: acc.profit + stat.netProfit,
+    cards: acc.cards + stat.cardsPlayed
+  }), { sales: 0, prizes: 0, profit: 0, cards: 0 });
 
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
-        <div>
-          <h2 className="text-2xl font-bold">Administração de Raspadinha</h2>
-          <p className="text-muted-foreground">Gerencie configurações, metas e estatísticas</p>
-        </div>
-        <Button onClick={fetchStats} variant="outline">
-          <RefreshCw className="w-4 h-4 mr-2" />
-          Atualizar
-        </Button>
+        <h2 className="text-2xl font-bold">Gerenciamento de Raspadinhas</h2>
+        <Badge variant="outline" className="flex items-center gap-2">
+          <DollarSign className="w-4 h-4" />
+          Lucro Total: R$ {totalStats.profit.toFixed(2)}
+        </Badge>
       </div>
 
-      <Tabs defaultValue="overview" className="space-y-6">
+      <Tabs defaultValue="overview" className="space-y-4">
         <TabsList>
           <TabsTrigger value="overview">Visão Geral</TabsTrigger>
           <TabsTrigger value="settings">Configurações</TabsTrigger>
           <TabsTrigger value="goals">Metas</TabsTrigger>
         </TabsList>
 
-        <TabsContent value="overview" className="space-y-6">
-          {/* Cards de Estatísticas Gerais */}
+        <TabsContent value="overview" className="space-y-4">
+          {/* Estatísticas Gerais */}
           <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
             <Card>
-              <CardHeader className="pb-2">
-                <CardTitle className="text-sm font-medium flex items-center">
-                  <DollarSign className="w-4 h-4 mr-2 text-green-500" />
-                  Vendas Totais
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="text-2xl font-bold">
-                  R$ {stats.reduce((acc, stat) => acc + stat.totalSales, 0).toFixed(2)}
+              <CardContent className="p-4">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className="text-sm text-muted-foreground">Total Vendas</p>
+                    <p className="text-2xl font-bold">R$ {totalStats.sales.toFixed(2)}</p>
+                  </div>
+                  <TrendingUp className="w-8 h-8 text-green-500" />
                 </div>
               </CardContent>
             </Card>
 
             <Card>
-              <CardHeader className="pb-2">
-                <CardTitle className="text-sm font-medium flex items-center">
-                  <Award className="w-4 h-4 mr-2 text-blue-500" />
-                  Prêmios Pagos
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="text-2xl font-bold">
-                  R$ {stats.reduce((acc, stat) => acc + stat.totalPrizes, 0).toFixed(2)}
+              <CardContent className="p-4">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className="text-sm text-muted-foreground">Total Prêmios</p>
+                    <p className="text-2xl font-bold">R$ {totalStats.prizes.toFixed(2)}</p>
+                  </div>
+                  <Target className="w-8 h-8 text-blue-500" />
                 </div>
               </CardContent>
             </Card>
 
             <Card>
-              <CardHeader className="pb-2">
-                <CardTitle className="text-sm font-medium flex items-center">
-                  <TrendingUp className="w-4 h-4 mr-2 text-green-600" />
-                  Lucro Líquido
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="text-2xl font-bold">
-                  R$ {stats.reduce((acc, stat) => acc + stat.netProfit, 0).toFixed(2)}
+              <CardContent className="p-4">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className="text-sm text-muted-foreground">Lucro Líquido</p>
+                    <p className="text-2xl font-bold text-green-600">R$ {totalStats.profit.toFixed(2)}</p>
+                  </div>
+                  <DollarSign className="w-8 h-8 text-green-500" />
                 </div>
               </CardContent>
             </Card>
 
             <Card>
-              <CardHeader className="pb-2">
-                <CardTitle className="text-sm font-medium flex items-center">
-                  <Activity className="w-4 h-4 mr-2 text-purple-500" />
-                  Cards Gerados
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="text-2xl font-bold">
-                  {stats.reduce((acc, stat) => acc + stat.cardsGenerated, 0)}
+              <CardContent className="p-4">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className="text-sm text-muted-foreground">Total Jogos</p>
+                    <p className="text-2xl font-bold">{totalStats.cards}</p>
+                  </div>
+                  <RotateCcw className="w-8 h-8 text-purple-500" />
                 </div>
               </CardContent>
             </Card>
           </div>
 
           {/* Estatísticas por Tipo */}
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-            {stats.map((stat) => (
-              <Card key={stat.chestType}>
-                <CardHeader>
-                  <CardTitle className="flex items-center justify-between">
-                    <span>{scratchCardTypes[stat.chestType as ScratchCardType].name}</span>
-                    <Badge variant={stat.goalReached ? "default" : "secondary"}>
-                      {stat.goalReached ? "Meta Atingida" : "Ativo"}
-                    </Badge>
-                  </CardTitle>
-                </CardHeader>
-                <CardContent className="space-y-3">
-                  <div className="flex justify-between">
-                    <span className="text-sm text-muted-foreground">Vendas:</span>
-                    <span className="font-medium">R$ {stat.totalSales.toFixed(2)}</span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span className="text-sm text-muted-foreground">Prêmios:</span>
-                    <span className="font-medium">R$ {stat.totalPrizes.toFixed(2)}</span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span className="text-sm text-muted-foreground">Lucro:</span>
-                    <span className="font-medium text-green-600">R$ {stat.netProfit.toFixed(2)}</span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span className="text-sm text-muted-foreground">Cards:</span>
-                    <span className="font-medium">{stat.cardsGenerated}</span>
-                  </div>
-                  <div className="space-y-2">
-                    <div className="flex justify-between">
-                      <span className="text-sm text-muted-foreground">Meta de Lucro:</span>
-                      <span className="font-medium">R$ {stat.profitGoal.toFixed(2)}</span>
-                    </div>
-                    <div className="w-full bg-gray-200 rounded-full h-2">
-                      <div 
-                        className="bg-primary h-2 rounded-full" 
-                        style={{ width: `${Math.min(stat.profitPercentage, 100)}%` }}
-                      />
-                    </div>
-                    <div className="text-xs text-muted-foreground text-center">
-                      {stat.profitPercentage.toFixed(1)}% da meta
-                    </div>
-                  </div>
-                  <Button 
-                    variant="outline" 
-                    size="sm" 
-                    onClick={() => resetStats(stat.chestType)}
-                    className="w-full"
-                  >
-                    Resetar Estatísticas
-                  </Button>
-                </CardContent>
-              </Card>
-            ))}
+          <div className="space-y-4">
+            <h3 className="text-lg font-semibold">Estatísticas por Tipo</h3>
+            <div className="grid gap-4">
+              {stats.map((stat) => {
+                const config = scratchCardTypes[stat.scratchType as ScratchCardType];
+                
+                return (
+                  <Card key={stat.scratchType}>
+                    <CardHeader className="pb-3">
+                      <div className="flex items-center justify-between">
+                        <div className="flex items-center gap-3">
+                          <div className={`w-4 h-4 rounded-full bg-gradient-to-r ${config.color}`} />
+                          <CardTitle className="text-lg">{config.name}</CardTitle>
+                          <Badge variant="outline">R$ {config.price}</Badge>
+                        </div>
+                        <div className="flex gap-2">
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={() => resetStats(stat.scratchType)}
+                          >
+                            <RotateCcw className="w-4 h-4 mr-1" />
+                            Reset
+                          </Button>
+                        </div>
+                      </div>
+                    </CardHeader>
+                    <CardContent>
+                      <div className="grid grid-cols-2 md:grid-cols-5 gap-4 mb-4">
+                        <div>
+                          <p className="text-sm text-muted-foreground">Vendas</p>
+                          <p className="font-semibold">R$ {stat.totalSales.toFixed(2)}</p>
+                        </div>
+                        <div>
+                          <p className="text-sm text-muted-foreground">Prêmios</p>
+                          <p className="font-semibold">R$ {stat.totalPrizesGiven.toFixed(2)}</p>
+                        </div>
+                        <div>
+                          <p className="text-sm text-muted-foreground">Lucro</p>
+                          <p className="font-semibold text-green-600">R$ {stat.netProfit.toFixed(2)}</p>
+                        </div>
+                        <div>
+                          <p className="text-sm text-muted-foreground">Jogos</p>
+                          <p className="font-semibold">{stat.cardsPlayed}</p>
+                        </div>
+                        <div>
+                          <p className="text-sm text-muted-foreground">Meta</p>
+                          <p className="font-semibold">R$ {stat.profitGoal.toFixed(2)}</p>
+                        </div>
+                      </div>
+                      
+                      <div>
+                        <div className="flex justify-between text-sm mb-1">
+                          <span>Progresso da Meta</span>
+                          <span>{stat.profitPercentage.toFixed(1)}%</span>
+                        </div>
+                        <Progress value={Math.min(stat.profitPercentage, 100)} className="h-2" />
+                      </div>
+                    </CardContent>
+                  </Card>
+                );
+              })}
+            </div>
           </div>
         </TabsContent>
 
-        <TabsContent value="settings" className="space-y-6">
+        <TabsContent value="settings" className="space-y-4">
           <Card>
             <CardHeader>
-              <CardTitle>Configurações Gerais</CardTitle>
+              <CardTitle className="flex items-center gap-2">
+                <Settings className="w-5 h-5" />
+                Configurações Gerais
+              </CardTitle>
             </CardHeader>
             <CardContent className="space-y-4">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div className="space-y-2">
+              <div className="grid grid-cols-2 gap-4">
+                <div>
                   <Label htmlFor="minBet">Aposta Mínima (R$)</Label>
                   <Input
                     id="minBet"
                     type="number"
-                    value={settings.minBetAmount}
-                    onChange={(e) => setSettings({...settings, minBetAmount: Number(e.target.value)})}
+                    value={settings.minBet}
+                    onChange={(e) => setSettings(prev => ({ ...prev, minBet: parseFloat(e.target.value) }))}
                   />
                 </div>
-                <div className="space-y-2">
+                <div>
                   <Label htmlFor="maxBet">Aposta Máxima (R$)</Label>
                   <Input
                     id="maxBet"
                     type="number"
-                    value={settings.maxBetAmount}
-                    onChange={(e) => setSettings({...settings, maxBetAmount: Number(e.target.value)})}
+                    value={settings.maxBet}
+                    onChange={(e) => setSettings(prev => ({ ...prev, maxBet: parseFloat(e.target.value) }))}
                   />
                 </div>
-                <div className="space-y-2">
+              </div>
+              
+              <div className="grid grid-cols-2 gap-4">
+                <div>
                   <Label htmlFor="winProb">Probabilidade de Vitória (%)</Label>
                   <Input
                     id="winProb"
                     type="number"
-                    value={settings.winProbability}
-                    onChange={(e) => setSettings({...settings, winProbability: Number(e.target.value)})}
+                    value={settings.winProbability * 100}
+                    onChange={(e) => setSettings(prev => ({ ...prev, winProbability: parseFloat(e.target.value) / 100 }))}
                   />
                 </div>
-                <div className="space-y-2">
+                <div>
                   <Label htmlFor="houseFee">Taxa da Casa (%)</Label>
                   <Input
                     id="houseFee"
                     type="number"
-                    value={settings.houseFee}
-                    onChange={(e) => setSettings({...settings, houseFee: Number(e.target.value)})}
+                    value={settings.houseFee * 100}
+                    onChange={(e) => setSettings(prev => ({ ...prev, houseFee: parseFloat(e.target.value) / 100 }))}
                   />
                 </div>
               </div>
+              
               <Button className="w-full">
-                <Settings className="w-4 h-4 mr-2" />
                 Salvar Configurações
               </Button>
             </CardContent>
           </Card>
         </TabsContent>
 
-        <TabsContent value="goals" className="space-y-6">
+        <TabsContent value="goals" className="space-y-4">
           <Card>
             <CardHeader>
-              <CardTitle>Configurar Metas de Lucro</CardTitle>
+              <CardTitle className="flex items-center gap-2">
+                <Target className="w-5 h-5" />
+                Metas de Lucro
+              </CardTitle>
             </CardHeader>
             <CardContent>
               <div className="space-y-4">
-                {stats.map((stat) => (
-                  <div key={stat.chestType} className="flex items-center justify-between p-4 border rounded-lg">
-                    <div>
-                      <h3 className="font-medium">{scratchCardTypes[stat.chestType as ScratchCardType].name}</h3>
-                      <p className="text-sm text-muted-foreground">
-                        Lucro atual: R$ {stat.netProfit.toFixed(2)}
-                      </p>
+                {stats.map((stat) => {
+                  const config = scratchCardTypes[stat.scratchType as ScratchCardType];
+                  
+                  return (
+                    <div key={stat.scratchType} className="flex items-center gap-4 p-4 border rounded-lg">
+                      <div className={`w-3 h-3 rounded-full bg-gradient-to-r ${config.color}`} />
+                      <div className="flex-1">
+                        <p className="font-medium">{config.name}</p>
+                        <p className="text-sm text-muted-foreground">
+                          Lucro atual: R$ {stat.netProfit.toFixed(2)}
+                        </p>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <Input
+                          type="number"
+                          className="w-24"
+                          value={stat.profitGoal}
+                          onChange={(e) => {
+                            const newGoal = parseFloat(e.target.value);
+                            if (newGoal > 0) {
+                              updateProfitGoal(stat.scratchType, newGoal);
+                            }
+                          }}
+                        />
+                        <span className="text-sm text-muted-foreground">R$</span>
+                      </div>
                     </div>
-                    <div className="flex items-center gap-2">
-                      <Input
-                        type="number"
-                        defaultValue={stat.profitGoal}
-                        placeholder="Meta de lucro"
-                        className="w-32"
-                        onBlur={(e) => {
-                          if (e.target.value && Number(e.target.value) !== stat.profitGoal) {
-                            updateProfitGoal(stat.chestType, Number(e.target.value));
-                          }
-                        }}
-                      />
-                      <Badge variant={stat.goalReached ? "default" : "secondary"}>
-                        {stat.goalReached ? "✓" : "Pendente"}
-                      </Badge>
-                    </div>
-                  </div>
-                ))}
+                  );
+                })}
               </div>
             </CardContent>
           </Card>

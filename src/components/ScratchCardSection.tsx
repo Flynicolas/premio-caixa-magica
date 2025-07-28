@@ -22,7 +22,7 @@ const ScratchCardSection = ({ onAuthRequired }: ScratchCardSectionProps) => {
   const { user } = useAuth();
   const { walletData } = useWallet();
   const navigate = useNavigate();
-  const [selectedType, setSelectedType] = useState<ScratchCardType>('basic');
+  const [selectedType, setSelectedType] = useState<ScratchCardType>('sorte');
   const [showResult, setShowResult] = useState(false);
   const [hasDetectedWin, setHasDetectedWin] = useState(false);
   
