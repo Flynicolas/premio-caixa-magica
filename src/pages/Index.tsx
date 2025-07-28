@@ -171,8 +171,8 @@ const Index = () => {
         {/* Banners para Mobile - Divididos horizontalmente */}
         <div className="space-y-4 md:space-y-6">
           <ResponsiveBanner 
-            imageUrlPC="/banners/home-banner-1-pc.jpg"
-            imageUrlMobile="/banners/home-banner-1-mobile.jpg"
+            imageUrlPC="https://jhbafgzfphiizpuoqksj.supabase.co/storage/v1/object/public/head-images//raspadinha-banner-rodape01.png"
+            imageUrlMobile="https://jhbafgzfphiizpuoqksj.supabase.co/storage/v1/object/public/head-images//raspadinha-banner-rodape01.png"
             altText="Banner promocional 1"
             className="h-20 md:h-auto"
           />
