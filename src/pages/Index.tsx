@@ -12,6 +12,7 @@ import ChestItemsModal from '@/components/ChestItemsModal';
 import ChestConfirmModal from '@/components/ChestConfirmModal';
 import ChestOpeningModal from '@/components/ChestOpeningModal';
 import WinModal from '@/components/WinModal';
+import ChestNavigationBar from '@/components/ChestNavigationBar';
 import { chestData, ChestType, Chest } from '@/data/chestData';
 import { DatabaseItem } from '@/types/database';
 import { useInventory } from '@/hooks/useInventory';
@@ -29,6 +30,7 @@ const Index = () => {
   const [showWinModal, setShowWinModal] = useState(false);
   const [selectedChest, setSelectedChest] = useState<{ chest: Chest; type: ChestType } | null>(null);
   const [wonPrize, setWonPrize] = useState<DatabaseItem | null>(null);
+  const [selectedChestType, setSelectedChestType] = useState<ChestType | undefined>(undefined);
   const { userItems } = useInventory();
 
   // Definir ordem específica dos baús
@@ -104,7 +106,13 @@ const Index = () => {
         </div>
 
         {/* Real-time Wins Carousel */}
-        <RealtimeWinsCarousel className="mb-12" />
+        <RealtimeWinsCarousel className="mb-6 md:mb-12" />
+        
+        {/* Chest Navigation Bar - Mobile Only */}
+        <ChestNavigationBar 
+          onChestSelect={setSelectedChestType}
+          selectedChest={selectedChestType}
+        />
 
         {/* Chest Simulator for non-authenticated users */}
         {!user && (
@@ -126,7 +134,7 @@ const Index = () => {
 
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 max-w-6xl mx-auto">
             {chestOrder.map((chestType) => (
-              <div key={chestType}>
+              <div key={chestType} id={`chest-${chestType}`} className="scroll-mt-32">
                 <ChestCard
                   chest={chestData[chestType]}
                   chestType={chestType}
@@ -215,6 +223,12 @@ const Index = () => {
         onPrizeWon={handleChestOpeningComplete}
       />
 
+      <WinModal
+        isOpen={showWinModal}
+        onClose={() => setShowWinModal(false)}
+        prize={wonPrize}
+        onCollect={() => setShowWinModal(false)}
+      />
      
     </div>
   );

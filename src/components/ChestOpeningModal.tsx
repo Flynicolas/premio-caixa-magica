@@ -193,7 +193,7 @@ const ChestOpeningModal = ({
       id: item.id,
       name: item.name,
       description: null,
-      image_url: item.image_url,
+      image_url: item.image_url || '',
       category: "product",
       rarity: item.rarity as any,
       base_value: 0,

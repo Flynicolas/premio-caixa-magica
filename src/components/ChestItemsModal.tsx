@@ -119,7 +119,7 @@ const ChestItemsModal = ({ isOpen, onClose, chestType }: ChestItemsModalProps) =
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className={`max-w-5xl max-h-[85vh] overflow-y-auto bg-gradient-to-br ${chestTheme} backdrop-blur-xl border border-white/20 shadow-2xl`}>
+      <DialogContent className={`max-w-5xl md:max-w-4xl max-h-[85vh] overflow-y-auto bg-gradient-to-br ${chestTheme} backdrop-blur-xl border border-white/20 shadow-2xl`}>
         <DialogHeader>
           <DialogTitle className="text-3xl font-bold text-center bg-gradient-to-r from-white to-white/80 bg-clip-text text-transparent">
             {chestTitle}
@@ -152,20 +152,25 @@ const ChestItemsModal = ({ isOpen, onClose, chestType }: ChestItemsModalProps) =
                     </h3>
                   </div>
 
-                  <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
+                  <div className="grid grid-cols-3 md:grid-cols-3 lg:grid-cols-4 gap-4 md:gap-6">
                     {itemsInRarity.map((item, index) => (
                       <div key={index} className="group flex flex-col items-center">
-                        <ItemCard
-                          item={{
-                            name: item.name,
-                            image_url: item.image_url,
-                            rarity: (item.rarity === 'special' ? 'legendary' : item.rarity) as 'common' | 'rare' | 'epic' | 'legendary',
-                            description: `Valor: R$ ${item.base_value.toFixed(2)}`
-                          }}
-                          size="md"
-                          showRarity={false}
-                        />
-                        <div className="mt-3 px-2 text-center w-full">
+                        <div className="group relative">
+                          <ItemCard
+                            item={{
+                              name: item.name,
+                              image_url: item.image_url,
+                              rarity: (item.rarity === 'special' ? 'legendary' : item.rarity) as 'common' | 'rare' | 'epic' | 'legendary',
+                              description: `Valor: R$ ${item.base_value.toFixed(2)}`
+                            }}
+                            size="md"
+                            showRarity={false}
+                          />
+                          <div className="hidden md:block absolute -bottom-2 left-1/2 transform -translate-x-1/2 bg-black/80 text-white text-xs px-2 py-1 rounded opacity-0 group-hover:opacity-100 transition-opacity duration-200 whitespace-nowrap z-10">
+                            {item.name}
+                          </div>
+                        </div>
+                        <div className="mt-3 px-2 text-center w-full md:hidden">
                           <h4 className="text-sm font-medium text-white/90 leading-tight break-words">{item.name}</h4>
                         </div>
                       </div>
