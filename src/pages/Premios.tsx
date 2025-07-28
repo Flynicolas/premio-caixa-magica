@@ -226,8 +226,8 @@ const Premios = () => {
 
         {/* Banner antes do rodapé - SUBSTITUA AS URLs PELAS SUAS IMAGENS */}
         <ResponsiveBanner 
-          imageUrlPC="/banners/premios-banner-pc.jpg"
-          imageUrlMobile="https://jhbafgzfphiizpuoqksj.supabase.co/storage/v1/object/public/head-images//raspadinha-bannerquadrado01.png"
+          imageUrlPC="https://jhbafgzfphiizpuoqksj.supabase.co/storage/v1/object/public/head-images//raspadinha-banner-rodape01.png"
+          imageUrlMobile="https://jhbafgzfphiizpuoqksj.supabase.co/storage/v1/object/public/head-images//raspadinha-banner-rodape01.png"
           altText="Banner promocional da página de prêmios"
         />
       </div>
