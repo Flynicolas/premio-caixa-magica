@@ -99,8 +99,8 @@ const MeusPremios = () => {
 
         {/* Banner para Mobile */}
         <ResponsiveBanner 
-          imageUrlPC="/banners/premios-banner-pc.jpg"
-          imageUrlMobile="/banners/premios-banner-mobile.jpg"
+          imageUrlPC="https://jhbafgzfphiizpuoqksj.supabase.co/storage/v1/object/public/head-images//raspadinha-banner-rodape01.png"
+          imageUrlMobile="https://jhbafgzfphiizpuoqksj.supabase.co/storage/v1/object/public/head-images//raspadinha-banner-rodape01.png"
           altText="Banner promocional da página de prêmios"
           className="mb-6"
         />
