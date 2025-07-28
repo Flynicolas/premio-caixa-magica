@@ -2,7 +2,6 @@ import React, { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useAuth } from '@/hooks/useAuth';
 import { useWallet } from '@/hooks/useWallet';
 import { scratchCardTypes, ScratchCardType } from '@/types/scratchCard';
@@ -10,8 +9,9 @@ import { useScratchCard } from '@/hooks/useScratchCard';
 import { useKirvanoTest } from '@/hooks/useKirvanoTest';
 import ScratchGameCanvas from '@/components/scratch-card/ScratchGameCanvas';
 import ScratchCardResult from '@/components/scratch-card/ScratchCardResult';
+import ScratchCardSelector from '@/components/scratch-card/ScratchCardSelector';
 import PixTestModal from '@/components/PixTestModal';
-import { Coins, Sparkles, Trophy, CreditCard, TestTube } from 'lucide-react';
+import { Coins, Sparkles, Trophy, TestTube, Star, Diamond, Crown } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 
 interface ScratchCardSectionProps {
@@ -71,64 +71,96 @@ const ScratchCardSection = ({ onAuthRequired }: ScratchCardSectionProps) => {
 
   const canAfford = walletData && walletData.balance >= scratchCardTypes[selectedType].price;
 
-  return (
-    <div className="w-full max-w-4xl mx-auto space-y-6">
-      {/* Banner da Raspadinha */}
-      <div className="relative overflow-hidden rounded-2xl bg-gradient-to-r from-yellow-400/20 via-orange-400/20 to-red-400/20 border border-yellow-400/30 h-32">
-        <div className="absolute inset-0 bg-gradient-to-r from-yellow-600/30 via-orange-500/30 to-red-500/30" />
-        <div className="relative px-6 py-4 text-center h-full flex flex-col justify-center">
-          <div className="flex items-center justify-center gap-2 mb-1">
-            <Sparkles className="w-6 h-6 text-yellow-500" />
-            <h1 className="text-2xl sm:text-3xl font-bold bg-gradient-to-r from-yellow-500 via-orange-500 to-red-500 bg-clip-text text-transparent">
-              RASPADINHA PREMIADA
-            </h1>
-            <Sparkles className="w-6 h-6 text-yellow-500" />
-          </div>
-          <p className="text-sm sm:text-base text-muted-foreground">
-            Raspe e ganhe prêmios incríveis instantaneamente!
-          </p>
-        </div>
-      </div>
+  const cardIcons = {
+    sorte: Star,
+    dupla: Star,
+    ouro: Coins,
+    diamante: Diamond,
+    premium: Crown
+  };
 
-      {/* Seleção de Tipo e Controles */}
-      <Card>
-        <CardHeader>
-          <CardTitle className="text-center flex items-center justify-center gap-2">
-            <Trophy className="w-5 h-5 text-yellow-500" />
-            Escolha Sua Raspadinha
-          </CardTitle>
-        </CardHeader>
-        <CardContent className="space-y-4">
-          <div className="flex flex-col sm:flex-row gap-4 items-center justify-center">
-            <Select
-              value={selectedType}
-              onValueChange={(value: ScratchCardType) => setSelectedType(value)}
-            >
-              <SelectTrigger className="w-full sm:w-64">
-                <SelectValue placeholder="Selecione o tipo" />
-              </SelectTrigger>
-              <SelectContent>
-                {Object.entries(scratchCardTypes).map(([type, info]) => (
-                  <SelectItem key={type} value={type}>
-                    <div className="flex items-center justify-between w-full">
-                      <span>{info.name}</span>
-                      <Badge variant="outline" className="ml-2">
-                        R$ {info.price}
+  return (
+    <div className="w-full max-w-6xl mx-auto space-y-8">
+      {/* Seletor de Raspadinhas com Cards Temáticos */}
+      {!scratchCard && (
+        <div className="space-y-6">
+          <div className="text-center">
+            <h2 className="text-3xl font-bold text-foreground mb-2">
+              Escolha sua Raspadinha
+            </h2>
+            <p className="text-muted-foreground">
+              Selecione o tipo de raspadinha e teste sua sorte!
+            </p>
+          </div>
+
+          {/* Grid de Cards de Raspadinha */}
+          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4">
+            {(Object.entries(scratchCardTypes) as [ScratchCardType, typeof scratchCardTypes[ScratchCardType]][]).map(([type, config]) => {
+              const Icon = cardIcons[type];
+              const isSelected = selectedType === type;
+              const canAfford = walletData && walletData.balance >= config.price;
+              
+              return (
+                <Card
+                  key={type}
+                  className={`p-4 cursor-pointer transition-all duration-300 hover:scale-105 hover:shadow-lg ${
+                    isSelected 
+                      ? 'ring-2 ring-primary shadow-xl transform scale-105' 
+                      : 'hover:shadow-md'
+                  } ${!canAfford ? 'opacity-60' : ''}`}
+                  onClick={() => setSelectedType(type)}
+                >
+                  <div className="text-center space-y-3">
+                    <div className={`mx-auto w-16 h-16 rounded-2xl flex items-center justify-center bg-gradient-to-br ${config.color} shadow-lg`}>
+                      <Icon className="w-8 h-8 text-white drop-shadow-sm" />
+                    </div>
+                    
+                    <div>
+                      <h3 className="font-bold text-sm">{config.name}</h3>
+                      <Badge 
+                        variant="secondary" 
+                        className={`mt-1 ${config.textColor} ${config.bgColor} bg-opacity-20 font-semibold`}
+                      >
+                        R$ {config.price.toFixed(2)}
                       </Badge>
                     </div>
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
+
+                    {!canAfford && user && (
+                      <p className="text-xs text-destructive">
+                        Saldo insuficiente
+                      </p>
+                    )}
+                  </div>
+                </Card>
+              );
+            })}
+          </div>
+
+          {/* Botão de Compra e Informações */}
+          <div className="text-center space-y-4">
+            {user && (
+              <div className="text-sm text-muted-foreground">
+                Seu saldo: <span className="font-bold text-primary">R$ {walletData?.balance.toFixed(2) || '0,00'}</span>
+              </div>
+            )}
 
             <div className="flex gap-2 flex-wrap justify-center">
-              <Button 
+              <Button
                 onClick={() => handleGenerate(false)}
                 disabled={isLoading || !canAfford || !!scratchCard}
-                className="flex items-center gap-2"
+                className={`px-8 py-3 bg-gradient-to-r ${scratchCardTypes[selectedType].color} hover:opacity-90 text-white font-semibold rounded-xl transition-all duration-300 shadow-lg`}
               >
-                <Coins className="w-4 h-4" />
-                {isLoading ? 'Gerando...' : 'Comprar'}
+                {isLoading ? (
+                  <>
+                    <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2" />
+                    Gerando...
+                  </>
+                ) : (
+                  <>
+                    <Coins className="w-4 h-4 mr-2" />
+                    Comprar por R$ {scratchCardTypes[selectedType].price.toFixed(2)}
+                  </>
+                )}
               </Button>
               
               {user && (
@@ -138,6 +170,7 @@ const ScratchCardSection = ({ onAuthRequired }: ScratchCardSectionProps) => {
                     disabled={isLoading || !!scratchCard}
                     variant="outline"
                     size="sm"
+                    className="border-primary text-primary hover:bg-primary hover:text-white"
                   >
                     Teste (Vitória)
                   </Button>
@@ -154,64 +187,56 @@ const ScratchCardSection = ({ onAuthRequired }: ScratchCardSectionProps) => {
                 </>
               )}
             </div>
+
+            {!user && (
+              <div className="text-center">
+                <Badge variant="outline" className="px-4 py-2">
+                  Faça login para jogar com dinheiro real
+                </Badge>
+              </div>
+            )}
           </div>
+        </div>
+      )}
 
-          {/* Informações do Saldo */}
-          {user && (
-            <div className="text-center text-sm text-muted-foreground">
-              Saldo atual: R$ {walletData?.balance.toFixed(2) || '0,00'}
-              {!canAfford && (
-                <span className="text-red-500 ml-2">
-                  (Saldo insuficiente)
-                </span>
-              )}
-            </div>
-          )}
-
-          {!user && (
-            <div className="text-center">
-              <Badge variant="outline" className="px-4 py-2">
-                Faça login para jogar com dinheiro real
-              </Badge>
-            </div>
-          )}
-        </CardContent>
-      </Card>
-
-      {/* Área do Jogo */}
+      {/* Área do Jogo Temática */}
       {scratchCard && !showResult && (
-        <Card>
+        <Card className={`border-2 bg-gradient-to-br ${scratchCardTypes[selectedType].color}/5 ${scratchCardTypes[selectedType].bgColor}/10`}>
+          <CardHeader className="text-center pb-4">
+            <div className={`mx-auto w-20 h-20 rounded-full flex items-center justify-center bg-gradient-to-br ${scratchCardTypes[selectedType].color} shadow-xl mb-4`}>
+              {React.createElement(cardIcons[selectedType], { className: "w-10 h-10 text-white drop-shadow-sm" })}
+            </div>
+            <CardTitle className="text-2xl font-bold">
+              {scratchCardTypes[selectedType].name}
+            </CardTitle>
+            <p className="text-muted-foreground">
+              Raspe para revelar os símbolos e ganhe prêmios incríveis!
+            </p>
+          </CardHeader>
+          
           <CardContent className="p-6">
-            <div className="text-center mb-4">
-              <h3 className="text-xl font-bold mb-2">
-                {scratchCardTypes[selectedType].name}
-              </h3>
-              <p className="text-muted-foreground">
-                Raspe para revelar os símbolos!
-              </p>
+            <div className="bg-background/80 rounded-xl p-4 mb-6">
+              <ScratchGameCanvas
+                symbols={scratchCard.symbols}
+                onWin={handleWin}
+                onComplete={handleComplete}
+                className="mx-auto"
+              />
             </div>
 
-            <ScratchGameCanvas
-              symbols={scratchCard.symbols}
-              onWin={handleWin}
-              onComplete={handleComplete}
-              className="mx-auto"
-            />
-
-            <div className="flex justify-center gap-2 mt-4">
+            <div className="flex justify-center gap-3">
               <Button 
                 onClick={scratchAll}
-                variant="outline"
-                size="sm"
+                className={`bg-gradient-to-r ${scratchCardTypes[selectedType].color} hover:opacity-90 text-white font-semibold px-6 py-2 rounded-lg transition-all duration-300`}
               >
                 Revelar Tudo
               </Button>
               <Button 
                 onClick={handlePlayAgain}
                 variant="outline"
-                size="sm"
+                className="border-2 hover:bg-muted"
               >
-                Reiniciar
+                Nova Raspadinha
               </Button>
             </div>
           </CardContent>

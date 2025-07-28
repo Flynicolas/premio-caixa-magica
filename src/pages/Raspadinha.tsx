@@ -10,15 +10,15 @@ const Raspadinha = () => {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-background via-secondary to-background">
+      {/* Banner Principal */}
+      <ResponsiveBanner 
+        imageUrlPC="/banners/raspadinha-banner-pc.jpg"
+        imageUrlMobile="/banners/raspadinha-banner-mobile.jpg"
+        altText="Banner principal da página de raspadinha"
+      />
+      
       <div className="container mx-auto px-4 py-8">
         <ScratchCardSection onAuthRequired={() => setShowAuthModal(true)} />
-        
-        {/* Banner antes do rodapé - SUBSTITUA AS URLs PELAS SUAS IMAGENS */}
-        <ResponsiveBanner 
-          imageUrlPC="/banners/raspadinha-banner-pc.jpg"
-          imageUrlMobile="/banners/raspadinha-banner-mobile.jpg"
-          altText="Banner promocional da página de raspadinha"
-        />
         
         <AuthModal 
           isOpen={showAuthModal} 
