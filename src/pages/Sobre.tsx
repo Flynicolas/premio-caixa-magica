@@ -21,9 +21,9 @@ const Sobre = () => {
       description: "Junte-se a milhares de jogadores e acompanhe os ganhos em tempo real."
     },
     {
-      icon: <Zap className="w-8 h-8 text-purple-400" />,
-      title: "Pagamentos Rápidos",
-      description: "Receba seus prêmios em dinheiro instantaneamente via PIX."
+      icon: <Sparkles className="w-8 h-8 text-purple-400" />,
+      title: "Diversão Garantida",
+      description: "Raspadinhas, baús e roletas com prêmios reais para você se divertir."
     },
     {
       icon: <Clock className="w-8 h-8 text-orange-400" />,
@@ -87,9 +87,9 @@ const Sobre = () => {
             <h1 className="text-6xl font-bold mb-6 text-transparent bg-clip-text bg-gradient-to-r from-yellow-400 to-orange-500">
               Sobre o Baú Premiado
             </h1>
-            <p className="text-xl text-gray-300 max-w-4xl mx-auto leading-relaxed">
-              A plataforma de prêmios online mais confiável do Brasil, onde diversão e prêmios reais se encontram! 
-              Transformamos momentos de entretenimento em oportunidades reais de conquista.
+            <p className="text-lg md:text-xl text-gray-300 max-w-4xl mx-auto leading-relaxed">
+              A plataforma brasileira onde você se diverte com raspadinhas, baús premiados e roletas enquanto ganha prêmios reais! 
+              Transformamos seus momentos de lazer em oportunidades incríveis de conquistar prêmios únicos.
             </p>
           </div>
 
@@ -139,11 +139,11 @@ const Sobre = () => {
             <h2 className="text-4xl font-bold mb-8 text-transparent bg-clip-text bg-gradient-to-r from-yellow-400 to-orange-500">
               Nossa Missão
             </h2>
-            <p className="text-lg text-gray-300 max-w-4xl mx-auto leading-relaxed">
-              Proporcionar uma experiência de jogo única, combinando entretenimento de qualidade com 
-              oportunidades reais de ganhar prêmios incríveis. Acreditamos que todos merecem a chance 
-              de transformar momentos de diversão em conquistas tangíveis, criando uma comunidade onde 
-              a alegria e os prêmios caminham juntos.
+            <p className="text-base md:text-lg text-gray-300 max-w-4xl mx-auto leading-relaxed">
+              Oferecer uma experiência única de entretenimento com raspadinhas digitais, baús misteriosos e roletas emocionantes, 
+              onde cada momento de diversão pode se transformar em prêmios reais. Criamos uma plataforma onde a emoção do jogo 
+              se encontra com a possibilidade real de conquistar prêmios incríveis, construindo uma comunidade de vencedores 
+              que celebram cada vitória juntos.
             </p>
           </div>
         </Card>

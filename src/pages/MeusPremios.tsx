@@ -13,6 +13,7 @@ import { useProfile } from '@/hooks/useProfile';
 import { useNavigate } from 'react-router-dom';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import RedeemButton from '@/components/RedeemButton';
+import ResponsiveBanner from '@/components/ResponsiveBanner';
 import Cookies from "js-cookie";
 
 const MeusPremios = () => {
@@ -61,40 +62,48 @@ const MeusPremios = () => {
           <p className="text-lg text-muted-foreground">Gerencie e resgate seus prêmios conquistados</p>
         </div>
 
-        {/* Stats Cards */}
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-8">
+        {/* Stats Cards - Mobile Optimized */}
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-2 md:gap-4 mb-6">
           <Card className="bg-gradient-to-br from-blue-900/20 to-blue-800/20 border-blue-500/30">
-            <CardContent className="p-6 text-center">
-              <Trophy className="w-8 h-8 text-blue-400 mx-auto mb-2" />
-              <div className="text-2xl font-bold text-blue-300">{totalPrizes}</div>
-              <div className="text-sm text-muted-foreground">Total de Prêmios</div>
+            <CardContent className="p-3 md:p-6 text-center">
+              <Trophy className="w-4 h-4 md:w-8 md:h-8 text-blue-400 mx-auto mb-1 md:mb-2" />
+              <div className="text-lg md:text-2xl font-bold text-blue-300">{totalPrizes}</div>
+              <div className="text-xs md:text-sm text-muted-foreground">Total</div>
             </CardContent>
           </Card>
           
           <Card className="bg-gradient-to-br from-green-900/20 to-green-800/20 border-green-500/30">
-            <CardContent className="p-6 text-center">
-              <Gift className="w-8 h-8 text-green-400 mx-auto mb-2" />
-              <div className="text-2xl font-bold text-green-300">{availablePrizes}</div>
-              <div className="text-sm text-muted-foreground">Disponíveis</div>
+            <CardContent className="p-3 md:p-6 text-center">
+              <Gift className="w-4 h-4 md:w-8 md:h-8 text-green-400 mx-auto mb-1 md:mb-2" />
+              <div className="text-lg md:text-2xl font-bold text-green-300">{availablePrizes}</div>
+              <div className="text-xs md:text-sm text-muted-foreground">Disponíveis</div>
             </CardContent>
           </Card>
           
           <Card className="bg-gradient-to-br from-purple-900/20 to-purple-800/20 border-purple-500/30">
-            <CardContent className="p-6 text-center">
-              <Package className="w-8 h-8 text-purple-400 mx-auto mb-2" />
-              <div className="text-2xl font-bold text-purple-300">{redeemedPrizes}</div>
-              <div className="text-sm text-muted-foreground">Resgatados</div>
+            <CardContent className="p-3 md:p-6 text-center">
+              <Package className="w-4 h-4 md:w-8 md:h-8 text-purple-400 mx-auto mb-1 md:mb-2" />
+              <div className="text-lg md:text-2xl font-bold text-purple-300">{redeemedPrizes}</div>
+              <div className="text-xs md:text-sm text-muted-foreground">Resgatados</div>
             </CardContent>
           </Card>
           
           <Card className="bg-gradient-to-br from-yellow-900/20 to-yellow-800/20 border-yellow-500/30">
-            <CardContent className="p-6 text-center">
-              <Star className="w-8 h-8 text-yellow-400 mx-auto mb-2" />
-              <div className="text-2xl font-bold text-yellow-300">{rarityStats.legendary || 0}</div>
-              <div className="text-sm text-muted-foreground">Lendários</div>
+            <CardContent className="p-3 md:p-6 text-center">
+              <Star className="w-4 h-4 md:w-8 md:h-8 text-yellow-400 mx-auto mb-1 md:mb-2" />
+              <div className="text-lg md:text-2xl font-bold text-yellow-300">{rarityStats.legendary || 0}</div>
+              <div className="text-xs md:text-sm text-muted-foreground">Lendários</div>
             </CardContent>
           </Card>
         </div>
+
+        {/* Banner para Mobile */}
+        <ResponsiveBanner 
+          imageUrlPC="/banners/premios-banner-pc.jpg"
+          imageUrlMobile="/banners/premios-banner-mobile.jpg"
+          altText="Banner promocional da página de prêmios"
+          className="mb-6"
+        />
 
         {/* Prizes Grid */}
         <Card className="bg-card/50 border-primary/20">

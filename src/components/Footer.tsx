@@ -13,8 +13,8 @@ const Footer = () => {
         <div className="absolute bottom-0 right-0 w-40 h-40 bg-secondary rounded-full blur-3xl"></div>
       </div>
       
-      <div className="container mx-auto px-4 py-16 relative">
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
+      <div className="container mx-auto px-4 py-8 md:py-16 relative">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 md:gap-8">
           {/* Logo and Description */}
           <div className="space-y-6 lg:col-span-1">
             <div className="flex items-center space-x-3">
@@ -30,9 +30,12 @@ const Footer = () => {
                 Baú Premiado
               </h3>
             </div>
-            <p className="text-sm text-muted-foreground leading-relaxed">
+            <p className="text-sm text-muted-foreground leading-relaxed hidden md:block">
               A plataforma mais confiável para sorteios online. 
               Prêmios reais, diversão garantida e transparência total.
+            </p>
+            <p className="text-xs text-muted-foreground leading-relaxed md:hidden">
+              Sorteios online confiáveis
             </p>
             <div className="flex items-center space-x-4 pt-2">
               <div className="flex items-center space-x-1 text-xs text-green-400">

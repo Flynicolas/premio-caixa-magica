@@ -168,12 +168,21 @@ const Index = () => {
           </section>
         )}
 
-        {/* Banner antes do rodapé - SUBSTITUA AS URLs PELAS SUAS IMAGENS */}
-        <ResponsiveBanner 
-          imageUrlPC="/banners/home-banner-pc.jpg"
-          imageUrlMobile="/banners/home-banner-mobile.jpg"
-          altText="Banner promocional da página inicial"
-        />
+        {/* Banners para Mobile - Divididos horizontalmente */}
+        <div className="space-y-4 md:space-y-6">
+          <ResponsiveBanner 
+            imageUrlPC="/banners/home-banner-1-pc.jpg"
+            imageUrlMobile="/banners/home-banner-1-mobile.jpg"
+            altText="Banner promocional 1"
+            className="h-20 md:h-auto"
+          />
+          <ResponsiveBanner 
+            imageUrlPC="/banners/home-banner-2-pc.jpg"
+            imageUrlMobile="/banners/home-banner-2-mobile.jpg"
+            altText="Banner promocional 2"
+            className="h-20 md:h-auto"
+          />
+        </div>
       </div>
 
       <AuthModal 
