@@ -1,7 +1,7 @@
 
 import { useState, useRef } from 'react';
 import { useAuth } from '@/hooks/useAuth';
-import { useWallet } from '@/hooks/useWallet';
+import { useSmartWallet } from '@/hooks/useSmartWallet';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
@@ -18,7 +18,7 @@ import ResponsiveBanner from '@/components/ResponsiveBanner';
 
 const Premios = () => {
   const { user } = useAuth();
-  const { walletData } = useWallet();
+  const { walletData } = useSmartWallet();
   const { getChestItems, loading } = useInventory();
   const [selectedChest, setSelectedChest] = useState<ChestType>('silver');
   const [chestItems, setChestItems] = useState<any[]>([]);

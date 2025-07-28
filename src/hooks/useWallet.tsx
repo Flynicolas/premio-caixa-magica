@@ -44,29 +44,41 @@ export const useWallet = () => {
 
   const fetchWalletData = async () => {
     if (!user) {
+      console.log('🔍 [useWallet] Usuário não logado, resetando carteira');
       setWalletData(null);
       return;
     }
 
     try {
+      console.log('🔍 [useWallet] Iniciando carregamento da carteira para usuário:', user.id);
+      
       // Verificar se é admin para usar saldo de teste
-      const { data: profileData } = await supabase
+      const { data: profileData, error: profileError } = await supabase
         .from('profiles')
         .select('simulate_actions')
         .eq('id', user.id)
-        .single();
+        .maybeSingle();
+
+      if (profileError) {
+        console.error('❌ [useWallet] Erro ao buscar perfil:', profileError);
+        throw profileError;
+      }
+
+      console.log('✅ [useWallet] Perfil carregado:', profileData);
 
       const { data, error } = await supabase
         .from('user_wallets')
         .select('*')
         .eq('user_id', user.id)
-        .single();
+        .maybeSingle();
 
-      if (error && error.code !== 'PGRST116') {
+      if (error) {
+        console.error('❌ [useWallet] Erro ao buscar carteira:', error);
         throw error;
       }
 
       if (!data) {
+        console.log('🔧 [useWallet] Carteira não existe, criando nova...');
         // Se não existir carteira, criar uma
         const { data: newWallet, error: createError } = await supabase
           .from('user_wallets')
@@ -78,13 +90,14 @@ export const useWallet = () => {
             total_spent: 0.00
           })
           .select()
-          .single();
+          .maybeSingle();
 
         if (createError) {
-          console.error('Erro ao criar carteira:', createError);
+          console.error('❌ [useWallet] Erro ao criar carteira:', createError);
           throw createError;
         }
 
+        console.log('✅ [useWallet] Nova carteira criada:', newWallet);
         setWalletData({
           balance: 0,
           total_deposited: 0,
@@ -94,62 +107,64 @@ export const useWallet = () => {
         return;
       }
 
-      if (data) {
-        // Calcular totais baseado nas transações
-        const { data: transactionsData } = await supabase
-          .from('transactions')
-          .select('type, amount, status')
-          .eq('user_id', user.id)
-          .eq('status', 'completed');
+      console.log('💰 [useWallet] Carteira encontrada:', data);
+      
+      // Calcular totais baseado nas transações
+      const { data: transactionsData, error: transactionsError } = await supabase
+        .from('transactions')
+        .select('type, amount, status')
+        .eq('user_id', user.id)
+        .eq('status', 'completed');
 
-        let totalDeposited = 0;
-        let totalWithdrawn = 0;
-        let totalSpent = 0;
-
-        transactionsData?.forEach(transaction => {
-          if (transaction.type === 'deposit') {
-            totalDeposited += Number(transaction.amount);
-          } else if (transaction.type === 'withdrawal') {
-            totalWithdrawn += Number(transaction.amount);
-          } else if (transaction.type === 'purchase') {
-            totalSpent += Number(transaction.amount);
-          }
-        });
-
-        // Se for admin com simulate_actions, usar test_balance ao invés do balance real
-        const isTestUser = profileData?.simulate_actions;
-        const effectiveBalance = isTestUser ? Number(data.test_balance || 0) : Number(data.balance);
-
-        setWalletData({
-          balance: effectiveBalance,
-          total_deposited: totalDeposited,
-          total_withdrawn: totalWithdrawn,
-          total_spent: totalSpent
-        });
-      } else {
-        // Criar carteira se não existir
-        const { data: newWallet, error: createError } = await supabase
-          .from('user_wallets')
-          .insert({ user_id: user.id, balance: 0.00 })
-          .select()
-          .single();
-
-        if (createError) throw createError;
-
-        setWalletData({
-          balance: 0,
-          total_deposited: 0,
-          total_withdrawn: 0,
-          total_spent: 0
-        });
+      if (transactionsError) {
+        console.error('⚠️ [useWallet] Erro ao buscar transações:', transactionsError);
       }
+
+      let totalDeposited = 0;
+      let totalWithdrawn = 0;
+      let totalSpent = 0;
+
+      transactionsData?.forEach(transaction => {
+        if (transaction.type === 'deposit') {
+          totalDeposited += Number(transaction.amount);
+        } else if (transaction.type === 'withdrawal') {
+          totalWithdrawn += Number(transaction.amount);
+        } else if (transaction.type === 'purchase') {
+          totalSpent += Number(transaction.amount);
+        }
+      });
+
+      // Se for admin com simulate_actions, usar test_balance ao invés do balance real
+      const isTestUser = profileData?.simulate_actions;
+      const effectiveBalance = isTestUser ? Number(data.test_balance || 0) : Number(data.balance);
+
+      console.log('📊 [useWallet] Dados calculados - Balance:', effectiveBalance, 'isTestUser:', isTestUser);
+
+      setWalletData({
+        balance: effectiveBalance,
+        total_deposited: totalDeposited,
+        total_withdrawn: totalWithdrawn,
+        total_spent: totalSpent
+      });
+      
+      console.log('✅ [useWallet] Carteira carregada com sucesso');
     } catch (error) {
-      console.error('Error fetching wallet data:', error);
+      console.error('❌ [useWallet] Erro crítico ao carregar carteira:', error);
       toast({
         title: "Erro ao carregar carteira",
         description: "Não foi possível carregar os dados da carteira.",
         variant: "destructive"
       });
+      
+      // Fallback: definir dados vazios para evitar crash
+      setWalletData({
+        balance: 0,
+        total_deposited: 0,
+        total_withdrawn: 0,
+        total_spent: 0
+      });
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -316,11 +331,16 @@ export const useWallet = () => {
   useEffect(() => {
     const loadData = async () => {
       setLoading(true);
-      await fetchWalletData();
-      if (user) {
-        await fetchTransactions();
+      try {
+        await fetchWalletData();
+        if (user) {
+          await fetchTransactions();
+        }
+      } catch (error) {
+        console.error('❌ [useWallet] Erro no useEffect:', error);
+      } finally {
+        setLoading(false);
       }
-      setLoading(false);
     };
 
     loadData();
