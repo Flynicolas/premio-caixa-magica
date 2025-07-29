@@ -96,42 +96,56 @@ const ScratchCardSection = ({ onAuthRequired }: ScratchCardSectionProps) => {
           {/* Grid de Cards de Raspadinha */}
           <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4">
             {(Object.entries(scratchCardTypes) as [ScratchCardType, typeof scratchCardTypes[ScratchCardType]][]).map(([type, config]) => {
-              const Icon = cardIcons[type];
               const isSelected = selectedType === type;
               const canAfford = walletData && walletData.balance >= config.price;
               
+              const handleCardClick = () => {
+                setSelectedType(type);
+                // Scroll para a seção de jogo após seleção
+                setTimeout(() => {
+                  const gameSection = document.getElementById('game-section');
+                  if (gameSection) {
+                    gameSection.scrollIntoView({ behavior: 'smooth' });
+                  }
+                }, 100);
+              };
+              
               return (
-                <Card
+                <div
                   key={type}
-                  className={`p-4 cursor-pointer transition-all duration-300 hover:scale-105 hover:shadow-lg ${
+                  className={`relative aspect-square cursor-pointer transition-all duration-300 hover:scale-105 hover:shadow-lg ${
                     isSelected 
-                      ? 'ring-2 ring-primary shadow-xl transform scale-105' 
+                      ? 'ring-4 ring-primary shadow-xl transform scale-105' 
                       : 'hover:shadow-md'
-                  } ${!canAfford ? 'opacity-60' : ''}`}
-                  onClick={() => setSelectedType(type)}
+                  } ${!canAfford ? 'opacity-60' : ''} rounded-xl overflow-hidden`}
+                  onClick={handleCardClick}
                 >
-                  <div className="text-center space-y-3">
-                    <div className={`mx-auto w-16 h-16 rounded-2xl flex items-center justify-center bg-gradient-to-br ${config.color} shadow-lg`}>
-                      <Icon className="w-8 h-8 text-white drop-shadow-sm" />
-                    </div>
-                    
-                    <div>
-                      <h3 className="font-bold text-sm">{config.name}</h3>
-                      <Badge 
-                        variant="secondary" 
-                        className={`mt-1 ${config.textColor} ${config.bgColor} bg-opacity-20 font-semibold`}
-                      >
-                        R$ {config.price.toFixed(2)}
-                      </Badge>
-                    </div>
+                  {/* Imagem de capa preenchendo todo o card */}
+                  <img
+                    src={config.coverImage}
+                    alt={config.name}
+                    className="w-full h-full object-cover"
+                  />
+                  
+                  {/* Etiqueta de preço discreta */}
+                  <div className="absolute top-2 right-2 bg-black/70 text-white px-2 py-1 rounded-lg text-xs font-semibold">
+                    R$ {config.price.toFixed(2)}
+                  </div>
 
-                    {!canAfford && user && (
-                      <p className="text-xs text-destructive">
+                  {/* Overlay de saldo insuficiente */}
+                  {!canAfford && user && (
+                    <div className="absolute inset-0 bg-black/60 flex items-center justify-center">
+                      <p className="text-white text-xs font-semibold bg-destructive px-2 py-1 rounded">
                         Saldo insuficiente
                       </p>
-                    )}
-                  </div>
-                </Card>
+                    </div>
+                  )}
+                  
+                  {/* Indicador de seleção */}
+                  {isSelected && (
+                    <div className="absolute inset-0 bg-primary/20 border-4 border-primary rounded-xl" />
+                  )}
+                </div>
               );
             })}
           </div>
@@ -144,7 +158,7 @@ const ScratchCardSection = ({ onAuthRequired }: ScratchCardSectionProps) => {
               </div>
             )}
 
-            <div className="flex gap-2 flex-wrap justify-center">
+            <div className="flex gap-2 flex-wrap justify-center" id="game-section">
               <Button
                 onClick={() => handleGenerate(false)}
                 disabled={isLoading || !canAfford || !!scratchCard}
@@ -162,30 +176,6 @@ const ScratchCardSection = ({ onAuthRequired }: ScratchCardSectionProps) => {
                   </>
                 )}
               </Button>
-              
-              {user && (
-                <>
-                  <Button 
-                    onClick={() => handleGenerate(true)}
-                    disabled={isLoading || !!scratchCard}
-                    variant="outline"
-                    size="sm"
-                    className="border-primary text-primary hover:bg-primary hover:text-white"
-                  >
-                    Teste (Vitória)
-                  </Button>
-                  
-                  <Button 
-                    onClick={() => navigate('/testedepagamento')}
-                    variant="secondary"
-                    size="sm"
-                    className="flex items-center gap-2 bg-blue-600 hover:bg-blue-700 text-white"
-                  >
-                    <TestTube className="w-4 h-4" />
-                    Teste de Pagamentos
-                  </Button>
-                </>
-              )}
             </div>
 
             {!user && (
@@ -220,6 +210,7 @@ const ScratchCardSection = ({ onAuthRequired }: ScratchCardSectionProps) => {
                 symbols={scratchCard.symbols}
                 onWin={handleWin}
                 onComplete={handleComplete}
+                scratchType={selectedType}
                 className="mx-auto"
               />
             </div>

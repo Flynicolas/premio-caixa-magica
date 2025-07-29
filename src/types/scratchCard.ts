@@ -30,7 +30,8 @@ export const scratchCardTypes = {
     color: 'from-green-400 to-green-600',
     bgColor: 'bg-green-500',
     textColor: 'text-green-700',
-    image: 'https://jhbafgzfphiizpuoqksj.supabase.co/storage/v1/object/public/head-images//quadradoraspadinha01.png'
+    coverImage: 'https://jhbafgzfphiizpuoqksj.supabase.co/storage/v1/object/public/head-images//capa-raspadinha-sorte1.png',
+    scratchImage: 'https://jhbafgzfphiizpuoqksj.supabase.co/storage/v1/object/public/head-images//quadradoraspadinha01.png'
   },
   dupla: { 
     name: 'Raspadinha Dupla', 
@@ -38,7 +39,8 @@ export const scratchCardTypes = {
     color: 'from-green-500 to-green-700',
     bgColor: 'bg-green-600',
     textColor: 'text-green-800',
-    image: 'https://jhbafgzfphiizpuoqksj.supabase.co/storage/v1/object/public/head-images//quadradoraspadinha02.png'
+    coverImage: 'https://jhbafgzfphiizpuoqksj.supabase.co/storage/v1/object/public/head-images//capa-raspadinha-sorte2x.png',
+    scratchImage: 'https://jhbafgzfphiizpuoqksj.supabase.co/storage/v1/object/public/head-images//quadradoraspadinha03.png'
   },
   ouro: { 
     name: 'Raspadinha de Ouro', 
@@ -46,7 +48,8 @@ export const scratchCardTypes = {
     color: 'from-yellow-400 to-yellow-600',
     bgColor: 'bg-yellow-500',
     textColor: 'text-yellow-700',
-    image: 'https://jhbafgzfphiizpuoqksj.supabase.co/storage/v1/object/public/head-images//qaudradoraspadinhaouro2.png'
+    coverImage: 'https://jhbafgzfphiizpuoqksj.supabase.co/storage/v1/object/public/head-images//capa-raspadinha-ouro.png',
+    scratchImage: 'https://jhbafgzfphiizpuoqksj.supabase.co/storage/v1/object/public/head-images//qaudradoraspadinhaouro2.png'
   },
   diamante: { 
     name: 'Raspadinha Diamante', 
@@ -54,7 +57,8 @@ export const scratchCardTypes = {
     color: 'from-blue-400 to-blue-600',
     bgColor: 'bg-blue-500',
     textColor: 'text-blue-700',
-    image: 'https://jhbafgzfphiizpuoqksj.supabase.co/storage/v1/object/public/head-images//raspadinha-bannerquadradodiamante01.png'
+    coverImage: 'https://jhbafgzfphiizpuoqksj.supabase.co/storage/v1/object/public/head-images//capa-raspadinha-diamante.png',
+    scratchImage: 'https://jhbafgzfphiizpuoqksj.supabase.co/storage/v1/object/public/head-images//raspadinha-bannerquadradodiamante01%20(1).png'
   },
   premium: { 
     name: 'Raspadinha Premium', 
@@ -62,6 +66,7 @@ export const scratchCardTypes = {
     color: 'from-purple-400 via-pink-500 to-purple-600',
     bgColor: 'bg-gradient-to-r from-purple-500 to-pink-500',
     textColor: 'text-purple-700',
-    image: 'https://jhbafgzfphiizpuoqksj.supabase.co/storage/v1/object/public/head-images//raspadinha-bannerquadradopremium01.png'
+    coverImage: 'https://jhbafgzfphiizpuoqksj.supabase.co/storage/v1/object/public/head-images//capa-raspadinha-diamante-premium.png',
+    scratchImage: 'https://jhbafgzfphiizpuoqksj.supabase.co/storage/v1/object/public/head-images//raspadinha-bannerquadradopremium01%20(1).png'
   }
 } as const;

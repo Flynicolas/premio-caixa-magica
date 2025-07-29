@@ -6,10 +6,11 @@ interface ScratchGameCanvasProps {
   symbols: ScratchSymbol[];
   onWin: (winningSymbol: string) => void;
   onComplete: () => void;
+  scratchType?: string;
   className?: string;
 }
 
-const ScratchGameCanvas = ({ symbols, onWin, onComplete, className }: ScratchGameCanvasProps) => {
+const ScratchGameCanvas = ({ symbols, onWin, onComplete, scratchType = 'sorte', className }: ScratchGameCanvasProps) => {
   console.log('🎯 ScratchGameCanvas mounted/rendered, symbols.length:', symbols.length);
   
   const canvasRef = useRef<HTMLCanvasElement>(null);
@@ -85,17 +86,40 @@ const ScratchGameCanvas = ({ symbols, onWin, onComplete, className }: ScratchGam
     });
   }, [symbols, rarityColors]);
 
-  // Resetar canvas com cobertura cinza
-  const resetCanvas = useCallback(() => {
+  // Resetar canvas com imagem temática
+  const resetCanvas = useCallback((scratchType: string) => {
     const canvas = canvasRef.current;
     if (!canvas) return;
 
     const ctx = canvas.getContext('2d');
     if (!ctx) return;
 
-    ctx.globalCompositeOperation = 'source-over';
-    ctx.fillStyle = '#999';
-    ctx.fillRect(0, 0, canvas.width, canvas.height);
+    // Usar a imagem temática específica do tipo de raspadinha
+    const scratchCardConfig = {
+      sorte: 'https://jhbafgzfphiizpuoqksj.supabase.co/storage/v1/object/public/head-images//quadradoraspadinha01.png',
+      dupla: 'https://jhbafgzfphiizpuoqksj.supabase.co/storage/v1/object/public/head-images//quadradoraspadinha03.png',
+      ouro: 'https://jhbafgzfphiizpuoqksj.supabase.co/storage/v1/object/public/head-images//qaudradoraspadinhaouro2.png',
+      diamante: 'https://jhbafgzfphiizpuoqksj.supabase.co/storage/v1/object/public/head-images//raspadinha-bannerquadradodiamante01%20(1).png',
+      premium: 'https://jhbafgzfphiizpuoqksj.supabase.co/storage/v1/object/public/head-images//raspadinha-bannerquadradopremium01%20(1).png'
+    };
+
+    const imageUrl = scratchCardConfig[scratchType as keyof typeof scratchCardConfig];
+    
+    if (imageUrl) {
+      const img = new Image();
+      img.crossOrigin = 'anonymous';
+      img.onload = () => {
+        ctx.globalCompositeOperation = 'source-over';
+        ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+      };
+      img.src = imageUrl;
+    } else {
+      // Fallback para cinza se não encontrar a imagem
+      ctx.globalCompositeOperation = 'source-over';
+      ctx.fillStyle = '#999';
+      ctx.fillRect(0, 0, canvas.width, canvas.height);
+    }
+    
     canvas.style.display = 'block';
     setIsRevealed(false);
     setScratchProgress(0);
@@ -315,10 +339,10 @@ const ScratchGameCanvas = ({ symbols, onWin, onComplete, className }: ScratchGam
     console.log('🎯 ScratchGameCanvas useEffect called with symbols:', symbols.length);
     if (symbols.length > 0 && !isRevealed) {
       renderGrid();
-      resetCanvas();
+      resetCanvas(scratchType);
       console.log('🎯 Grid and canvas initialized');
     }
-  }, [symbols.length]); // Só depende do tamanho do array, não das funções
+  }, [symbols.length, scratchType]); // Depende do tamanho do array e do tipo
 
   return (
     <div className={cn("relative w-full max-w-sm mx-auto", className)}>
