@@ -1663,6 +1663,10 @@ export type Database = {
           benefits: Json
         }[]
       }
+      check_user_role: {
+        Args: { p_user_id: string; p_role: string }
+        Returns: boolean
+      }
       cleanup_expired_invites: {
         Args: Record<PropertyKey, never>
         Returns: undefined
@@ -1771,6 +1775,10 @@ export type Database = {
       reset_demo_credits: {
         Args: Record<PropertyKey, never>
         Returns: undefined
+      }
+      validate_balance_operation: {
+        Args: { p_user_id: string; p_amount: number; p_operation_type: string }
+        Returns: boolean
       }
       validate_cpf_for_withdrawal: {
         Args: { cpf_input: string }
