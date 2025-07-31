@@ -381,6 +381,78 @@ export type Database = {
         }
         Relationships: []
       }
+      conversion_security_alerts: {
+        Row: {
+          alert_data: Json | null
+          alert_level: string
+          alert_type: string
+          conversion_id: string | null
+          created_at: string
+          id: string
+          is_resolved: boolean
+          resolved_at: string | null
+          resolved_by: string | null
+          user_id: string
+        }
+        Insert: {
+          alert_data?: Json | null
+          alert_level?: string
+          alert_type: string
+          conversion_id?: string | null
+          created_at?: string
+          id?: string
+          is_resolved?: boolean
+          resolved_at?: string | null
+          resolved_by?: string | null
+          user_id: string
+        }
+        Update: {
+          alert_data?: Json | null
+          alert_level?: string
+          alert_type?: string
+          conversion_id?: string | null
+          created_at?: string
+          id?: string
+          is_resolved?: boolean
+          resolved_at?: string | null
+          resolved_by?: string | null
+          user_id?: string
+        }
+        Relationships: []
+      }
+      daily_conversion_limits: {
+        Row: {
+          conversion_count: number
+          created_at: string
+          date: string
+          id: string
+          last_conversion_at: string | null
+          total_converted: number
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          conversion_count?: number
+          created_at?: string
+          date?: string
+          id?: string
+          last_conversion_at?: string | null
+          total_converted?: number
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          conversion_count?: number
+          created_at?: string
+          date?: string
+          id?: string
+          last_conversion_at?: string | null
+          total_converted?: number
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       data_imports: {
         Row: {
           admin_user_id: string | null
@@ -994,6 +1066,54 @@ export type Database = {
           notificacao_enviada?: boolean
           updated_at?: string
           valor_atual?: number
+        }
+        Relationships: []
+      }
+      monetary_conversions: {
+        Row: {
+          approval_status: string
+          approved_at: string | null
+          approved_by: string | null
+          conversion_amount: number
+          conversion_status: string
+          conversion_type: string
+          created_at: string
+          id: string
+          inventory_id: string
+          item_id: string
+          metadata: Json | null
+          processed_at: string | null
+          user_id: string
+        }
+        Insert: {
+          approval_status?: string
+          approved_at?: string | null
+          approved_by?: string | null
+          conversion_amount: number
+          conversion_status?: string
+          conversion_type?: string
+          created_at?: string
+          id?: string
+          inventory_id: string
+          item_id: string
+          metadata?: Json | null
+          processed_at?: string | null
+          user_id: string
+        }
+        Update: {
+          approval_status?: string
+          approved_at?: string | null
+          approved_by?: string | null
+          conversion_amount?: number
+          conversion_status?: string
+          conversion_type?: string
+          created_at?: string
+          id?: string
+          inventory_id?: string
+          item_id?: string
+          metadata?: Json | null
+          processed_at?: string | null
+          user_id?: string
         }
         Relationships: []
       }
@@ -1772,6 +1892,19 @@ export type Database = {
         }
         Returns: boolean
       }
+      process_monetary_conversion: {
+        Args: {
+          p_user_id: string
+          p_item_id: string
+          p_inventory_id: string
+          p_conversion_amount: number
+        }
+        Returns: {
+          conversion_id: string
+          status: string
+          message: string
+        }[]
+      }
       purchase_chest: {
         Args: { p_user_id: string; p_chest_type: string; p_price: number }
         Returns: string
@@ -1787,6 +1920,20 @@ export type Database = {
       validate_cpf_for_withdrawal: {
         Args: { cpf_input: string }
         Returns: boolean
+      }
+      validate_monetary_conversion: {
+        Args: {
+          p_user_id: string
+          p_item_id: string
+          p_conversion_amount: number
+        }
+        Returns: {
+          is_valid: boolean
+          requires_approval: boolean
+          error_message: string
+          daily_total: number
+          conversion_count: number
+        }[]
       }
     }
     Enums: {

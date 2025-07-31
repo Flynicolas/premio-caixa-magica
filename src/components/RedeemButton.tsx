@@ -1,7 +1,8 @@
 
 import { Button } from '@/components/ui/button';
-import { Gift, Package, Clock, Timer } from 'lucide-react';
+import { Gift, Package, Clock, Timer, Wallet, AlertCircle } from 'lucide-react';
 import { useRedemptionControl } from '@/hooks/useRedemptionControl';
+import { useMonetaryConversion } from '@/hooks/useMonetaryConversion';
 import { useEffect, useState } from 'react';
 
 interface RedeemButtonProps {
@@ -11,6 +12,7 @@ interface RedeemButtonProps {
   size?: 'sm' | 'default' | 'lg';
   className?: string;
   inventoryId?: string; // Para controle global
+  item?: any; // Dados do item para verificar conversão monetária
 }
 
 const RedeemButton = ({ 
@@ -19,10 +21,13 @@ const RedeemButton = ({
   onClick, 
   size = 'default',
   className = '',
-  inventoryId
+  inventoryId,
+  item
 }: RedeemButtonProps) => {
   const { checkItemRedemptionStatus } = useRedemptionControl();
+  const { canConvertItem, getConversionAmount, processConversion, loading } = useMonetaryConversion();
   const [redemptionStatus, setRedemptionStatus] = useState<any>(null);
+  const [isConverting, setIsConverting] = useState(false);
 
   // Verificar status de resgate quando o componente carregar
   useEffect(() => {
@@ -63,6 +68,60 @@ const RedeemButton = ({
     );
   }
 
+  // Verificar se é item de dinheiro e pode ser convertido automaticamente
+  const isMoneyItem = item && canConvertItem(item);
+  const conversionAmount = isMoneyItem ? getConversionAmount(item) : 0;
+
+  // Função para lidar com conversão automática
+  const handleMonetaryConversion = async () => {
+    if (!inventoryId || !item) return;
+    
+    setIsConverting(true);
+    try {
+      const result = await processConversion(
+        item.id,
+        inventoryId,
+        conversionAmount
+      );
+      
+      // Se a conversão foi bem-sucedida, não precisamos chamar onClick
+      // pois o saldo já foi adicionado automaticamente
+      if (result?.status === 'completed') {
+        // Recarregar a página ou atualizar o estado para refletir as mudanças
+        window.location.reload();
+      }
+    } catch (error) {
+      console.error('Erro na conversão monetária:', error);
+    } finally {
+      setIsConverting(false);
+    }
+  };
+
+  // Se é item de dinheiro, mostrar botão específico para conversão
+  if (isMoneyItem) {
+    return (
+      <Button
+        onClick={handleMonetaryConversion}
+        disabled={isConverting || loading}
+        size={size}
+        className={`bg-gradient-to-r from-green-500 to-green-600 hover:from-green-600 hover:to-green-700 text-white font-semibold ${className}`}
+      >
+        {isConverting || loading ? (
+          <>
+            <Clock className="w-4 h-4 mr-2 animate-spin" />
+            Convertendo...
+          </>
+        ) : (
+          <>
+            <Wallet className="w-4 h-4 mr-2" />
+            Converter R$ {conversionAmount.toFixed(2)}
+          </>
+        )}
+      </Button>
+    );
+  }
+
+  // Botão padrão para itens físicos
   return (
     <Button
       onClick={onClick}

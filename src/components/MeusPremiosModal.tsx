@@ -182,6 +182,7 @@ const MeusPremiosModal = ({ isOpen, onClose }: MeusPremiosModalProps) => {
                           size="sm"
                           className="w-full"
                           inventoryId={userItem.id}
+                          item={userItem.item}
                         />
                       </div>
                     </CardContent>
