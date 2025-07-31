@@ -15,7 +15,8 @@ import ChestGoalsManager from '@/components/admin/ChestGoalsManager';
 import { AdminErrorDashboard } from '@/components/admin/AdminErrorDashboard';
 import ScratchCardManager from '@/components/admin/ScratchCardManager';
 import DemoItemsManager from '@/components/admin/DemoItemsManager';
-import { Shield, Package, Settings, Users, Wallet, Target, Truck, AlertTriangle, Gamepad2, TestTube } from 'lucide-react';
+import MonetaryConversionDashboard from '@/components/admin/MonetaryConversionDashboard';
+import { Shield, Package, Settings, Users, Wallet, Target, Truck, AlertTriangle, Gamepad2, TestTube, DollarSign } from 'lucide-react';
 
 const Admin = () => {
   const { user } = useAuth();
@@ -82,7 +83,7 @@ const Admin = () => {
       </div>
 
       <Tabs defaultValue="items" className="space-y-6">
-        <TabsList className="grid w-full grid-cols-9">
+        <TabsList className="grid w-full grid-cols-10">
           <TabsTrigger value="items" className="flex items-center gap-2">
             <Package className="w-4 h-4" />
             Itens
@@ -118,6 +119,10 @@ const Admin = () => {
           <TabsTrigger value="demo" className="flex items-center gap-2">
             <TestTube className="w-4 h-4" />
             Demo
+          </TabsTrigger>
+          <TabsTrigger value="conversions" className="flex items-center gap-2">
+            <DollarSign className="w-4 h-4" />
+            Conversões
           </TabsTrigger>
         </TabsList>
 
@@ -176,6 +181,10 @@ const Admin = () => {
 
         <TabsContent value="demo">
           <DemoItemsManager />
+        </TabsContent>
+
+        <TabsContent value="conversions">
+          <MonetaryConversionDashboard />
         </TabsContent>
       </Tabs>
       </div>

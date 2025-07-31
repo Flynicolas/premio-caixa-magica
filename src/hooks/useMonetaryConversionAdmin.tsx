@@ -55,14 +55,15 @@ export const useMonetaryConversionAdmin = () => {
   // Buscar estatísticas gerais
   const fetchStats = async () => {
     try {
-      const { data, error } = await supabase.rpc('get_conversion_stats');
+      const { data, error } = await supabase
+        .rpc('get_conversion_stats');
       
       if (error) {
         console.error('Erro ao buscar estatísticas:', error);
         return;
       }
 
-      setStats(data[0] || {
+      setStats(data?.[0] || {
         total_conversions: 0,
         total_amount: 0,
         pending_approvals: 0,
@@ -78,41 +79,47 @@ export const useMonetaryConversionAdmin = () => {
   // Buscar conversões pendentes de aprovação
   const fetchPendingApprovals = async () => {
     try {
-      const { data, error } = await supabase
+      // Buscar conversões pendentes
+      const { data: conversions, error: conversionError } = await supabase
         .from('monetary_conversions')
-        .select(`
-          id,
-          user_id,
-          conversion_amount,
-          created_at,
-          item_id,
-          profiles:user_id (
-            email,
-            full_name
-          ),
-          items:item_id (
-            name,
-            category
-          )
-        `)
+        .select('*')
         .eq('approval_status', 'pending_approval')
         .order('created_at', { ascending: false });
 
-      if (error) {
-        console.error('Erro ao buscar aprovações pendentes:', error);
+      if (conversionError) {
+        console.error('Erro ao buscar aprovações pendentes:', conversionError);
         return;
       }
 
-      const formattedData = data?.map(item => ({
-        id: item.id,
-        user_id: item.user_id,
-        conversion_amount: item.conversion_amount,
-        created_at: item.created_at,
-        user_email: item.profiles?.email || 'Email não encontrado',
-        user_name: item.profiles?.full_name || 'Nome não encontrado',
-        item_name: item.items?.name || 'Item não encontrado',
-        item_category: item.items?.category || 'Categoria não encontrada'
-      })) || [];
+      if (!conversions?.length) {
+        setPendingApprovals([]);
+        return;
+      }
+
+      // Buscar dados dos usuários e itens separadamente
+      const userIds = [...new Set(conversions.map(c => c.user_id))];
+      const itemIds = [...new Set(conversions.map(c => c.item_id))];
+
+      const [{ data: profiles }, { data: items }] = await Promise.all([
+        supabase.from('profiles').select('id, email, full_name').in('id', userIds),
+        supabase.from('items').select('id, name, category').in('id', itemIds)
+      ]);
+
+      const formattedData = conversions.map(item => {
+        const profile = profiles?.find(p => p.id === item.user_id);
+        const itemData = items?.find(i => i.id === item.item_id);
+        
+        return {
+          id: item.id,
+          user_id: item.user_id,
+          conversion_amount: item.conversion_amount,
+          created_at: item.created_at,
+          user_email: profile?.email || 'Email não encontrado',
+          user_name: profile?.full_name || 'Nome não encontrado',
+          item_name: itemData?.name || 'Item não encontrado',
+          item_category: itemData?.category || 'Categoria não encontrada'
+        };
+      });
 
       setPendingApprovals(formattedData);
     } catch (error) {
@@ -123,43 +130,47 @@ export const useMonetaryConversionAdmin = () => {
   // Buscar alertas de segurança
   const fetchSecurityAlerts = async () => {
     try {
-      const { data, error } = await supabase
+      // Buscar alertas primeiro
+      const { data: alerts, error: alertError } = await supabase
         .from('conversion_security_alerts')
-        .select(`
-          id,
-          user_id,
-          alert_type,
-          alert_level,
-          conversion_id,
-          alert_data,
-          is_resolved,
-          created_at,
-          profiles:user_id (
-            email,
-            full_name
-          )
-        `)
+        .select('*')
         .eq('is_resolved', false)
         .order('created_at', { ascending: false })
         .limit(20);
 
-      if (error) {
-        console.error('Erro ao buscar alertas:', error);
+      if (alertError) {
+        console.error('Erro ao buscar alertas:', alertError);
         return;
       }
 
-      const formattedData = data?.map(alert => ({
-        id: alert.id,
-        user_id: alert.user_id,
-        alert_type: alert.alert_type,
-        alert_level: alert.alert_level,
-        conversion_id: alert.conversion_id,
-        alert_data: alert.alert_data,
-        is_resolved: alert.is_resolved,
-        created_at: alert.created_at,
-        user_email: alert.profiles?.email || 'Email não encontrado',
-        user_name: alert.profiles?.full_name || 'Nome não encontrado'
-      })) || [];
+      if (!alerts?.length) {
+        setSecurityAlerts([]);
+        return;
+      }
+
+      // Buscar dados dos usuários separadamente
+      const userIds = [...new Set(alerts.map(a => a.user_id))];
+      const { data: profiles } = await supabase
+        .from('profiles')
+        .select('id, email, full_name')
+        .in('id', userIds);
+
+      const formattedData = alerts.map(alert => {
+        const profile = profiles?.find(p => p.id === alert.user_id);
+        
+        return {
+          id: alert.id,
+          user_id: alert.user_id,
+          alert_type: alert.alert_type,
+          alert_level: alert.alert_level,
+          conversion_id: alert.conversion_id,
+          alert_data: alert.alert_data,
+          is_resolved: alert.is_resolved,
+          created_at: alert.created_at,
+          user_email: profile?.email || 'Email não encontrado',
+          user_name: profile?.full_name || 'Nome não encontrado'
+        };
+      });
 
       setSecurityAlerts(formattedData);
     } catch (error) {
@@ -170,9 +181,8 @@ export const useMonetaryConversionAdmin = () => {
   // Buscar dados diários para gráficos
   const fetchDailyData = async (days: number = 30) => {
     try {
-      const { data, error } = await supabase.rpc('get_daily_conversion_data', {
-        days_back: days
-      });
+      const { data, error } = await supabase
+        .rpc('get_daily_conversion_data', { days_back: days });
 
       if (error) {
         console.error('Erro ao buscar dados diários:', error);

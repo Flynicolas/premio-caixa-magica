@@ -1773,6 +1773,13 @@ export type Database = {
         Args: { p_user_id: string; p_amount: number; p_description?: string }
         Returns: boolean
       }
+      approve_conversion: {
+        Args: { p_conversion_id: string; p_admin_user_id: string }
+        Returns: {
+          success: boolean
+          message: string
+        }[]
+      }
       calculate_user_level: {
         Args: { experience: number }
         Returns: {
@@ -1811,6 +1818,26 @@ export type Database = {
       expire_old_manual_releases: {
         Args: Record<PropertyKey, never>
         Returns: undefined
+      }
+      get_conversion_stats: {
+        Args: Record<PropertyKey, never>
+        Returns: {
+          total_conversions: number
+          total_amount: number
+          pending_approvals: number
+          completed_today: number
+          amount_today: number
+          avg_conversion_amount: number
+        }[]
+      }
+      get_daily_conversion_data: {
+        Args: { days_back?: number }
+        Returns: {
+          date: string
+          total_conversions: number
+          total_amount: number
+          unique_users: number
+        }[]
       }
       get_ranking_top10: {
         Args: Record<PropertyKey, never>
@@ -1908,6 +1935,17 @@ export type Database = {
       purchase_chest: {
         Args: { p_user_id: string; p_chest_type: string; p_price: number }
         Returns: string
+      }
+      reject_conversion: {
+        Args: {
+          p_conversion_id: string
+          p_admin_user_id: string
+          p_rejection_reason: string
+        }
+        Returns: {
+          success: boolean
+          message: string
+        }[]
       }
       reset_demo_credits: {
         Args: Record<PropertyKey, never>
