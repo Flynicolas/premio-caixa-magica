@@ -1663,6 +1663,10 @@ export type Database = {
           benefits: Json
         }[]
       }
+      check_admin_direct: {
+        Args: { user_id_check: string }
+        Returns: boolean
+      }
       check_user_role: {
         Args: { p_user_id: string; p_role: string }
         Returns: boolean
