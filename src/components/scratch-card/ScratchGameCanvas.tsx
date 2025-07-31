@@ -134,12 +134,10 @@ const ScratchGameCanvas = ({ symbols, onWin, onComplete, scratchType = 'sorte', 
     // Throttling - só verifica progresso ocasionalmente
     const now = Date.now();
     if (now - lastProgressCheck.current < progressCheckInterval) {
-      console.log('🔍 Throttling checkScratchProgress');
       return;
     }
     lastProgressCheck.current = now;
 
-    console.log('🔍 Checking scratch progress...');
     const ctx = canvas.getContext('2d');
     if (!ctx) return;
 
@@ -159,12 +157,10 @@ const ScratchGameCanvas = ({ symbols, onWin, onComplete, scratchType = 'sorte', 
     }
     
     const percent = (cleared / total) * 100;
-    console.log('🔍 Scratch progress calculated:', percent, '%');
     setScratchProgress(Math.round(percent));
     
     // Revelação quando atingir 75% (meio do range 70-80%)
     if (percent >= 75) {
-      console.log('🔍 Revealing at 75%');
       canvas.style.display = 'none';
       setIsRevealed(true);
       setScratchProgress(100);
@@ -346,12 +342,7 @@ const ScratchGameCanvas = ({ symbols, onWin, onComplete, scratchType = 'sorte', 
 
   return (
     <div className={cn("relative w-full max-w-sm mx-auto", className)}>
-      {/* Indicador de progresso */}
-      {scratchProgress > 0 && scratchProgress < 100 && (
-        <div className="absolute top-2 left-2 z-30 bg-black/70 text-white px-2 py-1 rounded text-xs">
-          Raspado: {scratchProgress}%
-        </div>
-      )}
+      {/* Remover indicador de progresso conforme solicitado */}
       
       {/* Instrução inicial */}
       {scratchProgress === 0 && (

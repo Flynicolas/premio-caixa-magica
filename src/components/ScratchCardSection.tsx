@@ -10,6 +10,9 @@ import { useKirvanoTest } from '@/hooks/useKirvanoTest';
 import ScratchGameCanvas from '@/components/scratch-card/ScratchGameCanvas';
 import ScratchCardResult from '@/components/scratch-card/ScratchCardResult';
 import ScratchCardSelector from '@/components/scratch-card/ScratchCardSelector';
+import ScratchCardLoader from '@/components/scratch-card/ScratchCardLoader';
+import ScratchCardAnimations from '@/components/scratch-card/ScratchCardAnimations';
+import MinimizedScratchSelector from '@/components/scratch-card/MinimizedScratchSelector';
 import PixTestModal from '@/components/PixTestModal';
 import { Coins, Sparkles, Trophy, TestTube, Star, Diamond, Crown } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
@@ -25,6 +28,8 @@ const ScratchCardSection = ({ onAuthRequired }: ScratchCardSectionProps) => {
   const [selectedType, setSelectedType] = useState<ScratchCardType>('sorte');
   const [showResult, setShowResult] = useState(false);
   const [hasDetectedWin, setHasDetectedWin] = useState(false);
+  const [showLoader, setShowLoader] = useState(false);
+  const [imagesLoaded, setImagesLoaded] = useState(false);
   
   const {
     scratchCard,
@@ -50,6 +55,18 @@ const ScratchCardSection = ({ onAuthRequired }: ScratchCardSectionProps) => {
       return;
     }
 
+    // Mostrar loader
+    setShowLoader(true);
+    setImagesLoaded(false);
+
+    // Scroll para a área de jogo
+    setTimeout(() => {
+      const gameArea = document.getElementById('scratch-game-area');
+      if (gameArea) {
+        gameArea.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      }
+    }, 100);
+
     await generateScratchCard(selectedType, forcedWin);
   };
 
@@ -66,7 +83,43 @@ const ScratchCardSection = ({ onAuthRequired }: ScratchCardSectionProps) => {
   const handlePlayAgain = () => {
     setShowResult(false);
     setHasDetectedWin(false);
+    setImagesLoaded(false);
     resetGame();
+  };
+
+  const handleLoaderComplete = () => {
+    setShowLoader(false);
+    setImagesLoaded(true);
+  };
+
+  const handleRevealAll = () => {
+    // Criar efeito de raspagem animado
+    const canvas = document.querySelector('canvas');
+    if (canvas) {
+      const ctx = canvas.getContext('2d');
+      if (ctx) {
+        // Animação de revelação progressiva
+        let alpha = 1;
+        const revealAnimation = () => {
+          alpha -= 0.1;
+          ctx.globalCompositeOperation = 'source-over';
+          ctx.fillStyle = `rgba(0, 0, 0, ${alpha})`;
+          ctx.fillRect(0, 0, canvas.width, canvas.height);
+          
+          if (alpha > 0) {
+            requestAnimationFrame(revealAnimation);
+          } else {
+            canvas.style.display = 'none';
+          }
+        };
+        revealAnimation();
+      }
+    }
+    
+    // Executar função original após animação
+    setTimeout(() => {
+      scratchAll();
+    }, 500);
   };
 
   const canAfford = walletData && walletData.balance >= scratchCardTypes[selectedType].price;
@@ -101,11 +154,14 @@ const ScratchCardSection = ({ onAuthRequired }: ScratchCardSectionProps) => {
               
               const handleCardClick = () => {
                 setSelectedType(type);
-                // Scroll para a seção de jogo após seleção
+                // Scroll suave para o botão de compra
                 setTimeout(() => {
-                  const gameSection = document.getElementById('game-section');
-                  if (gameSection) {
-                    gameSection.scrollIntoView({ behavior: 'smooth' });
+                  const buyButton = document.getElementById('buy-button');
+                  if (buyButton) {
+                    buyButton.scrollIntoView({ 
+                      behavior: 'smooth', 
+                      block: 'center' 
+                    });
                   }
                 }, 100);
               };
@@ -158,8 +214,9 @@ const ScratchCardSection = ({ onAuthRequired }: ScratchCardSectionProps) => {
               </div>
             )}
 
-            <div className="flex gap-2 flex-wrap justify-center" id="game-section">
+            <div className="flex gap-2 flex-wrap justify-center">
               <Button
+                id="buy-button"
                 onClick={() => handleGenerate(false)}
                 disabled={isLoading || !canAfford || !!scratchCard}
                 className={`px-8 py-3 bg-gradient-to-r ${scratchCardTypes[selectedType].color} hover:opacity-90 text-white font-semibold rounded-xl transition-all duration-300 shadow-lg`}
@@ -191,48 +248,75 @@ const ScratchCardSection = ({ onAuthRequired }: ScratchCardSectionProps) => {
 
       {/* Área do Jogo Temática */}
       {scratchCard && !showResult && (
-        <Card className={`border-2 bg-gradient-to-br ${scratchCardTypes[selectedType].color}/5 ${scratchCardTypes[selectedType].bgColor}/10`}>
-          <CardHeader className="text-center pb-4">
-            <div className={`mx-auto w-20 h-20 rounded-full flex items-center justify-center bg-gradient-to-br ${scratchCardTypes[selectedType].color} shadow-xl mb-4`}>
-              {React.createElement(cardIcons[selectedType], { className: "w-10 h-10 text-white drop-shadow-sm" })}
-            </div>
-            <CardTitle className="text-2xl font-bold">
-              {scratchCardTypes[selectedType].name}
-            </CardTitle>
-            <p className="text-muted-foreground">
-              Raspe para revelar os símbolos e ganhe prêmios incríveis!
-            </p>
-          </CardHeader>
-          
-          <CardContent className="p-6">
-            <div className="bg-background/80 rounded-xl p-4 mb-6">
-              <ScratchGameCanvas
-                symbols={scratchCard.symbols}
-                onWin={handleWin}
-                onComplete={handleComplete}
-                scratchType={selectedType}
-                className="mx-auto"
-              />
-            </div>
+        <div id="scratch-game-area" className="space-y-4">
+          {/* Seletor minimizado durante o jogo */}
+          <MinimizedScratchSelector
+            selectedType={selectedType}
+            onTypeSelect={setSelectedType}
+            onNewGame={handlePlayAgain}
+            userBalance={walletData?.balance || 0}
+            className="sticky top-4 z-10"
+          />
 
-            <div className="flex justify-center gap-3">
-              <Button 
-                onClick={scratchAll}
-                className={`bg-gradient-to-r ${scratchCardTypes[selectedType].color} hover:opacity-90 text-white font-semibold px-6 py-2 rounded-lg transition-all duration-300`}
-              >
-                Revelar Tudo
-              </Button>
-              <Button 
-                onClick={handlePlayAgain}
-                variant="outline"
-                className="border-2 hover:bg-muted"
-              >
-                Nova Raspadinha
-              </Button>
-            </div>
-          </CardContent>
-        </Card>
+          <Card className={`border-2 bg-gradient-to-br ${scratchCardTypes[selectedType].color}/5 ${scratchCardTypes[selectedType].bgColor}/10 relative overflow-hidden`}>
+            {/* Animações de fundo */}
+            <ScratchCardAnimations 
+              isActive={imagesLoaded && !showResult}
+              winState={hasDetectedWin ? 'big' : 'none'}
+            />
+
+            <CardHeader className="text-center pb-4 relative z-10">
+              <div className={`mx-auto w-20 h-20 rounded-full flex items-center justify-center bg-gradient-to-br ${scratchCardTypes[selectedType].color} shadow-xl mb-4`}>
+                {React.createElement(cardIcons[selectedType], { className: "w-10 h-10 text-white drop-shadow-sm" })}
+              </div>
+              <CardTitle className="text-2xl font-bold">
+                {scratchCardTypes[selectedType].name}
+              </CardTitle>
+              <p className="text-muted-foreground">
+                Raspe para revelar os símbolos e ganhe prêmios incríveis!
+              </p>
+            </CardHeader>
+            
+            <CardContent className="p-6 relative z-10">
+              <div className="bg-background/80 rounded-xl p-4 mb-6 relative">
+                {imagesLoaded && (
+                  <ScratchGameCanvas
+                    symbols={scratchCard.symbols}
+                    onWin={handleWin}
+                    onComplete={handleComplete}
+                    scratchType={selectedType}
+                    className="mx-auto"
+                  />
+                )}
+              </div>
+
+              <div className="flex justify-center gap-3">
+                <Button 
+                  onClick={handleRevealAll}
+                  disabled={!imagesLoaded}
+                  className={`bg-gradient-to-r ${scratchCardTypes[selectedType].color} hover:opacity-90 text-white font-semibold px-6 py-2 rounded-lg transition-all duration-300 shadow-lg hover:shadow-xl transform hover:scale-105`}
+                >
+                  <Sparkles className="w-4 h-4 mr-2" />
+                  Revelar Tudo
+                </Button>
+                <Button 
+                  onClick={handlePlayAgain}
+                  variant="outline"
+                  className="border-2 hover:bg-muted"
+                >
+                  Nova Raspadinha
+                </Button>
+              </div>
+            </CardContent>
+          </Card>
+        </div>
       )}
+
+      {/* Loader de preparação da raspadinha */}
+      <ScratchCardLoader
+        isVisible={showLoader}
+        onLoadComplete={handleLoaderComplete}
+      />
 
       {/* Resultado */}
       {showResult && scratchCard && (
