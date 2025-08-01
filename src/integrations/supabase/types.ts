@@ -381,73 +381,34 @@ export type Database = {
         }
         Relationships: []
       }
-      conversion_security_alerts: {
+      daily_redemption_limits: {
         Row: {
-          alert_data: Json | null
-          alert_level: string
-          alert_type: string
-          conversion_id: string | null
-          created_at: string
-          id: string
-          is_resolved: boolean
-          resolved_at: string | null
-          resolved_by: string | null
-          user_id: string
-        }
-        Insert: {
-          alert_data?: Json | null
-          alert_level?: string
-          alert_type: string
-          conversion_id?: string | null
-          created_at?: string
-          id?: string
-          is_resolved?: boolean
-          resolved_at?: string | null
-          resolved_by?: string | null
-          user_id: string
-        }
-        Update: {
-          alert_data?: Json | null
-          alert_level?: string
-          alert_type?: string
-          conversion_id?: string | null
-          created_at?: string
-          id?: string
-          is_resolved?: boolean
-          resolved_at?: string | null
-          resolved_by?: string | null
-          user_id?: string
-        }
-        Relationships: []
-      }
-      daily_conversion_limits: {
-        Row: {
-          conversion_count: number
           created_at: string
           date: string
           id: string
-          last_conversion_at: string | null
-          total_converted: number
+          last_redemption_at: string | null
+          redemption_count: number
+          total_redeemed: number
           updated_at: string
           user_id: string
         }
         Insert: {
-          conversion_count?: number
           created_at?: string
           date?: string
           id?: string
-          last_conversion_at?: string | null
-          total_converted?: number
+          last_redemption_at?: string | null
+          redemption_count?: number
+          total_redeemed?: number
           updated_at?: string
           user_id: string
         }
         Update: {
-          conversion_count?: number
           created_at?: string
           date?: string
           id?: string
-          last_conversion_at?: string | null
-          total_converted?: number
+          last_redemption_at?: string | null
+          redemption_count?: number
+          total_redeemed?: number
           updated_at?: string
           user_id?: string
         }
@@ -1069,50 +1030,89 @@ export type Database = {
         }
         Relationships: []
       }
-      monetary_conversions: {
+      money_item_redemptions: {
         Row: {
-          approval_status: string
           approved_at: string | null
           approved_by: string | null
-          conversion_amount: number
-          conversion_status: string
-          conversion_type: string
           created_at: string
           id: string
           inventory_id: string
           item_id: string
           metadata: Json | null
-          processed_at: string | null
+          processed_at: string
+          redemption_amount: number
+          redemption_status: string
+          requires_approval: boolean
+          security_score: number
           user_id: string
         }
         Insert: {
-          approval_status?: string
           approved_at?: string | null
           approved_by?: string | null
-          conversion_amount: number
-          conversion_status?: string
-          conversion_type?: string
           created_at?: string
           id?: string
           inventory_id: string
           item_id: string
           metadata?: Json | null
-          processed_at?: string | null
+          processed_at?: string
+          redemption_amount: number
+          redemption_status?: string
+          requires_approval?: boolean
+          security_score?: number
           user_id: string
         }
         Update: {
-          approval_status?: string
           approved_at?: string | null
           approved_by?: string | null
-          conversion_amount?: number
-          conversion_status?: string
-          conversion_type?: string
           created_at?: string
           id?: string
           inventory_id?: string
           item_id?: string
           metadata?: Json | null
-          processed_at?: string | null
+          processed_at?: string
+          redemption_amount?: number
+          redemption_status?: string
+          requires_approval?: boolean
+          security_score?: number
+          user_id?: string
+        }
+        Relationships: []
+      }
+      money_redemption_alerts: {
+        Row: {
+          alert_data: Json | null
+          alert_level: string
+          alert_type: string
+          created_at: string
+          id: string
+          is_resolved: boolean
+          redemption_id: string | null
+          resolved_at: string | null
+          resolved_by: string | null
+          user_id: string
+        }
+        Insert: {
+          alert_data?: Json | null
+          alert_level?: string
+          alert_type: string
+          created_at?: string
+          id?: string
+          is_resolved?: boolean
+          redemption_id?: string | null
+          resolved_at?: string | null
+          resolved_by?: string | null
+          user_id: string
+        }
+        Update: {
+          alert_data?: Json | null
+          alert_level?: string
+          alert_type?: string
+          created_at?: string
+          id?: string
+          is_resolved?: boolean
+          redemption_id?: string | null
+          resolved_at?: string | null
+          resolved_by?: string | null
           user_id?: string
         }
         Relationships: []
@@ -1932,6 +1932,19 @@ export type Database = {
           message: string
         }[]
       }
+      process_money_item_redemption: {
+        Args: {
+          p_user_id: string
+          p_item_id: string
+          p_inventory_id: string
+          p_redemption_amount: number
+        }
+        Returns: {
+          redemption_id: string
+          status: string
+          message: string
+        }[]
+      }
       purchase_chest: {
         Args: { p_user_id: string; p_chest_type: string; p_price: number }
         Returns: string
@@ -1971,6 +1984,21 @@ export type Database = {
           error_message: string
           daily_total: number
           conversion_count: number
+        }[]
+      }
+      validate_money_item_redemption: {
+        Args: {
+          p_user_id: string
+          p_item_id: string
+          p_redemption_amount: number
+        }
+        Returns: {
+          is_valid: boolean
+          requires_approval: boolean
+          error_message: string
+          daily_total: number
+          redemption_count: number
+          security_score: number
         }[]
       }
     }

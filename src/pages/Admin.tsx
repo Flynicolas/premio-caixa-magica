@@ -15,7 +15,7 @@ import ChestGoalsManager from '@/components/admin/ChestGoalsManager';
 import { AdminErrorDashboard } from '@/components/admin/AdminErrorDashboard';
 import ScratchCardManager from '@/components/admin/ScratchCardManager';
 import DemoItemsManager from '@/components/admin/DemoItemsManager';
-import MonetaryConversionDashboard from '@/components/admin/MonetaryConversionDashboard';
+import CaixaGeralDashboard from '@/components/admin/CaixaGeralDashboard';
 import { Shield, Package, Settings, Users, Wallet, Target, Truck, AlertTriangle, Gamepad2, TestTube, DollarSign } from 'lucide-react';
 
 const Admin = () => {
@@ -83,7 +83,7 @@ const Admin = () => {
       </div>
 
       <Tabs defaultValue="items" className="space-y-6">
-        <TabsList className="grid w-full grid-cols-10">
+        <TabsList className="grid w-full grid-cols-9">
           <TabsTrigger value="items" className="flex items-center gap-2">
             <Package className="w-4 h-4" />
             Itens
@@ -100,9 +100,9 @@ const Admin = () => {
             <Truck className="w-4 h-4" />
             Entregas
           </TabsTrigger>
-          <TabsTrigger value="wallet" className="flex items-center gap-2">
+          <TabsTrigger value="caixa-geral" className="flex items-center gap-2">
             <Wallet className="w-4 h-4" />
-            Carteira
+            Caixa Geral
           </TabsTrigger>
           <TabsTrigger value="users" className="flex items-center gap-2">
             <Users className="w-4 h-4" />
@@ -119,10 +119,6 @@ const Admin = () => {
           <TabsTrigger value="demo" className="flex items-center gap-2">
             <TestTube className="w-4 h-4" />
             Demo
-          </TabsTrigger>
-          <TabsTrigger value="conversions" className="flex items-center gap-2">
-            <DollarSign className="w-4 h-4" />
-            Conversões
           </TabsTrigger>
         </TabsList>
 
@@ -145,26 +141,8 @@ const Admin = () => {
           <DeliveryManagementTab />
         </TabsContent>
 
-        <TabsContent value="wallet">
-          <div className="space-y-6">
-            <div className="flex justify-end">
-              <Dialog open={showGoalsDialog} onOpenChange={setShowGoalsDialog}>
-                <DialogTrigger asChild>
-                  <Button variant="outline">
-                    <Target className="w-4 h-4 mr-2" />
-                    Editar Metas
-                  </Button>
-                </DialogTrigger>
-                <DialogContent className="max-w-6xl max-h-[90vh] overflow-y-auto">
-                  <DialogHeader>
-                    <DialogTitle>Configurar Metas dos Baús</DialogTitle>
-                  </DialogHeader>
-                  <ChestGoalsManager />
-                </DialogContent>
-              </Dialog>
-            </div>
-            <WalletControlPanel />
-          </div>
+        <TabsContent value="caixa-geral">
+          <CaixaGeralDashboard />
         </TabsContent>
 
         <TabsContent value="users">
@@ -183,9 +161,6 @@ const Admin = () => {
           <DemoItemsManager />
         </TabsContent>
 
-        <TabsContent value="conversions">
-          <MonetaryConversionDashboard />
-        </TabsContent>
       </Tabs>
       </div>
     </div>
