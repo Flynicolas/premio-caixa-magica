@@ -123,7 +123,7 @@ const Index = () => {
 
         {/* Featured Chests - 3 columns, 2 rows */}
         <section className="mb-16">
-          <div className="text-center mb-12">
+          <div className="text-center mb-12 hidden md:block">
             <h2 className="text-2xl sm:text-3xl md:text-4xl font-bold mb-4 text-primary leading-snug">
               🏆 Escolha Seu Baú 🏆
             </h2>

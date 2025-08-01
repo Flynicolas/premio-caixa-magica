@@ -43,7 +43,7 @@ const HeroSlider = () => {
   };
 
   return (
-    <div className="relative h-64 md:h-96 overflow-hidden rounded-lg bg-gradient-to-r from-primary/10 to-secondary/10">
+    <div className="relative h-40 md:h-96 overflow-hidden rounded-lg bg-gradient-to-r from-primary/10 to-secondary/10">
       {slides.map((slide, index) => (
         <div
           key={slide.id}
