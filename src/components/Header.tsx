@@ -2,7 +2,7 @@
 import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '@/hooks/useAuth';
-import { useWallet } from '@/hooks/useWallet';
+import { useWallet } from '@/hooks/useWalletProvider';
 import { Button } from '@/components/ui/button';
 import { 
   DropdownMenu, 

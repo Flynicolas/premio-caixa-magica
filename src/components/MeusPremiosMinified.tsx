@@ -5,7 +5,7 @@ import { useInventory } from '@/hooks/useInventory';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Package, Gift, Star, Trophy, Eye, Wallet } from 'lucide-react';
-import { useWallet } from '@/hooks/useWallet';
+import { useWallet } from '@/hooks/useWalletProvider';
 import MeusPremiosModal from './MeusPremiosModal';
 
 const MeusPremiosMinified = () => {

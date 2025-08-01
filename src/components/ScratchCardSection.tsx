@@ -3,7 +3,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { useAuth } from '@/hooks/useAuth';
-import { useWallet } from '@/hooks/useWallet';
+import { useWallet } from '@/hooks/useWalletProvider';
 import { scratchCardTypes, ScratchCardType } from '@/types/scratchCard';
 import { useScratchCard } from '@/hooks/useScratchCard';
 import { useKirvanoTest } from '@/hooks/useKirvanoTest';

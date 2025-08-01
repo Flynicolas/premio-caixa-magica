@@ -1,6 +1,6 @@
 
 import { useState } from 'react';
-import { useWallet } from '@/hooks/useWallet';
+import { useWallet } from '@/hooks/useWalletProvider';
 import { useInventory } from '@/hooks/useInventory';
 import { useAuth } from '@/hooks/useAuth';
 import { Card } from '@/components/ui/card';

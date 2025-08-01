@@ -1,28 +1,16 @@
-import { useDemo } from './useDemo';
-import { useWallet } from './useWallet';
-import { useDemoWallet } from './useDemoWallet';
+import { useWallet } from './useWalletProvider';
 
 /**
- * Hook inteligente que decide entre carteira real ou demo
- * baseado no status do usuário
+ * Hook inteligente que agora está integrado com o useWallet unificado
+ * Mantido para compatibilidade com código existente
  */
 export const useSmartWallet = () => {
-  const { isDemo } = useDemo();
-  const realWallet = useWallet();
-  const demoWallet = useDemoWallet();
-
-  if (isDemo) {
-    return {
-      ...demoWallet,
-      isDemo: true,
-      purchaseChest: demoWallet.purchaseChestDemo,
-      PaymentModalComponent: null, // Demo não precisa de modal de pagamento
-    };
-  }
-
+  const wallet = useWallet();
+  
+  // O useWallet unificado já gerencia demo/real automaticamente
   return {
-    ...realWallet,
-    isDemo: false,
-    purchaseChest: realWallet.purchaseChest,
+    ...wallet,
+    // Manter compatibilidade para códigos que esperavam purchaseChestDemo
+    purchaseChestDemo: wallet.purchaseChest,
   };
 };

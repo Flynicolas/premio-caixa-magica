@@ -7,7 +7,7 @@ import { useAuth } from '@/hooks/useAuth';
 import { useProfile } from '@/hooks/useProfile';
 import LevelProgressCard from '@/components/LevelProgressCard';
 import UserStatsCards from '@/components/UserStatsCards';
-import { useWallet } from '@/hooks/useWallet';
+import { useWallet } from '@/hooks/useWalletProvider';
 import { useRescueStats } from '@/hooks/useRescueStats';
 import { useNavigate } from 'react-router-dom';
 import { Settings, Edit } from 'lucide-react';

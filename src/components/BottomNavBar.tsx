@@ -4,7 +4,7 @@ import { Link, useLocation } from "react-router-dom";
 import { Home, Trophy, User, Wallet, Eye, EyeOff } from "lucide-react";
 import { Button } from "./ui/button";
 import { cn } from "@/lib/utils";
-import { useWallet } from "@/hooks/useWallet";
+import { useWallet } from "@/hooks/useWalletProvider";
 import { useAuth } from "@/hooks/useAuth";
 
 interface BottomNavBarProps {

@@ -1,7 +1,7 @@
 
 import { useEffect, useState } from 'react';
 import { useAuth } from '@/hooks/useAuth';
-import { useWallet } from '@/hooks/useWallet';
+import { useWallet } from '@/hooks/useWalletProvider';
 import { Button } from '@/components/ui/button';
 import HeroSlider from '@/components/HeroSlider';
 import ChestCard from '@/components/ChestCard';

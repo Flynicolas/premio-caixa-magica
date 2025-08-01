@@ -13,7 +13,7 @@ import { Wallet, Plus, Trophy, Gift, Clock, CreditCard, X, RefreshCw } from "luc
 import { Prize, ChestType } from "@/data/chestData";
 import { useEffect, useState } from "react";
 import PaymentModal from "./PaymentModal";
-import { useWallet } from "@/hooks/useWallet";
+import { useWallet } from "@/hooks/useWalletProvider";
 import { useRedemptionFlow } from "@/hooks/useRedemptionFlow";
 import RedemptionModal from "./RedemptionModal";
 import { useAuth } from "@/hooks/useAuth";

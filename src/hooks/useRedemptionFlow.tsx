@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { useAuth } from './useAuth';
 import { useProfile } from './useProfile';
-import { useWallet } from './useWallet';
+import { useWallet } from './useWalletProvider';
 import { useWithdrawItem } from './useWithdrawItem';
 import { useToast } from './use-toast';
 import { useNavigate } from 'react-router-dom';

@@ -2,7 +2,7 @@
 import { useState } from 'react';
 import { useInventory } from './useInventory';
 import { useChestManagement } from './useChestManagement';
-import { useWallet } from './useWallet';
+import { useWallet } from './useWalletProvider';
 import { useToast } from '@/hooks/use-toast';
 import { DatabaseItem } from '@/types/database';
 
