@@ -27,10 +27,10 @@ interface TransactionData {
   user_id: string;
   amount: number;
   type: string;
-  description: string;
+  description: string | null;
   status: string;
   created_at: string;
-  payment_provider?: string;
+  payment_provider?: string | null;
   source?: string;
   profiles?: {
     full_name: string;
@@ -88,11 +88,20 @@ const TransactionHistoryPanel = () => {
 
       // Combinar e formatar dados
       const allTransactions = [
-        ...(transactionData || []).map(t => ({ ...t, source: 'transactions' })),
-        ...(walletData || []).map(t => ({ ...t, source: 'wallet_transactions', status: 'completed' }))
+        ...(transactionData || []).map(t => ({ 
+          ...t, 
+          source: 'transactions',
+          profiles: t.profiles && typeof t.profiles === 'object' && !Array.isArray(t.profiles) && 'full_name' in t.profiles ? t.profiles : null
+        })),
+        ...(walletData || []).map(t => ({ 
+          ...t, 
+          source: 'wallet_transactions', 
+          status: 'completed',
+          profiles: t.profiles && typeof t.profiles === 'object' && !Array.isArray(t.profiles) && 'full_name' in t.profiles ? t.profiles : null
+        }))
       ].sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime());
 
-      setTransactions(allTransactions);
+      setTransactions(allTransactions as TransactionData[]);
 
       // Calcular estatísticas
       const totalAmount = allTransactions.reduce((sum, t) => sum + Math.abs(t.amount), 0);
