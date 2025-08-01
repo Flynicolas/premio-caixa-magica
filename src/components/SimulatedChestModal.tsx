@@ -160,10 +160,6 @@ const SimulatedChestModal = ({
       >
         <div className="absolute inset-0 bg-black/20 rounded-lg" />
         
-        {/* Badge de Simulação */}
-        <div className="absolute top-4 right-4 z-20 bg-orange-500/90 text-white px-3 py-1 rounded-full text-sm font-bold">
-          DEMONSTRAÇÃO
-        </div>
         
         <DialogHeader className="relative z-10 p-6 pb-0">
           <div className="flex items-center justify-between">
@@ -176,8 +172,8 @@ const SimulatedChestModal = ({
                   Demonstrar {chestName}
                 </>
               )}
-              {phase === "spinning" && "🎰 Girando a Roleta (Demo)"}
-              {phase === "result" && "🎉 Resultado da Demonstração"}
+              {phase === "spinning" && "🎰 Girando a Roleta"}
+              {phase === "result" && "🎉 Resultado"}
             </DialogTitle>
             <DialogClose asChild>
               <Button
@@ -199,7 +195,7 @@ const SimulatedChestModal = ({
                   <Sparkles className="w-12 h-12 text-yellow-300 animate-ping-slow drop-shadow-xl" />
                 </div>
                 <h3 className="text-3xl font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-yellow-300 via-pink-300 to-purple-400 mb-4 drop-shadow-lg text-center">
-                  Demonstração Gratuita!
+                  Teste Gratuito!
                 </h3>
 
                 <p className="text-white/90 text-lg text-center mb-6">
@@ -210,7 +206,7 @@ const SimulatedChestModal = ({
                 </p>
 
                 <p className="text-sm text-white/70 text-center max-w-md mx-auto">
-                  Esta é uma demonstração do sistema de baús. 
+                  Teste o sistema de baús gratuitamente. 
                   Registre-se para ganhar prêmios reais!
                 </p>
               </div>
@@ -228,7 +224,7 @@ const SimulatedChestModal = ({
                   disabled={isLoading}
                   className={`bg-gradient-to-r from-yellow-400 via-yellow-300 to-yellow-500 text-black font-bold hover:brightness-110 border border-yellow-300 px-6 py-3 rounded-xl transition-all duration-300 shadow-md hover:scale-105 ${config.glow}`}
                 >
-                  {isLoading ? "Processando..." : "🎲 Demonstrar Roleta"}
+                  {isLoading ? "Processando..." : "🎲 Testar Roleta"}
                 </Button>
               </div>
             </>
@@ -249,10 +245,10 @@ const SimulatedChestModal = ({
                 className={`bg-white/10 p-8 rounded-3xl backdrop-blur-md border border-white/20 shadow-xl max-w-xl w-full ${config.glow}`}
               >
                 <h2 className="text-5xl font-extrabold text-white text-center mb-2 animate-pulse">
-                  🎉 Demonstração!
+                  🎉 Teste Concluído!
                 </h2>
                 <p className="text-lg text-white/80 text-center mb-6">
-                  Resultado simulado - {wonItem.rarity?.toUpperCase()}:
+                  Resultado - {wonItem.rarity?.toUpperCase()}:
                 </p>
 
                 <div className="flex flex-col items-center gap-4">
@@ -274,7 +270,7 @@ const SimulatedChestModal = ({
                   
                   <div className="bg-orange-500/20 border border-orange-500/40 rounded-lg p-3 mt-2">
                     <p className="text-orange-200 text-sm">
-                      💡 Esta é apenas uma demonstração. Registre-se para ganhar prêmios reais!
+                      💡 Este é apenas um teste. Registre-se para ganhar prêmios reais!
                     </p>
                   </div>
                 </div>
