@@ -52,21 +52,35 @@ const ChestNavigationBar = ({ onChestSelect, selectedChest }: ChestNavigationBar
 
   return (
     <div className="sticky top-2 z-10 bg-card/95 backdrop-blur-md border border-border/50 rounded-xl p-2 mx-2 mb-4 shadow-lg">
+      {/* Título e descrição */}
+      <div className="text-center mb-3 px-2">
+        <h2 className="text-lg font-bold mb-1 text-primary leading-tight">
+          🏆 Escolha Seu Baú 🏆
+        </h2>
+        <p className="text-xs text-muted-foreground leading-tight">
+          Cada baú tem diferentes chances de prêmios. Quanto maior o investimento, maiores as recompensas!
+        </p>
+      </div>
       <div className="grid grid-cols-6 gap-1">
-        {chestOrder.map((chestType) => {
+        {chestOrder.map((chestType, index) => {
           const isSelected = selectedChest === chestType;
+          const animationDelay = `${index * 0.3}s`;
           return (
             <button
               key={chestType}
               onClick={() => scrollToChest(chestType)}
               className={`
                 flex flex-col items-center justify-center h-14 rounded-lg
-                transition-all duration-200 group relative flex-1
+                transition-all duration-300 group relative flex-1
                 ${isSelected 
                   ? `bg-gradient-to-br ${chestColors[chestType]} shadow-lg scale-105` 
-                  : 'bg-muted/50 hover:bg-muted/80'
+                  : `bg-muted/50 hover:bg-muted/80 ${!selectedChest ? 'animate-pulse' : ''}`
                 }
               `}
+              style={{
+                animationDelay: !selectedChest ? animationDelay : undefined,
+                animationDuration: !selectedChest ? '2s' : undefined
+              }}
             >
               <div className={`text-base ${isSelected ? 'scale-110' : 'group-hover:scale-105'} transition-transform`}>
                 {chestIcons[chestType]}

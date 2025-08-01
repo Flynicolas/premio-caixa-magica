@@ -276,7 +276,7 @@ const RealtimeWinsCarousel = ({ showIcons = true, className = "" }: RealtimeWins
   }
 
   return (
-    <div className={`relative bg-gradient-to-r from-gray-900/40 via-gray-800/30 to-gray-900/40 border-2 border-primary/30 rounded-xl p-3 md:p-6 shadow-2xl overflow-hidden ${className}`}>
+    <div className={`relative bg-gradient-to-r from-gray-900/40 via-gray-800/30 to-gray-900/40 border-2 border-primary/30 rounded-xl p-2 md:p-6 shadow-2xl overflow-hidden ${className}`}>
       {/* Background decorative elements */}
       <div className="absolute inset-0 bg-gradient-to-r from-primary/5 via-transparent to-primary/5 opacity-50" />
       <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-transparent via-primary to-transparent opacity-60" />
@@ -289,24 +289,24 @@ const RealtimeWinsCarousel = ({ showIcons = true, className = "" }: RealtimeWins
       <div className="absolute bottom-2 right-2 w-4 h-4 border-r-2 border-b-2 border-primary/50 rounded-br" />
 
       {showIcons && (
-        <div className="relative z-10 flex items-center justify-between mb-3 md:mb-6">
-          <div className="flex items-center space-x-2 md:space-x-3">
+        <div className="relative z-10 flex items-center justify-between mb-2 md:mb-6">
+          <div className="flex items-center space-x-1 md:space-x-3">
             <div className="flex items-center space-x-1 md:space-x-2">
-              <Radio className="w-4 h-4 md:w-5 md:h-5 text-red-500 animate-pulse" />
+              <Radio className="w-3 h-3 md:w-5 md:h-5 text-red-500 animate-pulse" />
             </div>
-            <div className="w-px h-4 md:h-6 bg-primary/30" />
-            <h2 className="text-sm md:text-xl font-bold text-primary flex items-center gap-1 md:gap-2">
-              <Trophy className="w-4 h-4 md:w-5 md:h-5" />
+            <div className="w-px h-3 md:h-6 bg-primary/30" />
+            <h2 className="text-xs md:text-xl font-bold text-primary flex items-center gap-1 md:gap-2">
+              <Trophy className="w-3 h-3 md:w-5 md:h-5" />
               <span className="hidden md:inline">Vitórias em Tempo Real</span>
               <span className="md:hidden">Vitórias</span>
             </h2>
           </div>
-          <Gift className="w-4 h-4 md:w-6 md:h-6 text-primary/60 animate-pulse" />
+          <Gift className="w-3 h-3 md:w-6 md:h-6 text-primary/60 animate-pulse" />
         </div>
       )}
       
       <div className="relative overflow-hidden z-10">
-        <div className="flex space-x-2 md:space-x-4 transition-transform duration-500 ease-out">
+        <div className="flex space-x-1 md:space-x-4 transition-transform duration-500 ease-out">
           {currentItems.map((item, index) => (
             <div
               key={`${item.id}-${index}`}
@@ -331,7 +331,7 @@ const RealtimeWinsCarousel = ({ showIcons = true, className = "" }: RealtimeWins
                     item.isReal ? 'ring-2 ring-green-500/30' : ''
                   }`}
                 />
-                <p className="text-xs text-center text-primary/80 font-medium truncate w-full mt-1">
+                <p className="text-[10px] md:text-xs text-center text-primary/80 font-medium truncate w-full mt-0.5 md:mt-1">
                   {item.user_name} ganhou
                 </p>
               </div>
