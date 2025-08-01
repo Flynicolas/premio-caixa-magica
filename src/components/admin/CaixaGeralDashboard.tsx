@@ -9,6 +9,10 @@ import { Label } from '@/components/ui/label';
 import { useMoneyRedemptionAdmin } from '@/hooks/useMoneyRedemptionAdmin';
 import { useWalletAdmin } from '@/hooks/useWalletAdmin';
 import { Progress } from '@/components/ui/progress';
+import TransactionHistoryPanel from './TransactionHistoryPanel';
+import ApprovalsPanel from './ApprovalsPanel';
+import FinancialReportsPanel from './FinancialReportsPanel';
+import CasinoStatisticsPanel from './CasinoStatisticsPanel';
 import { 
   Wallet, 
   TrendingUp, 
@@ -243,15 +247,11 @@ const CaixaGeralDashboard = () => {
       {/* Tabs para diferentes seções */}
       <Tabs defaultValue="overview" className="w-full">
         <TabsList className="grid w-full grid-cols-5">
-          <TabsTrigger value="overview">Visão Geral</TabsTrigger>
-          <TabsTrigger value="redemptions">
-            Resgates Pendentes ({pendingRedemptions?.length || 0})
-          </TabsTrigger>
-          <TabsTrigger value="alerts">
-            Alertas ({securityAlerts?.length || 0})
-          </TabsTrigger>
-          <TabsTrigger value="transactions">Transações</TabsTrigger>
-          <TabsTrigger value="analytics">Analytics</TabsTrigger>
+          <TabsTrigger value="overview">Dashboard</TabsTrigger>
+          <TabsTrigger value="transactions">Transações & Histórico</TabsTrigger>
+          <TabsTrigger value="approvals">Liberações & Aprovações</TabsTrigger>
+          <TabsTrigger value="reports">Relatórios Financeiros</TabsTrigger>
+          <TabsTrigger value="casino-stats">Estatísticas de Casino</TabsTrigger>
         </TabsList>
 
         {/* Visão Geral */}
