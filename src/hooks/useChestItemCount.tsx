@@ -17,13 +17,13 @@ export const useChestItemCount = (chestType: string) => {
           .eq('is_active', true);
 
         if (error) {
-          console.error('Erro ao contar itens do baú:', error);
+          console.error('❌ [useChestItemCount] Erro ao contar itens do baú:', error);
           setItemCount(0);
         } else {
           setItemCount(count || 0);
         }
       } catch (error) {
-        console.error('Erro ao buscar contagem de itens:', error);
+        console.error('❌ [useChestItemCount] Erro crítico ao buscar contagem de itens:', error);
         setItemCount(0);
       } finally {
         setLoading(false);

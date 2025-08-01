@@ -24,25 +24,42 @@ export const useDemo = (): UseDemoReturn => {
 
   const fetchDemoSettings = async () => {
     try {
+      setLoading(true);
+      
       // Verificar se usuário está em modo demo
       if (user) {
-        const { data: profile } = await supabase
+        const { data: profile, error: profileError } = await supabase
           .from('profiles')
           .select('is_demo')
           .eq('id', user.id)
-          .single();
+          .maybeSingle();
         
-        setIsDemo(profile?.is_demo || false);
+        if (profileError) {
+          console.error('❌ [useDemo] Erro ao buscar perfil:', profileError);
+        } else {
+          setIsDemo(profile?.is_demo || false);
+        }
+      } else {
+        setIsDemo(false);
       }
 
       // Buscar configurações demo
-      const { data: settings } = await supabase
+      const { data: settings, error: settingsError } = await supabase
         .from('demo_settings')
         .select('*')
         .limit(1)
-        .single();
+        .maybeSingle();
 
-      if (settings) {
+      if (settingsError) {
+        console.error('❌ [useDemo] Erro ao buscar configurações demo:', settingsError);
+        // Definir configurações padrão
+        setDemoSettings({
+          saldo_inicial: 1000,
+          tempo_reset_horas: 24,
+          probabilidades_chest: {},
+          itens_demo: []
+        });
+      } else if (settings) {
         setDemoSettings({
           saldo_inicial: settings.saldo_inicial,
           tempo_reset_horas: settings.tempo_reset_horas,
@@ -51,7 +68,7 @@ export const useDemo = (): UseDemoReturn => {
         });
       }
     } catch (error) {
-      console.error('Erro ao buscar configurações demo:', error);
+      console.error('❌ [useDemo] Erro crítico ao buscar configurações demo:', error);
     } finally {
       setLoading(false);
     }

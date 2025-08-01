@@ -67,23 +67,30 @@ const fetchUserItems = async () => {
   // Buscar todos os itens disponíveis
   const fetchAvailableItems = async () => {
     try {
-      const { data, error } = await (supabase as any)
+      const { data, error } = await supabase
         .from('items')
         .select('*')
         .eq('is_active', true)
         .order('name');
 
-      if (error) throw error;
-      setAvailableItems(data || []);
+      if (error) {
+        console.error('❌ [useInventory] Erro ao buscar itens disponíveis:', error);
+        // Fallback para evitar crash
+        setAvailableItems([]);
+        return;
+      }
+      
+      setAvailableItems((data || []) as DatabaseItem[]);
     } catch (error) {
-      console.error('Erro ao buscar itens disponíveis:', error);
+      console.error('❌ [useInventory] Erro crítico ao buscar itens disponíveis:', error);
+      setAvailableItems([]);
     }
   };
 
   // Buscar itens de um baú específico com probabilidades
   const getChestItems = async (chestType: string): Promise<ChestItemProbability[]> => {
     try {
-      const { data, error } = await (supabase as any)
+      const { data, error } = await supabase
         .from('chest_item_probabilities')
         .select(`
           *,
@@ -92,10 +99,14 @@ const fetchUserItems = async () => {
         .eq('chest_type', chestType)
         .eq('is_active', true);
 
-      if (error) throw error;
-      return data || [];
+      if (error) {
+        console.error('❌ [useInventory] Erro ao buscar itens do baú:', error);
+        return [];
+      }
+      
+      return (data || []) as ChestItemProbability[];
     } catch (error) {
-      console.error('Erro ao buscar itens do baú:', error);
+      console.error('❌ [useInventory] Erro crítico ao buscar itens do baú:', error);
       return [];
     }
   };
