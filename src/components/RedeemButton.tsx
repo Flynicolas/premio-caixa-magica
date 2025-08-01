@@ -97,21 +97,35 @@ const RedeemButton = ({
 
   // Se é item de dinheiro, mostrar botão específico para resgate direto
   if (isMoneyItem) {
+    const getMoneyButtonStyle = (amount: number) => {
+      if (amount >= 1000) return "from-purple-500 to-purple-700 shadow-purple-500/25"; // Valores altos
+      if (amount >= 500) return "from-yellow-500 to-orange-600 shadow-yellow-500/25"; // Valores médios
+      if (amount >= 100) return "from-blue-500 to-blue-700 shadow-blue-500/25"; // Valores baixos
+      return "from-green-500 to-green-600 shadow-green-500/25"; // Valores muito baixos
+    };
+
+    const getMoneyEmoji = (amount: number) => {
+      if (amount >= 1000) return "💎"; // Valores altos
+      if (amount >= 500) return "🏆"; // Valores médios  
+      if (amount >= 100) return "💰"; // Valores baixos
+      return "🪙"; // Valores muito baixos
+    };
+
     return (
       <Button
         onClick={handleMonetaryRedemption}
         disabled={isConverting || loading}
         size={size}
-        className={`bg-gradient-to-r from-green-500 to-green-600 hover:from-green-600 hover:to-green-700 text-white font-semibold ${className}`}
+        className={`bg-gradient-to-r ${getMoneyButtonStyle(conversionAmount)} hover:scale-105 text-white font-bold shadow-lg transition-all duration-300 ${className}`}
       >
         {isConverting || loading ? (
           <>
             <Clock className="w-4 h-4 mr-2 animate-spin" />
-            Resgatando...
+            Adicionando à carteira...
           </>
         ) : (
           <>
-            <Wallet className="w-4 h-4 mr-2" />
+            <span className="mr-2 text-lg">{getMoneyEmoji(conversionAmount)}</span>
             Resgatar R$ {conversionAmount.toFixed(2)}
           </>
         )}

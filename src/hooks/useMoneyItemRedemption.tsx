@@ -26,7 +26,25 @@ export const useMoneyItemRedemption = () => {
 
     setLoading(true);
     try {
-      // Usar a função do banco para processar o resgate
+      // Verificar se o item está disponível no inventário
+      const { data: inventoryItem, error: inventoryError } = await supabase
+        .from('user_inventory')
+        .select('*, items(*)')
+        .eq('id', inventoryId)
+        .eq('user_id', user.id)
+        .eq('is_redeemed', false)
+        .single();
+
+      if (inventoryError || !inventoryItem) {
+        return { success: false, message: 'Item não encontrado ou já foi resgatado' };
+      }
+
+      // Verificar se é realmente um item de dinheiro
+      if (inventoryItem.items.category !== 'dinheiro') {
+        return { success: false, message: 'Este item não pode ser convertido em dinheiro' };
+      }
+
+      // Usar a função do banco para processar o resgate instantâneo
       const { data, error } = await supabase.rpc('process_money_item_redemption', {
         p_user_id: user.id,
         p_item_id: itemId,
@@ -50,8 +68,8 @@ export const useMoneyItemRedemption = () => {
 
       if (result.status === 'pending_approval') {
         toast({
-          title: "Resgate em análise",
-          description: "Seu resgate será analisado pela equipe e processado em breve.",
+          title: "🔍 Resgate em análise",
+          description: "Valor alto detectado. Seu resgate será analisado pela equipe e processado em breve.",
           variant: "default"
         });
         
@@ -65,8 +83,8 @@ export const useMoneyItemRedemption = () => {
 
       if (result.status === 'completed') {
         toast({
-          title: "Resgate realizado!",
-          description: `R$ ${redemptionAmount.toFixed(2)} foi adicionado à sua carteira.`,
+          title: "💰 Resgate realizado!",
+          description: `R$ ${redemptionAmount.toFixed(2)} foi adicionado instantaneamente à sua carteira.`,
           variant: "default"
         });
         

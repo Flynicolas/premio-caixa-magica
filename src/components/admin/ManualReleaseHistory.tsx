@@ -11,7 +11,6 @@ import { Search, Clock, CheckCircle, XCircle, Users, Crown, Activity, TrendingUp
 
 interface ManualRelease {
   id: string;
-  item: any;
   chest_type: string;
   status: string;
   released_by: string;
@@ -19,8 +18,9 @@ interface ManualRelease {
   expires_at: string;
   winner_user_id?: string;
   drawn_at?: string;
-  admin_user?: any;
-  winner_profile?: any;
+  items?: any;
+  admin_users?: any;
+  profiles?: any;
 }
 
 const ManualReleaseHistory = () => {
@@ -55,17 +55,23 @@ const ManualReleaseHistory = () => {
 
   const fetchReleases = async () => {
     try {
+      console.log('🔍 Buscando liberações manuais...');
       const { data, error } = await supabase
         .from('manual_item_releases')
         .select(`
           *,
-          item:items(*),
-          admin_user:admin_users(email),
-          winner_profile:profiles(full_name, email)
+          items!manual_item_releases_item_id_fkey(*),
+          admin_users!manual_item_releases_released_by_fkey(email),
+          profiles!manual_item_releases_winner_user_id_fkey(full_name, email)
         `)
         .order('released_at', { ascending: false });
 
-      if (error) throw error;
+      if (error) {
+        console.error('❌ Erro SQL:', error);
+        throw error;
+      }
+
+      console.log('✅ Liberações encontradas:', data?.length || 0);
       setReleases(data || []);
       
       // Calcular estatísticas
@@ -77,7 +83,7 @@ const ManualReleaseHistory = () => {
         expired: releaseData.filter(r => r.status === 'expired').length
       });
     } catch (error: any) {
-      console.error('Erro ao buscar liberações:', error);
+      console.error('❌ Erro ao buscar liberações:', error);
       toast({
         title: "Erro ao carregar histórico",
         description: error.message,
@@ -117,9 +123,12 @@ const ManualReleaseHistory = () => {
   };
 
   const filteredReleases = releases.filter(release => {
-    const matchesSearch = release.item.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    const itemName = release.items?.name || '';
+    const adminEmail = release.admin_users?.email || '';
+    
+    const matchesSearch = itemName.toLowerCase().includes(searchTerm.toLowerCase()) ||
                          release.chest_type.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         release.admin_user?.email.toLowerCase().includes(searchTerm.toLowerCase());
+                         adminEmail.toLowerCase().includes(searchTerm.toLowerCase());
     
     const matchesStatus = statusFilter === 'all' || release.status === statusFilter;
     
@@ -274,24 +283,24 @@ const ManualReleaseHistory = () => {
               >
                 <div className="flex items-start justify-between">
                   <div className="flex items-center gap-3">
-                    {release.item.image_url && (
+                    {release.items?.image_url && (
                       <img
-                        src={release.item.image_url}
-                        alt={release.item.name}
+                        src={release.items.image_url}
+                        alt={release.items.name}
                         className="w-12 h-12 object-cover rounded-lg"
                       />
                     )}
                     <div>
-                      <h3 className="font-semibold">{release.item.name}</h3>
+                      <h3 className="font-semibold">{release.items?.name || 'Item não encontrado'}</h3>
                       <div className="flex items-center gap-2 mt-1">
                         <Badge className={`${getChestTypeColor(release.chest_type)} text-white`}>
                           Baú {release.chest_type}
                         </Badge>
                         <Badge variant="outline" className="capitalize">
-                          {release.item.rarity}
+                          {release.items?.rarity || 'N/A'}
                         </Badge>
                         <span className="text-sm text-muted-foreground">
-                          R$ {release.item.base_value.toFixed(2)}
+                          R$ {release.items?.base_value?.toFixed(2) || '0.00'}
                         </span>
                       </div>
                     </div>
@@ -318,7 +327,7 @@ const ManualReleaseHistory = () => {
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 text-sm">
                   <div>
                     <span className="text-muted-foreground">Liberado por:</span>
-                    <p className="font-medium">{release.admin_user?.email}</p>
+                    <p className="font-medium">{release.admin_users?.email || 'Admin não encontrado'}</p>
                   </div>
                   
                   <div>
@@ -340,7 +349,7 @@ const ManualReleaseHistory = () => {
                       <span className="text-muted-foreground">Vencedor:</span>
                       <p className="font-medium flex items-center gap-1">
                         <Users className="w-4 h-4" />
-                        {release.winner_profile?.full_name || release.winner_profile?.email || 'Usuário'}
+                        {release.profiles?.full_name || release.profiles?.email || 'Usuário'}
                       </p>
                       {release.drawn_at && (
                         <p className="text-xs text-muted-foreground">

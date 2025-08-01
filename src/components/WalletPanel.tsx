@@ -9,7 +9,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Wallet, Plus, Trophy, Gift, Clock, CreditCard, X } from "lucide-react";
+import { Wallet, Plus, Trophy, Gift, Clock, CreditCard, X, RefreshCw } from "lucide-react";
 import { Prize, ChestType } from "@/data/chestData";
 import { useEffect, useState } from "react";
 import PaymentModal from "./PaymentModal";
@@ -38,7 +38,7 @@ const WalletPanel = ({
   prizes,
 }: WalletPanelProps) => {
   const [showPaymentModal, setShowPaymentModal] = useState(false);
-  const { transactions } = useWallet();
+  const { transactions, refreshData } = useWallet();
   const [selectedPrize, setSelectedPrize] = useState<any>(null);
   const [showRedemptionModal, setShowRedemptionModal] = useState(false);
   const { isProcessing } = useRedemptionFlow();
@@ -49,9 +49,30 @@ const WalletPanel = ({
   const { profile } = useProfile();
   const [showSuccessModal, setShowSuccessModal] = useState(false);
   const [confirmedPrize, setConfirmedPrize] = useState<any>(null);
+  const [isRefreshing, setIsRefreshing] = useState(false);
 
   const handleAddBalance = (amount: number) => {
     setShowPaymentModal(true);
+  };
+
+  const handleRefreshWallet = async () => {
+    setIsRefreshing(true);
+    try {
+      await refreshData();
+      toast({
+        title: "💰 Carteira atualizada!",
+        description: "Seus dados foram atualizados com sucesso.",
+        variant: "default"
+      });
+    } catch (error) {
+      toast({
+        title: "Erro ao atualizar",
+        description: "Não foi possível atualizar a carteira.",
+        variant: "destructive"
+      });
+    } finally {
+      setIsRefreshing(false);
+    }
   };
 
   const rarityColors = {
@@ -150,12 +171,24 @@ const WalletPanel = ({
                   <div className="w-16 h-16 md:w-20 md:h-20 gold-gradient rounded-full flex items-center justify-center mx-auto mb-4 md:mb-6 shadow-2xl ring-4 ring-primary/20">
                     <Wallet className="w-8 h-8 md:w-10 md:h-10 text-black" />
                   </div>
-                  <h3 className="text-2xl md:text-4xl font-bold bg-clip-text text-yellow-400 mb-2 md:mb-3">
-                    {balance.toLocaleString("pt-BR", {
-                      style: "currency",
-                      currency: "BRL",
-                    })}
-                  </h3>
+                  <div className="flex items-center justify-center gap-2 mb-2 md:mb-3">
+                    <h3 className="text-2xl md:text-4xl font-bold bg-clip-text text-yellow-400">
+                      {balance.toLocaleString("pt-BR", {
+                        style: "currency",
+                        currency: "BRL",
+                      })}
+                    </h3>
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={handleRefreshWallet}
+                      disabled={isRefreshing}
+                      className="ml-2 h-8 w-8 p-0 hover:bg-primary/10 rounded-full"
+                      title="Atualizar saldo"
+                    >
+                      <RefreshCw className={`h-4 w-4 text-yellow-400 ${isRefreshing ? 'animate-spin' : ''}`} />
+                    </Button>
+                  </div>
                   <p className="text-muted-foreground text-base md:text-lg">
                     Saldo Disponível
                   </p>
