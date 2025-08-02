@@ -55,13 +55,10 @@ serve(async (req) => {
 
     console.log(`Win decision: ${shouldWin}`)
 
-    // Fetch probabilities for this scratch type
+    // Fetch probabilities for this scratch type with manual join
     const { data: probabilities, error: probError } = await supabase
       .from('scratch_card_probabilities')
-      .select(`
-        *,
-        items (*)
-      `)
+      .select('*')
       .eq('scratch_type', scratchType)
       .eq('is_active', true)
 
@@ -73,24 +70,53 @@ serve(async (req) => {
     if (!probabilities || probabilities.length === 0) {
       console.log('No probabilities found, falling back to chest items')
       
-      // Fallback to chest items
+      // Fallback to chest items with manual join
       const { data: fallbackData, error: fallbackError } = await supabase
         .from('chest_item_probabilities')
-        .select(`
-          *,
-          items (*)
-        `)
+        .select('*')
         .eq('is_active', true)
 
       if (fallbackError) throw fallbackError
       
+      // Get items for fallback too
+      const fallbackItemIds = fallbackData?.map(p => p.item_id) || []
+      const { data: fallbackItems } = await supabase
+        .from('items')
+        .select('*')
+        .in('id', fallbackItemIds)
+        .eq('is_active', true)
+
+      const fallbackWithItems = fallbackData?.map(prob => {
+        const item = fallbackItems?.find(i => i.id === prob.item_id)
+        return { ...prob, item }
+      }).filter(p => p.item) || []
+      
       return new Response(
-        JSON.stringify(await generateFromProbabilities(fallbackData || [], scratchType, shouldWin)),
+        JSON.stringify(await generateFromProbabilities(fallbackWithItems, scratchType, shouldWin)),
         { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       )
     }
 
-    const result = await generateFromProbabilities(probabilities, scratchType, shouldWin)
+    // Fetch items data for the probabilities
+    const itemIds = probabilities.map(p => p.item_id)
+    const { data: items, error: itemsError } = await supabase
+      .from('items')
+      .select('*')
+      .in('id', itemIds)
+      .eq('is_active', true)
+
+    if (itemsError) {
+      console.error('Error fetching items:', itemsError)
+      throw itemsError
+    }
+
+    // Combine probabilities with items
+    const probabilitiesWithItems = probabilities.map(prob => {
+      const item = items?.find(i => i.id === prob.item_id)
+      return { ...prob, item }
+    }).filter(p => p.item) // Only keep records with valid items
+
+    const result = await generateFromProbabilities(probabilitiesWithItems, scratchType, shouldWin)
     
     // Update financial control
     if (result.hasWin && result.winningItem) {
