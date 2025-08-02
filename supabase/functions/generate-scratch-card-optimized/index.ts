@@ -60,7 +60,7 @@ serve(async (req) => {
       .from('scratch_card_probabilities')
       .select(`
         *,
-        item:items(*)
+        items (*)
       `)
       .eq('scratch_type', scratchType)
       .eq('is_active', true)
@@ -78,7 +78,7 @@ serve(async (req) => {
         .from('chest_item_probabilities')
         .select(`
           *,
-          item:items(*)
+          items (*)
         `)
         .eq('is_active', true)
 
@@ -122,16 +122,17 @@ async function generateFromProbabilities(probabilities: any[], scratchType: stri
   // Create weighted list
   const weightedItems: any[] = []
   probabilities.forEach(prob => {
-    if (prob.item) {
+    const item = prob.items || prob.item // Support both formats
+    if (item) {
       const weight = prob.probability_weight || 1
       for (let i = 0; i < weight; i++) {
         weightedItems.push({
-          id: prob.item.id,
-          symbolId: prob.item.id,
-          name: prob.item.name,
-          image_url: prob.item.image_url,
-          rarity: prob.item.rarity,
-          base_value: prob.item.base_value,
+          id: item.id,
+          symbolId: item.id,
+          name: item.name,
+          image_url: item.image_url,
+          rarity: item.rarity,
+          base_value: item.base_value,
           isWinning: false
         })
       }
