@@ -17,9 +17,9 @@ export const useScratchCard = () => {
       
       try {
         const { data, error } = await supabase.functions.invoke(
-          "generate-scratch-card",
+          "generate-scratch-card-optimized",
           {
-            body: { chestType, forcedWin },
+            body: { scratchType: chestType, forcedWin },
           },
         );
 
