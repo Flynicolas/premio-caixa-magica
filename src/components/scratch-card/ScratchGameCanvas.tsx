@@ -1,4 +1,4 @@
-import { useRef, useEffect, useState, useCallback } from 'react';
+import { useRef, useEffect, useState, useCallback, forwardRef, useImperativeHandle } from 'react';
 import { cn } from '@/lib/utils';
 import { ScratchSymbol } from '@/types/scratchCard';
 
@@ -6,6 +6,8 @@ interface ScratchGameCanvasProps {
   symbols: ScratchSymbol[];
   onWin: (winningSymbol: string) => void;
   onComplete: () => void;
+  onScratchStart?: () => void;
+  gameStarted?: boolean;
   scratchType?: string;
   className?: string;
 }
@@ -16,7 +18,7 @@ interface ScratchAreaMap {
   sides: number;     // Peso 2x (posições 1,3,5,7)
 }
 
-const ScratchGameCanvas = ({ symbols, onWin, onComplete, scratchType = 'sorte', className }: ScratchGameCanvasProps) => {
+const ScratchGameCanvas = forwardRef<{ revealAll: () => void }, ScratchGameCanvasProps>(({ symbols, onWin, onComplete, onScratchStart, gameStarted = false, scratchType = 'sorte', className }, ref) => {
   console.log('🎯 ScratchGameCanvas mounted/rendered, symbols.length:', symbols.length);
   
   const canvasRef = useRef<HTMLCanvasElement>(null);
@@ -307,6 +309,11 @@ const ScratchGameCanvas = ({ symbols, onWin, onComplete, scratchType = 'sorte', 
       return;
     }
 
+    // Chama onScratchStart apenas na primeira raspagem
+    if (!gameStarted && onScratchStart) {
+      onScratchStart();
+    }
+
     const ctx = canvas.getContext('2d', { willReadFrequently: true });
     if (!ctx) return;
 
@@ -328,7 +335,39 @@ const ScratchGameCanvas = ({ symbols, onWin, onComplete, scratchType = 'sorte', 
     ctx.fill();
     
     checkScratchProgress();
-  }, [isRevealed, isVerifying, canvasFullyLoaded, checkScratchProgress]);
+  }, [isRevealed, isVerifying, canvasFullyLoaded, checkScratchProgress, gameStarted, onScratchStart]);
+
+  // Função para revelar tudo automaticamente
+  const revealAll = useCallback(() => {
+    const canvas = canvasRef.current;
+    if (!canvas || isRevealed) return;
+
+    setIsVerifying(true);
+    
+    // Animação de revelação automática
+    setTimeout(() => {
+      let opacity = 1;
+      const dissolveAnimation = () => {
+        opacity -= 0.1;
+        canvas.style.opacity = opacity.toString();
+        
+        if (opacity > 0) {
+          requestAnimationFrame(dissolveAnimation);
+        } else {
+          canvas.style.display = 'none';
+          setIsRevealed(true);
+          setScratchProgress(100);
+          checkWin();
+        }
+      };
+      dissolveAnimation();
+    }, 1000);
+  }, [isRevealed, checkWin]);
+
+  // Expor função revealAll para o componente pai via useImperativeHandle
+  useImperativeHandle(ref, () => ({
+    revealAll
+  }), [revealAll]);
 
   // Eventos do canvas - usando useRef para evitar dependências instáveis
   const isReallyScratching = useRef(false);
@@ -454,7 +493,7 @@ const ScratchGameCanvas = ({ symbols, onWin, onComplete, scratchType = 'sorte', 
       {canvasFullyLoaded && scratchProgress === 0 && !isVerifying && (
         <div className="absolute inset-0 z-30 flex items-center justify-center pointer-events-none">
           <div className="bg-black/70 text-white px-4 py-2 rounded-lg text-sm font-medium">
-            👆 Raspe gradualmente para revelar os prêmios
+            👆 {gameStarted ? "Raspe gradualmente para revelar os prêmios" : "Raspe / toque para começar"}
           </div>
         </div>
       )}
@@ -485,6 +524,6 @@ const ScratchGameCanvas = ({ symbols, onWin, onComplete, scratchType = 'sorte', 
       />
     </div>
   );
-};
+});
 
 export default ScratchGameCanvas;

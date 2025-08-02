@@ -1,8 +1,9 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { motion } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import ScratchGameCanvas from "./ScratchGameCanvas";
@@ -19,6 +20,8 @@ const ScratchCardGame = () => {
   const [showResult, setShowResult] = useState(false);
   const [winningSymbol, setWinningSymbol] = useState<string | null>(null);
   const [hasWin, setHasWin] = useState(false);
+  const [gameStarted, setGameStarted] = useState(false);
+  const canvasRef = useRef<{ revealAll: () => void }>(null);
 
   console.log('🎯 ScratchCardGame render - symbols.length:', symbols.length);
 
@@ -26,6 +29,7 @@ const ScratchCardGame = () => {
     console.log('🎯 Generating scratch card, type:', selectedType, 'forcedWin:', forcedWin);
     setIsLoading(true);
     setResultMessage("Carregando raspadinha...");
+    setGameStarted(false);
     
     try {
       const { data, error } = await supabase.functions.invoke('generate-scratch-card', {
@@ -40,7 +44,7 @@ const ScratchCardGame = () => {
       console.log('🎯 Scratch card data received:', data);
       setSymbols(data.symbols || []);
       setHasWin(data.hasWin);
-      setResultMessage("Raspe para revelar");
+      setResultMessage("Raspe / toque para começar");
       setShowResult(false);
       setWinningSymbol(null);
 
@@ -50,6 +54,32 @@ const ScratchCardGame = () => {
       toast.error("Erro ao gerar raspadinha");
     } finally {
       setIsLoading(false);
+    }
+  };
+
+  const handleScratchStart = async () => {
+    if (!gameStarted && symbols.length > 0) {
+      setGameStarted(true);
+      setResultMessage("Raspe para revelar");
+      
+      // Aqui é onde debitamos o dinheiro - quando o jogo realmente começa
+      try {
+        await supabase.functions.invoke('debit-scratch-card-cost', {
+          body: { 
+            scratchType: selectedType,
+            symbols: symbols // Garante que se fechar a janela, o prêmio será processado
+          }
+        });
+      } catch (error) {
+        console.error('Erro ao debitar custo:', error);
+        // Não bloqueamos o jogo se o débito falhar, mas logamos
+      }
+    }
+  };
+
+  const handleRevealAll = () => {
+    if (canvasRef.current?.revealAll) {
+      canvasRef.current.revealAll();
     }
   };
 
@@ -66,6 +96,7 @@ const ScratchCardGame = () => {
 
   const handlePlayAgain = () => {
     setShowResult(false);
+    setGameStarted(false);
     generateScratchCard();
   };
 
@@ -139,7 +170,56 @@ const ScratchCardGame = () => {
                   symbols={symbols}
                   onWin={handleWin}
                   onComplete={handleComplete}
+                  onScratchStart={handleScratchStart}
+                  gameStarted={gameStarted}
+                  ref={canvasRef}
                 />
+                
+                {/* Botões de controle */}
+                {symbols.length > 0 && (
+                  <div className="flex gap-2 mt-4">
+                    <AlertDialog>
+                      <AlertDialogTrigger asChild>
+                        <Button 
+                          variant="outline" 
+                          size="sm"
+                          disabled={!gameStarted}
+                          className="flex-1"
+                        >
+                          Revelar Tudo
+                        </Button>
+                      </AlertDialogTrigger>
+                      <AlertDialogContent>
+                        <AlertDialogHeader>
+                          <AlertDialogTitle>Revelar todos os símbolos?</AlertDialogTitle>
+                          <AlertDialogDescription>
+                            Tem certeza que deseja revelar automaticamente todos os símbolos? 
+                            Isso irá finalizar o jogo imediatamente.
+                          </AlertDialogDescription>
+                        </AlertDialogHeader>
+                        <AlertDialogFooter>
+                          <AlertDialogCancel>Cancelar</AlertDialogCancel>
+                          <AlertDialogAction onClick={handleRevealAll}>
+                            Sim, revelar tudo
+                          </AlertDialogAction>
+                        </AlertDialogFooter>
+                      </AlertDialogContent>
+                    </AlertDialog>
+                    
+                    <Button 
+                      variant="outline" 
+                      size="sm"
+                      onClick={() => {
+                        setShowResult(false);
+                        setGameStarted(false);
+                        generateScratchCard();
+                      }}
+                      className="flex-1"
+                    >
+                      Nova Raspadinha
+                    </Button>
+                  </div>
+                )}
                 
                 <div className="text-center">
                   <p className={`text-sm font-medium ${
