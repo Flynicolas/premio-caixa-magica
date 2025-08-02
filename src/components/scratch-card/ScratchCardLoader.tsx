@@ -15,14 +15,14 @@ const ScratchCardLoader = ({
   className 
 }: ScratchCardLoaderProps) => {
   const [progress, setProgress] = useState(0);
-  const [loadingText, setLoadingText] = useState('Preparando sua raspadinha...');
+  const [loadingText, setLoadingText] = useState('Escolhendo seu bilhete...');
 
   useEffect(() => {
     if (!isVisible) return;
 
     const texts = [
-      'Preparando sua raspadinha...',
-      'Carregando prêmios...',
+      'Escolhendo seu bilhete...',
+      'Carregando raspadinha...',
       'Quase pronto...'
     ];
 

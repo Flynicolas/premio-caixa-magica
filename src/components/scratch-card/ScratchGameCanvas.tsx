@@ -10,6 +10,12 @@ interface ScratchGameCanvasProps {
   className?: string;
 }
 
+interface ScratchAreaMap {
+  center: number;    // Peso 3x (posição 4)
+  corners: number;   // Peso 1x (posições 0,2,6,8) 
+  sides: number;     // Peso 2x (posições 1,3,5,7)
+}
+
 const ScratchGameCanvas = ({ symbols, onWin, onComplete, scratchType = 'sorte', className }: ScratchGameCanvasProps) => {
   console.log('🎯 ScratchGameCanvas mounted/rendered, symbols.length:', symbols.length);
   
@@ -18,8 +24,11 @@ const ScratchGameCanvas = ({ symbols, onWin, onComplete, scratchType = 'sorte', 
   const [isScratching, setIsScratching] = useState(false);
   const [isRevealed, setIsRevealed] = useState(false);
   const [scratchProgress, setScratchProgress] = useState(0);
+  const [canvasFullyLoaded, setCanvasFullyLoaded] = useState(false);
+  const [isVerifying, setIsVerifying] = useState(false);
   const lastProgressCheck = useRef(Date.now());
-  const progressCheckInterval = 50; // Check progress every 50ms for better responsivity
+  const progressCheckInterval = 50;
+  const scratchAreas = useRef<ScratchAreaMap>({ center: 0, corners: 0, sides: 0 });
 
   const rarityColors = {
     common: '#aaa',
@@ -30,11 +39,15 @@ const ScratchGameCanvas = ({ symbols, onWin, onComplete, scratchType = 'sorte', 
     special: '#f472b6'
   };
 
-  // Renderizar grid com símbolos
+  // Renderizar grid com símbolos - só quando canvas estiver pronto
   const renderGrid = useCallback(() => {
     const grid = gridRef.current;
-    if (!grid || !symbols.length) return;
+    if (!grid || !symbols.length || !canvasFullyLoaded) {
+      console.log('🎯 Grid render blocked - canvasFullyLoaded:', canvasFullyLoaded);
+      return;
+    }
 
+    console.log('🎯 Rendering grid with', symbols.length, 'symbols');
     grid.innerHTML = '';
     symbols.forEach(({ name, image_url, rarity }, index) => {
       const div = document.createElement('div');
@@ -84,15 +97,18 @@ const ScratchGameCanvas = ({ symbols, onWin, onComplete, scratchType = 'sorte', 
       div.dataset.symbol = name;
       grid.appendChild(div);
     });
-  }, [symbols, rarityColors]);
+  }, [symbols, rarityColors, canvasFullyLoaded]);
 
-  // Resetar canvas com imagem temática
+  // Resetar canvas com imagem temática - controle de carregamento
   const resetCanvas = useCallback((scratchType: string) => {
     const canvas = canvasRef.current;
     if (!canvas) return;
 
     const ctx = canvas.getContext('2d');
     if (!ctx) return;
+
+    setCanvasFullyLoaded(false);
+    console.log('🎯 Resetting canvas, canvasFullyLoaded set to false');
 
     // Usar a imagem temática específica do tipo de raspadinha
     const scratchCardConfig = {
@@ -111,6 +127,16 @@ const ScratchGameCanvas = ({ symbols, onWin, onComplete, scratchType = 'sorte', 
       img.onload = () => {
         ctx.globalCompositeOperation = 'source-over';
         ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+        setCanvasFullyLoaded(true);
+        console.log('🎯 Canvas image loaded, canvasFullyLoaded set to true');
+      };
+      img.onerror = () => {
+        // Fallback se imagem falhar
+        ctx.globalCompositeOperation = 'source-over';
+        ctx.fillStyle = '#999';
+        ctx.fillRect(0, 0, canvas.width, canvas.height);
+        setCanvasFullyLoaded(true);
+        console.log('🎯 Canvas fallback loaded, canvasFullyLoaded set to true');
       };
       img.src = imageUrl;
     } else {
@@ -118,20 +144,24 @@ const ScratchGameCanvas = ({ symbols, onWin, onComplete, scratchType = 'sorte', 
       ctx.globalCompositeOperation = 'source-over';
       ctx.fillStyle = '#999';
       ctx.fillRect(0, 0, canvas.width, canvas.height);
+      setCanvasFullyLoaded(true);
+      console.log('🎯 Canvas fallback loaded, canvasFullyLoaded set to true');
     }
     
     canvas.style.display = 'block';
     setIsRevealed(false);
     setScratchProgress(0);
+    setIsVerifying(false);
+    scratchAreas.current = { center: 0, corners: 0, sides: 0 };
     lastProgressCheck.current = Date.now();
   }, []);
 
-  // Verificar progresso da raspagem com otimização
+  // Sistema inteligente de detecção de raspagem com mapeamento 3x3
   const checkScratchProgress = useCallback(() => {
     const canvas = canvasRef.current;
-    if (!canvas || isRevealed) return;
+    if (!canvas || isRevealed || isVerifying) return;
 
-    // Throttling - só verifica progresso ocasionalmente
+    // Throttling
     const now = Date.now();
     if (now - lastProgressCheck.current < progressCheckInterval) {
       return;
@@ -141,32 +171,99 @@ const ScratchGameCanvas = ({ symbols, onWin, onComplete, scratchType = 'sorte', 
     const ctx = canvas.getContext('2d');
     if (!ctx) return;
 
-    // Amostragem otimizada - verifica apenas alguns pixels
-    const sampleSize = 50; // Verifica 50x50 pontos distribuídos
-    const stepX = canvas.width / sampleSize;
-    const stepY = canvas.height / sampleSize;
-    let cleared = 0;
-    let total = 0;
+    // Mapear áreas de raspagem em grid 3x3
+    const areaWidth = canvas.width / 3;
+    const areaHeight = canvas.height / 3;
+    const newAreas = { center: 0, corners: 0, sides: 0 };
+    let totalCleared = 0;
+    let totalPixels = 0;
 
-    for (let x = 0; x < canvas.width; x += stepX) {
-      for (let y = 0; y < canvas.height; y += stepY) {
-        const pixelData = ctx.getImageData(Math.floor(x), Math.floor(y), 1, 1).data;
-        if (pixelData[3] === 0) cleared++; // Canal alpha = 0 (transparente)
-        total++;
+    // Analisar cada seção do grid 3x3
+    for (let row = 0; row < 3; row++) {
+      for (let col = 0; col < 3; col++) {
+        const x = col * areaWidth;
+        const y = row * areaHeight;
+        const index = row * 3 + col;
+        
+        // Amostragem otimizada para cada área
+        const sampleSize = 10;
+        const stepX = areaWidth / sampleSize;
+        const stepY = areaHeight / sampleSize;
+        let areaCleared = 0;
+        let areaTotal = 0;
+
+        for (let sx = 0; sx < areaWidth; sx += stepX) {
+          for (let sy = 0; sy < areaHeight; sy += stepY) {
+            const pixelData = ctx.getImageData(
+              Math.floor(x + sx), 
+              Math.floor(y + sy), 
+              1, 1
+            ).data;
+            if (pixelData[3] === 0) areaCleared++;
+            areaTotal++;
+          }
+        }
+
+        const areaPercent = (areaCleared / areaTotal) * 100;
+        
+        // Classificar área e aplicar peso
+        if (index === 4) { // Centro
+          newAreas.center = areaPercent;
+        } else if ([0, 2, 6, 8].includes(index)) { // Cantos
+          newAreas.corners = Math.max(newAreas.corners, areaPercent);
+        } else { // Lados
+          newAreas.sides = Math.max(newAreas.sides, areaPercent);
+        }
+
+        totalCleared += areaCleared;
+        totalPixels += areaTotal;
       }
     }
+
+    // Atualizar áreas de raspagem
+    scratchAreas.current = newAreas;
+
+    // Cálculo de progresso ponderado
+    const weightedProgress = (
+      newAreas.center * 3 +  // Centro vale 3x
+      newAreas.corners * 1 + // Cantos valem 1x
+      newAreas.sides * 2     // Lados valem 2x
+    ) / 6; // Normalizar (3+1+2 = 6)
+
+    const rawProgress = (totalCleared / totalPixels) * 100;
+    const finalProgress = Math.max(rawProgress, weightedProgress);
     
-    const percent = (cleared / total) * 100;
-    setScratchProgress(Math.round(percent));
+    setScratchProgress(Math.round(finalProgress));
     
-    // Revelação quando atingir 75% (meio do range 70-80%)
-    if (percent >= 75) {
-      canvas.style.display = 'none';
-      setIsRevealed(true);
-      setScratchProgress(100);
-      checkWin();
+    // Revelação inteligente aos 80% ponderados
+    if (finalProgress >= 80 && !isVerifying) {
+      setIsVerifying(true);
+      console.log('🔥 Iniciando verificação de resultado...');
+      
+      // Delay realístico de 1 segundo
+      setTimeout(() => {
+        const canvas = canvasRef.current;
+        if (canvas) {
+          // Animação de dissolução gradual
+          let opacity = 1;
+          const dissolveAnimation = () => {
+            opacity -= 0.1;
+            canvas.style.opacity = opacity.toString();
+            
+            if (opacity > 0) {
+              requestAnimationFrame(dissolveAnimation);
+            } else {
+              canvas.style.display = 'none';
+              setIsRevealed(true);
+              setScratchProgress(100);
+              checkWin();
+            }
+          };
+          dissolveAnimation();
+        }
+      }, 1000);
     }
-  }, [isRevealed, progressCheckInterval]);
+  }, [isRevealed, isVerifying, progressCheckInterval]);
 
   // Verificar vitória
   const checkWin = useCallback(() => {
@@ -203,20 +300,15 @@ const ScratchGameCanvas = ({ symbols, onWin, onComplete, scratchType = 'sorte', 
     });
   }, []);
 
-  // Função de raspagem
+  // Função de raspagem inteligente
   const draw = useCallback((e: MouseEvent | TouchEvent) => {
-    console.log('🔥 DRAW function called');
     const canvas = canvasRef.current;
-    if (!canvas || isRevealed) {
-      console.log('🔥 DRAW cancelled - no canvas or already revealed');
+    if (!canvas || isRevealed || isVerifying || !canvasFullyLoaded) {
       return;
     }
 
     const ctx = canvas.getContext('2d', { willReadFrequently: true });
-    if (!ctx) {
-      console.log('🔥 DRAW cancelled - no context');
-      return;
-    }
+    if (!ctx) return;
 
     const rect = canvas.getBoundingClientRect();
     
@@ -230,16 +322,13 @@ const ScratchGameCanvas = ({ symbols, onWin, onComplete, scratchType = 'sorte', 
     const x = (clientX - rect.left) * scaleX;
     const y = (clientY - rect.top) * scaleY;
 
-    console.log('🔥 Drawing at coordinates:', { x, y });
-
     ctx.globalCompositeOperation = 'destination-out';
     ctx.beginPath();
     ctx.arc(x, y, 25, 0, Math.PI * 2);
     ctx.fill();
     
-    console.log('🔥 Calling checkScratchProgress...');
     checkScratchProgress();
-  }, [isRevealed, checkScratchProgress]);
+  }, [isRevealed, isVerifying, canvasFullyLoaded, checkScratchProgress]);
 
   // Eventos do canvas - usando useRef para evitar dependências instáveis
   const isReallyScratching = useRef(false);
@@ -330,25 +419,51 @@ const ScratchGameCanvas = ({ symbols, onWin, onComplete, scratchType = 'sorte', 
     console.log('🎯 Canvas ref changed, current canvas:', !!canvasRef.current);
   }, [canvasRef.current]);
 
-  // Inicializar quando símbolos mudarem - apenas uma vez
+  // Inicializar canvas primeiro, grid depois
   useEffect(() => {
     console.log('🎯 ScratchGameCanvas useEffect called with symbols:', symbols.length);
     if (symbols.length > 0 && !isRevealed) {
-      renderGrid();
-      resetCanvas(scratchType);
-      console.log('🎯 Grid and canvas initialized');
+      resetCanvas(scratchType); // Canvas primeiro
+      console.log('🎯 Canvas reset initiated');
     }
-  }, [symbols.length, scratchType]); // Depende do tamanho do array e do tipo
+  }, [symbols.length, scratchType, resetCanvas]);
+
+  // Renderizar grid só quando canvas estiver carregado
+  useEffect(() => {
+    if (canvasFullyLoaded && symbols.length > 0) {
+      renderGrid();
+      console.log('🎯 Grid rendered after canvas load');
+    }
+  }, [canvasFullyLoaded, symbols.length, renderGrid]);
 
   return (
     <div className={cn("relative w-full max-w-sm mx-auto", className)}>
       {/* Remover indicador de progresso conforme solicitado */}
       
+      {/* Loading indicator enquanto canvas não carregou */}
+      {!canvasFullyLoaded && (
+        <div className="absolute inset-0 z-30 flex items-center justify-center bg-background/80">
+          <div className="text-center space-y-2">
+            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto" />
+            <p className="text-sm text-muted-foreground">Preparando raspadinha...</p>
+          </div>
+        </div>
+      )}
+
       {/* Instrução inicial */}
-      {scratchProgress === 0 && (
+      {canvasFullyLoaded && scratchProgress === 0 && !isVerifying && (
         <div className="absolute inset-0 z-30 flex items-center justify-center pointer-events-none">
           <div className="bg-black/70 text-white px-4 py-2 rounded-lg text-sm font-medium">
             👆 Raspe gradualmente para revelar os prêmios
+          </div>
+        </div>
+      )}
+
+      {/* Indicador de verificação */}
+      {isVerifying && (
+        <div className="absolute inset-0 z-30 flex items-center justify-center pointer-events-none">
+          <div className="bg-primary/90 text-white px-6 py-3 rounded-lg text-sm font-medium animate-pulse">
+            🔍 Verificando combinação...
           </div>
         </div>
       )}
