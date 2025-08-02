@@ -97,6 +97,7 @@ const ScratchCardGame = () => {
   const handlePlayAgain = () => {
     setShowResult(false);
     setGameStarted(false);
+    // Gerar nova raspadinha e cobrar automaticamente
     generateScratchCard();
   };
 
@@ -209,11 +210,7 @@ const ScratchCardGame = () => {
                     <Button 
                       variant="outline" 
                       size="sm"
-                      onClick={() => {
-                        setShowResult(false);
-                        setGameStarted(false);
-                        generateScratchCard();
-                      }}
+                      onClick={handlePlayAgain}
                       className="flex-1"
                     >
                       Nova Raspadinha

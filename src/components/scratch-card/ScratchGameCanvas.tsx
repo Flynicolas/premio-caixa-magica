@@ -28,6 +28,7 @@ const ScratchGameCanvas = forwardRef<{ revealAll: () => void }, ScratchGameCanva
   const [scratchProgress, setScratchProgress] = useState(0);
   const [canvasFullyLoaded, setCanvasFullyLoaded] = useState(false);
   const [isVerifying, setIsVerifying] = useState(false);
+  const [revealedPositions, setRevealedPositions] = useState<boolean[]>(Array(9).fill(false));
   const lastProgressCheck = useRef(Date.now());
   const progressCheckInterval = 50;
   const scratchAreas = useRef<ScratchAreaMap>({ center: 0, corners: 0, sides: 0 });
@@ -154,6 +155,7 @@ const ScratchGameCanvas = forwardRef<{ revealAll: () => void }, ScratchGameCanva
     setIsRevealed(false);
     setScratchProgress(0);
     setIsVerifying(false);
+    setRevealedPositions(Array(9).fill(false));
     scratchAreas.current = { center: 0, corners: 0, sides: 0 };
     lastProgressCheck.current = Date.now();
   }, []);
@@ -173,10 +175,11 @@ const ScratchGameCanvas = forwardRef<{ revealAll: () => void }, ScratchGameCanva
     const ctx = canvas.getContext('2d');
     if (!ctx) return;
 
-    // Mapear áreas de raspagem em grid 3x3
+    // Mapear áreas de raspagem em grid 3x3 e atualizar posições reveladas
     const areaWidth = canvas.width / 3;
     const areaHeight = canvas.height / 3;
     const newAreas = { center: 0, corners: 0, sides: 0 };
+    const newRevealedPositions = [...revealedPositions];
     let totalCleared = 0;
     let totalPixels = 0;
 
@@ -208,6 +211,11 @@ const ScratchGameCanvas = forwardRef<{ revealAll: () => void }, ScratchGameCanva
 
         const areaPercent = (areaCleared / areaTotal) * 100;
         
+        // Marcar posição como revelada se mais de 60% foi raspada
+        if (areaPercent > 60) {
+          newRevealedPositions[index] = true;
+        }
+        
         // Classificar área e aplicar peso
         if (index === 4) { // Centro
           newAreas.center = areaPercent;
@@ -221,6 +229,9 @@ const ScratchGameCanvas = forwardRef<{ revealAll: () => void }, ScratchGameCanva
         totalPixels += areaTotal;
       }
     }
+
+    // Atualizar posições reveladas
+    setRevealedPositions(newRevealedPositions);
 
     // Atualizar áreas de raspagem
     scratchAreas.current = newAreas;
@@ -236,6 +247,9 @@ const ScratchGameCanvas = forwardRef<{ revealAll: () => void }, ScratchGameCanva
     const finalProgress = Math.max(rawProgress, weightedProgress);
     
     setScratchProgress(Math.round(finalProgress));
+    
+    // Verificar vitória em tempo real das posições reveladas
+    checkWinFromRevealedPositions(newRevealedPositions);
     
     // Revelação inteligente aos 80% ponderados
     if (finalProgress >= 80 && !isVerifying) {
@@ -258,21 +272,25 @@ const ScratchGameCanvas = forwardRef<{ revealAll: () => void }, ScratchGameCanva
               canvas.style.display = 'none';
               setIsRevealed(true);
               setScratchProgress(100);
-              checkWin();
+              setRevealedPositions(Array(9).fill(true));
+              checkWinFromRevealedPositions(Array(9).fill(true));
             }
           };
           dissolveAnimation();
         }
       }, 1000);
     }
-  }, [isRevealed, isVerifying, progressCheckInterval]);
+  }, [isRevealed, isVerifying, progressCheckInterval, revealedPositions]);
 
-  // Verificar vitória
-  const checkWin = useCallback(() => {
-    if (!symbols.length) return;
+  // Verificar vitória baseada nas posições reveladas
+  const checkWinFromRevealedPositions = useCallback((positions: boolean[]) => {
+    if (!symbols.length || isVerifying) return;
 
+    // Contar apenas símbolos das posições reveladas
+    const revealedSymbols = symbols.filter((_, index) => positions[index]);
     const count: { [key: string]: number } = {};
-    symbols.forEach(({ name }) => {
+    
+    revealedSymbols.forEach(({ name }) => {
       count[name] = (count[name] || 0) + 1;
     });
 
@@ -284,8 +302,16 @@ const ScratchGameCanvas = forwardRef<{ revealAll: () => void }, ScratchGameCanva
       }
     }
     
-    onComplete();
-  }, [symbols, onWin, onComplete]);
+    // Se todas as posições foram reveladas e não há vitória
+    if (positions.every(pos => pos)) {
+      onComplete();
+    }
+  }, [symbols, onWin, onComplete, isVerifying]);
+
+  // Verificar vitória (método legado mantido para compatibilidade)
+  const checkWin = useCallback(() => {
+    checkWinFromRevealedPositions(Array(9).fill(true));
+  }, [checkWinFromRevealedPositions]);
 
   // Destacar símbolos vencedores
   const highlightWinners = useCallback((winningSymbol: string) => {
@@ -344,6 +370,10 @@ const ScratchGameCanvas = forwardRef<{ revealAll: () => void }, ScratchGameCanva
 
     setIsVerifying(true);
     
+    // Marcar todas as posições como reveladas imediatamente
+    const allRevealed = Array(9).fill(true);
+    setRevealedPositions(allRevealed);
+    
     // Animação de revelação automática
     setTimeout(() => {
       let opacity = 1;
@@ -357,12 +387,12 @@ const ScratchGameCanvas = forwardRef<{ revealAll: () => void }, ScratchGameCanva
           canvas.style.display = 'none';
           setIsRevealed(true);
           setScratchProgress(100);
-          checkWin();
+          checkWinFromRevealedPositions(allRevealed);
         }
       };
       dissolveAnimation();
     }, 1000);
-  }, [isRevealed, checkWin]);
+  }, [isRevealed, checkWinFromRevealedPositions]);
 
   // Expor função revealAll para o componente pai via useImperativeHandle
   useImperativeHandle(ref, () => ({

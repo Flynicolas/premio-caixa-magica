@@ -144,12 +144,17 @@ const ScratchCardResult = ({
               </div>
 
               <div>
-                <h3 className="text-lg font-semibold text-gray-600 mb-2">
+                <h3 className="text-lg font-semibold text-red-500 mb-2">
                   Não foi desta vez!
                 </h3>
-                <p className="text-sm text-muted-foreground">
-                  Você não conseguiu 3 símbolos iguais. Tente novamente!
+                <p className="text-sm text-muted-foreground mb-4">
+                  Você não conseguiu 3 símbolos iguais. Que tal tentar novamente?
                 </p>
+                <div className="p-3 bg-gradient-to-r from-orange-100 to-red-100 rounded-lg border border-orange-200">
+                  <p className="text-sm font-medium text-orange-800">
+                    🎯 Sua sorte pode estar na próxima raspadinha!
+                  </p>
+                </div>
               </div>
             </motion.div>
           )}
@@ -157,11 +162,11 @@ const ScratchCardResult = ({
           <div className="flex gap-2">
             <Button
               onClick={onPlayAgain}
-              className="flex-1"
+              className="flex-1 bg-gradient-to-r from-orange-500 to-red-500 hover:from-orange-600 hover:to-red-600"
               variant={hasWin ? "default" : "default"}
             >
               <RotateCcw className="h-4 w-4 mr-2" />
-              Jogar Novamente
+              {hasWin ? "Jogar Novamente" : "Tentar Novamente"}
             </Button>
             <Button onClick={onClose} variant="outline">
               Fechar
