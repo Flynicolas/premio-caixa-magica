@@ -31,6 +31,7 @@ import TestePagamento from "./pages/TestePagamento";
 import TesteSucesso from "./pages/TesteSucesso";
 import TesteErro from "./pages/TesteErro";
 import TesteDePagamento from "./pages/TesteDePagamento";
+import Rascunho from "./pages/Rascunho";
 import { WalletProvider } from "@/hooks/useWalletProvider";
 
 const queryClient = new QueryClient();
@@ -75,6 +76,7 @@ const App = () => {
                     <Route path="/teste-pagamento" element={<TestePagamento />} />
                     <Route path="/teste-sucesso" element={<TesteSucesso />} />
                     <Route path="/teste-erro" element={<TesteErro />} />
+                    <Route path="/rascunho" element={<Rascunho />} />
                     <Route path="*" element={<NotFound />} />
                   </Routes>
                 </main>
