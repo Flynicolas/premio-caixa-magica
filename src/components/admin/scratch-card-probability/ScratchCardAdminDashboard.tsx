@@ -6,68 +6,52 @@ import { Settings2, BarChart3, TrendingUp, Sparkles } from 'lucide-react';
 import ScratchCardProbabilityManager from './ScratchCardProbabilityManager';
 import ScratchCardFinancialControl from './ScratchCardFinancialControl';
 import { ScratchCard90TenControl } from './ScratchCard90TenControl';
+import { ScratchCardConfigurationPanel } from './ScratchCardConfigurationPanel';
 import { useScratchCardManagement } from '@/hooks/useScratchCardManagement';
-
-const SCRATCH_TYPES = [
-  { 
-    value: 'classic', 
-    label: 'Clássica', 
-    color: 'bg-blue-500',
-    price: 5.00,
-    description: 'Raspadinha básica para iniciantes'
-  },
-  { 
-    value: 'premium', 
-    label: 'Premium', 
-    color: 'bg-purple-500',
-    price: 10.00,
-    description: 'Prêmios intermediários com melhor valor'
-  },
-  { 
-    value: 'mega', 
-    label: 'Mega', 
-    color: 'bg-yellow-500',
-    price: 25.00,
-    description: 'Grandes prêmios e melhores chances'
-  },
-  { 
-    value: 'supreme', 
-    label: 'Supreme', 
-    color: 'bg-red-500',
-    price: 50.00,
-    description: 'Prêmios exclusivos e máximo valor'
-  }
-];
+import { useScratchCardAdministration } from '@/hooks/useScratchCardAdministration';
+import { scratchCardTypes } from '@/types/scratchCard';
 
 const ScratchCardAdminDashboard = () => {
   const [activeTab, setActiveTab] = useState('overview');
   const { probabilities, loading, getTotalWeight, getProbabilitiesByType } = useScratchCardManagement();
+  const { settings, loading: settingsLoading } = useScratchCardAdministration();
 
-  const getOverviewStats = () => {
-    const stats = SCRATCH_TYPES.map(type => {
-      const typeProbs = getProbabilitiesByType(type.value);
-      const totalWeight = getTotalWeight(type.value);
+  // Criar stats dinâmicos baseados nos dados do banco
+  const getDynamicOverviewStats = () => {
+    // Combinar dados do frontend e backend
+    const dynamicTypes = settings.map(setting => {
+      const frontendType = Object.entries(scratchCardTypes).find(
+        ([key]) => key === setting.scratch_type
+      );
+      
+      const typeProbs = getProbabilitiesByType(setting.scratch_type);
+      const totalWeight = getTotalWeight(setting.scratch_type);
       
       return {
-        ...type,
+        value: setting.scratch_type,
+        label: setting.name,
+        price: setting.price,
+        color: frontendType ? frontendType[1].bgColor : 'bg-gray-500',
+        description: frontendType ? frontendType[1].name : setting.name,
         itemCount: typeProbs.length,
         totalWeight,
-        isConfigured: typeProbs.length > 0
+        isConfigured: typeProbs.length > 0,
+        isActive: setting.is_active
       };
     });
 
     return {
-      totalTypes: SCRATCH_TYPES.length,
-      configuredTypes: stats.filter(s => s.isConfigured).length,
+      totalTypes: dynamicTypes.length,
+      configuredTypes: dynamicTypes.filter(s => s.isConfigured).length,
       totalItems: probabilities.length,
-      averageItemsPerType: Math.round(probabilities.length / SCRATCH_TYPES.length),
-      stats
+      averageItemsPerType: dynamicTypes.length > 0 ? Math.round(probabilities.length / dynamicTypes.length) : 0,
+      stats: dynamicTypes
     };
   };
 
-  const overview = getOverviewStats();
+  const overview = getDynamicOverviewStats();
 
-  if (loading) {
+  if (loading || settingsLoading) {
     return (
       <Card>
         <CardContent className="p-6">
@@ -100,10 +84,14 @@ const ScratchCardAdminDashboard = () => {
       </div>
 
       <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-        <TabsList className="grid w-full grid-cols-5">
+        <TabsList className="grid w-full grid-cols-6">
           <TabsTrigger value="overview" className="gap-2">
             <BarChart3 className="w-4 h-4" />
             Visão Geral
+          </TabsTrigger>
+          <TabsTrigger value="types" className="gap-2">
+            <Settings2 className="w-4 h-4" />
+            Tipos de Raspadinha
           </TabsTrigger>
           <TabsTrigger value="manage" className="gap-2">
             <Settings2 className="w-4 h-4" />
@@ -201,6 +189,11 @@ const ScratchCardAdminDashboard = () => {
               </Card>
             ))}
           </div>
+        </TabsContent>
+
+        {/* Tipos de Raspadinha */}
+        <TabsContent value="types">
+          <ScratchCardConfigurationPanel />
         </TabsContent>
 
         {/* Gerenciar Itens */}
