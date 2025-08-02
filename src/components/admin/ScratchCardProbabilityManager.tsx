@@ -77,7 +77,7 @@ const ScratchCardProbabilityManager = ({ items, onRefresh }: ScratchCardProbabil
           min_quantity: prob.min_quantity,
           max_quantity: prob.max_quantity,
           is_active: prob.is_active,
-          item: (prob.item && typeof prob.item === 'object' && prob.item !== null && 'id' in prob.item) ? prob.item as unknown as DatabaseItem : undefined
+          item: prob.item ? prob.item as unknown as DatabaseItem : undefined
         };
 
         if (!acc[typedProb.scratch_type]) {
