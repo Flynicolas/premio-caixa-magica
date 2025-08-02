@@ -3,7 +3,6 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Badge } from '@/components/ui/badge';
 import { Settings2, BarChart3, TrendingUp, Sparkles } from 'lucide-react';
-import ScratchCardProbabilityManager from './ScratchCardProbabilityManager';
 import ScratchCardFinancialControl from './ScratchCardFinancialControl';
 import { ScratchCard90TenControl } from './ScratchCard90TenControl';
 import { ScratchCardConfigurationPanel } from './ScratchCardConfigurationPanel';
@@ -84,26 +83,18 @@ const ScratchCardAdminDashboard = () => {
       </div>
 
       <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-        <TabsList className="grid w-full grid-cols-6">
+        <TabsList className="grid w-full grid-cols-4">
           <TabsTrigger value="overview" className="gap-2">
             <BarChart3 className="w-4 h-4" />
             Visão Geral
           </TabsTrigger>
-          <TabsTrigger value="types" className="gap-2">
+          <TabsTrigger value="items-management" className="gap-2">
             <Settings2 className="w-4 h-4" />
-            Tipos de Raspadinha
+            Gerenciamento de Itens
           </TabsTrigger>
-          <TabsTrigger value="manage" className="gap-2">
-            <Settings2 className="w-4 h-4" />
-            Gerenciar Itens
-          </TabsTrigger>
-          <TabsTrigger value="financial" className="gap-2">
+          <TabsTrigger value="financial-control" className="gap-2">
             <TrendingUp className="w-4 h-4" />
             Controle Financeiro
-          </TabsTrigger>
-          <TabsTrigger value="system-90-10" className="gap-2">
-            <TrendingUp className="w-4 h-4" />
-            Sistema 90/10
           </TabsTrigger>
           <TabsTrigger value="settings" className="gap-2">
             <Settings2 className="w-4 h-4" />
@@ -191,24 +182,17 @@ const ScratchCardAdminDashboard = () => {
           </div>
         </TabsContent>
 
-        {/* Tipos de Raspadinha */}
-        <TabsContent value="types">
+        {/* Gerenciamento de Itens Unificado */}
+        <TabsContent value="items-management">
           <ScratchCardConfigurationPanel />
         </TabsContent>
 
-        {/* Gerenciar Itens */}
-        <TabsContent value="manage">
-          <ScratchCardProbabilityManager />
-        </TabsContent>
-
-        {/* Controle Financeiro */}
-        <TabsContent value="financial">
-          <ScratchCardFinancialControl />
-        </TabsContent>
-
-        {/* Sistema 90/10 */}
-        <TabsContent value="system-90-10">
-          <ScratchCard90TenControl />
+        {/* Controle Financeiro Unificado */}
+        <TabsContent value="financial-control">
+          <div className="space-y-6">
+            <ScratchCardFinancialControl />
+            <ScratchCard90TenControl />
+          </div>
         </TabsContent>
 
         {/* Configurações */}
