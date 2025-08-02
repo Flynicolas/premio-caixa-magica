@@ -1274,11 +1274,15 @@ export type Database = {
         Row: {
           cards_played: number | null
           created_at: string | null
+          daily_budget_prizes: number | null
           date: string
           goal_reached: boolean | null
           id: string
           net_profit: number | null
+          percentage_prizes: number | null
+          percentage_profit: number | null
           profit_goal: number | null
+          remaining_budget: number | null
           scratch_type: string
           total_prizes_given: number | null
           total_sales: number | null
@@ -1287,11 +1291,15 @@ export type Database = {
         Insert: {
           cards_played?: number | null
           created_at?: string | null
+          daily_budget_prizes?: number | null
           date?: string
           goal_reached?: boolean | null
           id?: string
           net_profit?: number | null
+          percentage_prizes?: number | null
+          percentage_profit?: number | null
           profit_goal?: number | null
+          remaining_budget?: number | null
           scratch_type: string
           total_prizes_given?: number | null
           total_sales?: number | null
@@ -1300,11 +1308,15 @@ export type Database = {
         Update: {
           cards_played?: number | null
           created_at?: string | null
+          daily_budget_prizes?: number | null
           date?: string
           goal_reached?: boolean | null
           id?: string
           net_profit?: number | null
+          percentage_prizes?: number | null
+          percentage_profit?: number | null
           profit_goal?: number | null
+          remaining_budget?: number | null
           scratch_type?: string
           total_prizes_given?: number | null
           total_sales?: number | null

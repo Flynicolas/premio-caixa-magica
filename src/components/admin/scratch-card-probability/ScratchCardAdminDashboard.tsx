@@ -5,6 +5,7 @@ import { Badge } from '@/components/ui/badge';
 import { Settings2, BarChart3, TrendingUp, Sparkles } from 'lucide-react';
 import ScratchCardProbabilityManager from './ScratchCardProbabilityManager';
 import ScratchCardFinancialControl from './ScratchCardFinancialControl';
+import { ScratchCard90TenControl } from './ScratchCard90TenControl';
 import { useScratchCardManagement } from '@/hooks/useScratchCardManagement';
 
 const SCRATCH_TYPES = [
@@ -99,7 +100,7 @@ const ScratchCardAdminDashboard = () => {
       </div>
 
       <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-        <TabsList className="grid w-full grid-cols-4">
+        <TabsList className="grid w-full grid-cols-5">
           <TabsTrigger value="overview" className="gap-2">
             <BarChart3 className="w-4 h-4" />
             Visão Geral
@@ -111,6 +112,10 @@ const ScratchCardAdminDashboard = () => {
           <TabsTrigger value="financial" className="gap-2">
             <TrendingUp className="w-4 h-4" />
             Controle Financeiro
+          </TabsTrigger>
+          <TabsTrigger value="system-90-10" className="gap-2">
+            <TrendingUp className="w-4 h-4" />
+            Sistema 90/10
           </TabsTrigger>
           <TabsTrigger value="settings" className="gap-2">
             <Settings2 className="w-4 h-4" />
@@ -206,6 +211,11 @@ const ScratchCardAdminDashboard = () => {
         {/* Controle Financeiro */}
         <TabsContent value="financial">
           <ScratchCardFinancialControl />
+        </TabsContent>
+
+        {/* Sistema 90/10 */}
+        <TabsContent value="system-90-10">
+          <ScratchCard90TenControl />
         </TabsContent>
 
         {/* Configurações */}
