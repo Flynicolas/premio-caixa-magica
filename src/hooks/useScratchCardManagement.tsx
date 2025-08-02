@@ -46,7 +46,7 @@ export const useScratchCardManagement = () => {
         .from('scratch_card_settings')
         .select('*')
         .eq('is_active', true)
-        .order('created_at');
+        .order('scratch_type');
 
       if (error) throw error;
       setScratchTypes(data || []);
