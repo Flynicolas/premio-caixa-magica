@@ -211,8 +211,8 @@ const ScratchGameCanvas = forwardRef<{ revealAll: () => void }, ScratchGameCanva
 
         const areaPercent = (areaCleared / areaTotal) * 100;
         
-        // Marcar posição como revelada se mais de 75% foi raspada
-        if (areaPercent > 75) {
+        // Marcar posição como revelada se mais de 70% foi raspada (mais sensível)
+        if (areaPercent > 70) {
           newRevealedPositions[index] = true;
         }
         
@@ -236,12 +236,12 @@ const ScratchGameCanvas = forwardRef<{ revealAll: () => void }, ScratchGameCanva
     // Atualizar áreas de raspagem
     scratchAreas.current = newAreas;
 
-    // Cálculo de progresso ponderado com peso reduzido do centro
+    // Cálculo de progresso ponderado com peso mais balanceado
     const weightedProgress = (
-      newAreas.center * 2 +  // Centro vale 2x (reduzido de 3x)
-      newAreas.corners * 1 + // Cantos valem 1x
-      newAreas.sides * 2     // Lados valem 2x
-    ) / 5; // Normalizar (2+1+2 = 5)
+      newAreas.center * 1.5 +  // Centro vale 1.5x (mais reduzido)
+      newAreas.corners * 1 +   // Cantos valem 1x
+      newAreas.sides * 1.5     // Lados valem 1.5x
+    ) / 4; // Normalizar (1.5+1+1.5 = 4)
 
     const rawProgress = (totalCleared / totalPixels) * 100;
     const finalProgress = Math.max(rawProgress, weightedProgress);
@@ -251,19 +251,19 @@ const ScratchGameCanvas = forwardRef<{ revealAll: () => void }, ScratchGameCanva
     // Verificar vitória em tempo real das posições reveladas
     checkWinFromRevealedPositions(newRevealedPositions);
     
-    // Revelação inteligente aos 85% ponderados
+    // Revelação mais robusta aos 85% ponderados
     if (finalProgress >= 85 && !isVerifying) {
       setIsVerifying(true);
       console.log('🔥 Iniciando verificação de resultado...');
       
-      // Delay realístico de 1 segundo
+      // Delay mais curto para melhor responsividade  
       setTimeout(() => {
         const canvas = canvasRef.current;
         if (canvas) {
-          // Animação de dissolução gradual
+          // Animação de dissolução mais rápida
           let opacity = 1;
           const dissolveAnimation = () => {
-            opacity -= 0.1;
+            opacity -= 0.15;
             canvas.style.opacity = opacity.toString();
             
             if (opacity > 0) {
@@ -278,7 +278,7 @@ const ScratchGameCanvas = forwardRef<{ revealAll: () => void }, ScratchGameCanva
           };
           dissolveAnimation();
         }
-      }, 1000);
+      }, 800);
     }
   }, [isRevealed, isVerifying, progressCheckInterval, revealedPositions]);
 

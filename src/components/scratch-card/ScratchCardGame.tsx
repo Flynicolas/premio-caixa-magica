@@ -194,33 +194,15 @@ const ScratchCardGame = () => {
                       </Button>
                     )}
                     
-                    {gamePhase === 'playing' && (
-                      <AlertDialog>
-                        <AlertDialogTrigger asChild>
-                          <Button 
-                            variant="outline" 
-                            className="flex-1"
-                          >
-                            Revelar Tudo
-                          </Button>
-                        </AlertDialogTrigger>
-                        <AlertDialogContent>
-                          <AlertDialogHeader>
-                            <AlertDialogTitle>Revelar todos os símbolos?</AlertDialogTitle>
-                            <AlertDialogDescription>
-                              Tem certeza que deseja revelar automaticamente todos os símbolos? 
-                              Isso irá finalizar o jogo imediatamente.
-                            </AlertDialogDescription>
-                          </AlertDialogHeader>
-                          <AlertDialogFooter>
-                            <AlertDialogCancel>Cancelar</AlertDialogCancel>
-                            <AlertDialogAction onClick={handleRevealAll}>
-                              Sim, revelar tudo
-                            </AlertDialogAction>
-                          </AlertDialogFooter>
-                        </AlertDialogContent>
-                      </AlertDialog>
-                    )}
+                     {gamePhase === 'playing' && (
+                       <Button 
+                         onClick={handleRevealAll}
+                         variant="outline" 
+                         className="flex-1"
+                       >
+                         Revelar Tudo
+                       </Button>
+                     )}
                     
                     {gamePhase === 'complete' && (
                       <Button 
