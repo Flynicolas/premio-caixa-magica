@@ -13,6 +13,8 @@ import ScratchCardResult from '@/components/scratch-card/ScratchCardResult';
 import ScratchCardLoader from '@/components/scratch-card/ScratchCardLoader';
 import ScratchCardAnimations from '@/components/scratch-card/ScratchCardAnimations';
 import ScratchCardPrizeCatalog from '@/components/scratch-card/ScratchCardPrizeCatalog';
+import ScratchWinModal from '@/components/scratch-card/ScratchWinModal';
+import ScratchLossToast from '@/components/scratch-card/ScratchLossToast';
 import PixTestModal from '@/components/PixTestModal';
 import { Coins, Sparkles, X, Star, Diamond, Crown, Eye } from 'lucide-react';
 
@@ -30,9 +32,12 @@ const ScratchCardModal = ({ isOpen, onClose, selectedType, onAuthRequired }: Scr
   const [hasDetectedWin, setHasDetectedWin] = useState(false);
   const [showLoader, setShowLoader] = useState(false);
   const [imagesLoaded, setImagesLoaded] = useState(false);
-  const [gamePhase, setGamePhase] = useState<'ready' | 'playing' | 'complete'>('ready');
+  const [gamePhase, setGamePhase] = useState<'ready' | 'playing' | 'complete' | 'locked'>('ready');
   const [gameStarted, setGameStarted] = useState(false);
   const [showPrizeCatalog, setShowPrizeCatalog] = useState(false);
+  const [winningResult, setWinningResult] = useState<{type: 'item' | 'money', data: any} | null>(null);
+  const [showLossMessage, setShowLossMessage] = useState(false);
+  const [isRevealing, setIsRevealing] = useState(false);
   const canvasRef = useRef<{ revealAll: () => void } | null>(null);
   
   const {
@@ -101,9 +106,12 @@ const ScratchCardModal = ({ isOpen, onClose, selectedType, onAuthRequired }: Scr
     // Reset completo do jogo
     setShowResult(false);
     setHasDetectedWin(false);
+    setWinningResult(null);
+    setShowLossMessage(false);
     setImagesLoaded(false);
     setGamePhase('ready');
     setGameStarted(false);
+    setIsRevealing(false);
     resetGame();
     
     // Gerar nova raspadinha
@@ -112,14 +120,67 @@ const ScratchCardModal = ({ isOpen, onClose, selectedType, onAuthRequired }: Scr
   };
 
   const handleComplete = () => {
-    setGamePhase('complete');
-    setShowResult(true);
+    setGamePhase('locked');
+    // Verificar se ganhou algo
+    const winningCombination = checkWinningCombination();
+    
+    if (winningCombination) {
+      const winningItem = winningCombination.winningSymbol;
+      
+      // Determinar tipo de prêmio
+      if (winningItem.category === 'money' || winningItem.name.toLowerCase().includes('dinheiro') || winningItem.name.toLowerCase().includes('real')) {
+        setWinningResult({
+          type: 'money',
+          data: { amount: winningItem.base_value, name: winningItem.name }
+        });
+      } else {
+        setWinningResult({
+          type: 'item', 
+          data: winningItem
+        });
+      }
+      setHasDetectedWin(true);
+    } else {
+      // Mostrar mensagem de perda simples
+      setShowLossMessage(true);
+    }
   };
 
   const handleWin = (winningSymbol: string) => {
     console.log('🏆 Win detected with symbol:', winningSymbol);
     setHasDetectedWin(true);
-    setShowResult(true);
+  };
+
+  // Função para verificar combinação vencedora (do hook useScratchCard)
+  const checkWinningCombination = () => {
+    if (!scratchCard || !scratchCard.symbols) return null;
+
+    const symbolCount: Record<string, number[]> = {};
+    
+    scratchCard.symbols.forEach((symbol, index) => {
+      if (symbol) {
+        const symbolId = symbol.id;
+        if (!symbolCount[symbolId]) {
+          symbolCount[symbolId] = [];
+        }
+        symbolCount[symbolId].push(index);
+      }
+    });
+
+    // Verificar se algum símbolo aparece 3 ou mais vezes
+    for (const [symbolId, positions] of Object.entries(symbolCount)) {
+      if (positions.length >= 3) {
+        const winningSymbol = scratchCard.symbols[positions[0]];
+        if (winningSymbol) {
+          return {
+            pattern: positions.slice(0, 3),
+            winningSymbol
+          };
+        }
+      }
+    }
+
+    return null;
   };
 
   const handlePlayAgain = () => {
@@ -135,9 +196,16 @@ const ScratchCardModal = ({ isOpen, onClose, selectedType, onAuthRequired }: Scr
   };
 
   const handleRevealAll = () => {
-    setGamePhase('complete');
+    setIsRevealing(true);
+    setGamePhase('locked');
+    
     if (canvasRef.current) {
-      canvasRef.current.revealAll();
+      // Animação de 1-2 segundos apagando o canvas
+      setTimeout(() => {
+        canvasRef.current?.revealAll();
+        setIsRevealing(false);
+        handleComplete();
+      }, 1500);
     }
   };
 
@@ -147,6 +215,9 @@ const ScratchCardModal = ({ isOpen, onClose, selectedType, onAuthRequired }: Scr
     setGameStarted(false);
     setShowResult(false);
     setHasDetectedWin(false);
+    setWinningResult(null);
+    setShowLossMessage(false);
+    setIsRevealing(false);
     onClose();
   };
 
@@ -247,6 +318,16 @@ const ScratchCardModal = ({ isOpen, onClose, selectedType, onAuthRequired }: Scr
                             </div>
                           </div>
                         )}
+
+                        {/* Loading de revelação */}
+                        {isRevealing && (
+                          <div className="absolute inset-0 bg-background/80 backdrop-blur-sm rounded-2xl flex items-center justify-center z-20">
+                            <div className="text-center space-y-3">
+                              <div className="w-8 h-8 border-4 border-orange-500 border-t-transparent rounded-full animate-spin mx-auto"></div>
+                              <p className="text-sm text-muted-foreground font-medium">Revelando tudo...</p>
+                            </div>
+                          </div>
+                        )}
                         
                         <div className="flex justify-center">
                           {imagesLoaded && (
@@ -257,7 +338,7 @@ const ScratchCardModal = ({ isOpen, onClose, selectedType, onAuthRequired }: Scr
                               onComplete={handleComplete}
                               scratchType={selectedType}
                               gameStarted={gameStarted}
-                              disabled={gamePhase === 'ready'}
+                              disabled={gamePhase === 'ready' || gamePhase === 'locked' || isRevealing}
                               className="w-full max-w-[320px] sm:max-w-[400px] md:max-w-[500px] mx-auto"
                             />
                           )}
@@ -280,17 +361,18 @@ const ScratchCardModal = ({ isOpen, onClose, selectedType, onAuthRequired }: Scr
                         {gamePhase === 'playing' && (
                           <Button 
                             onClick={handleRevealAll}
-                            disabled={!imagesLoaded}
-                            className={`bg-gradient-to-r ${config.color} hover:opacity-90 text-white font-bold text-lg px-8 py-4 rounded-xl transition-all duration-300 shadow-xl hover:shadow-2xl transform hover:scale-105 w-full max-w-sm h-14`}
+                            disabled={!imagesLoaded || isRevealing}
+                            className={`bg-gradient-to-r ${config.color} hover:opacity-90 text-white font-bold text-lg px-8 py-4 rounded-xl transition-all duration-300 shadow-xl hover:shadow-2xl transform hover:scale-105 w-full max-w-sm h-14 disabled:opacity-50`}
                           >
                             <Sparkles className="w-5 h-5 mr-3" />
-                            Revelar Tudo
+                            {isRevealing ? 'Revelando...' : 'Revelar Tudo'}
                           </Button>
                         )}
                         
-                        {gamePhase === 'complete' && (
+                        {gamePhase === 'locked' && (
                           <Button 
                             onClick={handleRepeatGame}
+                            disabled={!canAfford}
                             className={`bg-gradient-to-r ${config.color} hover:opacity-90 text-white font-bold text-lg px-8 py-4 rounded-xl transition-all duration-300 shadow-xl hover:shadow-2xl transform hover:scale-105 w-full max-w-sm h-14`}
                           >
                             <Coins className="w-5 h-5 mr-3" />
@@ -341,19 +423,26 @@ const ScratchCardModal = ({ isOpen, onClose, selectedType, onAuthRequired }: Scr
         onLoadComplete={handleLoaderComplete}
       />
 
-      {/* Modal de resultado */}
-      {showResult && scratchCard && (
-        <ScratchCardResult
-          isOpen={showResult}
-          onClose={() => setShowResult(false)}
-          onPlayAgain={handlePlayAgain}
-          winningCombination={(scratchCard.hasWin || hasDetectedWin) && scratchCard.winningItem ? {
-            pattern: [0, 1, 2], // Mock pattern
-            winningSymbol: scratchCard.winningItem
-          } : null}
-          hasWin={scratchCard.hasWin || hasDetectedWin}
+      {/* Modal de ganho */}
+      {hasDetectedWin && winningResult && (
+        <ScratchWinModal
+          isOpen={hasDetectedWin && !!winningResult}
+          onClose={() => {
+            setHasDetectedWin(false);
+            setWinningResult(null);
+          }}
+          onPlayAgain={handleRepeatGame}
+          winType={winningResult.type}
+          winData={winningResult.data}
         />
       )}
+
+      {/* Toast de perda */}
+      <ScratchLossToast
+        isVisible={showLossMessage}
+        onClose={() => setShowLossMessage(false)}
+        onPlayAgain={handleRepeatGame}
+      />
 
       {/* Catálogo de prêmios */}
       <ScratchCardPrizeCatalog

@@ -6,6 +6,7 @@ export interface ScratchSymbol {
   rarity: string;
   base_value: number;
   isWinning: boolean;
+  category?: string;
 }
 
 export interface ScratchCard {
