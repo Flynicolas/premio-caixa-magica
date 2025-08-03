@@ -115,35 +115,49 @@ const Raspadinha = () => {
             </div>
           )}
 
-          {/* Descrição de Como Funciona */}
-          <Card>
-            <CardHeader>
-              <CardTitle className="text-lg">Como Funciona</CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-3 text-sm text-muted-foreground">
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                <div className="text-center">
-                  <div className="w-8 h-8 bg-primary text-primary-foreground rounded-full flex items-center justify-center mx-auto mb-2 font-bold">
+          {/* Descrição de Como Funciona - Moderna e Compacta */}
+          <Card className="bg-gradient-to-r from-primary/5 via-background to-secondary/5 border-primary/20">
+            <CardContent className="p-6">
+              <div className="text-center mb-4">
+                <h3 className="text-xl font-bold text-foreground mb-2">🎯 Como Jogar</h3>
+                <p className="text-muted-foreground text-sm">É simples e divertido!</p>
+              </div>
+              
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                <div className="flex items-center gap-3 md:flex-col md:text-center">
+                  <div className="w-12 h-12 bg-gradient-to-br from-primary to-primary/80 text-white rounded-xl flex items-center justify-center font-bold text-lg shadow-lg">
                     1
                   </div>
-                  <p><strong>Escolha</strong> o tipo de raspadinha que deseja jogar</p>
+                  <div className="flex-1">
+                    <h4 className="font-semibold text-foreground mb-1">Escolha & Pague</h4>
+                    <p className="text-sm text-muted-foreground">Selecione sua raspadinha favorita</p>
+                  </div>
                 </div>
-                <div className="text-center">
-                  <div className="w-8 h-8 bg-primary text-primary-foreground rounded-full flex items-center justify-center mx-auto mb-2 font-bold">
+                
+                <div className="flex items-center gap-3 md:flex-col md:text-center">
+                  <div className="w-12 h-12 bg-gradient-to-br from-secondary to-secondary/80 text-white rounded-xl flex items-center justify-center font-bold text-lg shadow-lg">
                     2
                   </div>
-                  <p><strong>Raspe</strong> os blocos para revelar os símbolos</p>
+                  <div className="flex-1">
+                    <h4 className="font-semibold text-foreground mb-1">Raspe & Descubra</h4>
+                    <p className="text-sm text-muted-foreground">Revele os símbolos secretos</p>
+                  </div>
                 </div>
-                <div className="text-center">
-                  <div className="w-8 h-8 bg-primary text-primary-foreground rounded-full flex items-center justify-center mx-auto mb-2 font-bold">
+                
+                <div className="flex items-center gap-3 md:flex-col md:text-center">
+                  <div className="w-12 h-12 bg-gradient-to-br from-green-500 to-green-600 text-white rounded-xl flex items-center justify-center font-bold text-lg shadow-lg">
                     3
                   </div>
-                  <p><strong>Ganhe</strong> se conseguir 3 símbolos iguais!</p>
+                  <div className="flex-1">
+                    <h4 className="font-semibold text-foreground mb-1">Ganhe Prêmios</h4>
+                    <p className="text-sm text-muted-foreground">3 símbolos iguais = vitória!</p>
+                  </div>
                 </div>
               </div>
-              <div className="text-center pt-4 border-t">
-                <p>
-                  <strong>Dica:</strong> Quanto maior o valor da raspadinha, maiores são os prêmios disponíveis!
+              
+              <div className="mt-6 p-4 bg-gradient-to-r from-yellow-500/10 to-orange-500/10 rounded-lg text-center border border-yellow-500/20">
+                <p className="text-sm font-medium text-foreground">
+                  💡 <strong>Dica Especial:</strong> Raspadinhas mais caras têm prêmios maiores e melhores chances!
                 </p>
               </div>
             </CardContent>
