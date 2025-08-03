@@ -1270,8 +1270,48 @@ export type Database = {
         }
         Relationships: []
       }
+      scratch_card_daily_budget: {
+        Row: {
+          budget_percentage: number
+          created_at: string
+          date: string
+          games_played: number
+          id: string
+          remaining_budget: number
+          scratch_type: string
+          total_prizes_given: number
+          total_sales: number
+          updated_at: string
+        }
+        Insert: {
+          budget_percentage?: number
+          created_at?: string
+          date?: string
+          games_played?: number
+          id?: string
+          remaining_budget?: number
+          scratch_type: string
+          total_prizes_given?: number
+          total_sales?: number
+          updated_at?: string
+        }
+        Update: {
+          budget_percentage?: number
+          created_at?: string
+          date?: string
+          games_played?: number
+          id?: string
+          remaining_budget?: number
+          scratch_type?: string
+          total_prizes_given?: number
+          total_sales?: number
+          updated_at?: string
+        }
+        Relationships: []
+      }
       scratch_card_financial_control: {
         Row: {
+          budget_percentage: number | null
           cards_played: number | null
           created_at: string | null
           daily_budget_prizes: number | null
@@ -1289,6 +1329,7 @@ export type Database = {
           updated_at: string | null
         }
         Insert: {
+          budget_percentage?: number | null
           cards_played?: number | null
           created_at?: string | null
           daily_budget_prizes?: number | null
@@ -1306,6 +1347,7 @@ export type Database = {
           updated_at?: string | null
         }
         Update: {
+          budget_percentage?: number | null
           cards_played?: number | null
           created_at?: string | null
           daily_budget_prizes?: number | null
@@ -1323,6 +1365,53 @@ export type Database = {
           updated_at?: string | null
         }
         Relationships: []
+      }
+      scratch_card_games: {
+        Row: {
+          amount_paid: number
+          created_at: string
+          has_win: boolean
+          id: string
+          processed_at: string | null
+          scratch_type: string
+          symbols: Json
+          user_id: string
+          winning_amount: number | null
+          winning_item_id: string | null
+        }
+        Insert: {
+          amount_paid: number
+          created_at?: string
+          has_win?: boolean
+          id?: string
+          processed_at?: string | null
+          scratch_type: string
+          symbols: Json
+          user_id: string
+          winning_amount?: number | null
+          winning_item_id?: string | null
+        }
+        Update: {
+          amount_paid?: number
+          created_at?: string
+          has_win?: boolean
+          id?: string
+          processed_at?: string | null
+          scratch_type?: string
+          symbols?: Json
+          user_id?: string
+          winning_amount?: number | null
+          winning_item_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "scratch_card_games_winning_item_id_fkey"
+            columns: ["winning_item_id"]
+            isOneToOne: false
+            referencedRelation: "items"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       scratch_card_probabilities: {
         Row: {
@@ -1954,6 +2043,23 @@ export type Database = {
         Returns: {
           redemption_id: string
           status: string
+          message: string
+        }[]
+      }
+      process_scratch_card_game: {
+        Args: {
+          p_user_id: string
+          p_scratch_type: string
+          p_game_price: number
+          p_symbols: Json
+          p_has_win?: boolean
+          p_winning_item_id?: string
+          p_winning_amount?: number
+        }
+        Returns: {
+          game_id: string
+          wallet_balance: number
+          success: boolean
           message: string
         }[]
       }
