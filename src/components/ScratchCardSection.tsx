@@ -46,22 +46,23 @@ const ScratchCardSection = ({ onAuthRequired }: ScratchCardSectionProps) => {
 
   const { createTestPayment, processTestPayment, isLoading: isKirvanoLoading, showPixModal, setShowPixModal, pixData } = useKirvanoTest();
 
-  // Gerar raspadinha SEM cobrar (apenas mostrar)
-  const handleGenerate = async (forcedWin = false) => {
+  // Gerar raspadinha automaticamente ao selecionar tipo
+  const handleCardClick = async (type: ScratchCardType) => {
     if (!user) {
       onAuthRequired();
       return;
     }
 
-    const price = scratchCardTypes[selectedType].price;
-    if (!walletData || walletData.balance < price) {
-      return;
-    }
-
+    setSelectedType(type);
+    
     // Mostrar loader
     setShowLoader(true);
     setImagesLoaded(false);
     setGamePhase('ready');
+    setGameStarted(false);
+    setShowResult(false);
+    setHasDetectedWin(false);
+    resetGame();
 
     // Scroll para a área de jogo
     setTimeout(() => {
@@ -71,7 +72,7 @@ const ScratchCardSection = ({ onAuthRequired }: ScratchCardSectionProps) => {
       }
     }, 100);
 
-    await generateScratchCard(selectedType, forcedWin);
+    await generateScratchCard(type, false);
   };
 
   // Cobrar e iniciar jogo
@@ -86,29 +87,21 @@ const ScratchCardSection = ({ onAuthRequired }: ScratchCardSectionProps) => {
       return;
     }
 
-    // Aqui deveria debitar o saldo (integração com wallet)
+    // TODO: Integrar com sistema de carteira para debitar saldo
     console.log(`💰 Cobrando R$${price} para iniciar a raspagem`);
     
     setGamePhase('playing');
     setGameStarted(true);
   };
 
-  // Repetir jogo (cobrar novamente)
+  // Repetir jogo (nova raspadinha)
   const handleRepeatGame = async () => {
     if (!user) {
       onAuthRequired();
       return;
     }
-
-    const price = scratchCardTypes[selectedType].price;
-    if (!walletData || walletData.balance < price) {
-      return;
-    }
-
-    // Cobrar novamente
-    console.log(`💰 Cobrando R$${price} para repetir a raspagem`);
     
-    // Reset do jogo
+    // Reset completo do jogo
     setShowResult(false);
     setHasDetectedWin(false);
     setImagesLoaded(false);
@@ -204,18 +197,8 @@ const ScratchCardSection = ({ onAuthRequired }: ScratchCardSectionProps) => {
               const isSelected = selectedType === type;
               const canAfford = walletData && walletData.balance >= config.price;
               
-              const handleCardClick = () => {
-                setSelectedType(type);
-                // Scroll suave para o botão de compra
-                setTimeout(() => {
-                  const buyButton = document.getElementById('buy-button');
-                  if (buyButton) {
-                    buyButton.scrollIntoView({ 
-                      behavior: 'smooth', 
-                      block: 'center' 
-                    });
-                  }
-                }, 100);
+              const handleCardSelect = () => {
+                handleCardClick(type);
               };
               
               return (
@@ -226,7 +209,7 @@ const ScratchCardSection = ({ onAuthRequired }: ScratchCardSectionProps) => {
                       ? 'ring-4 ring-primary shadow-xl transform scale-105' 
                       : 'hover:shadow-md'
                   } ${!canAfford ? 'opacity-60' : ''} rounded-xl overflow-hidden`}
-                  onClick={handleCardClick}
+                  onClick={handleCardSelect}
                 >
                   {/* Imagem de capa preenchendo todo o card */}
                   <img
@@ -258,43 +241,22 @@ const ScratchCardSection = ({ onAuthRequired }: ScratchCardSectionProps) => {
             })}
           </div>
 
-          {/* Botão de Compra e Informações */}
-          <div className="text-center space-y-4">
-            {user && (
+          {/* Informações do usuário */}
+          {user && (
+            <div className="text-center">
               <div className="text-sm text-muted-foreground">
                 Seu saldo: <span className="font-bold text-primary">R$ {walletData?.balance.toFixed(2) || '0,00'}</span>
               </div>
-            )}
-
-            <div className="flex gap-2 flex-wrap justify-center">
-              <Button
-                id="buy-button"
-                onClick={() => handleGenerate(false)}
-                disabled={isLoading || !canAfford || !!scratchCard}
-                className={`px-8 py-3 bg-gradient-to-r ${scratchCardTypes[selectedType].color} hover:opacity-90 text-white font-semibold rounded-xl transition-all duration-300 shadow-lg`}
-              >
-                {isLoading ? (
-                  <>
-                    <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2" />
-                    Gerando...
-                  </>
-                ) : (
-                  <>
-                    <Coins className="w-4 h-4 mr-2" />
-                    Comprar por R$ {scratchCardTypes[selectedType].price.toFixed(2)}
-                  </>
-                )}
-              </Button>
             </div>
+          )}
 
-            {!user && (
-              <div className="text-center">
-                <Badge variant="outline" className="px-4 py-2">
-                  Faça login para jogar com dinheiro real
-                </Badge>
-              </div>
-            )}
-          </div>
+          {!user && (
+            <div className="text-center">
+              <Badge variant="outline" className="px-4 py-2">
+                Faça login para jogar com dinheiro real
+              </Badge>
+            </div>
+          )}
         </div>
       )}
 
@@ -341,6 +303,18 @@ const ScratchCardSection = ({ onAuthRequired }: ScratchCardSectionProps) => {
                     className="mx-auto"
                   />
                 )}
+                
+                {/* Bloqueio do canvas quando não pago */}
+                {gamePhase === 'ready' && (
+                  <div className="absolute inset-0 bg-black/50 rounded-xl flex items-center justify-center">
+                    <div className="text-center">
+                      <p className="text-white font-semibold mb-2">Clique no botão abaixo para começar a raspar</p>
+                      <div className="text-white/70 text-sm">
+                        R$ {scratchCardTypes[selectedType].price.toFixed(2)}
+                      </div>
+                    </div>
+                  </div>
+                )}
               </div>
 
               {/* Botão Dinâmico */}
@@ -370,11 +344,10 @@ const ScratchCardSection = ({ onAuthRequired }: ScratchCardSectionProps) => {
                 {gamePhase === 'complete' && (
                   <Button 
                     onClick={handleRepeatGame}
-                    disabled={!canAfford}
                     className={`bg-gradient-to-r ${scratchCardTypes[selectedType].color} hover:opacity-90 text-white font-semibold px-8 py-3 rounded-lg transition-all duration-300 shadow-lg hover:shadow-xl transform hover:scale-105`}
                   >
                     <Coins className="w-4 h-4 mr-2" />
-                    Repetir: R$ {scratchCardTypes[selectedType].price.toFixed(2)}
+                    Raspar: R$ {scratchCardTypes[selectedType].price.toFixed(2)}
                   </Button>
                 )}
               </div>

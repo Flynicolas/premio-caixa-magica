@@ -286,6 +286,9 @@ const ScratchGameCanvas = forwardRef<{ revealAll: () => void }, ScratchGameCanva
   const checkWinFromRevealedPositions = useCallback((positions: boolean[]) => {
     if (!symbols.length || isVerifying) return;
 
+    console.log('🎯 Verificando vitória com posições:', positions);
+    console.log('🎯 Símbolos disponíveis:', symbols.map(s => s.name));
+
     // Contar apenas símbolos das posições reveladas
     const revealedSymbols = symbols.filter((_, index) => positions[index]);
     const count: { [key: string]: number } = {};
@@ -294,8 +297,11 @@ const ScratchGameCanvas = forwardRef<{ revealAll: () => void }, ScratchGameCanva
       count[name] = (count[name] || 0) + 1;
     });
 
+    console.log('🎯 Contagem de símbolos revelados:', count);
+
     for (const symbolName in count) {
       if (count[symbolName] >= 3) {
+        console.log('🏆 VITÓRIA DETECTADA! Símbolo:', symbolName, 'Quantidade:', count[symbolName]);
         highlightWinners(symbolName);
         onWin(symbolName);
         return;
@@ -304,6 +310,7 @@ const ScratchGameCanvas = forwardRef<{ revealAll: () => void }, ScratchGameCanva
     
     // Se todas as posições foram reveladas e não há vitória
     if (positions.every(pos => pos)) {
+      console.log('❌ Jogo completo - sem vitória');
       onComplete();
     }
   }, [symbols, onWin, onComplete, isVerifying]);
