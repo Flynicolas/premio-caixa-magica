@@ -120,35 +120,41 @@ const ScratchCardModal = ({ isOpen, onClose, selectedType, onAuthRequired }: Scr
   const handleComplete = async () => {
     setGamePhase('locked');
     
-    // Verificar se ganhou algo
-    const winningCombination = checkWinningCombination();
-    const hasWin = !!winningCombination;
-    
-    // Processar o jogo no backend
-    const result = await processGame(selectedType, hasWin, winningCombination?.winningSymbol);
-    
-    if (result && result.success) {
-      if (hasWin && winningCombination) {
-        const winningItem = winningCombination.winningSymbol;
-        
-        // Determinar tipo de prêmio
-        if (winningItem.category === 'dinheiro' || winningItem.name.toLowerCase().includes('dinheiro') || winningItem.name.toLowerCase().includes('real')) {
-          setWinningResult({
-            type: 'money',
-            data: { amount: winningItem.base_value, name: winningItem.name }
-          });
-        } else {
-          setWinningResult({
-            type: 'item', 
-            data: winningItem
-          });
-        }
-        setHasDetectedWin(true);
-      } else {
-        // Mostrar mensagem de perda simples
-        setShowLossMessage(true);
+    // Dar um pequeno delay para que o usuário veja o resultado antes do processamento
+    setTimeout(async () => {
+      // Verificar se ganhou algo
+      const winningCombination = checkWinningCombination();
+      const hasWin = !!winningCombination;
+      
+      // Processar o jogo no backend
+      const result = await processGame(selectedType, hasWin, winningCombination?.winningSymbol);
+      
+      if (result && result.success) {
+        // Pequeno delay adicional para dar tempo de processar
+        setTimeout(() => {
+          if (hasWin && winningCombination) {
+            const winningItem = winningCombination.winningSymbol;
+            
+            // Determinar tipo de prêmio
+            if (winningItem.category === 'dinheiro' || winningItem.name.toLowerCase().includes('dinheiro') || winningItem.name.toLowerCase().includes('real')) {
+              setWinningResult({
+                type: 'money',
+                data: { amount: winningItem.base_value, name: winningItem.name }
+              });
+            } else {
+              setWinningResult({
+                type: 'item', 
+                data: winningItem
+              });
+            }
+            setHasDetectedWin(true);
+          } else {
+            // Mostrar mensagem de perda
+            setShowLossMessage(true);
+          }
+        }, 500);
       }
-    }
+    }, 200);
   };
 
   const handleWin = (winningSymbol: string) => {
@@ -302,24 +308,14 @@ const ScratchCardModal = ({ isOpen, onClose, selectedType, onAuthRequired }: Scr
                     />
 
                     <CardContent className="p-4 md:p-8 relative z-10">
-                      {/* Canvas da raspadinha - muito maior no mobile */}
-                      <div className="bg-background/90 backdrop-blur-sm rounded-2xl p-4 md:p-6 mb-6 relative">
-                        {/* Feedback visual quando jogo inicia */}
+                      {/* Canvas da raspadinha - área limpa de jogo */}
+                      <div className="bg-background/90 backdrop-blur-sm rounded-2xl p-4 md:p-6 mb-4 relative">
                         {/* Loading overlay quando não carregado */}
                         {!imagesLoaded && (
                           <div className="absolute inset-0 bg-background/80 backdrop-blur-sm rounded-2xl flex items-center justify-center z-20">
                             <div className="text-center space-y-3">
                               <div className="w-8 h-8 border-4 border-primary border-t-transparent rounded-full animate-spin mx-auto"></div>
                               <p className="text-sm text-muted-foreground font-medium">Preparando raspadinha...</p>
-                            </div>
-                          </div>
-                        )}
-                        
-                        {/* Feedback visual quando jogo inicia */}
-                        {gameStarted && gamePhase === 'playing' && imagesLoaded && (
-                          <div className="absolute top-4 left-4 right-4 z-20 animate-pulse">
-                            <div className="bg-green-500/90 text-white px-4 py-3 rounded-xl text-center font-semibold">
-                              🎮 Jogo iniciado! Raspe para revelar os prêmios!
                             </div>
                           </div>
                         )}
@@ -341,6 +337,7 @@ const ScratchCardModal = ({ isOpen, onClose, selectedType, onAuthRequired }: Scr
                               symbols={scratchCard.symbols}
                               onWin={handleWin}
                               onComplete={handleComplete}
+                              onScratchStart={() => setGamePhase('playing')}
                               scratchType={selectedType}
                               gameStarted={gameStarted}
                               disabled={gamePhase === 'ready' || gamePhase === 'locked' || isRevealing}
@@ -348,6 +345,33 @@ const ScratchCardModal = ({ isOpen, onClose, selectedType, onAuthRequired }: Scr
                             />
                           )}
                         </div>
+                      </div>
+
+                      {/* Área de feedback sutil embaixo do jogo */}
+                      <div className="text-center mb-4">
+                        {gamePhase === 'ready' && !gameStarted && imagesLoaded && (
+                          <p className="text-sm text-muted-foreground font-medium">
+                            💰 Clique em raspar para começar
+                          </p>
+                        )}
+                        
+                        {gamePhase === 'playing' && gameStarted && imagesLoaded && (
+                          <p className="text-sm text-green-600 font-medium animate-pulse">
+                            ✨ Raspe gradualmente para revelar os prêmios
+                          </p>
+                        )}
+                        
+                        {isRevealing && (
+                          <p className="text-sm text-orange-600 font-medium animate-pulse">
+                            🎰 Verificando combinações...
+                          </p>
+                        )}
+                        
+                        {gamePhase === 'locked' && !isRevealing && (
+                          <p className="text-sm text-muted-foreground font-medium">
+                            🎲 Jogo finalizado! Clique em "Raspar denovo" para jogar novamente
+                          </p>
+                        )}
                       </div>
 
                       {/* Botão Dinâmico - Muito maior no mobile */}

@@ -371,7 +371,7 @@ const ScratchGameCanvas = forwardRef<{ revealAll: () => void }, ScratchGameCanva
     checkScratchProgress();
   }, [isRevealed, isVerifying, canvasFullyLoaded, checkScratchProgress, gameStarted, onScratchStart]);
 
-  // Função para revelar tudo automaticamente
+  // Função para revelar tudo automaticamente com animação melhorada
   const revealAll = useCallback(() => {
     const canvas = canvasRef.current;
     if (!canvas || isRevealed) return;
@@ -382,24 +382,30 @@ const ScratchGameCanvas = forwardRef<{ revealAll: () => void }, ScratchGameCanva
     const allRevealed = Array(9).fill(true);
     setRevealedPositions(allRevealed);
     
-    // Animação de revelação automática
-    setTimeout(() => {
-      let opacity = 1;
-      const dissolveAnimation = () => {
-        opacity -= 0.1;
-        canvas.style.opacity = opacity.toString();
-        
-        if (opacity > 0) {
-          requestAnimationFrame(dissolveAnimation);
-        } else {
-          canvas.style.display = 'none';
-          setIsRevealed(true);
-          setScratchProgress(100);
-          checkWinFromRevealedPositions(allRevealed);
-        }
-      };
-      dissolveAnimation();
-    }, 1000);
+    // Animação de revelação automática com efeito mais suave
+    let opacity = 1;
+    let scale = 1;
+    
+    const dissolveAnimation = () => {
+      opacity -= 0.08;
+      scale += 0.01; // Leve zoom para dar sensação de "dissolução"
+      
+      canvas.style.opacity = opacity.toString();
+      canvas.style.transform = `scale(${scale})`;
+      
+      if (opacity > 0) {
+        requestAnimationFrame(dissolveAnimation);
+      } else {
+        canvas.style.display = 'none';
+        canvas.style.transform = 'scale(1)'; // Reset transform
+        setIsRevealed(true);
+        setScratchProgress(100);
+        checkWinFromRevealedPositions(allRevealed);
+      }
+    };
+    
+    // Começar animação imediatamente
+    dissolveAnimation();
   }, [isRevealed, checkWinFromRevealedPositions]);
 
   // Expor função revealAll para o componente pai via useImperativeHandle
@@ -517,45 +523,6 @@ const ScratchGameCanvas = forwardRef<{ revealAll: () => void }, ScratchGameCanva
 
   return (
     <div className={cn("relative w-full max-w-sm mx-auto", className)}>
-      {/* Remover indicador de progresso conforme solicitado */}
-      
-      {/* Loading indicator enquanto canvas não carregou */}
-      {!canvasFullyLoaded && (
-        <div className="absolute inset-0 z-30 flex items-center justify-center bg-background/80">
-          <div className="text-center space-y-2">
-            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto" />
-            <p className="text-sm text-muted-foreground">Preparando raspadinha...</p>
-          </div>
-        </div>
-      )}
-
-      {/* Instrução inicial - só mostra quando não está desabilitado */}
-      {canvasFullyLoaded && !disabled && scratchProgress === 0 && !isVerifying && (
-        <div className="absolute inset-0 z-30 flex items-center justify-center pointer-events-none">
-          <div className="bg-black/70 text-white px-4 py-2 rounded-lg text-sm font-medium">
-            👆 Raspe gradualmente para revelar os prêmios
-          </div>
-        </div>
-      )}
-
-      {/* Overlay quando desabilitado */}
-      {disabled && canvasFullyLoaded && (
-        <div className="absolute inset-0 z-30 flex items-center justify-center pointer-events-none">
-          <div className="bg-red-600/80 text-white px-4 py-2 rounded-lg text-center">
-            <p className="text-sm font-medium">🔒 Clique em "Raspar" para começar!</p>
-          </div>
-        </div>
-      )}
-
-      {/* Indicador de verificação */}
-      {isVerifying && (
-        <div className="absolute inset-0 z-30 flex items-center justify-center pointer-events-none">
-          <div className="bg-primary/90 text-white px-6 py-3 rounded-lg text-sm font-medium animate-pulse">
-            🔍 Verificando combinação...
-          </div>
-        </div>
-      )}
-
       {/* Grid de símbolos */}
       <div
         ref={gridRef}
@@ -563,7 +530,7 @@ const ScratchGameCanvas = forwardRef<{ revealAll: () => void }, ScratchGameCanva
         style={{ minHeight: '300px' }}
       />
       
-      {/* Canvas de raspagem */}
+      {/* Canvas de raspagem - área limpa sem overlays */}
       <canvas
         ref={canvasRef}
         width={400}
