@@ -211,8 +211,8 @@ const ScratchGameCanvas = forwardRef<{ revealAll: () => void }, ScratchGameCanva
 
         const areaPercent = (areaCleared / areaTotal) * 100;
         
-        // Marcar posição como revelada se mais de 60% foi raspada
-        if (areaPercent > 60) {
+        // Marcar posição como revelada se mais de 75% foi raspada
+        if (areaPercent > 75) {
           newRevealedPositions[index] = true;
         }
         
@@ -236,12 +236,12 @@ const ScratchGameCanvas = forwardRef<{ revealAll: () => void }, ScratchGameCanva
     // Atualizar áreas de raspagem
     scratchAreas.current = newAreas;
 
-    // Cálculo de progresso ponderado
+    // Cálculo de progresso ponderado com peso reduzido do centro
     const weightedProgress = (
-      newAreas.center * 3 +  // Centro vale 3x
+      newAreas.center * 2 +  // Centro vale 2x (reduzido de 3x)
       newAreas.corners * 1 + // Cantos valem 1x
       newAreas.sides * 2     // Lados valem 2x
-    ) / 6; // Normalizar (3+1+2 = 6)
+    ) / 5; // Normalizar (2+1+2 = 5)
 
     const rawProgress = (totalCleared / totalPixels) * 100;
     const finalProgress = Math.max(rawProgress, weightedProgress);
@@ -251,8 +251,8 @@ const ScratchGameCanvas = forwardRef<{ revealAll: () => void }, ScratchGameCanva
     // Verificar vitória em tempo real das posições reveladas
     checkWinFromRevealedPositions(newRevealedPositions);
     
-    // Revelação inteligente aos 80% ponderados
-    if (finalProgress >= 80 && !isVerifying) {
+    // Revelação inteligente aos 85% ponderados
+    if (finalProgress >= 85 && !isVerifying) {
       setIsVerifying(true);
       console.log('🔥 Iniciando verificação de resultado...');
       

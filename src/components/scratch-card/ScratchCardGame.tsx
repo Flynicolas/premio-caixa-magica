@@ -21,6 +21,7 @@ const ScratchCardGame = () => {
   const [winningSymbol, setWinningSymbol] = useState<string | null>(null);
   const [hasWin, setHasWin] = useState(false);
   const [gameStarted, setGameStarted] = useState(false);
+  const [gamePhase, setGamePhase] = useState<'ready' | 'playing' | 'complete'>('ready');
   const canvasRef = useRef<{ revealAll: () => void }>(null);
 
   console.log('🎯 ScratchCardGame render - symbols.length:', symbols.length);
@@ -60,6 +61,7 @@ const ScratchCardGame = () => {
   const handleScratchStart = async () => {
     if (!gameStarted && symbols.length > 0) {
       setGameStarted(true);
+      setGamePhase('playing');
       setResultMessage("Raspe para revelar");
       
       // Aqui é onde debitamos o dinheiro - quando o jogo realmente começa
@@ -90,6 +92,7 @@ const ScratchCardGame = () => {
   };
 
   const handleComplete = () => {
+    setGamePhase('complete');
     setResultMessage("Tente novamente!");
     setTimeout(() => setShowResult(true), 500);
   };
@@ -97,6 +100,7 @@ const ScratchCardGame = () => {
   const handlePlayAgain = () => {
     setShowResult(false);
     setGameStarted(false);
+    setGamePhase('ready');
     // Gerar nova raspadinha e cobrar automaticamente
     generateScratchCard();
   };
@@ -137,24 +141,26 @@ const ScratchCardGame = () => {
               </Select>
             </div>
 
-            <div className="flex gap-2">
-              <Button 
-                onClick={() => generateScratchCard()} 
-                disabled={isLoading}
-                className="flex-1"
-              >
-                {isLoading ? "Gerando..." : "Gerar Raspadinha"}
-              </Button>
-              
-              <Button 
-                variant="outline" 
-                onClick={() => generateScratchCard(true)}
-                disabled={isLoading}
-                className="whitespace-nowrap"
-              >
-                Teste (Vitória)
-              </Button>
-            </div>
+            {gamePhase === 'ready' && (
+              <div className="flex gap-2">
+                <Button 
+                  onClick={() => generateScratchCard()} 
+                  disabled={isLoading}
+                  className="flex-1"
+                >
+                  {isLoading ? "Gerando..." : "Gerar Raspadinha"}
+                </Button>
+                
+                <Button 
+                  variant="outline" 
+                  onClick={() => generateScratchCard(true)}
+                  disabled={isLoading}
+                  className="whitespace-nowrap"
+                >
+                  Teste (Vitória)
+                </Button>
+              </div>
+            )}
           </CardContent>
         </Card>
 
@@ -176,45 +182,54 @@ const ScratchCardGame = () => {
                   ref={canvasRef}
                 />
                 
-                {/* Botões de controle */}
+                {/* Botão dinâmico baseado na fase do jogo */}
                 {symbols.length > 0 && (
                   <div className="flex gap-2 mt-4">
-                    <AlertDialog>
-                      <AlertDialogTrigger asChild>
-                        <Button 
-                          variant="outline" 
-                          size="sm"
-                          disabled={!gameStarted}
-                          className="flex-1"
-                        >
-                          Revelar Tudo
-                        </Button>
-                      </AlertDialogTrigger>
-                      <AlertDialogContent>
-                        <AlertDialogHeader>
-                          <AlertDialogTitle>Revelar todos os símbolos?</AlertDialogTitle>
-                          <AlertDialogDescription>
-                            Tem certeza que deseja revelar automaticamente todos os símbolos? 
-                            Isso irá finalizar o jogo imediatamente.
-                          </AlertDialogDescription>
-                        </AlertDialogHeader>
-                        <AlertDialogFooter>
-                          <AlertDialogCancel>Cancelar</AlertDialogCancel>
-                          <AlertDialogAction onClick={handleRevealAll}>
-                            Sim, revelar tudo
-                          </AlertDialogAction>
-                        </AlertDialogFooter>
-                      </AlertDialogContent>
-                    </AlertDialog>
+                    {gamePhase === 'ready' && (
+                      <Button 
+                        onClick={handleScratchStart}
+                        className="flex-1"
+                      >
+                        Raspar: R$ {scratchCardTypes[selectedType].price.toFixed(2)}
+                      </Button>
+                    )}
                     
-                    <Button 
-                      variant="outline" 
-                      size="sm"
-                      onClick={handlePlayAgain}
-                      className="flex-1"
-                    >
-                      Nova Raspadinha
-                    </Button>
+                    {gamePhase === 'playing' && (
+                      <AlertDialog>
+                        <AlertDialogTrigger asChild>
+                          <Button 
+                            variant="outline" 
+                            className="flex-1"
+                          >
+                            Revelar Tudo
+                          </Button>
+                        </AlertDialogTrigger>
+                        <AlertDialogContent>
+                          <AlertDialogHeader>
+                            <AlertDialogTitle>Revelar todos os símbolos?</AlertDialogTitle>
+                            <AlertDialogDescription>
+                              Tem certeza que deseja revelar automaticamente todos os símbolos? 
+                              Isso irá finalizar o jogo imediatamente.
+                            </AlertDialogDescription>
+                          </AlertDialogHeader>
+                          <AlertDialogFooter>
+                            <AlertDialogCancel>Cancelar</AlertDialogCancel>
+                            <AlertDialogAction onClick={handleRevealAll}>
+                              Sim, revelar tudo
+                            </AlertDialogAction>
+                          </AlertDialogFooter>
+                        </AlertDialogContent>
+                      </AlertDialog>
+                    )}
+                    
+                    {gamePhase === 'complete' && (
+                      <Button 
+                        onClick={handlePlayAgain}
+                        className="flex-1"
+                      >
+                        Repetir: R$ {scratchCardTypes[selectedType].price.toFixed(2)}
+                      </Button>
+                    )}
                   </div>
                 )}
                 
