@@ -56,7 +56,7 @@ serve(async (req) => {
     // Buscar probabilidades do tipo específico
     const { data: probabilities, error: probError } = await supabase
       .from('scratch_card_probabilities')
-      .select('*, items(*)')
+      .select('*')
       .eq('scratch_type', scratchType)
       .eq('is_active', true);
 
@@ -67,6 +67,23 @@ serve(async (req) => {
 
     if (!probabilities || probabilities.length === 0) {
       throw new Error(`Nenhum item configurado para raspadinha tipo: ${scratchType}`);
+    }
+
+    // Buscar itens relacionados
+    const itemIds = probabilities.map(p => p.item_id).filter(Boolean);
+    const { data: items, error: itemsError } = await supabase
+      .from('items')
+      .select('*')
+      .in('id', itemIds)
+      .eq('is_active', true);
+
+    if (itemsError) {
+      console.error('Erro ao buscar itens:', itemsError);
+      throw new Error('Erro ao carregar itens da raspadinha');
+    }
+
+    if (!items || items.length === 0) {
+      throw new Error(`Nenhum item encontrado para raspadinha tipo: ${scratchType}`);
     }
 
     console.log(`📊 Encontradas ${probabilities.length} probabilidades configuradas`);
@@ -95,16 +112,17 @@ serve(async (req) => {
     const symbolPool: ScratchSymbol[] = [];
     
     probabilities.forEach(prob => {
-      if (prob.items) {
+      const item = items.find(i => i.id === prob.item_id);
+      if (item) {
         const symbol: ScratchSymbol = {
-          id: prob.items.id,
-          symbolId: prob.items.id,
-          name: prob.items.name,
-          image_url: prob.items.image_url,
-          rarity: prob.items.rarity,
-          base_value: prob.items.base_value,
+          id: item.id,
+          symbolId: item.id,
+          name: item.name,
+          image_url: item.image_url,
+          rarity: item.rarity,
+          base_value: item.base_value,
           isWinning: false,
-          category: prob.items.category
+          category: item.category
         };
 
         // Adicionar símbolo X vezes baseado no peso
@@ -123,21 +141,21 @@ serve(async (req) => {
     
     if (shouldWin) {
       // Escolher item vencedor (priorizar itens de menor valor se orçamento limitado)
-      const eligibleItems = probabilities
-        .filter(p => p.items && (p.items.category !== 'dinheiro' || p.items.base_value <= remainingBudget))
-        .sort((a, b) => a.items.base_value - b.items.base_value);
+      const eligibleItems = items
+        .filter(item => item.category !== 'dinheiro' || item.base_value <= remainingBudget)
+        .sort((a, b) => a.base_value - b.base_value);
 
       if (eligibleItems.length > 0) {
-        const winnerProb = eligibleItems[Math.floor(Math.random() * eligibleItems.length)];
+        const winnerItem = eligibleItems[Math.floor(Math.random() * eligibleItems.length)];
         winningItem = {
-          id: winnerProb.items.id,
-          symbolId: winnerProb.items.id,
-          name: winnerProb.items.name,
-          image_url: winnerProb.items.image_url,
-          rarity: winnerProb.items.rarity,
-          base_value: winnerProb.items.base_value,
+          id: winnerItem.id,
+          symbolId: winnerItem.id,
+          name: winnerItem.name,
+          image_url: winnerItem.image_url,
+          rarity: winnerItem.rarity,
+          base_value: winnerItem.base_value,
           isWinning: true,
-          category: winnerProb.items.category
+          category: winnerItem.category
         };
         hasWin = true;
         console.log(`🏆 Item vencedor selecionado: ${winningItem.name} - R$ ${winningItem.base_value}`);
