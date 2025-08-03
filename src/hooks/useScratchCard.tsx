@@ -64,27 +64,28 @@ export const useScratchCard = () => {
         const gamePrice = scratchCardTypes[chestType].price;
         const winningAmount = hasWin && winningItem ? winningItem.base_value : 0;
 
-        const { data, error } = await supabase.functions.invoke(
-          "process-scratch-game",
-          {
-            body: {
-              scratchType: chestType,
-              gamePrice,
-              symbols: scratchCard.symbols,
-              hasWin,
-              winningItemId: hasWin && winningItem ? winningItem.id : null,
-              winningAmount
-            },
-          },
-        );
+        const { data, error } = await supabase.rpc('process_scratch_card_game', {
+          p_user_id: (await supabase.auth.getUser()).data.user?.id,
+          p_scratch_type: chestType,
+          p_game_price: gamePrice,
+          p_symbols: JSON.stringify(scratchCard.symbols),
+          p_has_win: hasWin,
+          p_winning_item_id: hasWin && winningItem ? winningItem.id : null,
+          p_winning_amount: winningAmount
+        });
 
         if (error) throw error;
 
-        if (!data.success) {
-          throw new Error(data.error || 'Erro ao processar jogo');
+        if (!data || data.length === 0) {
+          throw new Error('Erro ao processar jogo');
         }
 
-        setGameId(data.gameId);
+        const result = data[0];
+        if (!result.success) {
+          throw new Error(result.message || 'Erro ao processar jogo');
+        }
+
+        setGameId(result.game_id);
         
         // Atualizar saldo da carteira
         await refetchWallet();
@@ -92,12 +93,12 @@ export const useScratchCard = () => {
         toast({
           title: hasWin ? "Parabéns!" : "Que pena!",
           description: hasWin 
-            ? `Você ganhou! Saldo atualizado: R$ ${data.walletBalance.toFixed(2)}`
+            ? `Você ganhou! Saldo atualizado: R$ ${result.wallet_balance.toFixed(2)}`
             : "Não foi desta vez, tente novamente!",
           variant: hasWin ? "default" : "destructive",
         });
 
-        return data;
+        return { success: true, gameId: result.game_id, walletBalance: result.wallet_balance };
       } catch (error: any) {
         console.error("Erro ao processar jogo:", error);
         toast({
