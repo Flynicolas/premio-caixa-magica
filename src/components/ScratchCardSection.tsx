@@ -32,6 +32,7 @@ const ScratchCardSection = ({ onAuthRequired }: ScratchCardSectionProps) => {
   const [imagesLoaded, setImagesLoaded] = useState(false);
   const [gamePhase, setGamePhase] = useState<'ready' | 'playing' | 'complete'>('ready');
   const [gameStarted, setGameStarted] = useState(false);
+  const [canvasRef, setCanvasRef] = useState<{ revealAll: () => void } | null>(null);
   
   const {
     scratchCard,
@@ -138,33 +139,10 @@ const ScratchCardSection = ({ onAuthRequired }: ScratchCardSectionProps) => {
   };
 
   const handleRevealAll = () => {
-    // Criar efeito de raspagem animado
-    const canvas = document.querySelector('canvas');
-    if (canvas) {
-      const ctx = canvas.getContext('2d');
-      if (ctx) {
-        // Animação de revelação progressiva
-        let alpha = 1;
-        const revealAnimation = () => {
-          alpha -= 0.1;
-          ctx.globalCompositeOperation = 'source-over';
-          ctx.fillStyle = `rgba(0, 0, 0, ${alpha})`;
-          ctx.fillRect(0, 0, canvas.width, canvas.height);
-          
-          if (alpha > 0) {
-            requestAnimationFrame(revealAnimation);
-          } else {
-            canvas.style.display = 'none';
-          }
-        };
-        revealAnimation();
-      }
+    setGamePhase('complete');
+    if (canvasRef) {
+      canvasRef.revealAll();
     }
-    
-    // Executar função original após animação
-    setTimeout(() => {
-      scratchAll();
-    }, 500);
   };
 
   const canAfford = walletData && walletData.balance >= scratchCardTypes[selectedType].price;
@@ -292,38 +270,39 @@ const ScratchCardSection = ({ onAuthRequired }: ScratchCardSectionProps) => {
             </CardHeader>
             
             <CardContent className="p-6 relative z-10">
-              <div className="bg-background/80 rounded-xl p-4 mb-6 relative">
-                {imagesLoaded && (
-                  <ScratchGameCanvas
-                    symbols={scratchCard.symbols}
-                    onWin={handleWin}
-                    onComplete={handleComplete}
-                    scratchType={selectedType}
-                    gameStarted={gameStarted}
-                    className="mx-auto"
-                  />
-                )}
-                
-                {/* Bloqueio do canvas quando não pago */}
-                {gamePhase === 'ready' && (
-                  <div className="absolute inset-0 bg-black/50 rounded-xl flex items-center justify-center">
-                    <div className="text-center">
-                      <p className="text-white font-semibold mb-2">Clique no botão abaixo para começar a raspar</p>
-                      <div className="text-white/70 text-sm">
-                        R$ {scratchCardTypes[selectedType].price.toFixed(2)}
-                      </div>
+              <div className="bg-background/80 rounded-xl p-2 md:p-4 mb-6 relative">
+                {/* Feedback visual quando jogo inicia */}
+                {gameStarted && gamePhase === 'playing' && (
+                  <div className="absolute top-2 left-2 right-2 z-20 animate-pulse">
+                    <div className="bg-green-500/90 text-white px-3 py-2 rounded-lg text-center text-sm font-semibold">
+                      🎮 Jogo iniciado! Raspe para revelar os prêmios!
                     </div>
                   </div>
                 )}
+                
+                <div className="flex justify-center">
+                  {imagesLoaded && (
+                    <ScratchGameCanvas
+                      ref={(ref) => setCanvasRef(ref)}
+                      symbols={scratchCard.symbols}
+                      onWin={handleWin}
+                      onComplete={handleComplete}
+                      scratchType={selectedType}
+                      gameStarted={gameStarted}
+                      disabled={gamePhase === 'ready'}
+                      className="w-full max-w-[280px] md:max-w-md mx-auto"
+                    />
+                  )}
+                </div>
               </div>
 
-              {/* Botão Dinâmico */}
-              <div className="flex justify-center">
+              {/* Botão Dinâmico - Centralizado no mobile */}
+              <div className="flex justify-center mt-4">
                 {gamePhase === 'ready' && (
                   <Button 
                     onClick={handleStartGame}
                     disabled={!imagesLoaded || !canAfford}
-                    className={`bg-gradient-to-r ${scratchCardTypes[selectedType].color} hover:opacity-90 text-white font-semibold px-8 py-3 rounded-lg transition-all duration-300 shadow-lg hover:shadow-xl transform hover:scale-105`}
+                    className={`bg-gradient-to-r ${scratchCardTypes[selectedType].color} hover:opacity-90 text-white font-semibold px-6 md:px-8 py-3 rounded-lg transition-all duration-300 shadow-lg hover:shadow-xl transform hover:scale-105 w-full max-w-xs`}
                   >
                     <Coins className="w-4 h-4 mr-2" />
                     Raspar: R$ {scratchCardTypes[selectedType].price.toFixed(2)}
@@ -334,7 +313,7 @@ const ScratchCardSection = ({ onAuthRequired }: ScratchCardSectionProps) => {
                   <Button 
                     onClick={handleRevealAll}
                     disabled={!imagesLoaded}
-                    className={`bg-gradient-to-r ${scratchCardTypes[selectedType].color} hover:opacity-90 text-white font-semibold px-8 py-3 rounded-lg transition-all duration-300 shadow-lg hover:shadow-xl transform hover:scale-105`}
+                    className={`bg-gradient-to-r ${scratchCardTypes[selectedType].color} hover:opacity-90 text-white font-semibold px-6 md:px-8 py-3 rounded-lg transition-all duration-300 shadow-lg hover:shadow-xl transform hover:scale-105 w-full max-w-xs`}
                   >
                     <Sparkles className="w-4 h-4 mr-2" />
                     Revelar Tudo
@@ -344,10 +323,10 @@ const ScratchCardSection = ({ onAuthRequired }: ScratchCardSectionProps) => {
                 {gamePhase === 'complete' && (
                   <Button 
                     onClick={handleRepeatGame}
-                    className={`bg-gradient-to-r ${scratchCardTypes[selectedType].color} hover:opacity-90 text-white font-semibold px-8 py-3 rounded-lg transition-all duration-300 shadow-lg hover:shadow-xl transform hover:scale-105`}
+                    className={`bg-gradient-to-r ${scratchCardTypes[selectedType].color} hover:opacity-90 text-white font-semibold px-6 md:px-8 py-3 rounded-lg transition-all duration-300 shadow-lg hover:shadow-xl transform hover:scale-105 w-full max-w-xs`}
                   >
                     <Coins className="w-4 h-4 mr-2" />
-                    Raspar: R$ {scratchCardTypes[selectedType].price.toFixed(2)}
+                    Raspar denovo: R$ {scratchCardTypes[selectedType].price.toFixed(2)}
                   </Button>
                 )}
               </div>

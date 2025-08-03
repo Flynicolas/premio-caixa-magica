@@ -10,6 +10,7 @@ interface ScratchGameCanvasProps {
   gameStarted?: boolean;
   scratchType?: string;
   className?: string;
+  disabled?: boolean;
 }
 
 interface ScratchAreaMap {
@@ -18,7 +19,7 @@ interface ScratchAreaMap {
   sides: number;     // Peso 2x (posições 1,3,5,7)
 }
 
-const ScratchGameCanvas = forwardRef<{ revealAll: () => void }, ScratchGameCanvasProps>(({ symbols, onWin, onComplete, onScratchStart, gameStarted = false, scratchType = 'sorte', className }, ref) => {
+const ScratchGameCanvas = forwardRef<{ revealAll: () => void }, ScratchGameCanvasProps>(({ symbols, onWin, onComplete, onScratchStart, gameStarted = false, scratchType = 'sorte', className, disabled = false }, ref) => {
   console.log('🎯 ScratchGameCanvas mounted/rendered, symbols.length:', symbols.length);
   
   const canvasRef = useRef<HTMLCanvasElement>(null);
@@ -338,7 +339,7 @@ const ScratchGameCanvas = forwardRef<{ revealAll: () => void }, ScratchGameCanva
   // Função de raspagem inteligente
   const draw = useCallback((e: MouseEvent | TouchEvent) => {
     const canvas = canvasRef.current;
-    if (!canvas || isRevealed || isVerifying || !canvasFullyLoaded) {
+    if (!canvas || isRevealed || isVerifying || !canvasFullyLoaded || disabled) {
       return;
     }
 
@@ -423,6 +424,7 @@ const ScratchGameCanvas = forwardRef<{ revealAll: () => void }, ScratchGameCanva
     });
 
     const handleMouseDown = (e: MouseEvent) => {
+      if (disabled) return;
       console.log('🔥 MOUSE DOWN EVENT FIRED!', e.target);
       console.log('🔥 Event coordinates:', e.clientX, e.clientY);
       isReallyScratching.current = true;
@@ -431,10 +433,9 @@ const ScratchGameCanvas = forwardRef<{ revealAll: () => void }, ScratchGameCanva
     };
 
     const handleMouseMove = (e: MouseEvent) => {
-      if (isReallyScratching.current) {
-        console.log('Mouse move - scratching'); // Debug log
-        draw(e);
-      }
+      if (disabled || !isReallyScratching.current) return;
+      console.log('Mouse move - scratching'); // Debug log
+      draw(e);
     };
     
     const handleMouseUp = () => {
@@ -450,6 +451,7 @@ const ScratchGameCanvas = forwardRef<{ revealAll: () => void }, ScratchGameCanva
     };
 
     const handleTouchStart = (e: TouchEvent) => {
+      if (disabled) return;
       e.preventDefault();
       console.log('Touch start'); // Debug log
       isReallyScratching.current = true;
@@ -458,6 +460,7 @@ const ScratchGameCanvas = forwardRef<{ revealAll: () => void }, ScratchGameCanva
     };
 
     const handleTouchMove = (e: TouchEvent) => {
+      if (disabled) return;
       e.preventDefault();
       if (isReallyScratching.current) {
         console.log('Touch move - scratching'); // Debug log
@@ -526,11 +529,20 @@ const ScratchGameCanvas = forwardRef<{ revealAll: () => void }, ScratchGameCanva
         </div>
       )}
 
-      {/* Instrução inicial */}
-      {canvasFullyLoaded && scratchProgress === 0 && !isVerifying && (
+      {/* Instrução inicial - só mostra quando não está desabilitado */}
+      {canvasFullyLoaded && !disabled && scratchProgress === 0 && !isVerifying && (
         <div className="absolute inset-0 z-30 flex items-center justify-center pointer-events-none">
           <div className="bg-black/70 text-white px-4 py-2 rounded-lg text-sm font-medium">
-            👆 {gameStarted ? "Raspe gradualmente para revelar os prêmios" : "Raspe / toque para começar"}
+            👆 Raspe gradualmente para revelar os prêmios
+          </div>
+        </div>
+      )}
+
+      {/* Overlay quando desabilitado */}
+      {disabled && canvasFullyLoaded && (
+        <div className="absolute inset-0 z-30 flex items-center justify-center pointer-events-none">
+          <div className="bg-red-600/80 text-white px-4 py-2 rounded-lg text-center">
+            <p className="text-sm font-medium">🔒 Clique em "Raspar" para começar!</p>
           </div>
         </div>
       )}
