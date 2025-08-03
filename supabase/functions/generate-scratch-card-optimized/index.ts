@@ -1,331 +1,194 @@
-import { serve } from "https://deno.land/std@0.168.0/http/server.ts"
-import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.7.1'
+import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
+import { createClient } from "https://esm.sh/@supabase/supabase-js@2.45.0";
 
 const corsHeaders = {
-  'Access-Control-Allow-Origin': '*',
-  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
+  "Access-Control-Allow-Origin": "*",
+  "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
+};
+
+interface ScratchSymbol {
+  id: string;
+  symbolId: string;
+  name: string;
+  image_url: string;
+  rarity: string;
+  base_value: number;
+  isWinning: boolean;
+  category?: string;
+}
+
+interface ScratchCard {
+  symbols: ScratchSymbol[];
+  winningItem: ScratchSymbol | null;
+  hasWin: boolean;
+  scratchType: string;
+  gameId?: string;
 }
 
 serve(async (req) => {
-  // Handle CORS preflight requests
-  if (req.method === 'OPTIONS') {
+  if (req.method === "OPTIONS") {
     return new Response(null, { headers: corsHeaders });
   }
 
   try {
-    const supabaseUrl = Deno.env.get('SUPABASE_URL')!
-    const supabaseKey = Deno.env.get('SUPABASE_ANON_KEY')!
-    const supabase = createClient(supabaseUrl, supabaseKey)
+    const supabase = createClient(
+      Deno.env.get("SUPABASE_URL") ?? "",
+      Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ?? ""
+    );
 
-    const { scratchType, forcedWin = false } = await req.json()
-    
-    console.log(`Generating scratch card for type: ${scratchType}, forcedWin: ${forcedWin}`)
-
-    // Check financial control for 90/10 system
-    const { data: financialData, error: financialError } = await supabase
-      .from('scratch_card_financial_control')
-      .select('*')
-      .eq('scratch_type', scratchType)
-      .eq('date', new Date().toISOString().split('T')[0])
-      .single()
-
-    if (financialError && financialError.code !== 'PGRST116') {
-      console.error('Error fetching financial data:', financialError)
+    // Autenticar usuário
+    const authHeader = req.headers.get("Authorization");
+    if (!authHeader) {
+      throw new Error("Token de autorização necessário");
     }
 
-    // Calculate if we should force a win based on 90/10 rule
-    let shouldWin = forcedWin
-    if (!forcedWin && financialData) {
-      const totalSales = financialData.total_sales || 0
-      const totalPrizes = financialData.total_prizes_given || 0
-      const currentMargin = totalSales > 0 ? ((totalSales - totalPrizes) / totalSales) * 100 : 100
-      
-      // If margin is above 95%, increase win chance
-      // If margin is below 85%, decrease win chance
-      let winProbability = 0.1 // Base 10% for 90/10 system
-      
-      if (currentMargin > 95) {
-        winProbability = 0.25 // Increase to 25%
-      } else if (currentMargin < 85) {
-        winProbability = 0.05 // Decrease to 5%
-      }
-      
-      shouldWin = Math.random() < winProbability
+    const token = authHeader.replace("Bearer ", "");
+    const { data: { user }, error: userError } = await supabase.auth.getUser(token);
+
+    if (userError || !user) {
+      throw new Error("Usuário não autenticado");
     }
 
-    console.log(`Win decision: ${shouldWin}`)
+    const { scratchType, forcedWin } = await req.json();
 
-    // Fetch probabilities for this scratch type with manual join
+    console.log(`🎯 Gerando raspadinha para usuário ${user.id}, tipo: ${scratchType}`);
+
+    // Buscar probabilidades do tipo específico
     const { data: probabilities, error: probError } = await supabase
       .from('scratch_card_probabilities')
-      .select('*')
+      .select('*, items(*)')
       .eq('scratch_type', scratchType)
-      .eq('is_active', true)
+      .eq('is_active', true);
 
     if (probError) {
-      console.error('Error fetching probabilities:', probError)
-      throw probError
+      console.error('Erro ao buscar probabilidades:', probError);
+      throw new Error('Erro ao carregar probabilidades da raspadinha');
     }
 
     if (!probabilities || probabilities.length === 0) {
-      console.log('No probabilities found, falling back to chest items')
-      
-      // Fallback to chest items with manual join
-      const { data: fallbackData, error: fallbackError } = await supabase
-        .from('chest_item_probabilities')
-        .select('*')
-        .eq('is_active', true)
-
-      if (fallbackError) throw fallbackError
-      
-      // Get items for fallback too
-      const fallbackItemIds = fallbackData?.map(p => p.item_id) || []
-      const { data: fallbackItems } = await supabase
-        .from('items')
-        .select('*')
-        .in('id', fallbackItemIds)
-        .eq('is_active', true)
-
-      const fallbackWithItems = fallbackData?.map(prob => {
-        const item = fallbackItems?.find(i => i.id === prob.item_id)
-        return { ...prob, item }
-      }).filter(p => p.item) || []
-      
-      return new Response(
-        JSON.stringify(await generateFromProbabilities(fallbackWithItems, scratchType, shouldWin)),
-        { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-      )
+      throw new Error(`Nenhum item configurado para raspadinha tipo: ${scratchType}`);
     }
 
-    // Fetch items data for the probabilities
-    const itemIds = probabilities.map(p => p.item_id)
-    const { data: items, error: itemsError } = await supabase
-      .from('items')
+    console.log(`📊 Encontradas ${probabilities.length} probabilidades configuradas`);
+
+    // Verificar orçamento diário disponível
+    const { data: dailyBudget } = await supabase
+      .from('scratch_card_daily_budget')
       .select('*')
-      .in('id', itemIds)
-      .eq('is_active', true)
+      .eq('scratch_type', scratchType)
+      .eq('date', new Date().toISOString().split('T')[0])
+      .single();
 
-    if (itemsError) {
-      console.error('Error fetching items:', itemsError)
-      throw itemsError
+    let remainingBudget = 0;
+    if (dailyBudget) {
+      remainingBudget = dailyBudget.remaining_budget;
     }
 
-    // Combine probabilities with items
-    const probabilitiesWithItems = probabilities.map(prob => {
-      const item = items?.find(i => i.id === prob.item_id)
-      return { ...prob, item }
-    }).filter(p => p.item) // Only keep records with valid items
+    console.log(`💰 Orçamento restante para prêmios: R$ ${remainingBudget}`);
 
-    const result = await generateFromProbabilities(probabilitiesWithItems, scratchType, shouldWin)
+    // Gerar símbolos da raspadinha
+    const symbols: ScratchSymbol[] = [];
+    let winningItem: ScratchSymbol | null = null;
+    let hasWin = false;
+
+    // Criar pool de símbolos baseado nas probabilidades
+    const symbolPool: ScratchSymbol[] = [];
     
-    // Update financial control
-    if (result.hasWin && result.winningItem) {
-      await updateFinancialControl(supabase, scratchType, getScratchPrice(scratchType), result.winningItem.base_value)
-    } else {
-      await updateFinancialControl(supabase, scratchType, getScratchPrice(scratchType), 0)
+    probabilities.forEach(prob => {
+      if (prob.items) {
+        const symbol: ScratchSymbol = {
+          id: prob.items.id,
+          symbolId: prob.items.id,
+          name: prob.items.name,
+          image_url: prob.items.image_url,
+          rarity: prob.items.rarity,
+          base_value: prob.items.base_value,
+          isWinning: false,
+          category: prob.items.category
+        };
+
+        // Adicionar símbolo X vezes baseado no peso
+        for (let i = 0; i < prob.probability_weight; i++) {
+          symbolPool.push(symbol);
+        }
+      }
+    });
+
+    if (symbolPool.length === 0) {
+      throw new Error('Pool de símbolos vazio');
     }
 
-    return new Response(
-      JSON.stringify(result),
-      { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-    )
+    // Determinar se deve ter vitória (15% de chance base ou forçada)
+    const shouldWin = forcedWin || Math.random() < 0.15;
+    
+    if (shouldWin) {
+      // Escolher item vencedor (priorizar itens de menor valor se orçamento limitado)
+      const eligibleItems = probabilities
+        .filter(p => p.items && (p.items.category !== 'dinheiro' || p.items.base_value <= remainingBudget))
+        .sort((a, b) => a.items.base_value - b.items.base_value);
+
+      if (eligibleItems.length > 0) {
+        const winnerProb = eligibleItems[Math.floor(Math.random() * eligibleItems.length)];
+        winningItem = {
+          id: winnerProb.items.id,
+          symbolId: winnerProb.items.id,
+          name: winnerProb.items.name,
+          image_url: winnerProb.items.image_url,
+          rarity: winnerProb.items.rarity,
+          base_value: winnerProb.items.base_value,
+          isWinning: true,
+          category: winnerProb.items.category
+        };
+        hasWin = true;
+        console.log(`🏆 Item vencedor selecionado: ${winningItem.name} - R$ ${winningItem.base_value}`);
+      }
+    }
+
+    // Gerar 9 símbolos para a raspadinha
+    for (let i = 0; i < 9; i++) {
+      const randomSymbol = symbolPool[Math.floor(Math.random() * symbolPool.length)];
+      symbols.push({
+        ...randomSymbol,
+        isWinning: false
+      });
+    }
+
+    // Se deve ganhar, garantir 3 símbolos iguais do item vencedor
+    if (hasWin && winningItem) {
+      const positions = [0, 1, 2, 3, 4, 5, 6, 7, 8];
+      // Escolher 3 posições aleatórias
+      for (let i = 0; i < 3; i++) {
+        const randomIndex = Math.floor(Math.random() * positions.length);
+        const position = positions.splice(randomIndex, 1)[0];
+        symbols[position] = {
+          ...winningItem,
+          isWinning: true
+        };
+      }
+    }
+
+    const scratchCard: ScratchCard = {
+      symbols,
+      winningItem,
+      hasWin,
+      scratchType
+    };
+
+    console.log(`✅ Raspadinha gerada: hasWin=${hasWin}, símbolos=${symbols.length}`);
+
+    return new Response(JSON.stringify(scratchCard), {
+      headers: { ...corsHeaders, "Content-Type": "application/json" },
+      status: 200,
+    });
 
   } catch (error) {
-    console.error('Error in generate-scratch-card-optimized:', error)
+    console.error("❌ Erro na função:", error);
     return new Response(
-      JSON.stringify({ error: error.message }),
-      { 
+      JSON.stringify({ error: error.message || "Erro interno do servidor" }),
+      {
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
         status: 500,
-        headers: { ...corsHeaders, 'Content-Type': 'application/json' }
       }
-    )
+    );
   }
-})
-
-async function generateFromProbabilities(probabilities: any[], scratchType: string, shouldWin: boolean) {
-  console.log(`Generating with ${probabilities.length} items, shouldWin: ${shouldWin}`)
-  
-  // Create weighted list
-  const weightedItems: any[] = []
-  probabilities.forEach(prob => {
-    const item = prob.items || prob.item // Support both formats
-    if (item) {
-      const weight = prob.probability_weight || 1
-      for (let i = 0; i < weight; i++) {
-        weightedItems.push({
-          id: item.id,
-          symbolId: item.id,
-          name: item.name,
-          image_url: item.image_url,
-          rarity: item.rarity,
-          base_value: item.base_value,
-          isWinning: false
-        })
-      }
-    }
-  })
-
-  if (weightedItems.length === 0) {
-    throw new Error('No valid items found for scratch card generation')
-  }
-
-  const symbols: any[] = []
-  let winningItem = null
-
-  if (shouldWin) {
-    // Select winning item (prioritize higher value items for wins)
-    const sortedItems = [...weightedItems].sort((a, b) => b.base_value - a.base_value)
-    const winningIndex = Math.floor(Math.random() * Math.min(5, sortedItems.length)) // Top 5 items
-    winningItem = { ...sortedItems[winningIndex], isWinning: true }
-    
-    // Place winning item in 3 positions (ensuring win)
-    const winPositions = [0, 1, 2] // First row for simplicity
-    winPositions.forEach(pos => {
-      symbols[pos] = { ...winningItem }
-    })
-    
-    // Fill remaining positions with different items
-    for (let i = 3; i < 9; i++) {
-      let attempts = 0
-      let selectedItem
-      
-      do {
-        const randomIndex = Math.floor(Math.random() * weightedItems.length)
-        selectedItem = { ...weightedItems[randomIndex] }
-        attempts++
-      } while (selectedItem.id === winningItem.id && attempts < 50)
-      
-      symbols[i] = selectedItem
-    }
-  } else {
-    // Fill all positions ensuring no 3 matches
-    for (let i = 0; i < 9; i++) {
-      let attempts = 0
-      let selectedItem
-      
-      do {
-        const randomIndex = Math.floor(Math.random() * weightedItems.length)
-        selectedItem = { ...weightedItems[randomIndex] }
-        attempts++
-      } while (shouldAvoidItem(symbols, selectedItem.id, i) && attempts < 100)
-      
-      symbols[i] = selectedItem
-    }
-  }
-
-  // Shuffle symbols array to randomize positions
-  for (let i = symbols.length - 1; i > 0; i--) {
-    const j = Math.floor(Math.random() * (i + 1));
-    [symbols[i], symbols[j]] = [symbols[j], symbols[i]];
-  }
-
-  return {
-    symbols,
-    winningItem,
-    hasWin: shouldWin,
-    scratchType
-  }
-}
-
-function shouldAvoidItem(existingSymbols: any[], itemId: string, currentIndex: number): boolean {
-  if (existingSymbols.length === 0) return false
-  
-  const symbolsCopy = [...existingSymbols]
-  symbolsCopy[currentIndex] = { id: itemId }
-  
-  // Check rows
-  for (let row = 0; row < 3; row++) {
-    const start = row * 3
-    if (symbolsCopy[start] && symbolsCopy[start + 1] && symbolsCopy[start + 2]) {
-      if (symbolsCopy[start].id === symbolsCopy[start + 1].id && 
-          symbolsCopy[start + 1].id === symbolsCopy[start + 2].id) {
-        return true
-      }
-    }
-  }
-  
-  // Check columns
-  for (let col = 0; col < 3; col++) {
-    if (symbolsCopy[col] && symbolsCopy[col + 3] && symbolsCopy[col + 6]) {
-      if (symbolsCopy[col].id === symbolsCopy[col + 3].id && 
-          symbolsCopy[col + 3].id === symbolsCopy[col + 6].id) {
-        return true
-      }
-    }
-  }
-  
-  // Check diagonals
-  if (symbolsCopy[0] && symbolsCopy[4] && symbolsCopy[8]) {
-    if (symbolsCopy[0].id === symbolsCopy[4].id && symbolsCopy[4].id === symbolsCopy[8].id) {
-      return true
-    }
-  }
-  
-  if (symbolsCopy[2] && symbolsCopy[4] && symbolsCopy[6]) {
-    if (symbolsCopy[2].id === symbolsCopy[4].id && symbolsCopy[4].id === symbolsCopy[6].id) {
-      return true
-    }
-  }
-  
-  return false
-}
-
-async function updateFinancialControl(supabase: any, scratchType: string, saleAmount: number, prizeAmount: number) {
-  const today = new Date().toISOString().split('T')[0]
-  
-  const { data: existing, error: fetchError } = await supabase
-    .from('scratch_card_financial_control')
-    .select('*')
-    .eq('scratch_type', scratchType)
-    .eq('date', today)
-    .single()
-
-  if (fetchError && fetchError.code !== 'PGRST116') {
-    console.error('Error fetching financial control:', fetchError)
-    return
-  }
-
-  if (existing) {
-    // Update existing record
-    const newTotalSales = existing.total_sales + saleAmount
-    const newTotalPrizes = existing.total_prizes_given + prizeAmount
-    const newNetProfit = newTotalSales - newTotalPrizes
-    const newCardsPlayed = existing.cards_played + 1
-    
-    await supabase
-      .from('scratch_card_financial_control')
-      .update({
-        total_sales: newTotalSales,
-        total_prizes_given: newTotalPrizes,
-        net_profit: newNetProfit,
-        cards_played: newCardsPlayed,
-        updated_at: new Date().toISOString()
-      })
-      .eq('id', existing.id)
-  } else {
-    // Create new record
-    await supabase
-      .from('scratch_card_financial_control')
-      .insert({
-        scratch_type: scratchType,
-        date: today,
-        total_sales: saleAmount,
-        total_prizes_given: prizeAmount,
-        net_profit: saleAmount - prizeAmount,
-        cards_played: 1,
-        profit_goal: 100,
-        goal_reached: false
-      })
-  }
-}
-
-function getScratchPrice(scratchType: string): number {
-  const prices: Record<string, number> = {
-    'sorte': 1.00,
-    'dupla': 2.50,
-    'ouro': 5.00,
-    'diamante': 10.00,
-    'premium': 25.00
-  }
-  return prices[scratchType] || 1.00
-}
+});

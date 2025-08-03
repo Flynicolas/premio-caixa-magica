@@ -1,14 +1,17 @@
 import { useState, useCallback } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
-import { ScratchCard, ScratchBlockState, ScratchCardType } from "@/types/scratchCard";
+import { useWallet } from "@/hooks/useWalletProvider";
+import { ScratchCard, ScratchBlockState, ScratchCardType, scratchCardTypes } from "@/types/scratchCard";
 
 export const useScratchCard = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [scratchCard, setScratchCard] = useState<ScratchCard | null>(null);
   const [blocks, setBlocks] = useState<ScratchBlockState[]>([]);
   const [gameComplete, setGameComplete] = useState(false);
+  const [gameId, setGameId] = useState<string | null>(null);
   const { toast } = useToast();
+  const { refetchWallet } = useWallet();
 
   const generateScratchCard = useCallback(
     async (chestType: ScratchCardType, forcedWin = false) => {
@@ -51,6 +54,61 @@ export const useScratchCard = () => {
       }
     },
     [toast],
+  );
+
+  const processGame = useCallback(
+    async (chestType: ScratchCardType, hasWin: boolean, winningItem?: any) => {
+      if (!scratchCard) return null;
+
+      try {
+        const gamePrice = scratchCardTypes[chestType].price;
+        const winningAmount = hasWin && winningItem ? winningItem.base_value : 0;
+
+        const { data, error } = await supabase.functions.invoke(
+          "process-scratch-game",
+          {
+            body: {
+              scratchType: chestType,
+              gamePrice,
+              symbols: scratchCard.symbols,
+              hasWin,
+              winningItemId: hasWin && winningItem ? winningItem.id : null,
+              winningAmount
+            },
+          },
+        );
+
+        if (error) throw error;
+
+        if (!data.success) {
+          throw new Error(data.error || 'Erro ao processar jogo');
+        }
+
+        setGameId(data.gameId);
+        
+        // Atualizar saldo da carteira
+        await refetchWallet();
+
+        toast({
+          title: hasWin ? "Parabéns!" : "Que pena!",
+          description: hasWin 
+            ? `Você ganhou! Saldo atualizado: R$ ${data.walletBalance.toFixed(2)}`
+            : "Não foi desta vez, tente novamente!",
+          variant: hasWin ? "default" : "destructive",
+        });
+
+        return data;
+      } catch (error: any) {
+        console.error("Erro ao processar jogo:", error);
+        toast({
+          title: "Erro",
+          description: error.message || "Erro ao processar o jogo. Tente novamente.",
+          variant: "destructive",
+        });
+        return null;
+      }
+    },
+    [scratchCard, toast, refetchWallet],
   );
 
   const scratchBlock = useCallback((blockId: number) => {
@@ -107,6 +165,7 @@ export const useScratchCard = () => {
     setScratchCard(null);
     setBlocks([]);
     setGameComplete(false);
+    setGameId(null);
   };
 
   const scratchAll = useCallback(() => {
@@ -116,6 +175,7 @@ export const useScratchCard = () => {
 
   return {
     generateScratchCard,
+    processGame,
     scratchBlock,
     scratchAll,
     checkWinningCombination,
@@ -124,5 +184,6 @@ export const useScratchCard = () => {
     blocks,
     isLoading,
     gameComplete,
+    gameId,
   };
 };

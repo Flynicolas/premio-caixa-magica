@@ -30,6 +30,7 @@ interface WalletContextType {
   showPaymentModalForAmount: (amount?: number) => void;
   PaymentModalComponent: () => JSX.Element;
   refreshData: () => Promise<void>;
+  refetchWallet: () => Promise<void>;
 }
 
 const WalletContext = createContext<WalletContextType | undefined>(undefined);
@@ -479,6 +480,7 @@ export const WalletProvider = ({ children }: { children: ReactNode }) => {
     showPaymentModalForAmount,
     PaymentModalComponent,
     refreshData,
+    refetchWallet: refreshData,
   }), [
     effectiveWalletData,
     transactions,

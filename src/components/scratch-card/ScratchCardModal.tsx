@@ -46,6 +46,7 @@ const ScratchCardModal = ({ isOpen, onClose, selectedType, onAuthRequired }: Scr
     isLoading,
     gameComplete,
     generateScratchCard,
+    processGame,
     scratchBlock,
     scratchAll,
     resetGame
@@ -88,9 +89,6 @@ const ScratchCardModal = ({ isOpen, onClose, selectedType, onAuthRequired }: Scr
     if (!walletData || walletData.balance < price) {
       return;
     }
-
-    // TODO: Integrar com sistema de carteira para debitar saldo
-    console.log(`💰 Cobrando R$${price} para iniciar a raspagem`);
     
     setGamePhase('playing');
     setGameStarted(true);
@@ -119,30 +117,37 @@ const ScratchCardModal = ({ isOpen, onClose, selectedType, onAuthRequired }: Scr
     await generateScratchCard(selectedType, false);
   };
 
-  const handleComplete = () => {
+  const handleComplete = async () => {
     setGamePhase('locked');
+    
     // Verificar se ganhou algo
     const winningCombination = checkWinningCombination();
+    const hasWin = !!winningCombination;
     
-    if (winningCombination) {
-      const winningItem = winningCombination.winningSymbol;
-      
-      // Determinar tipo de prêmio
-      if (winningItem.category === 'money' || winningItem.name.toLowerCase().includes('dinheiro') || winningItem.name.toLowerCase().includes('real')) {
-        setWinningResult({
-          type: 'money',
-          data: { amount: winningItem.base_value, name: winningItem.name }
-        });
+    // Processar o jogo no backend
+    const result = await processGame(selectedType, hasWin, winningCombination?.winningSymbol);
+    
+    if (result && result.success) {
+      if (hasWin && winningCombination) {
+        const winningItem = winningCombination.winningSymbol;
+        
+        // Determinar tipo de prêmio
+        if (winningItem.category === 'dinheiro' || winningItem.name.toLowerCase().includes('dinheiro') || winningItem.name.toLowerCase().includes('real')) {
+          setWinningResult({
+            type: 'money',
+            data: { amount: winningItem.base_value, name: winningItem.name }
+          });
+        } else {
+          setWinningResult({
+            type: 'item', 
+            data: winningItem
+          });
+        }
+        setHasDetectedWin(true);
       } else {
-        setWinningResult({
-          type: 'item', 
-          data: winningItem
-        });
+        // Mostrar mensagem de perda simples
+        setShowLossMessage(true);
       }
-      setHasDetectedWin(true);
-    } else {
-      // Mostrar mensagem de perda simples
-      setShowLossMessage(true);
     }
   };
 
