@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useRef } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -32,7 +32,7 @@ const ScratchCardSection = ({ onAuthRequired }: ScratchCardSectionProps) => {
   const [imagesLoaded, setImagesLoaded] = useState(false);
   const [gamePhase, setGamePhase] = useState<'ready' | 'playing' | 'complete'>('ready');
   const [gameStarted, setGameStarted] = useState(false);
-  const [canvasRef, setCanvasRef] = useState<{ revealAll: () => void } | null>(null);
+  const canvasRef = useRef<{ revealAll: () => void } | null>(null);
   
   const {
     scratchCard,
@@ -140,8 +140,8 @@ const ScratchCardSection = ({ onAuthRequired }: ScratchCardSectionProps) => {
 
   const handleRevealAll = () => {
     setGamePhase('complete');
-    if (canvasRef) {
-      canvasRef.revealAll();
+    if (canvasRef.current) {
+      canvasRef.current.revealAll();
     }
   };
 
@@ -283,7 +283,7 @@ const ScratchCardSection = ({ onAuthRequired }: ScratchCardSectionProps) => {
                 <div className="flex justify-center">
                   {imagesLoaded && (
                     <ScratchGameCanvas
-                      ref={(ref) => setCanvasRef(ref)}
+                      ref={canvasRef}
                       symbols={scratchCard.symbols}
                       onWin={handleWin}
                       onComplete={handleComplete}
