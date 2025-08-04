@@ -1,87 +1,76 @@
 import { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { Alert, AlertDescription } from '@/components/ui/alert';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Plus, Settings, AlertTriangle, CheckCircle, Trash2 } from 'lucide-react';
-import { toast } from 'sonner';
+import { Settings2, Package, Percent, Save } from 'lucide-react';
 import { useScratchCardManagement } from '@/hooks/useScratchCardManagement';
-import { useScratchCardAdministration } from '@/hooks/useScratchCardAdministration';
-import { useItemManagement } from '@/hooks/useItemManagement';
+import { scratchCardTypes } from '@/types/scratchCard';
+import ScratchCardProbabilityItem from './ScratchCardProbabilityItem';
 
-export const ScratchCardConfigurationPanel = () => {
-  const { items } = useItemManagement();
+export function ScratchCardConfigurationPanel() {
   const { 
-    probabilities, 
-    addItemToScratchType, 
-    removeItemFromScratchType, 
+    scratchTypes,
+    probabilities,
+    loading,
+    addItemToScratchType,
+    removeItemFromScratchType,
     updateProbability,
     getProbabilitiesByType,
     getTotalWeight
   } = useScratchCardManagement();
-  const { settings } = useScratchCardAdministration();
   
-  const [selectedType, setSelectedType] = useState<string>('');
-  const [selectedItem, setSelectedItem] = useState<string>('');
-  const [isAddingItems, setIsAddingItems] = useState(false);
+  const [editingProbabilities, setEditingProbabilities] = useState<Record<string, number>>({});
+  const [saving, setSaving] = useState(false);
 
-  // Filtrar itens disponíveis (que não estão no tipo selecionado)
-  const getAvailableItems = (scratchType: string) => {
-    const configuredItems = getProbabilitiesByType(scratchType).map(p => p.item_id);
-    return items.filter(item => !configuredItems.includes(item.id));
+  const handleProbabilityChange = (probId: string, newValue: number) => {
+    setEditingProbabilities(prev => ({
+      ...prev,
+      [probId]: newValue
+    }));
   };
 
-  // Sugerir itens baseado no tipo e valor
-  const getSuggestedItems = (scratchType: string) => {
-    const setting = settings.find(s => s.scratch_type === scratchType);
-    if (!setting) return [];
+  const saveProbabilities = async () => {
+    try {
+      setSaving(true);
+      
+      const updates = Object.entries(editingProbabilities);
+      if (updates.length === 0) return;
 
-    const maxValue = setting.price * 5; // Máximo 5x o preço da raspadinha
-    const minValue = setting.price * 0.1; // Mínimo 10% do preço
-    
-    return getAvailableItems(scratchType).filter(item => 
-      item.base_value >= minValue && item.base_value <= maxValue
-    );
-  };
-
-  // Adicionar múltiplos itens sugeridos
-  const addSuggestedItems = async (scratchType: string) => {
-    const suggested = getSuggestedItems(scratchType);
-    let added = 0;
-    
-    setIsAddingItems(true);
-    
-    for (const item of suggested.slice(0, 10)) { // Adicionar no máximo 10 itens
-      try {
-        await addItemToScratchType(scratchType, item.id);
-        added++;
-      } catch (error) {
-        console.error(`Erro ao adicionar item ${item.name}:`, error);
+      for (const [id, weight] of updates) {
+        await updateProbability(id, weight);
       }
-    }
-    
-    setIsAddingItems(false);
-    
-    if (added > 0) {
-      toast.success(`${added} itens adicionados com sucesso!`);
+
+      setEditingProbabilities({});
+    } finally {
+      setSaving(false);
     }
   };
 
-  // Adicionar item individual
-  const handleAddItem = async () => {
-    if (!selectedType || !selectedItem) {
-      toast.error('Selecione um tipo de raspadinha e um item');
-      return;
-    }
+  if (loading) {
+    return (
+      <Card>
+        <CardContent className="p-6">
+          <div className="text-center">Carregando configurações...</div>
+        </CardContent>
+      </Card>
+    );
+  }
 
-    const success = await addItemToScratchType(selectedType, selectedItem);
-    if (success) {
-      setSelectedItem('');
-    }
-  };
+  // Usar os tipos do banco de dados quando disponíveis, senão usar os do frontend
+  const availableTypes = scratchTypes.length > 0 
+    ? scratchTypes.map(st => ({
+        value: st.scratch_type,
+        label: st.name,
+        price: st.price,
+        color: scratchCardTypes[st.scratch_type as keyof typeof scratchCardTypes]?.bgColor || 'bg-gray-500'
+      }))
+    : Object.entries(scratchCardTypes).map(([key, config]) => ({
+        value: key,
+        label: config.name,
+        price: config.price,
+        color: config.bgColor
+      }));
 
   return (
     <div className="space-y-6">
@@ -89,170 +78,94 @@ export const ScratchCardConfigurationPanel = () => {
       <div className="flex items-center justify-between">
         <div>
           <h2 className="text-2xl font-bold text-primary flex items-center gap-2">
-            <Settings className="w-6 h-6" />
-            Configuração de Tipos
+            <Package className="w-6 h-6" />
+            Configuração de Itens e Probabilidades
           </h2>
-          <p className="text-muted-foreground mt-1">
-            Configure itens e probabilidades para cada tipo de raspadinha
+          <p className="text-muted-foreground">
+            Gerencie itens e suas probabilidades para cada tipo de raspadinha
           </p>
         </div>
+        
+        {Object.keys(editingProbabilities).length > 0 && (
+          <Button 
+            onClick={saveProbabilities}
+            disabled={saving}
+            className="gap-2"
+          >
+            <Save className="w-4 h-4" />
+            Salvar Alterações ({Object.keys(editingProbabilities).length})
+          </Button>
+        )}
       </div>
 
-      {/* Seletor de Tipo */}
-      <Card>
-        <CardHeader>
-          <CardTitle>Selecionar Tipo de Raspadinha</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-            {settings.map((setting) => {
-              const typeProbs = getProbabilitiesByType(setting.scratch_type);
-              const isConfigured = typeProbs.length > 0;
-              const suggested = getSuggestedItems(setting.scratch_type);
-              
-              return (
-                <Card 
-                  key={setting.id}
-                  className={`cursor-pointer transition-all hover:shadow-md ${
-                    selectedType === setting.scratch_type ? 'ring-2 ring-primary' : ''
-                  } ${!isConfigured ? 'border-orange-200' : 'border-green-200'}`}
-                  onClick={() => setSelectedType(setting.scratch_type)}
-                >
-                  <CardContent className="p-4">
-                    <div className="flex items-center justify-between mb-2">
-                      <h3 className="font-semibold">{setting.name}</h3>
-                      <Badge variant={isConfigured ? 'default' : 'secondary'}>
-                        {isConfigured ? <CheckCircle className="w-3 h-3 mr-1" /> : <AlertTriangle className="w-3 h-3 mr-1" />}
-                        {isConfigured ? 'OK' : 'Pendente'}
+      {/* Tabs por tipo de raspadinha */}
+      <Tabs defaultValue={availableTypes[0]?.value} className="w-full">
+        <TabsList className="grid w-full grid-cols-6 mb-6">
+          {availableTypes.map((type) => (
+            <TabsTrigger key={type.value} value={type.value} className="gap-2">
+              <div className={`w-3 h-3 rounded-full ${type.color}`} />
+              <span className="hidden sm:inline">{type.label}</span>
+              <span className="sm:hidden">{type.value.toUpperCase()}</span>
+            </TabsTrigger>
+          ))}
+        </TabsList>
+
+        {availableTypes.map((type) => {
+          const typeProbs = getProbabilitiesByType(type.value);
+          const totalWeight = getTotalWeight(type.value);
+          
+          return (
+            <TabsContent key={type.value} value={type.value}>
+              <Card>
+                <CardHeader>
+                  <div className="flex items-center justify-between">
+                    <CardTitle className="flex items-center gap-3">
+                      <div className={`w-4 h-4 rounded-full ${type.color}`} />
+                      {type.label}
+                      <Badge variant="outline">
+                        R$ {type.price.toFixed(2)}
+                      </Badge>
+                    </CardTitle>
+                    
+                    <div className="flex items-center gap-3">
+                      <Badge className="bg-blue-100 text-blue-800">
+                        <Percent className="w-3 h-3 mr-1" />
+                        {typeProbs.length} itens
+                      </Badge>
+                      <Badge className="bg-green-100 text-green-800">
+                        Peso Total: {totalWeight}
                       </Badge>
                     </div>
-                    
-                    <div className="space-y-1 text-sm text-muted-foreground">
-                      <div>Preço: R$ {setting.price.toFixed(2)}</div>
-                      <div>Itens: {typeProbs.length}</div>
-                      <div>Peso total: {getTotalWeight(setting.scratch_type)}</div>
-                      <div>Sugeridos: {suggested.length}</div>
-                    </div>
-
-                    {!isConfigured && (
-                      <Alert className="mt-2">
-                        <AlertTriangle className="h-4 w-4" />
-                        <AlertDescription className="text-xs">
-                          Nenhum item configurado
-                        </AlertDescription>
-                      </Alert>
-                    )}
-                  </CardContent>
-                </Card>
-              );
-            })}
-          </div>
-        </CardContent>
-      </Card>
-
-      {/* Configuração do Tipo Selecionado */}
-      {selectedType && (
-        <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center justify-between">
-              <span>Configurar: {settings.find(s => s.scratch_type === selectedType)?.name}</span>
-              <div className="flex gap-2">
-                <Button
-                  onClick={() => addSuggestedItems(selectedType)}
-                  disabled={isAddingItems || getSuggestedItems(selectedType).length === 0}
-                  variant="outline"
-                  size="sm"
-                >
-                  <Plus className="w-4 h-4 mr-2" />
-                  Adicionar Sugeridos ({getSuggestedItems(selectedType).length})
-                </Button>
-              </div>
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            {/* Adicionar Item Manual */}
-            <div className="flex gap-2">
-              <div className="flex-1">
-                <Label htmlFor="item-select">Adicionar Item</Label>
-                <Select value={selectedItem} onValueChange={setSelectedItem}>
-                  <SelectTrigger>
-                    <SelectValue placeholder="Selecione um item..." />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {getAvailableItems(selectedType).map((item) => (
-                      <SelectItem key={item.id} value={item.id}>
-                        {item.name} - R$ {item.base_value.toFixed(2)} ({item.rarity})
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-              <div className="flex items-end">
-                <Button onClick={handleAddItem} disabled={!selectedItem}>
-                  <Plus className="w-4 h-4 mr-2" />
-                  Adicionar
-                </Button>
-              </div>
-            </div>
-
-            {/* Lista de Itens Configurados */}
-            <div>
-              <Label>Itens Configurados</Label>
-              <div className="space-y-2 max-h-60 overflow-y-auto">
-                {getProbabilitiesByType(selectedType).map((prob) => (
-                  <div key={prob.id} className="flex items-center justify-between p-3 border rounded-lg">
-                    <div className="flex items-center gap-3">
-                      {prob.item?.image_url && (
-                        <img 
-                          src={prob.item.image_url} 
-                          alt={prob.item.name}
-                          className="w-10 h-10 object-cover rounded"
-                        />
-                      )}
-                      <div>
-                        <div className="font-medium">{prob.item?.name || 'Item não encontrado'}</div>
-                        <div className="text-sm text-muted-foreground">
-                          R$ {prob.item?.base_value.toFixed(2)} • {prob.item?.rarity}
-                        </div>
-                      </div>
-                    </div>
-                    
-                    <div className="flex items-center gap-2">
-                      <div className="text-right">
-                        <Label htmlFor={`weight-${prob.id}`} className="text-xs">Peso</Label>
-                        <Input
-                          id={`weight-${prob.id}`}
-                          type="number"
-                          min="1"
-                          max="100"
-                          value={prob.probability_weight}
-                          onChange={(e) => updateProbability(prob.id, parseInt(e.target.value) || 1)}
-                          className="w-20 text-center"
-                        />
-                      </div>
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        onClick={() => removeItemFromScratchType(prob.id, prob.item?.name || 'Item')}
-                      >
-                        <Trash2 className="w-4 h-4" />
-                      </Button>
-                    </div>
                   </div>
-                ))}
-                
-                {getProbabilitiesByType(selectedType).length === 0 && (
-                  <div className="text-center py-8 text-muted-foreground">
-                    <Settings className="w-12 h-12 mx-auto mb-4 opacity-50" />
-                    <p>Nenhum item configurado</p>
-                    <p className="text-sm">Adicione itens para começar</p>
-                  </div>
-                )}
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-      )}
+                </CardHeader>
+
+                <CardContent className="space-y-4">
+                  {typeProbs.length > 0 ? (
+                    <div className="space-y-3">
+                      {typeProbs.map(prob => (
+                        <ScratchCardProbabilityItem
+                          key={prob.id}
+                          probability={prob}
+                          editingValue={editingProbabilities[prob.id]}
+                          onProbabilityChange={handleProbabilityChange}
+                          onRemoveItem={removeItemFromScratchType}
+                          totalWeight={totalWeight}
+                        />
+                      ))}
+                    </div>
+                  ) : (
+                    <div className="text-center py-8 text-muted-foreground">
+                      <Package className="w-8 h-8 mx-auto mb-2 opacity-50" />
+                      <p>Nenhum item configurado para {type.label}</p>
+                      <p className="text-sm">Use o dashboard principal para adicionar itens</p>
+                    </div>
+                  )}
+                </CardContent>
+              </Card>
+            </TabsContent>
+          );
+        })}
+      </Tabs>
     </div>
   );
-};
+}

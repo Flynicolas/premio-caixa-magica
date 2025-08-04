@@ -29,10 +29,12 @@ interface ScratchCardProbability {
 }
 
 const SCRATCH_TYPES = [
-  { value: 'classic', label: 'Clássica', color: 'bg-blue-500' },
-  { value: 'premium', label: 'Premium', color: 'bg-purple-500' },
-  { value: 'mega', label: 'Mega', color: 'bg-yellow-500' },
-  { value: 'supreme', label: 'Supreme', color: 'bg-red-500' }
+  { value: 'pix', label: 'Raspadinha do PIX', color: 'bg-cyan-500' },
+  { value: 'sorte', label: 'Raspadinha da Sorte', color: 'bg-green-500' },
+  { value: 'dupla', label: 'Raspadinha Dupla', color: 'bg-green-600' },
+  { value: 'ouro', label: 'Raspadinha de Ouro', color: 'bg-yellow-500' },
+  { value: 'diamante', label: 'Raspadinha Diamante', color: 'bg-blue-500' },
+  { value: 'premium', label: 'Raspadinha Premium', color: 'bg-purple-500' }
 ];
 
 const ScratchCardProbabilityManager = () => {
@@ -268,8 +270,8 @@ const ScratchCardProbabilityManager = () => {
       </div>
 
       {/* Abas por tipo de raspadinha */}
-      <Tabs defaultValue="classic" className="w-full">
-        <TabsList className="grid w-full grid-cols-4">
+      <Tabs defaultValue="pix" className="w-full">
+        <TabsList className="grid w-full grid-cols-6">
           {SCRATCH_TYPES.map((type) => (
             <TabsTrigger key={type.value} value={type.value} className="gap-2">
               <div className={`w-3 h-3 rounded-full ${type.color}`} />
