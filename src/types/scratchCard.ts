@@ -22,9 +22,18 @@ export interface ScratchBlockState {
   symbol: ScratchSymbol | null;
 }
 
-export type ScratchCardType = 'sorte' | 'dupla' | 'ouro' | 'diamante' | 'premium';
+export type ScratchCardType = 'pix' | 'sorte' | 'dupla' | 'ouro' | 'diamante' | 'premium';
 
 export const scratchCardTypes = {
+  pix: { 
+    name: 'Raspadinha do PIX', 
+    price: 0.50,
+    color: 'from-cyan-400 to-cyan-600',
+    bgColor: 'bg-cyan-500',
+    textColor: 'text-cyan-700',
+    coverImage: 'https://jhbafgzfphiizpuoqksj.supabase.co/storage/v1/object/public/head-images//capa-raspadinha-pix.png',
+    scratchImage: 'https://jhbafgzfphiizpuoqksj.supabase.co/storage/v1/object/public/head-images//quadradoraspadinhapix.png'
+  },
   sorte: { 
     name: 'Raspadinha da Sorte', 
     price: 1.00,

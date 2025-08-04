@@ -125,12 +125,28 @@ export const useScratchCardManagement = () => {
         return false;
       }
 
+      // Peso padrão baseado no tipo de raspadinha
+      let defaultWeight = 1;
+      if (scratchType === 'pix') {
+        defaultWeight = 30; // PIX tem mais chances de itens pequenos
+      } else if (scratchType === 'sorte') {
+        defaultWeight = 20;
+      } else if (scratchType === 'dupla') {
+        defaultWeight = 15;
+      } else if (scratchType === 'ouro') {
+        defaultWeight = 10;
+      } else if (scratchType === 'diamante') {
+        defaultWeight = 5;
+      } else if (scratchType === 'premium') {
+        defaultWeight = 3;
+      }
+
       const { error } = await supabase
         .from('scratch_card_probabilities')
         .insert({
           scratch_type: scratchType,
           item_id: itemId,
-          probability_weight: 1,
+          probability_weight: defaultWeight,
           min_quantity: 1,
           max_quantity: 1,
           is_active: true

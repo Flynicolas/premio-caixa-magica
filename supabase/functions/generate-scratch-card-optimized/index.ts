@@ -88,20 +88,24 @@ serve(async (req) => {
 
     console.log(`📊 Encontradas ${probabilities.length} probabilidades configuradas`);
 
-    // Verificar orçamento diário disponível
-    const { data: dailyBudget } = await supabase
-      .from('scratch_card_daily_budget')
+    // Buscar configurações financeiras do tipo de raspadinha
+    const { data: financialControl } = await supabase
+      .from('scratch_card_financial_control')
       .select('*')
       .eq('scratch_type', scratchType)
       .eq('date', new Date().toISOString().split('T')[0])
       .single();
 
+    // Configurações padrão caso não encontre
+    let percentagePrizes = 0.10; // 10% para prêmios (sistema 90/10)
     let remainingBudget = 0;
-    if (dailyBudget) {
-      remainingBudget = dailyBudget.remaining_budget;
+    
+    if (financialControl) {
+      percentagePrizes = financialControl.percentage_prizes;
+      remainingBudget = financialControl.remaining_budget;
     }
 
-    console.log(`💰 Orçamento restante para prêmios: R$ ${remainingBudget}`);
+    console.log(`💰 Sistema ${Math.round((1 - percentagePrizes) * 100)}/${Math.round(percentagePrizes * 100)} - Orçamento restante: R$ ${remainingBudget}`);
 
     // Gerar símbolos da raspadinha
     const symbols: ScratchSymbol[] = [];
@@ -136,29 +140,138 @@ serve(async (req) => {
       throw new Error('Pool de símbolos vazio');
     }
 
-    // Determinar se deve ter vitória (15% de chance base ou forçada)
-    const shouldWin = forcedWin || Math.random() < 0.15;
+    // Buscar liberações manuais pendentes para este tipo de raspadinha
+    const { data: manualReleases } = await supabase
+      .from('manual_item_releases')
+      .select(`
+        id,
+        item_id,
+        probability_id,
+        expires_at,
+        metadata,
+        items (
+          id,
+          name,
+          base_value,
+          image_url,
+          rarity,
+          category
+        )
+      `)
+      .eq('chest_type', scratchType)
+      .eq('status', 'pending')
+      .gt('expires_at', new Date().toISOString())
+      .limit(1);
+
+    // Verificar se deve usar liberação manual
+    let useManualRelease = false;
+    let manualReleaseItem = null;
+
+    if (manualReleases && manualReleases.length > 0) {
+      const release = manualReleases[0];
+      if (release.items) {
+        useManualRelease = true;
+        manualReleaseItem = release.items;
+        console.log(`🎯 Usando liberação manual: ${manualReleaseItem.name}`);
+        
+        // Marcar como usado
+        await supabase
+          .from('manual_item_releases')
+          .update({ 
+            status: 'drawn',
+            drawn_at: new Date().toISOString(),
+            winner_user_id: user.id
+          })
+          .eq('id', release.id);
+      }
+    }
+
+    // Determinar se deve ter vitória
+    let shouldWin = forcedWin;
+    
+    if (!shouldWin) {
+      if (useManualRelease) {
+        shouldWin = true; // Sempre ganhar se há liberação manual
+      } else {
+        // Verificar probabilidade baseada no tipo de raspadinha
+        let winProbability = 0.30; // 30% padrão
+        
+        // Ajustar probabilidade com base no orçamento disponível
+        if (remainingBudget <= 0) {
+          winProbability = 0.05; // Reduzir para 5% se orçamento esgotado
+        } else if (remainingBudget < 10) {
+          winProbability = 0.15; // Reduzir para 15% se orçamento baixo
+        }
+        
+        shouldWin = Math.random() < winProbability;
+      }
+    }
     
     if (shouldWin) {
-      // Escolher item vencedor (priorizar itens de menor valor se orçamento limitado)
-      const eligibleItems = items
-        .filter(item => item.category !== 'dinheiro' || item.base_value <= remainingBudget)
-        .sort((a, b) => a.base_value - b.base_value);
-
-      if (eligibleItems.length > 0) {
-        const winnerItem = eligibleItems[Math.floor(Math.random() * eligibleItems.length)];
+      if (useManualRelease && manualReleaseItem) {
+        // Usar item da liberação manual
         winningItem = {
-          id: winnerItem.id,
-          symbolId: winnerItem.id,
-          name: winnerItem.name,
-          image_url: winnerItem.image_url,
-          rarity: winnerItem.rarity,
-          base_value: winnerItem.base_value,
+          id: manualReleaseItem.id,
+          symbolId: manualReleaseItem.id,
+          name: manualReleaseItem.name,
+          image_url: manualReleaseItem.image_url,
+          rarity: manualReleaseItem.rarity,
+          base_value: manualReleaseItem.base_value,
           isWinning: true,
-          category: winnerItem.category
+          category: manualReleaseItem.category
         };
         hasWin = true;
-        console.log(`🏆 Item vencedor selecionado: ${winningItem.name} - R$ ${winningItem.base_value}`);
+        console.log(`🏆 Item vencedor (liberação manual): ${winningItem.name} - R$ ${winningItem.base_value}`);
+      } else {
+        // Escolher item vencedor baseado no orçamento e tipo
+        let eligibleItems = items;
+        
+        // Filtrar por orçamento se item de dinheiro
+        if (remainingBudget > 0) {
+          eligibleItems = items.filter(item => 
+            item.category !== 'dinheiro' || item.base_value <= remainingBudget
+          );
+        } else {
+          // Se não há orçamento, só itens físicos
+          eligibleItems = items.filter(item => item.category !== 'dinheiro');
+        }
+
+        if (eligibleItems.length > 0) {
+          // Priorizar itens de menor valor
+          eligibleItems.sort((a, b) => a.base_value - b.base_value);
+          
+          // Escolher item baseado na distribuição de probabilidades
+          const totalWeight = eligibleItems.reduce((sum, item) => {
+            const prob = probabilities.find(p => p.item_id === item.id);
+            return sum + (prob ? prob.probability_weight : 1);
+          }, 0);
+          
+          let randomWeight = Math.random() * totalWeight;
+          let selectedItem = eligibleItems[0];
+          
+          for (const item of eligibleItems) {
+            const prob = probabilities.find(p => p.item_id === item.id);
+            const weight = prob ? prob.probability_weight : 1;
+            randomWeight -= weight;
+            if (randomWeight <= 0) {
+              selectedItem = item;
+              break;
+            }
+          }
+
+          winningItem = {
+            id: selectedItem.id,
+            symbolId: selectedItem.id,
+            name: selectedItem.name,
+            image_url: selectedItem.image_url,
+            rarity: selectedItem.rarity,
+            base_value: selectedItem.base_value,
+            isWinning: true,
+            category: selectedItem.category
+          };
+          hasWin = true;
+          console.log(`🏆 Item vencedor selecionado: ${winningItem.name} - R$ ${winningItem.base_value}`);
+        }
       }
     }
 
