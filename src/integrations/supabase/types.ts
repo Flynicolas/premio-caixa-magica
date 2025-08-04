@@ -947,6 +947,54 @@ export type Database = {
           },
         ]
       }
+      manual_scratch_releases: {
+        Row: {
+          created_at: string
+          drawn_at: string | null
+          expires_at: string
+          id: string
+          item_id: string
+          metadata: Json | null
+          priority: number
+          released_by: string
+          scheduled_for: string | null
+          scratch_type: string
+          status: string
+          updated_at: string
+          winner_user_id: string | null
+        }
+        Insert: {
+          created_at?: string
+          drawn_at?: string | null
+          expires_at?: string
+          id?: string
+          item_id: string
+          metadata?: Json | null
+          priority?: number
+          released_by: string
+          scheduled_for?: string | null
+          scratch_type: string
+          status?: string
+          updated_at?: string
+          winner_user_id?: string | null
+        }
+        Update: {
+          created_at?: string
+          drawn_at?: string | null
+          expires_at?: string
+          id?: string
+          item_id?: string
+          metadata?: Json | null
+          priority?: number
+          released_by?: string
+          scheduled_for?: string | null
+          scratch_type?: string
+          status?: string
+          updated_at?: string
+          winner_user_id?: string | null
+        }
+        Relationships: []
+      }
       mercadopago_payments: {
         Row: {
           amount: number
@@ -1309,6 +1357,72 @@ export type Database = {
         }
         Relationships: []
       }
+      scratch_card_dynamic_config: {
+        Row: {
+          base_win_probability: number
+          blackout_periods: Json
+          budget_threshold_high: number
+          budget_threshold_low: number
+          cooldown_after_big_win: number
+          created_at: string
+          dynamic_probability_enabled: boolean
+          id: string
+          max_value_per_win: number
+          max_win_probability: number
+          max_wins_per_hour: number
+          min_win_probability: number
+          peak_hours_end: number
+          peak_hours_multiplier: number
+          peak_hours_start: number
+          scratch_type: string
+          security_limits_enabled: boolean
+          time_based_adjustment: boolean
+          updated_at: string
+        }
+        Insert: {
+          base_win_probability?: number
+          blackout_periods?: Json
+          budget_threshold_high?: number
+          budget_threshold_low?: number
+          cooldown_after_big_win?: number
+          created_at?: string
+          dynamic_probability_enabled?: boolean
+          id?: string
+          max_value_per_win?: number
+          max_win_probability?: number
+          max_wins_per_hour?: number
+          min_win_probability?: number
+          peak_hours_end?: number
+          peak_hours_multiplier?: number
+          peak_hours_start?: number
+          scratch_type: string
+          security_limits_enabled?: boolean
+          time_based_adjustment?: boolean
+          updated_at?: string
+        }
+        Update: {
+          base_win_probability?: number
+          blackout_periods?: Json
+          budget_threshold_high?: number
+          budget_threshold_low?: number
+          cooldown_after_big_win?: number
+          created_at?: string
+          dynamic_probability_enabled?: boolean
+          id?: string
+          max_value_per_win?: number
+          max_win_probability?: number
+          max_wins_per_hour?: number
+          min_win_probability?: number
+          peak_hours_end?: number
+          peak_hours_multiplier?: number
+          peak_hours_start?: number
+          scratch_type?: string
+          security_limits_enabled?: boolean
+          time_based_adjustment?: boolean
+          updated_at?: string
+        }
+        Relationships: []
+      }
       scratch_card_financial_control: {
         Row: {
           budget_percentage: number | null
@@ -1443,6 +1557,78 @@ export type Database = {
           min_quantity?: number | null
           probability_weight?: number
           scratch_type?: string
+        }
+        Relationships: []
+      }
+      scratch_card_probability_history: {
+        Row: {
+          adjustment_factor: number
+          budget_remaining: number
+          created_at: string
+          current_probability: number
+          id: string
+          scratch_type: string
+          timestamp: string
+          trigger_reason: string
+        }
+        Insert: {
+          adjustment_factor?: number
+          budget_remaining?: number
+          created_at?: string
+          current_probability: number
+          id?: string
+          scratch_type: string
+          timestamp?: string
+          trigger_reason: string
+        }
+        Update: {
+          adjustment_factor?: number
+          budget_remaining?: number
+          created_at?: string
+          current_probability?: number
+          id?: string
+          scratch_type?: string
+          timestamp?: string
+          trigger_reason?: string
+        }
+        Relationships: []
+      }
+      scratch_card_security_alerts: {
+        Row: {
+          alert_data: Json | null
+          alert_level: string
+          alert_type: string
+          created_at: string
+          id: string
+          is_resolved: boolean
+          resolved_at: string | null
+          resolved_by: string | null
+          scratch_type: string
+          user_id: string | null
+        }
+        Insert: {
+          alert_data?: Json | null
+          alert_level?: string
+          alert_type: string
+          created_at?: string
+          id?: string
+          is_resolved?: boolean
+          resolved_at?: string | null
+          resolved_by?: string | null
+          scratch_type: string
+          user_id?: string | null
+        }
+        Update: {
+          alert_data?: Json | null
+          alert_level?: string
+          alert_type?: string
+          created_at?: string
+          id?: string
+          is_resolved?: boolean
+          resolved_at?: string | null
+          resolved_by?: string | null
+          scratch_type?: string
+          user_id?: string | null
         }
         Relationships: []
       }
