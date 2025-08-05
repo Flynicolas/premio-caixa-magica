@@ -2138,6 +2138,39 @@ export type Database = {
         }
         Relationships: []
       }
+      visual_configurations: {
+        Row: {
+          config_data: Json
+          created_at: string
+          created_by: string | null
+          id: string
+          is_active: boolean
+          section_name: string
+          section_type: string
+          updated_at: string
+        }
+        Insert: {
+          config_data?: Json
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          is_active?: boolean
+          section_name: string
+          section_type: string
+          updated_at?: string
+        }
+        Update: {
+          config_data?: Json
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          is_active?: boolean
+          section_name?: string
+          section_type?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       wallet_transactions: {
         Row: {
           amount: number
