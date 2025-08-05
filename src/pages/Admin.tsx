@@ -84,7 +84,7 @@ const Admin = () => {
       </div>
 
       <Tabs defaultValue="items" className="space-y-6">
-        <TabsList className="grid w-full grid-cols-9">
+        <TabsList className="grid w-full grid-cols-10">
           <TabsTrigger value="items" className="flex items-center gap-2">
             <Package className="w-4 h-4" />
             Itens
@@ -120,6 +120,10 @@ const Admin = () => {
           <TabsTrigger value="demo" className="flex items-center gap-2">
             <TestTube className="w-4 h-4" />
             Demo
+          </TabsTrigger>
+          <TabsTrigger value="visual" className="flex items-center gap-2">
+            <Palette className="w-4 h-4" />
+            Visual
           </TabsTrigger>
         </TabsList>
 
@@ -160,6 +164,10 @@ const Admin = () => {
 
         <TabsContent value="demo">
           <DemoItemsManager />
+        </TabsContent>
+
+        <TabsContent value="visual">
+          <VisualCustomizationPanel />
         </TabsContent>
 
       </Tabs>
