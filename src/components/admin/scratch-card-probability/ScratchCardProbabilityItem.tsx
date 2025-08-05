@@ -3,7 +3,7 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Trash2, Edit3, Check, X, Percent } from 'lucide-react';
+import { Trash2, Edit3, Check, X, Percent, Eye } from 'lucide-react';
 
 interface ScratchCardProbabilityItemProps {
   probability: {
@@ -50,6 +50,7 @@ const ScratchCardProbabilityItem = ({
   const item = probability.item;
   const currentWeight = editingValue ?? probability.probability_weight;
   const probability_percentage = totalWeight > 0 ? ((currentWeight / totalWeight) * 100) : 0;
+  const isExcludedFromDraw = currentWeight === 0;
 
   const handleSave = () => {
     if (tempValue !== probability.probability_weight) {
@@ -114,6 +115,12 @@ const ScratchCardProbabilityItem = ({
               <Badge className={rarityColors[item.rarity as keyof typeof rarityColors] || rarityColors.common}>
                 {item.rarity}
               </Badge>
+              {isExcludedFromDraw && (
+                <Badge variant="outline" className="gap-1 text-xs">
+                  <Eye className="w-3 h-3" />
+                  Apenas Visual
+                </Badge>
+              )}
             </div>
             <div className="flex items-center gap-4 text-sm text-muted-foreground">
               <span>R$ {item.base_value.toFixed(2)}</span>
@@ -130,10 +137,10 @@ const ScratchCardProbabilityItem = ({
                   <div className="flex items-center gap-2">
                     <Input
                       type="number"
-                      min="1"
+                      min="0"
                       max="1000"
                       value={tempValue}
-                      onChange={(e) => setTempValue(parseInt(e.target.value) || 1)}
+                      onChange={(e) => setTempValue(parseInt(e.target.value) || 0)}
                       className="w-20 h-8"
                     />
                     <Button size="sm" variant="ghost" onClick={handleSave}>
