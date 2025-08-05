@@ -99,34 +99,36 @@ const Raspadinha = () => {
       
       <div className="container mx-auto px-4 py-8">
         {/* Header Premium */}
-        <div className="text-center mb-12">
-          <h1 className="text-4xl md:text-5xl font-bold bg-gradient-to-r from-yellow-400 via-yellow-500 to-yellow-600 bg-clip-text text-transparent mb-4">
+        <div className="text-center mb-8">
+          <h2 className="text-3xl md:text-4xl font-bold text-white mb-3">
             🎰 Raspadinhas Premium
-          </h1>
-          <p className="text-xl text-gray-300 max-w-2xl mx-auto mb-6">
-            Escolha sua raspadinha e descubra prêmios incríveis! Quanto maior o investimento, maiores as recompensas.
+          </h2>
+          <p className="text-gray-300 text-lg">
+            Prêmios incríveis te esperam! Escolha sua raspadinha favorita
           </p>
-          
-          {/* Saldo do usuário */}
-          {user && (
-            <div className="inline-flex items-center gap-2 bg-gradient-to-r from-green-500/20 to-emerald-500/20 border border-green-500/30 rounded-full px-6 py-3">
-              <Coins className="w-5 h-5 text-green-400" />
-              <span className="text-white font-semibold">
-                Seu saldo: <span className="text-green-400">R$ {walletData?.balance.toFixed(2) || '0,00'}</span>
-              </span>
+        </div>
+
+        {/* Balance Display */}
+        {user && (
+          <div className="text-center mb-8">
+            <div className="inline-flex items-center gap-2 bg-gray-800/50 rounded-xl px-6 py-3 border border-gray-700">
+              <span className="text-gray-300">💰 Seu saldo:</span>
+              <span className="text-yellow-400 font-bold text-lg">R$ {walletData?.balance.toFixed(2).replace('.', ',') || '0,00'}</span>
             </div>
-          )}
-          
-          {!user && (
+          </div>
+        )}
+        
+        {!user && (
+          <div className="text-center mb-8">
             <Badge variant="outline" className="px-6 py-3 text-lg border-yellow-500/30 text-yellow-400">
               <Star className="w-4 h-4 mr-2" />
               Faça login para jogar com dinheiro real
             </Badge>
-          )}
-        </div>
+          </div>
+        )}
 
-        {/* Grid de Cards Premium */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 max-w-7xl mx-auto mb-16">
+        {/* Grid de Cards Premium - Estilo do PremiumScratchCatalog */}
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-2 gap-6 max-w-6xl mx-auto mb-16">
           {premiumScratchCards.map((card) => {
             const canAfford = walletData && walletData.balance >= card.price;
             const scratchType = card.id as ScratchCardType;
@@ -134,141 +136,155 @@ const Raspadinha = () => {
             return (
               <div
                 key={card.id}
-                className={`group relative bg-gradient-to-br from-gray-800/50 to-gray-900/80 rounded-2xl overflow-hidden border border-gray-700/50 transition-all duration-500 hover:scale-[1.02] hover:shadow-2xl hover:shadow-purple-500/20 ${
-                  !canAfford && user ? 'opacity-60' : ''
-                }`}
+                onClick={() => handleCardClick(scratchType)}
+                className={`
+                  relative group cursor-pointer transition-all duration-300 transform
+                  ${canAfford || !user ? 'hover:scale-[1.03] hover:shadow-2xl' : 'opacity-60 cursor-not-allowed'}
+                `}
               >
-                {/* Badge Premium */}
-                <div className="absolute top-4 left-4 z-10">
-                  <div className={`bg-gradient-to-r ${card.gradient} text-white px-3 py-1 rounded-full text-xs font-bold shadow-lg animate-pulse`}>
-                    {card.badge}
-                  </div>
-                </div>
-
-                {/* Preço */}
-                <div className="absolute top-4 right-4 z-10">
-                  <div className="bg-black/80 text-white px-3 py-2 rounded-xl font-bold text-lg border border-white/20">
-                    R$ {card.price.toFixed(2)}
-                  </div>
-                </div>
-
-                {/* Imagem de fundo */}
-                <div className="relative h-48 overflow-hidden">
-                  <img
-                    src={card.imageUrl}
-                    alt={card.title}
-                    className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110"
-                  />
-                  <div className={`absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent`}></div>
-                </div>
-
-                {/* Conteúdo do card */}
-                <div className="p-6 space-y-4">
-                  <div className="space-y-2">
-                    <h3 className="text-2xl font-bold text-white group-hover:text-yellow-400 transition-colors">
-                      {card.title}
-                    </h3>
-                    <div className="flex items-center gap-2">
-                      <Gift className="w-5 h-5 text-yellow-400" />
-                      <span className="text-yellow-400 font-bold text-lg">
-                        Até {card.maxPrize}
-                      </span>
-                    </div>
-                  </div>
-
-                  <p className="text-gray-300 text-sm leading-relaxed">
-                    {card.description}
-                  </p>
-
-                  {/* Overlay de saldo insuficiente */}
-                  {!canAfford && user && (
-                    <div className="absolute inset-0 bg-black/80 flex items-center justify-center z-20 rounded-2xl">
-                      <div className="text-center">
-                        <p className="text-red-400 font-bold text-lg mb-2">Saldo Insuficiente</p>
-                        <p className="text-gray-400 text-sm">Adicione créditos para jogar</p>
+                {/* Main Card Container */}
+                <div className="relative bg-gray-900 rounded-2xl overflow-hidden border border-gray-700/50 shadow-xl">
+                  
+                  {/* Background Image with Overlay */}
+                  <div className="relative h-64 md:h-72 overflow-hidden">
+                    <img 
+                      src={card.imageUrl}
+                      alt={card.title}
+                      className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700"
+                    />
+                    
+                    {/* Gradient Overlay */}
+                    <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/30 to-transparent"></div>
+                    
+                    {/* Price Seal - Top Right (Mobile focused) */}
+                    <div className="absolute top-3 right-3 z-10">
+                      <div className="bg-yellow-400 text-black px-3 py-1.5 md:px-4 md:py-2 rounded-full font-bold text-sm md:text-lg shadow-lg border-2 border-yellow-300">
+                        R$ {card.price.toFixed(2).replace('.', ',')}
                       </div>
                     </div>
-                  )}
 
-                  {/* Botão de ação */}
-                  <Button
-                    onClick={() => handleCardClick(scratchType)}
-                    disabled={!canAfford && !!user}
-                    className={`w-full h-12 text-lg font-bold transition-all duration-300 ${
-                      canAfford || !user
-                        ? `bg-gradient-to-r ${card.gradient} hover:shadow-lg hover:shadow-purple-500/30 border-0`
-                        : 'bg-gray-600 cursor-not-allowed'
-                    }`}
-                  >
-                    {!user ? (
-                      <>
-                        <Star className="w-5 h-5 mr-2" />
-                        Jogar Agora
-                      </>
-                    ) : canAfford ? (
-                      <>
-                        <Zap className="w-5 h-5 mr-2" />
-                        Raspar Agora
-                      </>
-                    ) : (
-                      'Saldo Insuficiente'
-                    )}
-                  </Button>
+                    {/* Badge Premium - Top Left */}
+                    <div className="absolute top-3 left-3 z-10">
+                      <div className={`bg-gradient-to-r ${card.gradient} text-white px-2 py-1 md:px-3 md:py-1.5 rounded-full text-xs md:text-sm font-bold shadow-lg animate-pulse`}>
+                        {card.badge}
+                      </div>
+                    </div>
+
+                    {/* Content Overlay */}
+                    <div className="absolute bottom-0 left-0 right-0 p-4 md:p-6 text-white">
+                      
+                      {/* Title */}
+                      <h3 className="text-xl md:text-2xl font-bold mb-2 text-white drop-shadow-lg">
+                        {card.title}
+                      </h3>
+
+                      {/* Prize Amount - Mobile optimized */}
+                      <div className="mb-3">
+                        <span className="text-yellow-400 font-bold text-sm md:text-lg">PRÊMIOS ATÉ </span>
+                        <span className="text-yellow-400 font-black text-xl md:text-2xl">
+                          {card.maxPrize}
+                        </span>
+                      </div>
+
+                      {/* Description - Mobile optimized */}
+                      <p className="text-gray-200 text-xs md:text-sm mb-3 leading-relaxed line-clamp-2">
+                        {card.description}
+                      </p>
+
+                      {/* Overlay de saldo insuficiente para usuários logados */}
+                      {!canAfford && user && (
+                        <div className="absolute inset-0 bg-black/80 flex items-center justify-center z-20 rounded-2xl">
+                          <div className="text-center">
+                            <p className="text-red-400 font-bold text-lg mb-2">Saldo Insuficiente</p>
+                            <p className="text-gray-400 text-sm">Adicione créditos para jogar</p>
+                          </div>
+                        </div>
+                      )}
+
+                      {/* Action Button - Mobile optimized */}
+                      <button
+                        disabled={!canAfford && !!user}
+                        className={`
+                          w-full py-2.5 md:py-4 px-4 md:px-6 rounded-lg font-bold text-sm md:text-lg
+                          transition-all duration-300 flex items-center justify-center gap-2
+                          ${canAfford || !user
+                            ? 'bg-yellow-400 hover:bg-yellow-300 text-black shadow-lg hover:shadow-xl' 
+                            : 'bg-gray-600 text-gray-400 cursor-not-allowed'
+                          }
+                        `}
+                      >
+                        {!user ? (
+                          <>
+                            <Star className="w-4 h-4 md:w-5 md:h-5" />
+                            Jogar Agora
+                          </>
+                        ) : canAfford ? (
+                          <>
+                            <Zap className="w-4 h-4 md:w-5 md:h-5" />
+                            Raspar Agora
+                          </>
+                        ) : (
+                          'Saldo Insuficiente'
+                        )}
+                      </button>
+                    </div>
+                  </div>
+
+                  {/* Shimmer Effect on Hover */}
+                  <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/10 to-transparent -translate-x-full group-hover:translate-x-full transition-transform duration-1000 pointer-events-none"></div>
                 </div>
               </div>
             );
           })}
         </div>
 
-        {/* Seção Como Jogar - Premium */}
+        {/* Instructions */}
+        <div className="text-center mb-8">
+          <p className="text-gray-400 text-sm">
+            ✨ Raspe e ganhe prêmios incríveis instantaneamente! ✨
+          </p>
+        </div>
+
+        {/* Seção Como Jogar - Premium Compacta */}
         <div className="max-w-4xl mx-auto mb-16">
-          <Card className="bg-gradient-to-br from-gray-800/40 to-gray-900/60 border border-gray-700/50 backdrop-blur-sm">
-            <CardHeader className="text-center pb-6">
-              <CardTitle className="text-3xl font-bold text-white mb-3">
+          <Card className="bg-gray-800/40 border border-gray-700/50 backdrop-blur-sm">
+            <CardHeader className="text-center pb-4">
+              <CardTitle className="text-2xl font-bold text-white mb-2">
                 🎯 Como Jogar
               </CardTitle>
-              <p className="text-gray-300 text-lg">É simples, rápido e divertido!</p>
+              <p className="text-gray-300">É simples, rápido e divertido!</p>
             </CardHeader>
             
-            <CardContent className="px-8 pb-8">
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-                <div className="text-center space-y-4">
-                  <div className="w-16 h-16 bg-gradient-to-br from-cyan-400 to-cyan-600 text-white rounded-2xl flex items-center justify-center font-bold text-2xl shadow-xl mx-auto">
+            <CardContent className="px-6 pb-6">
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                <div className="text-center space-y-3">
+                  <div className="w-12 h-12 bg-yellow-400 text-black rounded-xl flex items-center justify-center font-bold text-xl shadow-lg mx-auto">
                     1
                   </div>
                   <div>
-                    <h4 className="font-bold text-white text-xl mb-2">Escolha & Pague</h4>
-                    <p className="text-gray-300">Selecione sua raspadinha favorita e confirme o pagamento</p>
+                    <h4 className="font-bold text-white text-lg mb-1">Escolha & Pague</h4>
+                    <p className="text-gray-300 text-sm">Selecione sua raspadinha favorita</p>
                   </div>
                 </div>
                 
-                <div className="text-center space-y-4">
-                  <div className="w-16 h-16 bg-gradient-to-br from-purple-400 to-purple-600 text-white rounded-2xl flex items-center justify-center font-bold text-2xl shadow-xl mx-auto">
+                <div className="text-center space-y-3">
+                  <div className="w-12 h-12 bg-yellow-400 text-black rounded-xl flex items-center justify-center font-bold text-xl shadow-lg mx-auto">
                     2
                   </div>
                   <div>
-                    <h4 className="font-bold text-white text-xl mb-2">Raspe & Descubra</h4>
-                    <p className="text-gray-300">Use o dedo ou mouse para revelar os símbolos secretos</p>
+                    <h4 className="font-bold text-white text-lg mb-1">Raspe & Descubra</h4>
+                    <p className="text-gray-300 text-sm">Use o dedo ou mouse para revelar</p>
                   </div>
                 </div>
                 
-                <div className="text-center space-y-4">
-                  <div className="w-16 h-16 bg-gradient-to-br from-green-400 to-green-600 text-white rounded-2xl flex items-center justify-center font-bold text-2xl shadow-xl mx-auto">
+                <div className="text-center space-y-3">
+                  <div className="w-12 h-12 bg-yellow-400 text-black rounded-xl flex items-center justify-center font-bold text-xl shadow-lg mx-auto">
                     3
                   </div>
                   <div>
-                    <h4 className="font-bold text-white text-xl mb-2">Ganhe Prêmios</h4>
-                    <p className="text-gray-300">3 símbolos iguais = vitória instantânea!</p>
+                    <h4 className="font-bold text-white text-lg mb-1">Ganhe Prêmios</h4>
+                    <p className="text-gray-300 text-sm">3 símbolos iguais = vitória!</p>
                   </div>
-                </div>
-              </div>
-              
-              <div className="mt-8 p-6 bg-gradient-to-r from-yellow-500/20 to-orange-500/20 rounded-2xl border border-yellow-500/30">
-                <div className="text-center">
-                  <h5 className="text-yellow-400 font-bold text-lg mb-2">💡 Dica de Ouro</h5>
-                  <p className="text-white">
-                    Raspadinhas mais caras oferecem prêmios maiores e melhores chances de ganhar!
-                  </p>
                 </div>
               </div>
             </CardContent>
