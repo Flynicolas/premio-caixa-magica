@@ -1191,7 +1191,7 @@ export type Database = {
           level: number | null
           neighborhood: string | null
           number: string | null
-          phone: string | null
+          phone: string
           preferences: Json | null
           prize_notifications: boolean | null
           promo_emails: boolean | null
@@ -1234,7 +1234,7 @@ export type Database = {
           level?: number | null
           neighborhood?: string | null
           number?: string | null
-          phone?: string | null
+          phone?: string
           preferences?: Json | null
           prize_notifications?: boolean | null
           promo_emails?: boolean | null
@@ -1277,7 +1277,7 @@ export type Database = {
           level?: number | null
           neighborhood?: string | null
           number?: string | null
-          phone?: string | null
+          phone?: string
           preferences?: Json | null
           prize_notifications?: boolean | null
           promo_emails?: boolean | null
@@ -2327,6 +2327,14 @@ export type Database = {
       }
       is_admin_user: {
         Args: Record<PropertyKey, never>
+        Returns: boolean
+      }
+      is_valid_email: {
+        Args: { input_text: string }
+        Returns: boolean
+      }
+      is_valid_phone: {
+        Args: { input_text: string }
         Returns: boolean
       }
       log_admin_action: {
