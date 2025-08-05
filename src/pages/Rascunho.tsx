@@ -13,6 +13,8 @@ import WinModal from '@/components/WinModal';
 import WalletPanel from '@/components/WalletPanel';
 import PremiumLiveWins from '@/components/PremiumLiveWins';
 import RectangularScratchSelector from '@/components/RectangularScratchSelector';
+import ScratchSelectorStyleTwo from '@/components/ScratchSelectorStyleTwo';
+import ScratchSelectorStyleThree from '@/components/ScratchSelectorStyleThree';
 
 const Rascunho = () => {
   const { user } = useAuth();
@@ -310,6 +312,24 @@ const Rascunho = () => {
         <section className="mt-16 mb-12 bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900 rounded-2xl p-8">
           <RectangularScratchSelector 
             onCardSelect={(cardId) => console.log('Card selecionado:', cardId)}
+            userBalance={walletData?.balance || 0}
+            isLoading={false}
+          />
+        </section>
+
+        {/* Catálogo de Raspadinhas - Estilo 2: Glass Morphism */}
+        <section className="mt-16 mb-12 bg-gradient-to-br from-gray-900 via-black to-gray-900 rounded-3xl p-8 border border-white/10">
+          <ScratchSelectorStyleTwo 
+            onCardSelect={(cardId) => console.log('Card selecionado estilo 2:', cardId)}
+            userBalance={walletData?.balance || 0}
+            isLoading={false}
+          />
+        </section>
+
+        {/* Catálogo de Raspadinhas - Estilo 3: Futurista Gaming */}
+        <section className="mt-16 mb-12 bg-gradient-to-br from-purple-900/20 via-black to-pink-900/20 rounded-3xl p-8 border border-purple-500/20">
+          <ScratchSelectorStyleThree 
+            onCardSelect={(cardId) => console.log('Card selecionado estilo 3:', cardId)}
             userBalance={walletData?.balance || 0}
             isLoading={false}
           />
