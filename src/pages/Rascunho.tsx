@@ -11,6 +11,8 @@ import ChestConfirmModal from '@/components/ChestConfirmModal';
 import ChestOpeningModal from '@/components/ChestOpeningModal';
 import WinModal from '@/components/WinModal';
 import WalletPanel from '@/components/WalletPanel';
+import PremiumLiveWins from '@/components/PremiumLiveWins';
+import RectangularScratchSelector from '@/components/RectangularScratchSelector';
 
 const Rascunho = () => {
   const { user } = useAuth();
@@ -289,6 +291,28 @@ const Rascunho = () => {
               </div>
             ))}
           </div>
+        </section>
+
+        {/* Sistema de Vitórias em Tempo Real */}
+        <section className="mt-16 mb-12">
+          <div className="text-center mb-8">
+            <h2 className="text-xl md:text-2xl font-bold mb-2 text-primary">
+              🔴 Sistema de Vitórias AO VIVO
+            </h2>
+            <p className="text-sm text-muted-foreground">
+              Carrossel de vitórias em tempo real estilizado
+            </p>
+          </div>
+          <PremiumLiveWins />
+        </section>
+
+        {/* Catálogo de Raspadinhas Retangulares */}
+        <section className="mt-16 mb-12 bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900 rounded-2xl p-8">
+          <RectangularScratchSelector 
+            onCardSelect={(cardId) => console.log('Card selecionado:', cardId)}
+            userBalance={walletData?.balance || 0}
+            isLoading={false}
+          />
         </section>
 
         {/* Área de Testes */}
