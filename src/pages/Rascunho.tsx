@@ -15,6 +15,11 @@ import PremiumLiveWins from '@/components/PremiumLiveWins';
 import RectangularScratchSelector from '@/components/RectangularScratchSelector';
 import ScratchSelectorStyleTwo from '@/components/ScratchSelectorStyleTwo';
 import ScratchSelectorStyleThree from '@/components/ScratchSelectorStyleThree';
+import ScratchModalStyleOne from '@/components/scratch-card/ScratchModalStyleOne';
+import ScratchModalStyleTwo from '@/components/scratch-card/ScratchModalStyleTwo';
+import ScratchModalStyleThree from '@/components/scratch-card/ScratchModalStyleThree';
+import MoneyWinModal from '@/components/scratch-card/MoneyWinModal';
+import ItemWinModal from '@/components/scratch-card/ItemWinModal';
 
 const Rascunho = () => {
   const { user } = useAuth();
@@ -28,6 +33,14 @@ const Rascunho = () => {
   const [wonPrize, setWonPrize] = useState<DatabaseItem | null>(null);
   const [selectedChestType, setSelectedChestType] = useState<ChestType | undefined>(undefined);
   const { userItems } = useInventory();
+
+  // Estados para os novos modais de teste
+  const [scratchModalOne, setScratchModalOne] = useState(false);
+  const [scratchModalTwo, setScratchModalTwo] = useState(false);
+  const [scratchModalThree, setScratchModalThree] = useState(false);
+  const [moneyWinModal, setMoneyWinModal] = useState(false);
+  const [itemWinModal, setItemWinModal] = useState(false);
+  const [testWinData, setTestWinData] = useState<any>(null);
 
   // Definir ordem específica dos baús
   const chestOrder: ChestType[] = ['silver', 'gold', 'diamond', 'ruby', 'premium', 'delas'];
@@ -335,18 +348,62 @@ const Rascunho = () => {
           />
         </section>
 
-        {/* Área de Testes */}
-        <section className="mt-16 p-8 bg-card/50 rounded-lg border border-border">
-          <h3 className="text-xl font-semibold mb-4 text-primary">
-            💡 Área de Experimentação
+        {/* TESTE DOS MODAIS DE RASPAGEM */}
+        <section className="mt-16 p-8 bg-gradient-to-br from-slate-900 to-slate-800 rounded-xl border border-slate-700">
+          <h3 className="text-2xl font-bold mb-6 text-center text-white">
+            🎮 Teste dos 3 Modais de Raspagem
           </h3>
-          <p className="text-muted-foreground mb-4">
-            Use esta área para testar novos componentes, estilos e animações.
-          </p>
-          
-          {/* Placeholder para testes */}
-          <div className="min-h-[200px] border-2 border-dashed border-muted-foreground/30 rounded-lg flex items-center justify-center">
-            <p className="text-muted-foreground">Área para testes e experimentos</p>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+            <button
+              onClick={() => setScratchModalOne(true)}
+              className="h-20 bg-gradient-to-r from-slate-700 to-slate-800 hover:from-slate-600 hover:to-slate-700 text-white font-bold text-lg rounded-lg transition-all duration-300 hover:scale-105"
+            >
+              🌑 Minimalista Escuro
+            </button>
+            <button
+              onClick={() => setScratchModalTwo(true)}
+              className="h-20 bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-400 hover:to-pink-400 text-white font-bold text-lg rounded-lg transition-all duration-300 hover:scale-105"
+            >
+              ✨ Glassmorphism
+            </button>
+            <button
+              onClick={() => setScratchModalThree(true)}
+              className="h-20 bg-gradient-to-r from-cyan-500 to-purple-500 hover:from-cyan-400 hover:to-purple-400 text-white font-bold text-lg rounded-lg transition-all duration-300 hover:scale-105"
+            >
+              ⚡ Neon Gaming
+            </button>
+          </div>
+        </section>
+
+        {/* TESTE DOS MODAIS DE VITÓRIA */}
+        <section className="mt-8 p-8 bg-gradient-to-br from-emerald-900 to-blue-900 rounded-xl border border-emerald-700">
+          <h3 className="text-2xl font-bold mb-6 text-center text-white">
+            🏆 Teste dos Modais de Vitória
+          </h3>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6 max-w-2xl mx-auto">
+            <button
+              onClick={() => {
+                setTestWinData({ amount: 1250 });
+                setMoneyWinModal(true);
+              }}
+              className="h-16 bg-gradient-to-r from-green-500 to-emerald-500 hover:from-green-400 hover:to-emerald-400 text-white font-bold text-lg rounded-lg transition-all duration-300 hover:scale-105"
+            >
+              💰 Vitória - Dinheiro
+            </button>
+            <button
+              onClick={() => {
+                setTestWinData({
+                  name: 'iPhone 15 Pro Max',
+                  rarity: 'legendary',
+                  image: '/placeholder.svg',
+                  value: 7500
+                });
+                setItemWinModal(true);
+              }}
+              className="h-16 bg-gradient-to-r from-blue-500 to-indigo-500 hover:from-blue-400 hover:to-indigo-400 text-white font-bold text-lg rounded-lg transition-all duration-300 hover:scale-105"
+            >
+              🎁 Vitória - Item
+            </button>
           </div>
         </section>
       </div>
@@ -398,6 +455,79 @@ const Rascunho = () => {
         onClose={() => setShowWinModal(false)}
         prize={wonPrize}
         onCollect={() => setShowWinModal(false)}
+      />
+
+      {/* NOVOS MODAIS DE TESTE */}
+      <ScratchModalStyleOne
+        isOpen={scratchModalOne}
+        onClose={() => setScratchModalOne(false)}
+        onWin={(type, data) => {
+          setScratchModalOne(false);
+          if (type === 'money') {
+            setTestWinData(data);
+            setMoneyWinModal(true);
+          } else {
+            setTestWinData(data);
+            setItemWinModal(true);
+          }
+        }}
+      />
+
+      <ScratchModalStyleTwo
+        isOpen={scratchModalTwo}
+        onClose={() => setScratchModalTwo(false)}
+        onWin={(type, data) => {
+          setScratchModalTwo(false);
+          if (type === 'money') {
+            setTestWinData(data);
+            setMoneyWinModal(true);
+          } else {
+            setTestWinData(data);
+            setItemWinModal(true);
+          }
+        }}
+      />
+
+      <ScratchModalStyleThree
+        isOpen={scratchModalThree}
+        onClose={() => setScratchModalThree(false)}
+        onWin={(type, data) => {
+          setScratchModalThree(false);
+          if (type === 'money') {
+            setTestWinData(data);
+            setMoneyWinModal(true);
+          } else {
+            setTestWinData(data);
+            setItemWinModal(true);
+          }
+        }}
+      />
+
+      <MoneyWinModal
+        isOpen={moneyWinModal}
+        onClose={() => setMoneyWinModal(false)}
+        onPlayAgain={() => {
+          setMoneyWinModal(false);
+        }}
+        amount={testWinData?.amount || 100}
+      />
+
+      <ItemWinModal
+        isOpen={itemWinModal}
+        onClose={() => setItemWinModal(false)}
+        onPlayAgain={() => {
+          setItemWinModal(false);
+        }}
+        onViewInventory={() => {
+          setItemWinModal(false);
+          console.log('Abrir inventário');
+        }}
+        item={testWinData || {
+          name: 'iPhone 15 Pro',
+          rarity: 'legendary',
+          image: '/placeholder.svg',
+          value: 5000
+        }}
       />
     </div>
   );
