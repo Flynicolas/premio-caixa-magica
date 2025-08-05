@@ -367,7 +367,7 @@ const ModernAuthModal = ({ isOpen, onClose }: ModernAuthModalProps) => {
                           Criando conta...
                         </>
                       ) : (
-                        'Cadastrar e Ganhar R$ 50'
+                        'Criar Conta'
                       )}
                     </Button>
                   </form>

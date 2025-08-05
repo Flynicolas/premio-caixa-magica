@@ -51,7 +51,7 @@ const ChestSimulator = () => {
     <>
       {/* Gadget compacto e chamativo */}
       <div className="w-full max-w-md mx-auto mb-6 md:max-w-6xl">
-        <Card className="bg-gradient-to-r from-purple-600 via-pink-600 to-orange-500 border-0 shadow-2xl hover:shadow-purple-500/25 transition-all duration-300 animate-[pulse_3s_cubic-bezier(0.4,0,0.6,1)_infinite]">
+        <Card className="bg-gradient-to-r from-purple-600 via-pink-600 to-orange-500 border-0 shadow-2xl hover:shadow-purple-500/25 transition-all duration-300 hover:scale-[1.02]">
           <CardContent className="p-4 md:p-6">
             <div className="flex flex-col md:flex-row items-center justify-between gap-4">
               <div className="text-center md:text-left">
