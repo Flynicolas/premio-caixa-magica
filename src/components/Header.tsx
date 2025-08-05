@@ -87,6 +87,9 @@ const Header = () => {
             <Link to="/premios" className="text-muted-foreground hover:text-primary transition-colors">
               Prêmios
             </Link>
+            <Link to="/raspadinha" className="text-muted-foreground hover:text-primary transition-colors">
+              Raspadinha
+            </Link>
             <Link to="/sobre" className="text-muted-foreground hover:text-primary transition-colors">
               Sobre
             </Link>
@@ -111,6 +114,11 @@ const Header = () => {
               <DropdownMenuItem asChild>
                 <Link to="/premios" className="cursor-pointer">
                   Prêmios
+                </Link>
+              </DropdownMenuItem>
+              <DropdownMenuItem asChild>
+                <Link to="/raspadinha" className="cursor-pointer">
+                  Raspadinha
                 </Link>
               </DropdownMenuItem>
               <DropdownMenuItem asChild>
