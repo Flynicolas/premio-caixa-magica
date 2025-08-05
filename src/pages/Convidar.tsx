@@ -15,11 +15,16 @@ import {
   ExternalLink,
   QrCode,
   Activity,
-  DollarSign
+  DollarSign,
+  BarChart3,
+  MessageSquare
 } from 'lucide-react';
 import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 import AuthModal from '@/components/AuthModal';
+import ReferralLevelBadge from '@/components/ReferralLevelBadge';
+import ReferralShareTemplates from '@/components/ReferralShareTemplates';
+import ReferralAnalytics from '@/components/ReferralAnalytics';
 
 const Convidar = () => {
   const { user } = useAuth();
@@ -32,7 +37,8 @@ const Convidar = () => {
     copyReferralLink,
     shareOnWhatsApp,
     shareOnTelegram,
-    generateQRCode
+    generateQRCode,
+    trackClick
   } = useReferrals();
   
   const [showAuthModal, setShowAuthModal] = useState(false);
@@ -43,9 +49,9 @@ const Convidar = () => {
       <div className="min-h-screen bg-gradient-to-br from-background via-background/95 to-background flex items-center justify-center p-4">
         <Card className="w-full max-w-md">
           <CardHeader className="text-center">
-            <CardTitle className="text-2xl">Sistema de Afiliados</CardTitle>
+            <CardTitle className="text-2xl">Convidar Amigos</CardTitle>
             <p className="text-muted-foreground">
-              Faça login para acessar seu link de convite e começar a ganhar com indicações!
+              Faça login para acessar seu link de convite e construir sua rede de amigos!
             </p>
           </CardHeader>
           <CardContent>
@@ -96,10 +102,10 @@ const Convidar = () => {
         {/* Header */}
         <div className="text-center mb-8">
           <h1 className="text-4xl font-bold mb-4 bg-gradient-to-r from-primary to-primary/70 bg-clip-text text-transparent">
-            🤝 Sistema de Afiliados
+            🤝 Convidar Amigos
           </h1>
           <p className="text-xl text-muted-foreground max-w-2xl mx-auto">
-            Convide amigos e ganhe com cada novo usuário que se cadastrar usando seu link!
+            Convide amigos para nossa plataforma e acompanhe o crescimento da sua rede!
           </p>
         </div>
 
@@ -158,9 +164,9 @@ const Convidar = () => {
                   <DollarSign className="w-6 h-6 text-yellow-400" />
                 </div>
                 <div>
-                  <p className="text-sm text-muted-foreground">Comissão Futura</p>
+                  <p className="text-sm text-muted-foreground">Rede Construída</p>
                   <p className="text-2xl font-bold text-yellow-400">
-                    R$ {referralData?.total_commission_earned?.toFixed(2) || '0.00'}
+                    {referralData?.successful_referrals || 0} pessoas
                   </p>
                 </div>
               </div>
@@ -168,11 +174,20 @@ const Convidar = () => {
           </Card>
         </div>
 
+        {/* Level Badge */}
+        <div className="text-center mb-6">
+          <ReferralLevelBadge 
+            totalReferrals={referralData?.successful_referrals || 0}
+            className="justify-center"
+          />
+        </div>
+
         <Tabs defaultValue="link" className="space-y-6">
-          <TabsList className="grid w-full grid-cols-4">
+          <TabsList className="grid w-full grid-cols-5">
             <TabsTrigger value="link">Meu Link</TabsTrigger>
+            <TabsTrigger value="templates">Templates</TabsTrigger>
             <TabsTrigger value="statistics">Estatísticas</TabsTrigger>
-            <TabsTrigger value="users">Meus Convidados</TabsTrigger>
+            <TabsTrigger value="users">Convidados</TabsTrigger>
             <TabsTrigger value="activities">Atividades</TabsTrigger>
           </TabsList>
 
@@ -253,26 +268,65 @@ const Convidar = () => {
                 </div>
 
                 {/* How it works */}
-                <Card className="bg-gradient-to-r from-primary/5 to-primary/10">
+                <Card className="bg-gradient-to-r from-primary/5 to-primary/10 border-primary/20">
                   <CardContent className="p-6">
-                    <h3 className="text-lg font-semibold mb-4">Como Funciona</h3>
-                    <div className="space-y-3 text-sm">
-                      <div className="flex items-start space-x-3">
-                        <div className="w-6 h-6 bg-primary rounded-full flex items-center justify-center text-white font-bold text-xs">1</div>
-                        <p>Compartilhe seu link único com amigos e familiares</p>
+                    <h3 className="text-xl font-semibold mb-6 text-center">🚀 Como Funciona o Sistema de Convites</h3>
+                    
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+                      <div className="space-y-4">
+                        <h4 className="font-semibold text-primary">📋 Agora (Gratuito)</h4>
+                        <div className="space-y-3 text-sm">
+                          <div className="flex items-start space-x-3">
+                            <div className="w-6 h-6 bg-primary rounded-full flex items-center justify-center text-white font-bold text-xs">1</div>
+                            <p>Compartilhe seu link único com amigos</p>
+                          </div>
+                          <div className="flex items-start space-x-3">
+                            <div className="w-6 h-6 bg-primary rounded-full flex items-center justify-center text-white font-bold text-xs">2</div>
+                            <p>Amigos se cadastram usando seu código</p>
+                          </div>
+                          <div className="flex items-start space-x-3">
+                            <div className="w-6 h-6 bg-primary rounded-full flex items-center justify-center text-white font-bold text-xs">3</div>
+                            <p>Acompanhe estatísticas em tempo real</p>
+                          </div>
+                          <div className="flex items-start space-x-3">
+                            <div className="w-6 h-6 bg-primary rounded-full flex items-center justify-center text-white font-bold text-xs">4</div>
+                            <p>Construa sua rede de indicações</p>
+                          </div>
+                        </div>
                       </div>
-                      <div className="flex items-start space-x-3">
-                        <div className="w-6 h-6 bg-primary rounded-full flex items-center justify-center text-white font-bold text-xs">2</div>
-                        <p>Seus amigos se cadastram usando seu link</p>
+
+                      <div className="space-y-4">
+                        <h4 className="font-semibold text-yellow-600">💰 Em Breve (Sistema Remunerado)</h4>
+                        <div className="space-y-3 text-sm">
+                          <div className="flex items-start space-x-3">
+                            <div className="w-6 h-6 bg-yellow-500 rounded-full flex items-center justify-center text-white font-bold text-xs">💸</div>
+                            <p>Ganhe comissões por cada amigo ativo</p>
+                          </div>
+                          <div className="flex items-start space-x-3">
+                            <div className="w-6 h-6 bg-yellow-500 rounded-full flex items-center justify-center text-white font-bold text-xs">📈</div>
+                            <p>Comissão sobre gastos dos indicados</p>
+                          </div>
+                          <div className="flex items-start space-x-3">
+                            <div className="w-6 h-6 bg-yellow-500 rounded-full flex items-center justify-center text-white font-bold text-xs">🎯</div>
+                            <p>Bônus por metas de indicações</p>
+                          </div>
+                          <div className="flex items-start space-x-3">
+                            <div className="w-6 h-6 bg-yellow-500 rounded-full flex items-center justify-center text-white font-bold text-xs">🏆</div>
+                            <p>Sistema de níveis e recompensas</p>
+                          </div>
+                        </div>
                       </div>
-                      <div className="flex items-start space-x-3">
-                        <div className="w-6 h-6 bg-primary rounded-full flex items-center justify-center text-white font-bold text-xs">3</div>
-                        <p>Você acompanha as estatísticas em tempo real</p>
+                    </div>
+
+                    <div className="bg-yellow-50 dark:bg-yellow-900/20 p-4 rounded-lg border border-yellow-200 dark:border-yellow-800">
+                      <div className="flex items-center space-x-2 mb-2">
+                        <Gift className="w-5 h-5 text-yellow-600" />
+                        <h5 className="font-semibold text-yellow-800 dark:text-yellow-200">Prepare-se para o Futuro!</h5>
                       </div>
-                      <div className="flex items-start space-x-3">
-                        <div className="w-6 h-6 bg-primary rounded-full flex items-center justify-center text-white font-bold text-xs">4</div>
-                        <p className="text-yellow-600 font-medium">Em breve: Ganhe comissões por cada amigo ativo!</p>
-                      </div>
+                      <p className="text-sm text-yellow-700 dark:text-yellow-300">
+                        Quem começar a construir sua rede agora terá vantagem quando o sistema de comissões for lançado. 
+                        Seus dados e estatísticas serão preservados!
+                      </p>
                     </div>
                   </CardContent>
                 </Card>
@@ -280,61 +334,89 @@ const Convidar = () => {
             </Card>
           </TabsContent>
 
+          {/* Aba de Templates */}
+          <TabsContent value="templates" className="space-y-6">
+            <ReferralShareTemplates
+              referralCode={referralData?.referral_code || ''}
+              fullReferralLink={fullReferralLink}
+              onShare={(platform, message) => {
+                if (platform === 'whatsapp') {
+                  const whatsappUrl = `https://api.whatsapp.com/send?text=${encodeURIComponent(message)}`;
+                  window.open(whatsappUrl, '_blank');
+                } else if (platform === 'telegram') {
+                  const telegramUrl = `https://telegram.me/share/url?url=${encodeURIComponent(fullReferralLink)}&text=${encodeURIComponent(message)}`;
+                  window.open(telegramUrl, '_blank');
+                }
+                
+                if (referralData) {
+                  trackClick(referralData.referral_code, platform);
+                }
+              }}
+            />
+          </TabsContent>
+
           {/* Aba de Estatísticas */}
           <TabsContent value="statistics" className="space-y-6">
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-              <Card>
-                <CardHeader>
-                  <CardTitle>Resumo Geral</CardTitle>
-                </CardHeader>
-                <CardContent className="space-y-4">
-                  <div className="flex justify-between">
-                    <span>Total de Cliques:</span>
-                    <span className="font-bold">{totalStats.clicks}</span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span>Cadastros:</span>
-                    <span className="font-bold">{totalStats.registrations}</span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span>Primeiro Depósito:</span>
-                    <span className="font-bold">{totalStats.deposits}</span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span>Volume Total:</span>
-                    <span className="font-bold">R$ {totalStats.totalAmount.toFixed(2)}</span>
-                  </div>
-                </CardContent>
-              </Card>
-
-              <Card>
-                <CardHeader>
-                  <CardTitle>Últimos 7 Dias</CardTitle>
-                </CardHeader>
-                <CardContent>
-                  {referralStats.slice(0, 7).length > 0 ? (
-                    <div className="space-y-3">
-                      {referralStats.slice(0, 7).map((stat) => (
-                        <div key={stat.id} className="flex justify-between items-center">
-                          <span className="text-sm">
-                            {format(new Date(stat.date), 'dd/MM', { locale: ptBR })}
+            <ReferralAnalytics
+              referralStats={referralStats}
+              totalStats={totalStats}
+              conversionRate={conversionRate}
+            />
+            
+            {/* Histórico Detalhado */}
+            <Card>
+              <CardHeader>
+                <CardTitle>Histórico Detalhado (Últimos 30 dias)</CardTitle>
+              </CardHeader>
+              <CardContent>
+                {referralStats.length > 0 ? (
+                  <div className="space-y-3">
+                    {referralStats.map((stat) => (
+                      <div key={stat.id} className="flex justify-between items-center p-3 border rounded-lg">
+                        <div>
+                          <span className="font-medium">
+                            {format(new Date(stat.date), 'dd/MM/yyyy', { locale: ptBR })}
                           </span>
-                          <div className="flex space-x-4 text-sm">
-                            <span>👆 {stat.clicks}</span>
-                            <span>👤 {stat.registrations}</span>
-                            <span>💰 {stat.first_deposits}</span>
+                          <p className="text-xs text-muted-foreground">
+                            {format(new Date(stat.date), 'EEEE', { locale: ptBR })}
+                          </p>
+                        </div>
+                        <div className="flex space-x-6 text-sm">
+                          <div className="text-center">
+                            <p className="font-bold text-blue-600">{stat.clicks}</p>
+                            <p className="text-xs text-muted-foreground">Cliques</p>
+                          </div>
+                          <div className="text-center">
+                            <p className="font-bold text-green-600">{stat.registrations}</p>
+                            <p className="text-xs text-muted-foreground">Cadastros</p>
+                          </div>
+                          <div className="text-center">
+                            <p className="font-bold text-purple-600">{stat.first_deposits}</p>
+                            <p className="text-xs text-muted-foreground">Depósitos</p>
+                          </div>
+                          <div className="text-center">
+                            <p className="font-bold">
+                              {stat.clicks > 0 ? ((stat.registrations / stat.clicks) * 100).toFixed(1) : '0'}%
+                            </p>
+                            <p className="text-xs text-muted-foreground">Taxa</p>
                           </div>
                         </div>
-                      ))}
-                    </div>
-                  ) : (
-                    <p className="text-muted-foreground text-center py-4">
+                      </div>
+                    ))}
+                  </div>
+                ) : (
+                  <div className="text-center py-8">
+                    <BarChart3 className="w-12 h-12 text-muted-foreground mx-auto mb-4" />
+                    <p className="text-muted-foreground">
                       Nenhuma atividade ainda
                     </p>
-                  )}
-                </CardContent>
-              </Card>
-            </div>
+                    <p className="text-sm text-muted-foreground mt-2">
+                      Compartilhe seu link para começar a gerar estatísticas!
+                    </p>
+                  </div>
+                )}
+              </CardContent>
+            </Card>
           </TabsContent>
 
           {/* Aba de Usuários */}

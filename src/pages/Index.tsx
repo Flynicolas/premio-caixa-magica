@@ -1,6 +1,6 @@
 
 import { useEffect, useState } from 'react';
-import { useParams } from 'react-router-dom';
+import { useParams, useLocation } from 'react-router-dom';
 import { useAuth } from '@/hooks/useAuth';
 import { useWallet } from '@/hooks/useWalletProvider';
 import { useReferralTracking } from '@/hooks/useReferralTracking';
@@ -27,6 +27,14 @@ const Index = () => {
   const { walletData, refreshData } = useWallet();
   const { trackReferralClick } = useReferralTracking();
   const [showAuthModal, setShowAuthModal] = useState(false);
+  const location = useLocation();
+
+  useEffect(() => {
+    // Verificar se deve mostrar modal de auth baseado no state da navegação
+    if (location.state?.showAuth) {
+      setShowAuthModal(true);
+    }
+  }, [location]);
   const [showWalletPanel, setShowWalletPanel] = useState(false);
   const [showItemsModal, setShowItemsModal] = useState(false);
   const [showConfirmModal, setShowConfirmModal] = useState(false);

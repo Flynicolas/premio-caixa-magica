@@ -166,6 +166,8 @@ export const useReferrals = () => {
 
   // Registrar clique no link
   const trackClick = async (referralCode: string, source: string = 'direct') => {
+    if (!user) return;
+    
     try {
       const ipResponse = await fetch('https://api.ipify.org?format=json');
       const { ip } = await ipResponse.json();
@@ -173,7 +175,7 @@ export const useReferrals = () => {
       const { error } = await supabase
         .from('referral_activities')
         .insert({
-          referrer_id: user?.id,
+          referrer_id: user.id,
           activity_type: 'click',
           activity_data: { referral_code: referralCode },
           ip_address: ip,
@@ -185,9 +187,34 @@ export const useReferrals = () => {
         console.error('Erro ao registrar clique:', error);
       }
 
-      // Atualizar estatísticas diárias será implementado via trigger ou função específica
+      // Atualizar estatísticas diárias
+      await updateDailyStats('clicks', 1);
     } catch (error) {
       console.error('Erro ao rastrear clique:', error);
+    }
+  };
+
+  const updateDailyStats = async (field: string, increment: number) => {
+    if (!user) return;
+
+    try {
+      const today = new Date().toISOString().split('T')[0];
+      
+      const { error } = await supabase
+        .from('referral_stats')
+        .upsert({
+          referrer_id: user.id,
+          date: today,
+          [field]: increment
+        }, {
+          onConflict: 'referrer_id,date'
+        });
+
+      if (error) {
+        console.error('Erro ao atualizar estatísticas:', error);
+      }
+    } catch (error) {
+      console.error('Erro ao atualizar estatísticas:', error);
     }
   };
 

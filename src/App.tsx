@@ -16,6 +16,7 @@ import Premios from "./pages/Premios";
 import MeusPremios from "./pages/MeusPremios";
 import Sobre from "./pages/Sobre";
 import Convidar from "./pages/Convidar";
+import ConviteRedirect from "./pages/ConviteRedirect";
 import Perfil from "./pages/Perfil";
 import Admin from "./pages/Admin";
 import MinhasEntregas from "./pages/MinhasEntregas";
@@ -62,6 +63,7 @@ const App = () => {
                     <Route path="/meus-premios" element={<MeusPremios />} />
                     <Route path="/sobre" element={<Sobre />} />
           <Route path="/convidar" element={<Convidar />} />
+          <Route path="/convite/:codigo" element={<ConviteRedirect />} />
           <Route path="/convite/:code" element={<Index />} />
                     <Route path="/perfil" element={<Perfil />} />
                     <Route path="/carteira" element={<Carteira />} />
