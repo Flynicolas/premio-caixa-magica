@@ -90,8 +90,8 @@ const Header = () => {
             <Link to="/sobre" className="text-muted-foreground hover:text-primary transition-colors">
               Sobre
             </Link>
-            <Link to="/ranking" className="text-muted-foreground hover:text-primary transition-colors">
-              Ranking
+            <Link to="/convidar" className="text-muted-foreground hover:text-primary transition-colors">
+              Convidar
             </Link>
           </nav>
 

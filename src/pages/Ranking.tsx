@@ -1,4 +1,3 @@
-// src/components/Ranking.tsx
 import { useRanking } from '@/hooks/useRanking';
 import { Card } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';

@@ -15,7 +15,7 @@ import Index from "./pages/Index";
 import Premios from "./pages/Premios";
 import MeusPremios from "./pages/MeusPremios";
 import Sobre from "./pages/Sobre";
-import Ranking from "./pages/Ranking";
+import Convidar from "./pages/Convidar";
 import Perfil from "./pages/Perfil";
 import Admin from "./pages/Admin";
 import MinhasEntregas from "./pages/MinhasEntregas";
@@ -61,7 +61,8 @@ const App = () => {
                     <Route path="/premios" element={<Premios />} />
                     <Route path="/meus-premios" element={<MeusPremios />} />
                     <Route path="/sobre" element={<Sobre />} />
-                    <Route path="/ranking" element={<Ranking />} />
+          <Route path="/convidar" element={<Convidar />} />
+          <Route path="/convite/:code" element={<Index />} />
                     <Route path="/perfil" element={<Perfil />} />
                     <Route path="/carteira" element={<Carteira />} />
                     <Route path="/entregas" element={<MinhasEntregas />} />

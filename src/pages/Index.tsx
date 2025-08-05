@@ -1,7 +1,9 @@
 
 import { useEffect, useState } from 'react';
+import { useParams } from 'react-router-dom';
 import { useAuth } from '@/hooks/useAuth';
 import { useWallet } from '@/hooks/useWalletProvider';
+import { useReferralTracking } from '@/hooks/useReferralTracking';
 import { Button } from '@/components/ui/button';
 import HeroSlider from '@/components/HeroSlider';
 import ChestCard from '@/components/ChestCard';
@@ -20,8 +22,10 @@ import ChestSimulator from '@/components/ChestSimulator';
 import ResponsiveBanner from '@/components/ResponsiveBanner';
 
 const Index = () => {
+  const { code } = useParams();
   const { user } = useAuth();
   const { walletData, refreshData } = useWallet();
+  const { trackReferralClick } = useReferralTracking();
   const [showAuthModal, setShowAuthModal] = useState(false);
   const [showWalletPanel, setShowWalletPanel] = useState(false);
   const [showItemsModal, setShowItemsModal] = useState(false);
@@ -92,9 +96,25 @@ const Index = () => {
     value: entry.item?.base_value !== undefined
   ? entry.item.base_value.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })
   : 'R$ 0,00',
-    chestType: entry.chest_type as ChestType, // <=== aqui
+    chestType: entry.chest_type as ChestType,
     timestamp: new Date(entry.won_at),
   }));
+
+  // Processar link de convite se houver
+  useEffect(() => {
+    if (code) {
+      // Determinar fonte baseada no user agent ou referrer
+      const referrer = document.referrer;
+      let source = 'direct';
+      
+      if (referrer.includes('whatsapp')) source = 'whatsapp';
+      else if (referrer.includes('telegram')) source = 'telegram';
+      else if (referrer.includes('facebook')) source = 'facebook';
+      else if (referrer.includes('instagram')) source = 'instagram';
+      
+      trackReferralClick(code, source);
+    }
+  }, [code, trackReferralClick]);
 
 
   return (

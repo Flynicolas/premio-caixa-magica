@@ -1196,6 +1196,9 @@ export type Database = {
           prize_notifications: boolean | null
           promo_emails: boolean | null
           push_notifications: boolean | null
+          referral_date: string | null
+          referral_source: string | null
+          referred_by: string | null
           simulate_actions: boolean | null
           state: string | null
           street: string | null
@@ -1236,6 +1239,9 @@ export type Database = {
           prize_notifications?: boolean | null
           promo_emails?: boolean | null
           push_notifications?: boolean | null
+          referral_date?: string | null
+          referral_source?: string | null
+          referred_by?: string | null
           simulate_actions?: boolean | null
           state?: string | null
           street?: string | null
@@ -1276,6 +1282,9 @@ export type Database = {
           prize_notifications?: boolean | null
           promo_emails?: boolean | null
           push_notifications?: boolean | null
+          referral_date?: string | null
+          referral_source?: string | null
+          referred_by?: string | null
           simulate_actions?: boolean | null
           state?: string | null
           street?: string | null
@@ -1315,6 +1324,84 @@ export type Database = {
           is_read?: boolean | null
           message?: string
           triggered_at?: string | null
+        }
+        Relationships: []
+      }
+      referral_activities: {
+        Row: {
+          activity_data: Json | null
+          activity_type: string
+          created_at: string
+          id: string
+          ip_address: string | null
+          referral_source: string | null
+          referred_user_id: string | null
+          referrer_id: string
+          user_agent: string | null
+        }
+        Insert: {
+          activity_data?: Json | null
+          activity_type: string
+          created_at?: string
+          id?: string
+          ip_address?: string | null
+          referral_source?: string | null
+          referred_user_id?: string | null
+          referrer_id: string
+          user_agent?: string | null
+        }
+        Update: {
+          activity_data?: Json | null
+          activity_type?: string
+          created_at?: string
+          id?: string
+          ip_address?: string | null
+          referral_source?: string | null
+          referred_user_id?: string | null
+          referrer_id?: string
+          user_agent?: string | null
+        }
+        Relationships: []
+      }
+      referral_stats: {
+        Row: {
+          clicks: number
+          conversion_rate: number
+          created_at: string
+          date: string
+          first_deposits: number
+          id: string
+          referrer_id: string
+          registrations: number
+          total_deposit_amount: number
+          total_spent_amount: number
+          updated_at: string
+        }
+        Insert: {
+          clicks?: number
+          conversion_rate?: number
+          created_at?: string
+          date?: string
+          first_deposits?: number
+          id?: string
+          referrer_id: string
+          registrations?: number
+          total_deposit_amount?: number
+          total_spent_amount?: number
+          updated_at?: string
+        }
+        Update: {
+          clicks?: number
+          conversion_rate?: number
+          created_at?: string
+          date?: string
+          first_deposits?: number
+          id?: string
+          referrer_id?: string
+          registrations?: number
+          total_deposit_amount?: number
+          total_spent_amount?: number
+          updated_at?: string
         }
         Relationships: []
       }
@@ -1967,6 +2054,54 @@ export type Database = {
         }
         Relationships: []
       }
+      user_referrals: {
+        Row: {
+          active_referrals: number
+          commission_pending: number
+          created_at: string
+          id: string
+          is_active: boolean
+          last_referral_at: string | null
+          referral_code: string
+          referral_link: string
+          successful_referrals: number
+          total_commission_earned: number
+          total_invites: number
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          active_referrals?: number
+          commission_pending?: number
+          created_at?: string
+          id?: string
+          is_active?: boolean
+          last_referral_at?: string | null
+          referral_code: string
+          referral_link: string
+          successful_referrals?: number
+          total_commission_earned?: number
+          total_invites?: number
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          active_referrals?: number
+          commission_pending?: number
+          created_at?: string
+          id?: string
+          is_active?: boolean
+          last_referral_at?: string | null
+          referral_code?: string
+          referral_link?: string
+          successful_referrals?: number
+          total_commission_earned?: number
+          total_invites?: number
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       user_wallets: {
         Row: {
           balance: number | null
@@ -2106,6 +2241,10 @@ export type Database = {
         Args: Record<PropertyKey, never>
         Returns: undefined
       }
+      generate_referral_code: {
+        Args: Record<PropertyKey, never>
+        Returns: string
+      }
       get_conversion_stats: {
         Args: Record<PropertyKey, never>
         Returns: {
@@ -2231,6 +2370,16 @@ export type Database = {
           status: string
           message: string
         }[]
+      }
+      process_referral_signup: {
+        Args: {
+          p_referred_user_id: string
+          p_referral_code: string
+          p_referral_source?: string
+          p_ip_address?: string
+          p_user_agent?: string
+        }
+        Returns: boolean
       }
       process_scratch_card_game: {
         Args: {

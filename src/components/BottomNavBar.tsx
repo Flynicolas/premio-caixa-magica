@@ -1,7 +1,7 @@
 
 import { useState, useEffect } from "react";
 import { Link, useLocation } from "react-router-dom";
-import { Home, Trophy, User, Wallet, Eye, EyeOff } from "lucide-react";
+import { Home, Users, User, Wallet, Eye, EyeOff } from "lucide-react";
 import { Button } from "./ui/button";
 import { cn } from "@/lib/utils";
 import { useWallet } from "@/hooks/useWalletProvider";
@@ -45,7 +45,7 @@ const BottomNavBar = ({ onAddBalance }: BottomNavBarProps) => {
 
   const navItems = [
     { path: "/", icon: Home, label: "Início" },
-    { path: "/meus-premios", icon: Trophy, label: "Prêmios" },
+    { path: "/convidar", icon: Users, label: "Convidar" },
     { path: "/carteira", icon: Wallet, label: "Carteira" },
     { path: "/perfil", icon: User, label: "Perfil" },
   ];
