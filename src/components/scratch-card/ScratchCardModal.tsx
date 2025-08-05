@@ -235,6 +235,7 @@ const ScratchCardModal = ({ isOpen, onClose, selectedType, onAuthRequired }: Scr
   const canAfford = walletData && walletData.balance >= scratchCardTypes[selectedType].price;
 
   const cardIcons = {
+    pix: Coins,
     sorte: Star,
     dupla: Star,
     ouro: Coins,
