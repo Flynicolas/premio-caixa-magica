@@ -63,19 +63,19 @@ const PremiumScratchCatalog = ({ onCardSelect, userBalance = 1000 }: PremiumScra
   };
 
   return (
-    <div className="w-full max-w-6xl mx-auto px-4">
+    <div className="w-full max-w-md mx-auto px-4 space-y-4">
       {/* Header */}
-      <div className="text-center mb-8">
-        <h2 className="text-3xl md:text-4xl font-bold text-white mb-3">
+      <div className="text-center mb-6">
+        <h2 className="text-2xl font-bold text-white mb-2">
           🎰 Catálogo Premium de Raspadinhas
         </h2>
-        <p className="text-gray-300 text-lg">
-          Prêmios incríveis te esperam! Escolha sua raspadinha favorita
+        <p className="text-gray-300 text-sm">
+          Prêmios incríveis te esperam!
         </p>
       </div>
 
-      {/* Cards Grid */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-2 gap-6">
+      {/* Cards Stack */}
+      <div className="space-y-4">
         {scratchCardOptions.map((card) => {
           const canAfford = userBalance >= card.price;
           const isSelected = selectedCard === card.id;
@@ -85,91 +85,96 @@ const PremiumScratchCatalog = ({ onCardSelect, userBalance = 1000 }: PremiumScra
               key={card.id}
               onClick={() => canAfford && handleCardClick(card.id)}
               className={`
-                relative group cursor-pointer transition-all duration-300 transform
-                ${canAfford ? 'hover:scale-[1.03] hover:shadow-2xl' : 'opacity-60 cursor-not-allowed'}
-                ${isSelected ? 'scale-[1.03] ring-4 ring-yellow-400/50' : ''}
+                relative group cursor-pointer transition-all duration-300
+                ${canAfford ? 'active:scale-95' : 'opacity-60 cursor-not-allowed'}
+                ${isSelected ? 'ring-2 ring-yellow-400/50' : ''}
               `}
             >
-              {/* Main Card Container */}
-              <div className="relative bg-gray-900 rounded-2xl overflow-hidden border border-gray-700/50 shadow-xl">
+              {/* Main Card Container - Mobile Optimized */}
+              <div className="relative bg-gradient-to-br from-amber-400 via-orange-500 to-amber-600 rounded-2xl overflow-hidden shadow-2xl">
                 
-                {/* Background Image with Overlay */}
-                <div className="relative h-64 md:h-72 overflow-hidden">
-                  <img 
-                    src={card.imageUrl}
-                    alt={card.title}
-                    className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700"
-                  />
-                  
-                  {/* Gradient Overlay */}
-                  <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/30 to-transparent"></div>
+                {/* Golden rays background effect */}
+                <div className="absolute inset-0 opacity-30">
+                  <div className="absolute inset-0 bg-gradient-to-br from-yellow-200/20 via-transparent to-orange-300/20"></div>
+                  <div className="absolute top-0 left-1/2 transform -translate-x-1/2 w-full h-full bg-gradient-to-b from-white/10 via-transparent to-transparent rotate-12"></div>
+                  <div className="absolute top-0 left-1/2 transform -translate-x-1/2 w-full h-full bg-gradient-to-b from-white/10 via-transparent to-transparent -rotate-12"></div>
+                </div>
+
+                {/* Top badges container */}
+                <div className="relative z-20 flex justify-between items-start p-4">
+                  {/* Premium Badge - Top Left */}
+                  <div className="bg-gradient-to-r from-amber-800 to-amber-900 text-white px-3 py-1 rounded-lg text-xs font-bold shadow-lg border border-amber-600">
+                    {card.badge}
+                  </div>
                   
                   {/* Price Badge - Top Right */}
-                  <div className="absolute top-4 right-4 z-10">
-                    <div className="bg-yellow-400 text-black px-4 py-2 rounded-xl font-bold text-lg shadow-lg">
-                      R$ {card.price.toFixed(2).replace('.', ',')}
-                    </div>
-                  </div>
-
-                  {/* Premium Badge - Top Left */}
-                  <div className="absolute top-4 left-4 z-10">
-                    <div className="bg-gradient-to-r from-orange-500 to-red-500 text-white px-3 py-1 rounded-lg text-sm font-bold shadow-lg transform rotate-[-2deg] border border-orange-300">
-                      {card.badge}
-                    </div>
-                  </div>
-
-                  {/* Content Overlay */}
-                  <div className="absolute bottom-0 left-0 right-0 p-6 text-white">
-                    
-                    {/* Title */}
-                    <h3 className="text-2xl md:text-3xl font-bold mb-2 text-white drop-shadow-lg">
-                      {card.title}
-                    </h3>
-
-                    {/* Prize Amount */}
-                    <div className="mb-3">
-                      <span className="text-yellow-400 font-bold text-lg">PRÊMIOS ATÉ </span>
-                      <span className="text-yellow-400 font-black text-2xl md:text-3xl">
-                        {card.maxPrize}
-                      </span>
-                    </div>
-
-                    {/* Description */}
-                    <p className="text-gray-200 text-sm md:text-base mb-4 leading-relaxed">
-                      {card.description}
-                    </p>
-
-                    {/* Action Button */}
-                    <button
-                      disabled={!canAfford}
-                      className={`
-                        w-full py-4 px-6 rounded-xl font-bold text-lg
-                        transition-all duration-300 flex items-center justify-center gap-2
-                        ${canAfford 
-                          ? 'bg-yellow-400 hover:bg-yellow-300 text-black shadow-lg hover:shadow-xl' 
-                          : 'bg-gray-600 text-gray-400 cursor-not-allowed'
-                        }
-                      `}
-                    >
-                      {canAfford ? (
-                        <>
-                          Jogar Raspadinha 
-                          <span className="text-xl">→</span>
-                        </>
-                      ) : (
-                        'Saldo Insuficiente'
-                      )}
-                    </button>
+                  <div className="bg-yellow-400 text-black px-4 py-2 rounded-full font-bold text-lg shadow-lg border-2 border-yellow-300">
+                    R$ {card.price.toFixed(2).replace('.', ',')}
                   </div>
                 </div>
 
-                {/* Shimmer Effect on Hover */}
-                <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/10 to-transparent -translate-x-full group-hover:translate-x-full transition-transform duration-1000 pointer-events-none"></div>
+                {/* Central Money Image */}
+                <div className="relative z-10 flex justify-center py-4">
+                  <div className="relative">
+                    <img 
+                      src={card.imageUrl}
+                      alt={card.title}
+                      className="w-24 h-16 object-cover rounded-lg shadow-lg transform rotate-6 group-hover:rotate-12 transition-transform duration-300"
+                    />
+                    {/* Glow effect around money */}
+                    <div className="absolute -inset-2 bg-white/20 rounded-lg blur-md"></div>
+                  </div>
+                </div>
+
+                {/* Content Section */}
+                <div className="relative z-10 p-4 pt-0">
+                  {/* Title */}
+                  <h3 className="text-xl font-bold mb-2 text-gray-900 text-center">
+                    {card.title}
+                  </h3>
+
+                  {/* Prize Amount */}
+                  <div className="text-center mb-3">
+                    <div className="text-yellow-900 font-bold text-lg">
+                      PRÊMIOS ATÉ {card.maxPrize}
+                    </div>
+                  </div>
+
+                  {/* Description */}
+                  <p className="text-gray-800 text-sm mb-4 text-center leading-relaxed">
+                    {card.description}
+                  </p>
+
+                  {/* Action Button */}
+                  <button
+                    disabled={!canAfford}
+                    className={`
+                      w-full py-3 px-6 rounded-xl font-bold text-base
+                      transition-all duration-300 flex items-center justify-center gap-2
+                      ${canAfford 
+                        ? 'bg-yellow-400 hover:bg-yellow-300 text-black shadow-lg active:scale-95' 
+                        : 'bg-gray-600 text-gray-400 cursor-not-allowed'
+                      }
+                    `}
+                  >
+                    {canAfford ? (
+                      <>
+                        Jogar Raspadinha 
+                        <span className="text-lg">→</span>
+                      </>
+                    ) : (
+                      'Saldo Insuficiente'
+                    )}
+                  </button>
+                </div>
+
+                {/* Shimmer Effect */}
+                <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent -translate-x-full group-hover:translate-x-full transition-transform duration-1000 pointer-events-none"></div>
               </div>
 
               {/* Glow Effect for Selected Card */}
               {isSelected && (
-                <div className="absolute -inset-1 bg-gradient-to-r from-yellow-400 to-orange-400 rounded-2xl opacity-30 blur-lg animate-pulse"></div>
+                <div className="absolute -inset-1 bg-gradient-to-r from-yellow-400 to-orange-400 rounded-2xl opacity-50 blur-lg animate-pulse"></div>
               )}
             </div>
           );
@@ -177,17 +182,17 @@ const PremiumScratchCatalog = ({ onCardSelect, userBalance = 1000 }: PremiumScra
       </div>
 
       {/* Balance Display */}
-      <div className="text-center mt-8">
-        <div className="inline-flex items-center gap-2 bg-gray-800/50 rounded-xl px-6 py-3 border border-gray-700">
-          <span className="text-gray-300">💰 Seu saldo:</span>
-          <span className="text-yellow-400 font-bold text-lg">R$ {userBalance.toFixed(2).replace('.', ',')}</span>
+      <div className="text-center mt-6">
+        <div className="inline-flex items-center gap-2 bg-gray-800/50 rounded-xl px-4 py-2 border border-gray-700">
+          <span className="text-gray-300 text-sm">💰 Seu saldo:</span>
+          <span className="text-yellow-400 font-bold">R$ {userBalance.toFixed(2).replace('.', ',')}</span>
         </div>
       </div>
 
       {/* Instructions */}
-      <div className="mt-6 text-center">
-        <p className="text-gray-400 text-sm">
-          ✨ Raspe e ganhe prêmios incríveis instantaneamente! ✨
+      <div className="mt-4 text-center">
+        <p className="text-gray-400 text-xs">
+          ✨ Raspe e ganhe prêmios incríveis! ✨
         </p>
       </div>
     </div>
