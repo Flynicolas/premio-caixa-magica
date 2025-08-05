@@ -131,39 +131,39 @@ const ModernAuthModal = ({ isOpen, onClose }: ModernAuthModalProps) => {
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="max-w-6xl p-0 overflow-hidden bg-background border-primary/20">
-        <div className="grid lg:grid-cols-2 min-h-[600px]">
+      <DialogContent className="max-w-6xl lg:max-w-6xl max-w-md p-0 overflow-hidden bg-background border-primary/20">
+        <div className="grid lg:grid-cols-2 lg:min-h-[600px]">
           {/* Banner Section */}
-          <div className="relative lg:order-1 order-2 bg-gradient-to-br from-primary/90 to-primary">
+          <div className="relative lg:order-1 order-1 bg-gradient-to-br from-primary/90 to-primary lg:block">
             <div className="absolute inset-0 bg-black/20" />
             <img 
               src={bannerImage} 
               alt="Baú Premiado" 
               className="absolute inset-0 w-full h-full object-cover mix-blend-overlay"
             />
-            <div className="relative z-10 p-8 flex flex-col justify-center h-full text-white">
-              <div className="space-y-6">
-                <h1 className="text-4xl lg:text-5xl font-bold">
-                  Bem-vindo ao
+            <div className="relative z-10 p-4 lg:p-8 flex flex-col justify-center h-full text-white lg:min-h-[600px] min-h-[120px]">
+              <div className="space-y-3 lg:space-y-6">
+                <h1 className="text-xl lg:text-4xl xl:text-5xl font-bold text-center lg:text-left">
+                  <span className="lg:block">Bem-vindo ao</span>
                   <span className="block gold-gradient bg-clip-text text-transparent">
                     Baú Premiado
                   </span>
                 </h1>
-                <p className="text-xl opacity-90">
+                <p className="text-sm lg:text-xl opacity-90 text-center lg:text-left hidden lg:block">
                   Abra baús, ganhe prêmios incríveis e viva a emoção de descobrir tesouros únicos!
                 </p>
-                <div className="space-y-3">
+                <div className="space-y-2 lg:space-y-3 hidden lg:block">
                   <div className="flex items-center gap-3">
                     <div className="w-2 h-2 bg-accent rounded-full animate-pulse"></div>
-                    <span>Prêmios em dinheiro instantâneos</span>
+                    <span className="text-sm lg:text-base">Prêmios em dinheiro instantâneos</span>
                   </div>
                   <div className="flex items-center gap-3">
                     <div className="w-2 h-2 bg-accent rounded-full animate-pulse"></div>
-                    <span>Produtos físicos entregues em casa</span>
+                    <span className="text-sm lg:text-base">Produtos físicos entregues em casa</span>
                   </div>
                   <div className="flex items-center gap-3">
                     <div className="w-2 h-2 bg-accent rounded-full animate-pulse"></div>
-                    <span>Sistema de níveis e conquistas</span>
+                    <span className="text-sm lg:text-base">Sistema de níveis e conquistas</span>
                   </div>
                 </div>
               </div>
@@ -171,26 +171,26 @@ const ModernAuthModal = ({ isOpen, onClose }: ModernAuthModalProps) => {
           </div>
 
           {/* Form Section */}
-          <div className="lg:order-2 order-1 p-8 flex flex-col justify-center">
-            <div className="max-w-sm mx-auto w-full space-y-6">
-              <div className="text-center space-y-2">
-                <h2 className="text-3xl font-bold">Entrar</h2>
-                <p className="text-muted-foreground">
+          <div className="lg:order-2 order-2 p-4 lg:p-8 flex flex-col justify-center">
+            <div className="max-w-sm mx-auto w-full space-y-4 lg:space-y-6">
+              <div className="text-center space-y-1 lg:space-y-2">
+                <h2 className="text-2xl lg:text-3xl font-bold">Entrar</h2>
+                <p className="text-muted-foreground text-sm lg:text-base">
                   Acesse sua conta ou crie uma nova
                 </p>
               </div>
 
               <Tabs defaultValue="login" className="w-full">
-                <TabsList className="grid w-full grid-cols-2 mb-6">
+                <TabsList className="grid w-full grid-cols-2 mb-4 lg:mb-6">
                   <TabsTrigger value="login" className="text-sm">Entrar</TabsTrigger>
                   <TabsTrigger value="register" className="text-sm">Cadastrar</TabsTrigger>
                 </TabsList>
 
-                <TabsContent value="login" className="space-y-4">
-                  <form onSubmit={handleLogin} className="space-y-4">
+                <TabsContent value="login" className="space-y-3 lg:space-y-4">
+                  <form onSubmit={handleLogin} className="space-y-3 lg:space-y-4">
                     <div className="space-y-2">
-                      <Label htmlFor="emailOrPhone" className="flex items-center gap-2">
-                        <Mail className="w-4 h-4" />
+                      <Label htmlFor="emailOrPhone" className="flex items-center gap-2 text-sm">
+                        <Mail className="w-3 h-3 lg:w-4 lg:h-4" />
                         Email ou Telefone
                       </Label>
                       <Input
@@ -199,7 +199,7 @@ const ModernAuthModal = ({ isOpen, onClose }: ModernAuthModalProps) => {
                         placeholder="email@exemplo.com ou (11) 99999-9999"
                         value={loginForm.emailOrPhone}
                         onChange={(e) => setLoginForm(prev => ({ ...prev, emailOrPhone: e.target.value }))}
-                        className={errors.emailOrPhone ? 'border-destructive' : ''}
+                        className={`h-10 lg:h-11 ${errors.emailOrPhone ? 'border-destructive' : ''}`}
                       />
                       {errors.emailOrPhone && (
                         <p className="text-sm text-destructive">{errors.emailOrPhone}</p>
@@ -207,8 +207,8 @@ const ModernAuthModal = ({ isOpen, onClose }: ModernAuthModalProps) => {
                     </div>
 
                     <div className="space-y-2">
-                      <Label htmlFor="password" className="flex items-center gap-2">
-                        <Lock className="w-4 h-4" />
+                      <Label htmlFor="password" className="flex items-center gap-2 text-sm">
+                        <Lock className="w-3 h-3 lg:w-4 lg:h-4" />
                         Senha
                       </Label>
                       <div className="relative">
@@ -218,14 +218,14 @@ const ModernAuthModal = ({ isOpen, onClose }: ModernAuthModalProps) => {
                           placeholder="Sua senha"
                           value={loginForm.password}
                           onChange={(e) => setLoginForm(prev => ({ ...prev, password: e.target.value }))}
-                          className={errors.password ? 'border-destructive pr-10' : 'pr-10'}
+                          className={`h-10 lg:h-11 pr-10 ${errors.password ? 'border-destructive' : ''}`}
                         />
                         <button
                           type="button"
                           onClick={() => setShowPassword(!showPassword)}
                           className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
                         >
-                          {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                          {showPassword ? <EyeOff className="w-3 h-3 lg:w-4 lg:h-4" /> : <Eye className="w-3 h-3 lg:w-4 lg:h-4" />}
                         </button>
                       </div>
                       {errors.password && (
@@ -235,12 +235,12 @@ const ModernAuthModal = ({ isOpen, onClose }: ModernAuthModalProps) => {
 
                     <Button 
                       type="submit" 
-                      className="w-full gold-gradient text-black font-bold h-11"
+                      className="w-full gold-gradient text-black font-bold h-10 lg:h-11"
                       disabled={loading}
                     >
                       {loading ? (
                         <>
-                          <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                          <Loader2 className="w-3 h-3 lg:w-4 lg:h-4 mr-2 animate-spin" />
                           Entrando...
                         </>
                       ) : (
@@ -250,11 +250,11 @@ const ModernAuthModal = ({ isOpen, onClose }: ModernAuthModalProps) => {
                   </form>
                 </TabsContent>
 
-                <TabsContent value="register" className="space-y-4">
-                  <form onSubmit={handleRegister} className="space-y-4">
+                <TabsContent value="register" className="space-y-3 lg:space-y-4">
+                  <form onSubmit={handleRegister} className="space-y-3 lg:space-y-4">
                     <div className="space-y-2">
-                      <Label htmlFor="name" className="flex items-center gap-2">
-                        <User className="w-4 h-4" />
+                      <Label htmlFor="name" className="flex items-center gap-2 text-sm">
+                        <User className="w-3 h-3 lg:w-4 lg:h-4" />
                         Nome Completo
                       </Label>
                       <Input
@@ -263,7 +263,7 @@ const ModernAuthModal = ({ isOpen, onClose }: ModernAuthModalProps) => {
                         placeholder="Seu nome completo"
                         value={registerForm.name}
                         onChange={(e) => setRegisterForm(prev => ({ ...prev, name: e.target.value }))}
-                        className={errors.name ? 'border-destructive' : ''}
+                        className={`h-10 lg:h-11 ${errors.name ? 'border-destructive' : ''}`}
                       />
                       {errors.name && (
                         <p className="text-sm text-destructive">{errors.name}</p>
@@ -271,8 +271,8 @@ const ModernAuthModal = ({ isOpen, onClose }: ModernAuthModalProps) => {
                     </div>
 
                     <div className="space-y-2">
-                      <Label htmlFor="email" className="flex items-center gap-2">
-                        <Mail className="w-4 h-4" />
+                      <Label htmlFor="email" className="flex items-center gap-2 text-sm">
+                        <Mail className="w-3 h-3 lg:w-4 lg:h-4" />
                         Email
                       </Label>
                       <Input
@@ -281,7 +281,7 @@ const ModernAuthModal = ({ isOpen, onClose }: ModernAuthModalProps) => {
                         placeholder="seu@email.com"
                         value={registerForm.email}
                         onChange={(e) => setRegisterForm(prev => ({ ...prev, email: e.target.value }))}
-                        className={errors.email ? 'border-destructive' : ''}
+                        className={`h-10 lg:h-11 ${errors.email ? 'border-destructive' : ''}`}
                       />
                       {errors.email && (
                         <p className="text-sm text-destructive">{errors.email}</p>
@@ -303,8 +303,8 @@ const ModernAuthModal = ({ isOpen, onClose }: ModernAuthModalProps) => {
                     </div>
 
                     <div className="space-y-2">
-                      <Label htmlFor="registerPassword" className="flex items-center gap-2">
-                        <Lock className="w-4 h-4" />
+                      <Label htmlFor="registerPassword" className="flex items-center gap-2 text-sm">
+                        <Lock className="w-3 h-3 lg:w-4 lg:h-4" />
                         Senha
                       </Label>
                       <div className="relative">
@@ -314,14 +314,14 @@ const ModernAuthModal = ({ isOpen, onClose }: ModernAuthModalProps) => {
                           placeholder="Mínimo 6 caracteres"
                           value={registerForm.password}
                           onChange={(e) => setRegisterForm(prev => ({ ...prev, password: e.target.value }))}
-                          className={errors.password ? 'border-destructive pr-10' : 'pr-10'}
+                          className={`h-10 lg:h-11 pr-10 ${errors.password ? 'border-destructive' : ''}`}
                         />
                         <button
                           type="button"
                           onClick={() => setShowPassword(!showPassword)}
                           className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
                         >
-                          {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                          {showPassword ? <EyeOff className="w-3 h-3 lg:w-4 lg:h-4" /> : <Eye className="w-3 h-3 lg:w-4 lg:h-4" />}
                         </button>
                       </div>
                       {errors.password && (
@@ -330,8 +330,8 @@ const ModernAuthModal = ({ isOpen, onClose }: ModernAuthModalProps) => {
                     </div>
 
                     <div className="space-y-2">
-                      <Label htmlFor="confirmPassword" className="flex items-center gap-2">
-                        <Lock className="w-4 h-4" />
+                      <Label htmlFor="confirmPassword" className="flex items-center gap-2 text-sm">
+                        <Lock className="w-3 h-3 lg:w-4 lg:h-4" />
                         Confirmar Senha
                       </Label>
                       <div className="relative">
@@ -341,14 +341,14 @@ const ModernAuthModal = ({ isOpen, onClose }: ModernAuthModalProps) => {
                           placeholder="Confirme sua senha"
                           value={registerForm.confirmPassword}
                           onChange={(e) => setRegisterForm(prev => ({ ...prev, confirmPassword: e.target.value }))}
-                          className={errors.confirmPassword ? 'border-destructive pr-10' : 'pr-10'}
+                          className={`h-10 lg:h-11 pr-10 ${errors.confirmPassword ? 'border-destructive' : ''}`}
                         />
                         <button
                           type="button"
                           onClick={() => setShowConfirmPassword(!showConfirmPassword)}
                           className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
                         >
-                          {showConfirmPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                          {showConfirmPassword ? <EyeOff className="w-3 h-3 lg:w-4 lg:h-4" /> : <Eye className="w-3 h-3 lg:w-4 lg:h-4" />}
                         </button>
                       </div>
                       {errors.confirmPassword && (
@@ -358,12 +358,12 @@ const ModernAuthModal = ({ isOpen, onClose }: ModernAuthModalProps) => {
 
                     <Button 
                       type="submit" 
-                      className="w-full gold-gradient text-black font-bold h-11"
+                      className="w-full gold-gradient text-black font-bold h-10 lg:h-11"
                       disabled={loading}
                     >
                       {loading ? (
                         <>
-                          <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                          <Loader2 className="w-3 h-3 lg:w-4 lg:h-4 mr-2 animate-spin" />
                           Criando conta...
                         </>
                       ) : (
@@ -374,7 +374,7 @@ const ModernAuthModal = ({ isOpen, onClose }: ModernAuthModalProps) => {
                 </TabsContent>
               </Tabs>
 
-              <div className="text-center text-sm text-muted-foreground">
+              <div className="text-center text-xs lg:text-sm text-muted-foreground px-2">
                 <p>
                   Ao se cadastrar, você concorda com nossos{' '}
                   <a href="/termos-uso" className="text-primary hover:underline">
