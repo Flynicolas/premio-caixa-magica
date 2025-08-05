@@ -15,6 +15,7 @@ import PremiumLiveWins from '@/components/PremiumLiveWins';
 import RectangularScratchSelector from '@/components/RectangularScratchSelector';
 import ScratchSelectorStyleTwo from '@/components/ScratchSelectorStyleTwo';
 import ScratchSelectorStyleThree from '@/components/ScratchSelectorStyleThree';
+import PremiumScratchCatalog from '@/components/PremiumScratchCatalog';
 import ScratchModalStyleOne from '@/components/scratch-card/ScratchModalStyleOne';
 import ScratchModalStyleTwo from '@/components/scratch-card/ScratchModalStyleTwo';
 import ScratchModalStyleThree from '@/components/scratch-card/ScratchModalStyleThree';
@@ -345,6 +346,14 @@ const Rascunho = () => {
             onCardSelect={(cardId) => console.log('Card selecionado estilo 3:', cardId)}
             userBalance={walletData?.balance || 0}
             isLoading={false}
+          />
+        </section>
+
+        {/* Catálogo Premium - Estilo da Imagem de Referência */}
+        <section className="mt-16 mb-12 bg-gradient-to-br from-gray-900 via-black to-gray-800 rounded-3xl p-8">
+          <PremiumScratchCatalog 
+            onCardSelect={(cardId) => console.log('Card Premium selecionado:', cardId)}
+            userBalance={walletData?.balance || 1000}
           />
         </section>
 
