@@ -43,7 +43,7 @@ const AuthModal = ({ isOpen, onClose }: AuthModalProps) => {
     }
     
     setLoading(true);
-    const { error } = await signUp(registerForm.email, registerForm.password, registerForm.name);
+    const { error } = await signUp(registerForm.email, registerForm.password, registerForm.name, '');
     
     if (!error) {
       onClose();

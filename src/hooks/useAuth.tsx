@@ -8,7 +8,8 @@ interface AuthContextType {
   user: User | null;
   session: Session | null;
   loading: boolean;
-  signUp: (email: string, password: string, fullName: string) => Promise<{ error: any }>;
+  signUp: (email: string, password: string, fullName: string, phone: string) => Promise<{ error: any }>;
+  signInWithEmailOrPhone: (emailOrPhone: string, password: string) => Promise<{ error: any }>;
   signIn: (email: string, password: string) => Promise<{ error: any }>;
   signOut: () => Promise<void>;
   updateProfile: (data: { full_name?: string; avatar_url?: string }) => Promise<{ error: any }>;
@@ -42,7 +43,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     return () => subscription.unsubscribe();
   }, []);
 
-  const signUp = async (email: string, password: string, fullName: string) => {
+  const signUp = async (email: string, password: string, fullName: string, phone: string) => {
     const redirectUrl = `${window.location.origin}/`;
     
     const { error } = await supabase.auth.signUp({
@@ -51,7 +52,8 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
       options: {
         emailRedirectTo: redirectUrl,
         data: {
-          full_name: fullName
+          full_name: fullName,
+          phone: phone
         }
       }
     });
@@ -65,7 +67,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     } else {
       toast({
         title: "Cadastro realizado!",
-        description: "Verifique seu email para confirmar a conta.",
+        description: "Bem-vindo ao Baú Premiado!",
         variant: "default"
       });
     }
@@ -94,6 +96,44 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     }
 
     return { error };
+  };
+
+  const signInWithEmailOrPhone = async (emailOrPhone: string, password: string) => {
+    // Detectar se é email ou telefone
+    const isEmail = emailOrPhone.includes('@');
+    
+    if (isEmail) {
+      return await signIn(emailOrPhone, password);
+    } else {
+      // Para telefone, buscar o email pelo telefone no perfil
+      const cleanPhone = emailOrPhone.replace(/\D/g, '');
+      
+      try {
+        const { data: profiles, error: profileError } = await supabase
+          .from('profiles')
+          .select('email')
+          .eq('phone', emailOrPhone)
+          .single();
+
+        if (profileError || !profiles) {
+          toast({
+            title: "Erro no login",
+            description: "Telefone não encontrado",
+            variant: "destructive"
+          });
+          return { error: new Error('Telefone não encontrado') };
+        }
+
+        return await signIn(profiles.email, password);
+      } catch (error: any) {
+        toast({
+          title: "Erro no login",
+          description: "Erro ao buscar usuário",
+          variant: "destructive"
+        });
+        return { error };
+      }
+    }
   };
 
   const signOut = async () => {
@@ -149,7 +189,8 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
       signUp,
       signIn,
       signOut,
-      updateProfile
+      updateProfile,
+      signInWithEmailOrPhone
     }}>
       {children}
     </AuthContext.Provider>
