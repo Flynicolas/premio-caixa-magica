@@ -104,17 +104,10 @@ const PremiumScratchCatalog = ({ onCardSelect, userBalance = 1000 }: PremiumScra
                   {/* Gradient Overlay */}
                   <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/30 to-transparent"></div>
                   
-                  {/* Price Badge - Top Right */}
-                  <div className="absolute top-4 right-4 z-10">
-                    <div className="bg-yellow-400 text-black px-4 py-2 rounded-xl font-bold text-lg shadow-lg">
+                  {/* Price Seal - Top Right (Mobile focused) */}
+                  <div className="absolute top-3 right-3 z-10">
+                    <div className="bg-yellow-400 text-black px-3 py-1.5 md:px-4 md:py-2 rounded-full font-bold text-sm md:text-lg shadow-lg border-2 border-yellow-300">
                       R$ {card.price.toFixed(2).replace('.', ',')}
-                    </div>
-                  </div>
-
-                  {/* Premium Badge - Top Left */}
-                  <div className="absolute top-4 left-4 z-10">
-                    <div className="bg-gradient-to-r from-orange-500 to-red-500 text-white px-3 py-1 rounded-lg text-sm font-bold shadow-lg transform rotate-[-2deg] border border-orange-300">
-                      {card.badge}
                     </div>
                   </div>
 
@@ -122,43 +115,36 @@ const PremiumScratchCatalog = ({ onCardSelect, userBalance = 1000 }: PremiumScra
                   <div className="absolute bottom-0 left-0 right-0 p-6 text-white">
                     
                     {/* Title */}
-                    <h3 className="text-2xl md:text-3xl font-bold mb-2 text-white drop-shadow-lg">
+                    <h3 className="text-xl md:text-2xl font-bold mb-2 text-white drop-shadow-lg">
                       {card.title}
                     </h3>
 
-                    {/* Prize Amount */}
+                    {/* Prize Amount - Mobile optimized */}
                     <div className="mb-3">
-                      <span className="text-yellow-400 font-bold text-lg">PRÊMIOS ATÉ </span>
-                      <span className="text-yellow-400 font-black text-2xl md:text-3xl">
+                      <span className="text-yellow-400 font-bold text-sm md:text-lg">PRÊMIOS ATÉ </span>
+                      <span className="text-yellow-400 font-black text-xl md:text-2xl">
                         {card.maxPrize}
                       </span>
                     </div>
 
-                    {/* Description */}
-                    <p className="text-gray-200 text-sm md:text-base mb-4 leading-relaxed">
+                    {/* Description - Mobile optimized */}
+                    <p className="text-gray-200 text-xs md:text-sm mb-3 leading-relaxed line-clamp-2">
                       {card.description}
                     </p>
 
-                    {/* Action Button */}
+                    {/* Action Button - Mobile optimized */}
                     <button
                       disabled={!canAfford}
                       className={`
-                        w-full py-4 px-6 rounded-xl font-bold text-lg
-                        transition-all duration-300 flex items-center justify-center gap-2
+                        w-full py-2.5 md:py-4 px-4 md:px-6 rounded-lg font-bold text-sm md:text-lg
+                        transition-all duration-300 flex items-center justify-center
                         ${canAfford 
                           ? 'bg-yellow-400 hover:bg-yellow-300 text-black shadow-lg hover:shadow-xl' 
                           : 'bg-gray-600 text-gray-400 cursor-not-allowed'
                         }
                       `}
                     >
-                      {canAfford ? (
-                        <>
-                          Jogar Raspadinha 
-                          <span className="text-xl">→</span>
-                        </>
-                      ) : (
-                        'Saldo Insuficiente'
-                      )}
+                      {canAfford ? 'Jogar' : 'Saldo Insuficiente'}
                     </button>
                   </div>
                 </div>
