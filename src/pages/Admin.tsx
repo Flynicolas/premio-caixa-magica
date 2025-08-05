@@ -16,7 +16,8 @@ import { AdminErrorDashboard } from '@/components/admin/AdminErrorDashboard';
 import ScratchCardManager from '@/components/admin/ScratchCardManager';
 import DemoItemsManager from '@/components/admin/DemoItemsManager';
 import CaixaGeralDashboard from '@/components/admin/CaixaGeralDashboard';
-import { Shield, Package, Settings, Users, Wallet, Target, Truck, AlertTriangle, Gamepad2, TestTube, DollarSign } from 'lucide-react';
+import { Shield, Package, Settings, Users, Wallet, Target, Truck, AlertTriangle, Gamepad2, TestTube, DollarSign, Palette } from 'lucide-react';
+import VisualCustomizationPanel from '@/components/admin/VisualCustomizationPanel';
 
 const Admin = () => {
   const { user } = useAuth();
