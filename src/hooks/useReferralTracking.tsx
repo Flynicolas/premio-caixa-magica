@@ -98,7 +98,7 @@ export const useReferralTracking = () => {
         .select('user_id')
         .eq('referral_code', referralCode)
         .eq('is_active', true)
-        .single();
+        .maybeSingle();
 
       if (error) {
         console.error('Erro ao buscar referenciador:', error);
