@@ -123,53 +123,49 @@ const Rascunho = () => {
           selectedChest={selectedChestType}
         />
 
-        {/* Versão 1: Layout Compacto Minimalista */}
+        {/* Versão 1: Compacto Temático (Estilo Página Inicial) */}
         <section className="mb-16">
           <div className="text-center mb-8">
             <h2 className="text-xl md:text-2xl font-bold mb-2 text-primary">
-              ✨ Versão 1: Compacto Minimalista
+              ✨ Versão 1: Compacto Temático
             </h2>
             <p className="text-sm text-muted-foreground">
-              Design limpo e espaçamento reduzido
+              Estilo da página inicial em formato compacto e responsivo
             </p>
           </div>
 
-          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-3 max-w-6xl mx-auto">
+          {/* Atalho para Raspadinha - Seção Temática */}
+          <div className="mb-8 bg-gradient-to-r from-primary/10 to-secondary/10 rounded-xl p-6 border border-primary/20">
+            <div className="text-center">
+              <h3 className="text-lg font-bold text-primary mb-2">
+                🎫 Teste a Raspadinha Grátis
+              </h3>
+              <p className="text-sm text-muted-foreground mb-4">
+                Experimente nosso novo jogo de raspadinha com chances reais de ganhar!
+              </p>
+              <button 
+                onClick={() => window.location.href = '/raspadinha'}
+                className="gold-gradient text-black font-bold py-3 px-6 rounded-full shadow-lg hover:shadow-primary/50 transition-all duration-300 hover:scale-105"
+              >
+                Jogar Raspadinha 🎯
+              </button>
+            </div>
+          </div>
+
+          {/* Grid de Baús com estilo da página inicial */}
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 max-w-4xl mx-auto">
             {chestOrder.map((chestType) => (
               <div key={`v1-${chestType}`} className="group">
-                <div className="bg-card/30 border border-border/50 rounded-lg p-3 hover:bg-card/60 transition-all duration-300 min-h-[200px] flex flex-col">
-                  {/* Header compacto */}
-                  <div className="text-center mb-3">
-                    <h3 className="text-xs font-semibold text-primary mb-1 truncate">
-                      {chestData[chestType].name}
-                    </h3>
-                    <div className="text-sm font-bold text-foreground">
-                      R$ {chestData[chestType].price.toFixed(0)}
-                    </div>
-                  </div>
-
-                  {/* Imagem reduzida */}
-                  <div className="flex-1 flex items-center justify-center mb-3">
-                    <img 
-                      src={`/lovable-uploads/${chestType === 'silver' ? '8f503764-12ee-4e00-8148-76b279be343f' : 
-                           chestType === 'gold' ? '8c5dedca-ad61-4b14-a649-8b854950a875' :
-                           chestType === 'delas' ? '85b1ecea-b443-4391-9986-fb77979cf6ea' :
-                           chestType === 'diamond' ? '0ec6f6c5-203f-4fca-855d-59171f78adf3' :
-                           chestType === 'ruby' ? 'a7b012cc-0fae-4b69-b2f4-690740a0ba92' :
-                           'd43f06a5-1532-42ba-8362-5aefb160b408'}.png`}
-                      alt={chestData[chestType].name}
-                      className="w-12 h-12 object-contain group-hover:scale-110 transition-transform duration-300"
-                    />
-                  </div>
-
-                  {/* Botão simplificado */}
-                  <button 
-                    onClick={() => handleChestOpen(chestType)}
-                    className="w-full py-1.5 text-xs font-medium bg-primary/80 hover:bg-primary text-primary-foreground rounded transition-colors"
-                  >
-                    Abrir
-                  </button>
-                </div>
+                <ChestCard
+                  chest={chestData[chestType]}
+                  chestType={chestType}
+                  onOpen={() => handleChestOpen(chestType)}
+                  onViewItems={() => handleChestViewItems(chestType)}
+                  balance={walletData?.balance || 0}
+                  isAuthenticated={!!user}
+                  onPrizeWon={handleDirectChestOpening}
+                  onAddBalance={handleOpenWallet}
+                />
               </div>
             ))}
           </div>
