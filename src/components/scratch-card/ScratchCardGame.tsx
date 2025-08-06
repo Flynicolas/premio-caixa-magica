@@ -1,4 +1,3 @@
-
 import { useState, useEffect, useRef } from "react";
 import { motion } from "framer-motion";
 import { Button } from "@/components/ui/button";
@@ -117,19 +116,22 @@ const ScratchCardGame = () => {
     }, 500);
   };
 
-  const handlePlayAgain = () => {
+  const handlePlayAgain = async () => {
     setShowWinModal(false);
     setShowLossToast(false);
     setGameStarted(false);
     setGamePhase('ready');
-    generateScratchCard();
+    await generateScratchCard();
+  };
+
+  const handleCloseLossToast = () => {
+    setShowLossToast(false);
   };
 
   const handleCloseWinModal = () => {
     setShowWinModal(false);
   };
 
-  // Função para determinar o texto do botão baseado na fase
   const getButtonText = () => {
     if (gamePhase === 'ready') {
       return `Começar Jogo: R$ ${scratchCardTypes[selectedType].price.toFixed(2)}`;
@@ -222,6 +224,8 @@ const ScratchCardGame = () => {
                 <ScratchLossToast 
                   isVisible={showLossToast}
                   message="Que pena! Tente novamente com sorte."
+                  onClose={handleCloseLossToast}
+                  onPlayAgain={handlePlayAgain}
                 />
 
                 <ScratchGameCanvas
