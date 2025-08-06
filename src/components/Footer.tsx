@@ -50,44 +50,44 @@ const Footer = () => {
 
           {/* Quick Links */}
           <div className="space-y-6">
-            <h4 className="font-semibold text-primary text-lg relative">
+            <h4 className="font-bold gold-gradient-text text-lg relative">
               Links Rápidos
-              <div className="absolute -bottom-1 left-0 w-8 h-0.5 bg-primary rounded-full"></div>
+              <div className="absolute -bottom-1 left-0 w-8 h-0.5 gold-gradient rounded-full"></div>
             </h4>
             <ul className="space-y-3">
               <li>
                 <Link 
                   to="/" 
-                  className="text-muted-foreground hover:text-primary transition-all duration-300 hover:translate-x-1 inline-flex items-center space-x-2"
+                  className="text-muted-foreground gold-hover transition-all duration-300 hover:translate-x-1 inline-flex items-center space-x-2"
                 >
-                  <Home className="w-4 h-4" />
+                  <Home className="w-4 h-4 gold-text" />
                   <span>Página Inicial</span>
                 </Link>
               </li>
               <li>
                 <Link 
                   to="/premios" 
-                  className="text-muted-foreground hover:text-primary transition-all duration-300 hover:translate-x-1 inline-flex items-center space-x-2"
+                  className="text-muted-foreground gold-hover transition-all duration-300 hover:translate-x-1 inline-flex items-center space-x-2"
                 >
-                  <Gift className="w-4 h-4" />
+                  <Gift className="w-4 h-4 gold-text" />
                   <span>Prêmios</span>
                 </Link>
               </li>
               <li>
                 <Link 
                   to="/sobre" 
-                  className="text-muted-foreground hover:text-primary transition-all duration-300 hover:translate-x-1 inline-flex items-center space-x-2"
+                  className="text-muted-foreground gold-hover transition-all duration-300 hover:translate-x-1 inline-flex items-center space-x-2"
                 >
-                  <Info className="w-4 h-4" />
+                  <Info className="w-4 h-4 gold-text" />
                   <span>Sobre</span>
                 </Link>
               </li>
               <li>
                 <Link 
                   to="/ranking" 
-                  className="text-muted-foreground hover:text-primary transition-all duration-300 hover:translate-x-1 inline-flex items-center space-x-2"
+                  className="text-muted-foreground gold-hover transition-all duration-300 hover:translate-x-1 inline-flex items-center space-x-2"
                 >
-                  <Trophy className="w-4 h-4" />
+                  <Trophy className="w-4 h-4 gold-text" />
                   <span>Ranking</span>
                 </Link>
               </li>
@@ -96,44 +96,44 @@ const Footer = () => {
 
           {/* Support */}
           <div className="space-y-6">
-            <h4 className="font-semibold text-primary text-lg relative">
+            <h4 className="font-bold gold-gradient-text text-lg relative">
               Suporte
-              <div className="absolute -bottom-1 left-0 w-8 h-0.5 bg-primary rounded-full"></div>
+              <div className="absolute -bottom-1 left-0 w-8 h-0.5 gold-gradient rounded-full"></div>
             </h4>
             <ul className="space-y-3">
               <li>
                 <Link 
                   to="/central-ajuda" 
-                  className="text-muted-foreground hover:text-primary transition-all duration-300 hover:translate-x-1 inline-flex items-center space-x-2"
+                  className="text-muted-foreground gold-hover transition-all duration-300 hover:translate-x-1 inline-flex items-center space-x-2"
                 >
-                  <Users className="w-4 h-4" />
+                  <Users className="w-4 h-4 gold-text" />
                   <span>Central de Ajuda</span>
                 </Link>
               </li>
               <li>
                 <Link 
                   to="/termos-uso" 
-                  className="text-muted-foreground hover:text-primary transition-all duration-300 hover:translate-x-1 inline-flex items-center space-x-2"
+                  className="text-muted-foreground gold-hover transition-all duration-300 hover:translate-x-1 inline-flex items-center space-x-2"
                 >
-                  <FileText className="w-4 h-4" />
+                  <FileText className="w-4 h-4 gold-text" />
                   <span>Termos de Uso</span>
                 </Link>
               </li>
               <li>
                 <Link 
                   to="/politica-privacidade" 
-                  className="text-muted-foreground hover:text-primary transition-all duration-300 hover:translate-x-1 inline-flex items-center space-x-2"
+                  className="text-muted-foreground gold-hover transition-all duration-300 hover:translate-x-1 inline-flex items-center space-x-2"
                 >
-                  <Lock className="w-4 h-4" />
+                  <Lock className="w-4 h-4 gold-text" />
                   <span>Política de Privacidade</span>
                 </Link>
               </li>
               <li>
                 <Link 
                   to="/faq" 
-                  className="text-muted-foreground hover:text-primary transition-all duration-300 hover:translate-x-1 inline-flex items-center space-x-2"
+                  className="text-muted-foreground gold-hover transition-all duration-300 hover:translate-x-1 inline-flex items-center space-x-2"
                 >
-                  <HelpCircle className="w-4 h-4" />
+                  <HelpCircle className="w-4 h-4 gold-text" />
                   <span>FAQ</span>
                 </Link>
               </li>
@@ -142,49 +142,49 @@ const Footer = () => {
 
           {/* Security & Contact */}
           <div className="space-y-6">
-            <h4 className="font-semibold text-primary text-lg relative">
+            <h4 className="font-bold gold-gradient-text text-lg relative">
               Segurança & Contato
-              <div className="absolute -bottom-1 left-0 w-8 h-0.5 bg-primary rounded-full"></div>
+              <div className="absolute -bottom-1 left-0 w-8 h-0.5 gold-gradient rounded-full"></div>
             </h4>
             
             {/* Security Badges */}
             <div className="space-y-3">
               <div className="flex items-center space-x-2 group">
-                <div className="p-2 bg-green-500/10 rounded-lg group-hover:bg-green-500/20 transition-colors">
-                  <Shield className="w-4 h-4 text-green-400" />
+                <div className="p-2 gold-gradient-subtle rounded-lg group-hover:gold-gradient transition-colors">
+                  <Shield className="w-4 h-4 gold-text" />
                 </div>
                 <div>
-                  <div className="text-sm font-medium text-green-400">SSL Seguro</div>
+                  <div className="text-sm font-bold gold-text">SSL Seguro</div>
                   <div className="text-xs text-muted-foreground">Conexão protegida</div>
                 </div>
               </div>
               
               <div className="flex items-center space-x-2 group">
-                <div className="p-2 bg-blue-500/10 rounded-lg group-hover:bg-blue-500/20 transition-colors">
-                  <Lock className="w-4 h-4 text-blue-400" />
+                <div className="p-2 gold-gradient-subtle rounded-lg group-hover:gold-gradient transition-colors">
+                  <Lock className="w-4 h-4 gold-text" />
                 </div>
                 <div>
-                  <div className="text-sm font-medium text-blue-400">Criptografado</div>
+                  <div className="text-sm font-bold gold-text">Criptografado</div>
                   <div className="text-xs text-muted-foreground">Dados protegidos</div>
                 </div>
               </div>
               
               <div className="flex items-center space-x-2 group">
-                <div className="p-2 bg-purple-500/10 rounded-lg group-hover:bg-purple-500/20 transition-colors">
-                  <Award className="w-4 h-4 text-purple-400" />
+                <div className="p-2 gold-gradient-subtle rounded-lg group-hover:gold-gradient transition-colors">
+                  <Award className="w-4 h-4 gold-text" />
                 </div>
                 <div>
-                  <div className="text-sm font-medium text-purple-400">Certificado</div>
+                  <div className="text-sm font-bold gold-text">Certificado</div>
                   <div className="text-xs text-muted-foreground">Plataforma verificada</div>
                 </div>
               </div>
             </div>
 
             {/* Contact */}
-            <div className="pt-4 border-t border-primary/10">
-              <div className="flex items-center space-x-2 text-primary">
-                <Phone className="w-4 h-4" />
-                <span className="text-sm font-medium">Suporte 24/7</span>
+            <div className="pt-4 border-t gold-border">
+              <div className="flex items-center space-x-2">
+                <Phone className="w-4 h-4 gold-text" />
+                <span className="text-sm font-bold gold-text">Suporte 24/7</span>
               </div>
               <p className="text-xs text-muted-foreground mt-1">
                 Sempre disponível para ajudar

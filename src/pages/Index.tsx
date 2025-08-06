@@ -152,10 +152,10 @@ const Index = () => {
         {/* Featured Chests - 3 columns, 2 rows */}
         <section className="mb-16">
           <div className="text-center mb-12 hidden md:block">
-            <h2 className="text-2xl sm:text-3xl md:text-4xl font-bold mb-4 text-primary leading-snug">
+            <h2 className="text-2xl sm:text-3xl md:text-4xl font-bold mb-4 gold-gradient-text leading-snug">
               🏆 Escolha Seu Baú 🏆
             </h2>
-            <p className="text-lg text-muted-foreground max-w-3xl mx-auto">
+            <p className="text-lg gold-text max-w-3xl mx-auto font-medium">
               Cada baú tem diferentes chances de prêmios. Quanto maior o investimento, maiores as recompensas!
             </p>
           </div>
@@ -180,11 +180,11 @@ const Index = () => {
 
         {/* Call to Action - only show for non-authenticated users */}
         {!user && (
-          <section className="text-center py-16 bg-gradient-to-r from-primary/10 to-secondary/10 rounded-3xl border border-primary/20">
-            <h2 className="text-4xl font-bold mb-6 text-primary">
+          <section className="text-center py-16 gold-gradient-subtle rounded-3xl border gold-border">
+            <h2 className="text-4xl font-bold mb-6 gold-gradient-text">
               Pronto para Ganhar?
             </h2>
-            <p className="text-xl text-muted-foreground mb-8 max-w-2xl mx-auto">
+            <p className="text-xl gold-text mb-8 max-w-2xl mx-auto font-medium">
               Cadastre-se agora e receba R$ 50 de bônus para começar a jogar!
             </p>
             <button

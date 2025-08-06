@@ -51,9 +51,36 @@
 }
 
 @layer components {
-  /* Tema dourado para elementos de interface */
+  /* Sistema dourado completo */
   .gold-gradient {
-    background: linear-gradient(to right, hsl(var(--gold-start)), hsl(var(--gold-middle)), hsl(var(--gold-end)));
+    background: linear-gradient(135deg, hsl(var(--gold-start)), hsl(var(--gold-middle)), hsl(var(--gold-end)));
+  }
+  
+  .gold-gradient-text {
+    background: linear-gradient(135deg, hsl(var(--gold-start)), hsl(var(--gold-middle)), hsl(var(--gold-end)));
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+  }
+  
+  .gold-gradient-border {
+    border-image: linear-gradient(135deg, hsl(var(--gold-start)), hsl(var(--gold-middle)), hsl(var(--gold-end))) 1;
+  }
+  
+  .gold-gradient-subtle {
+    background: linear-gradient(135deg, hsl(var(--gold-start) / 0.1), hsl(var(--gold-middle) / 0.15), hsl(var(--gold-end) / 0.1));
+  }
+  
+  .gold-text {
+    color: hsl(var(--gold-middle));
+  }
+  
+  .gold-border {
+    border-color: hsl(var(--gold-middle) / 0.5);
+  }
+  
+  .gold-hover {
+    @apply transition-all duration-300 hover:text-[hsl(var(--gold-middle))];
   }
   
   /* Animações sutis mantidas */

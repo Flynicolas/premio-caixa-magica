@@ -276,17 +276,17 @@ const RealtimeWinsCarousel = ({ showIcons = true, className = "" }: RealtimeWins
   }
 
   return (
-    <div className={`relative bg-gradient-to-r from-gray-900/40 via-gray-800/30 to-gray-900/40 border-2 border-primary/30 rounded-xl p-2 md:p-6 shadow-2xl overflow-hidden ${className}`}>
+    <div className={`relative bg-gradient-to-r from-gray-900/40 via-gray-800/30 to-gray-900/40 border-2 gold-border rounded-xl p-2 md:p-6 shadow-2xl overflow-hidden ${className}`}>
       {/* Background decorative elements */}
-      <div className="absolute inset-0 bg-gradient-to-r from-primary/5 via-transparent to-primary/5 opacity-50" />
-      <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-transparent via-primary to-transparent opacity-60" />
-      <div className="absolute bottom-0 left-0 w-full h-1 bg-gradient-to-r from-transparent via-primary to-transparent opacity-60" />
+      <div className="absolute inset-0 gold-gradient-subtle opacity-30" />
+      <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-transparent via-[hsl(var(--gold-middle))] to-transparent opacity-60" />
+      <div className="absolute bottom-0 left-0 w-full h-1 bg-gradient-to-r from-transparent via-[hsl(var(--gold-middle))] to-transparent opacity-60" />
       
       {/* Corner decorations */}
-      <div className="absolute top-2 left-2 w-4 h-4 border-l-2 border-t-2 border-primary/50 rounded-tl" />
-      <div className="absolute top-2 right-2 w-4 h-4 border-r-2 border-t-2 border-primary/50 rounded-tr" />
-      <div className="absolute bottom-2 left-2 w-4 h-4 border-l-2 border-b-2 border-primary/50 rounded-bl" />
-      <div className="absolute bottom-2 right-2 w-4 h-4 border-r-2 border-b-2 border-primary/50 rounded-br" />
+      <div className="absolute top-2 left-2 w-4 h-4 border-l-2 border-t-2 gold-border rounded-tl" />
+      <div className="absolute top-2 right-2 w-4 h-4 border-r-2 border-t-2 gold-border rounded-tr" />
+      <div className="absolute bottom-2 left-2 w-4 h-4 border-l-2 border-b-2 gold-border rounded-bl" />
+      <div className="absolute bottom-2 right-2 w-4 h-4 border-r-2 border-b-2 gold-border rounded-br" />
 
       {showIcons && (
         <div className="relative z-10 flex items-center justify-between mb-2 md:mb-6">
@@ -294,14 +294,14 @@ const RealtimeWinsCarousel = ({ showIcons = true, className = "" }: RealtimeWins
             <div className="flex items-center space-x-1 md:space-x-2">
               <Radio className="w-3 h-3 md:w-5 md:h-5 text-red-500 animate-pulse" />
             </div>
-            <div className="w-px h-3 md:h-6 bg-primary/30" />
-            <h2 className="text-xs md:text-xl font-bold text-primary flex items-center gap-1 md:gap-2">
-              <Trophy className="w-3 h-3 md:w-5 md:h-5" />
+            <div className="w-px h-3 md:h-6 bg-[hsl(var(--gold-middle)/0.3)]" />
+            <h2 className="text-xs md:text-xl font-bold gold-gradient-text flex items-center gap-1 md:gap-2">
+              <Trophy className="w-3 h-3 md:w-5 md:h-5 gold-text" />
               <span className="hidden md:inline">Vitórias em Tempo Real</span>
               <span className="md:hidden">Vitórias</span>
             </h2>
           </div>
-          <Gift className="w-3 h-3 md:w-6 md:h-6 text-primary/60 animate-pulse" />
+          <Gift className="w-3 h-3 md:w-6 md:h-6 gold-text animate-pulse" />
         </div>
       )}
       
@@ -331,7 +331,7 @@ const RealtimeWinsCarousel = ({ showIcons = true, className = "" }: RealtimeWins
                     item.isReal ? 'ring-2 ring-green-500/30' : ''
                   }`}
                 />
-                <p className="text-[10px] md:text-xs text-center text-primary/80 font-medium truncate w-full mt-0.5 md:mt-1">
+                <p className="text-[10px] md:text-xs text-center gold-text font-bold truncate w-full mt-0.5 md:mt-1">
                   {item.user_name} ganhou
                 </p>
               </div>
