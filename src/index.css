@@ -1,97 +1,220 @@
 
-@import url("https://fonts.googleapis.com/css2?family=Inter:wght@100..900&display=swap");
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
 @layer base {
   :root {
-    --background: 222 84% 5%;
-    --foreground: 210 40% 98%;
-    --card: 224 71% 4%;
-    --card-foreground: 213 31% 91%;
-    --popover: 224 71% 4%;
-    --popover-foreground: 215 20% 65%;
-    --primary: 262 83% 58%;
-    --primary-foreground: 210 40% 98%;
-    --secondary: 215 28% 17%;
-    --secondary-foreground: 210 40% 98%;
-    --muted: 223 47% 11%;
-    --muted-foreground: 215 20% 65%;
-    --accent: 216 34% 17%;
-    --accent-foreground: 210 40% 98%;
-    --destructive: 0 63% 31%;
-    --destructive-foreground: 210 40% 98%;
-    --border: 216 34% 17%;
-    --input: 216 34% 17%;
-    --ring: 263 70% 50%;
-    --radius: 0.75rem;
-    --chart-1: 173 58% 39%;
-    --chart-2: 12 76% 61%;
-    --chart-3: 197 37% 24%;
-    --chart-4: 43 74% 66%;
-    --chart-5: 27 87% 67%;
+    --background: 0 0% 3%;
+    --foreground: 45 100% 90%;
+    --card: 0 0% 8%;
+    --card-foreground: 45 100% 90%;
+    --popover: 0 0% 8%;
+    --popover-foreground: 45 100% 90%;
+    --primary: 45 100% 50%;
+    --primary-foreground: 0 0% 5%;
+    --secondary: 0 0% 15%;
+    --secondary-foreground: 45 100% 85%;
+    --muted: 0 0% 12%;
+    --muted-foreground: 45 50% 70%;
+    --accent: 45 100% 60%;
+    --accent-foreground: 0 0% 5%;
+    --destructive: 0 84.2% 60.2%;
+    --destructive-foreground: 0 0% 98%;
+    --border: 0 0% 20%;
+    --input: 0 0% 15%;
+    --ring: 45 100% 50%;
+    --radius: 0.5rem;
   }
-}
-
-@layer base {
+  
   * {
     @apply border-border;
   }
+  
   body {
-    @apply bg-background text-foreground;
-    font-family: "Inter", sans-serif;
-    overflow-x: hidden;
+    @apply bg-background text-foreground font-medium;
+    background: radial-gradient(ellipse at center, hsl(0 0% 5%) 0%, hsl(0 0% 2%) 100%);
+    min-height: 100vh;
   }
-  html, body, #root {
-    height: 100%;
-    margin: 0;
-    padding: 0;
+}
+
+@layer utilities {
+  .gold-gradient {
+    background: linear-gradient(135deg, #FFD700 0%, #FFA500 50%, #FF8C00 100%);
   }
   
-  .container {
-    @apply max-w-screen-xl mx-auto px-4;
+  .gold-border {
+    border: 2px solid;
+    border-image: linear-gradient(135deg, #FFD700, #FFA500) 1;
+  }
+  
+  .gold-glow {
+    box-shadow: 0 0 20px rgba(255, 215, 0, 0.3), 0 0 40px rgba(255, 215, 0, 0.1);
+  }
+  
+  .chest-shine {
+    background: linear-gradient(45deg, transparent 30%, rgba(255, 215, 0, 0.3) 50%, transparent 70%);
+    animation: shine 3s infinite;
+  }
+  
+  .pulse-gold {
+    animation: pulse-gold 2s infinite;
+  }
+  
+  .float {
+    animation: float 3s ease-in-out infinite;
+  }
+  
+  .spin-slow {
+    animation: spin 3s linear infinite;
+  }
+  
+  /* Text stroke utility for silver chest titles */
+  .text-stroke-white {
+    -webkit-text-stroke: 0.5px rgba(255, 255, 255, 0.3);
+    text-stroke: 0.5px rgba(255, 255, 255, 0.3);
   }
 }
 
-/* Animações personalizadas */
-@keyframes shake {
-  0%, 100% { transform: translateX(0); }
-  25% { transform: translateX(-2px); }
-  75% { transform: translateX(2px); }
+@keyframes shine {
+  0% { transform: translateX(-100%); }
+  100% { transform: translateX(100%); }
 }
 
-/* Remove barras brancas e overlays problemáticos */
-body::before,
-body::after,
-html::before,
-html::after {
-  display: none !important;
-}
-
-/* Fix para scroll automático */
-.no-scroll-trigger * {
-  scroll-behavior: auto !important;
-}
-
-/* Remove animações excessivas em raspadinhas */
-.scratch-block {
-  animation: none !important;
-}
-
-.scratch-block:not(.winning) {
-  animation: none !important;
-  transform: none !important;
-}
-
-/* Estilos para modal de vitória */
-.win-modal-overlay {
-  backdrop-filter: blur(8px);
-}
-
-/* Melhora responsividade mobile */
-@media (max-width: 768px) {
-  .container {
-    @apply px-2;
+@keyframes pulse-gold {
+  0%, 100% { 
+    box-shadow: 0 0 10px rgba(255, 215, 0, 0.2); 
+    opacity: 1;
   }
+  50% { 
+    box-shadow: 0 0 20px rgba(255, 215, 0, 0.4);
+    opacity: 0.9;
+  }
+}
+
+@keyframes float {
+  0%, 100% { 
+    transform: translateY(0px); 
+  }
+  50% { 
+    transform: translateY(-6px); 
+  }
+}
+
+@keyframes scale-in {
+  0% {
+    transform: scale(0.8);
+    opacity: 0;
+  }
+  100% {
+    transform: scale(1);
+    opacity: 1;
+  }
+}
+
+.animate-scale-in {
+  animation: scale-in 0.2s ease-out;
+}
+
+@keyframes slide-in-left {
+  0% {
+    transform: translateX(-100%);
+    opacity: 0;
+  }
+  100% {
+    transform: translateX(0);
+    opacity: 1;
+  }
+}
+
+@keyframes fade-out {
+  0% {
+    opacity: 1;
+  }
+  100% {
+    opacity: 0;
+  }
+}
+
+.animate-slide-in-left {
+  animation: slide-in-left 0.3s ease-out;
+}
+
+.animate-fade-out {
+  animation: fade-out 0.3s ease-out;
+}
+
+.rollout-container {
+  height: 16.5rem;
+    margin-bottom: 1rem;
+}
+.roulette-pro-regular-prize-item-wrapper {
+  background: #ffffff00;
+  height: 13rem;
+  border-radius: 20px;
+  border-color: rgb(255 255 255 / 0%);
+}
+.roulette-pro-regular-prize-item-wrapper .roulette-pro-regular-image-wrapper {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  overflow: hidden;
+  /* border-radius: 20px 20px 0px 0px; */
+    border-radius: 20px;
+  background: #facc15;
+height: 100%;
+border: 4px solid #ffe484;
+  /* border-bottom: 0px; */
+}
+.roulette-pro-regular-prize-item-wrapper .roulette-pro-regular-image-wrapper .roulette-pro-regular-prize-item-image {
+  width: 100%;
+  height: 100%;
+  max-width: none;
+  max-height: none;
+}
+.roulette-pro-regular-prize-item-text {
+  border-radius: 0px 0px 20px 20px;
+  border: 2px solid #facc15;
+  background: #facc1536;
+  text-transform: capitalize;
+  font-weight: 500;
+  border-top: 0px;
+  font-size: 13px;
+}
+
+.roulette-frame-container {
+  background: radial-gradient(120% 90% at center, #3a003a 0%, #180015 100%);
+  border: 3px solid transparent;
+  border-radius: 24px;
+  position: relative;
+  box-shadow: 0 0 20px rgba(255, 255, 0, 0.2), 0 0 40px rgba(255, 255, 0, 0.15);
+  background-origin: border-box;
+  background-clip: padding-box, border-box;
+  background-image: 
+    linear-gradient(to right, rgba(255,255,255,0.05), rgba(255,255,255,0.05)),
+    linear-gradient(120deg, #ffde59, #ff914d, #ffde59);
+  animation: borderGlow 4s linear infinite;
+      height: 16.5rem;
+}
+
+@keyframes borderGlow {
+  0% { background-position: 0% 50%; }
+  100% { background-position: 100% 50%; }
+}
+@keyframes scale-in-bounce {
+  0% {
+    transform: scale(0.7);
+    opacity: 0;
+  }
+  70% {
+    transform: scale(1.1);
+    opacity: 1;
+  }
+  100% {
+    transform: scale(1);
+  }
+}
+
+.animate-scale-in-bounce {
+  animation: scale-in-bounce 0.4s ease-out;
 }

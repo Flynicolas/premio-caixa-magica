@@ -3,36 +3,37 @@ import { motion } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
+import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import ScratchGameCanvas from "./ScratchGameCanvas";
-import UnifiedWinModal from "./UnifiedWinModal";
-import ScratchLossToast from "./ScratchLossToast";
+import ScratchCardResult from "./ScratchCardResult";
 import { ScratchCardType, scratchCardTypes, ScratchSymbol } from "@/types/scratchCard";
-import { useWallet } from "@/hooks/useWalletProvider";
 
 const ScratchCardGame = () => {
+  console.log('🎯 ScratchCardGame component mounted');
+  
   const [selectedType, setSelectedType] = useState<ScratchCardType>('sorte');
   const [symbols, setSymbols] = useState<ScratchSymbol[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [resultMessage, setResultMessage] = useState("Escolha um tipo e gere sua raspadinha");
-  const [showWinModal, setShowWinModal] = useState(false);
-  const [showLossToast, setShowLossToast] = useState(false);
-  const [winningItem, setWinningItem] = useState<ScratchSymbol | null>(null);
+  const [showResult, setShowResult] = useState(false);
+  const [winningSymbol, setWinningSymbol] = useState<string | null>(null);
   const [hasWin, setHasWin] = useState(false);
   const [gameStarted, setGameStarted] = useState(false);
   const [gamePhase, setGamePhase] = useState<'ready' | 'playing' | 'complete'>('ready');
   const canvasRef = useRef<{ revealAll: () => void }>(null);
-  const { refetchWallet } = useWallet();
+
+  console.log('🎯 ScratchCardGame render - symbols.length:', symbols.length);
 
   const generateScratchCard = async (forcedWin = false) => {
     console.log('🎯 Generating scratch card, type:', selectedType, 'forcedWin:', forcedWin);
     setIsLoading(true);
     setResultMessage("Carregando raspadinha...");
     setGameStarted(false);
-    setShowLossToast(false);
     
     try {
-      const { data, error } = await supabase.functions.invoke('generate-scratch-card-optimized', {
+      const { data, error } = await supabase.functions.invoke('generate-scratch-card', {
         body: { 
           scratchType: selectedType,
           forcedWin 
@@ -44,13 +45,14 @@ const ScratchCardGame = () => {
       console.log('🎯 Scratch card data received:', data);
       setSymbols(data.symbols || []);
       setHasWin(data.hasWin);
-      setWinningItem(data.winningItem);
       setResultMessage("Raspe / toque para começar");
-      setGamePhase('ready');
+      setShowResult(false);
+      setWinningSymbol(null);
 
     } catch (error: any) {
       console.error('Erro ao gerar raspadinha:', error);
       setResultMessage("Erro ao carregar. Tente novamente.");
+      toast.error("Erro ao gerar raspadinha");
     } finally {
       setIsLoading(false);
     }
@@ -60,96 +62,51 @@ const ScratchCardGame = () => {
     if (!gameStarted && symbols.length > 0) {
       setGameStarted(true);
       setGamePhase('playing');
-      setResultMessage("Raspe para revelar os símbolos");
+      setResultMessage("Raspe para revelar");
       
-      // Processar pagamento quando o jogo inicia
+      // Aqui é onde debitamos o dinheiro - quando o jogo realmente começa
       try {
-        const { data, error } = await supabase.rpc('process_scratch_card_game', {
-          p_user_id: (await supabase.auth.getUser()).data.user?.id,
-          p_scratch_type: selectedType,
-          p_game_price: scratchCardTypes[selectedType].price,
-          p_symbols: JSON.stringify(symbols),
-          p_has_win: hasWin,
-          p_winning_item_id: hasWin && winningItem ? winningItem.id : null,
-          p_winning_amount: hasWin && winningItem ? winningItem.base_value : 0
+        await supabase.functions.invoke('debit-scratch-card-cost', {
+          body: { 
+            scratchType: selectedType,
+            symbols: symbols // Garante que se fechar a janela, o prêmio será processado
+          }
         });
-
-        if (error) throw error;
-        
-        // Atualizar carteira
-        await refetchWallet();
-        
       } catch (error) {
-        console.error('Erro ao processar jogo:', error);
+        console.error('Erro ao debitar custo:', error);
+        // Não bloqueamos o jogo se o débito falhar, mas logamos
       }
     }
   };
 
   const handleRevealAll = () => {
-    if (canvasRef.current?.revealAll && gamePhase === 'playing') {
+    if (canvasRef.current?.revealAll) {
       canvasRef.current.revealAll();
     }
   };
 
-  const handleWin = (symbolName: string) => {
-    setGamePhase('complete');
-    setResultMessage("🎉 Você ganhou!");
-    
-    // Encontrar o item vencedor
-    const winner = symbols.find(s => s.name === symbolName && s.isWinning);
-    if (winner) {
-      setWinningItem(winner);
-      setTimeout(() => setShowWinModal(true), 800);
-    }
+  const handleWin = (symbol: string) => {
+    setWinningSymbol(symbol);
+    setResultMessage(`🎉 Você ganhou com ${symbol}!`);
+    setTimeout(() => setShowResult(true), 1000);
   };
 
   const handleComplete = () => {
     setGamePhase('complete');
-    setResultMessage("Não foi desta vez!");
-    
-    // Mostrar toast de derrota de forma discreta
-    setTimeout(() => {
-      setShowLossToast(true);
-      
-      // Esconder toast após 3 segundos
-      setTimeout(() => setShowLossToast(false), 3000);
-    }, 500);
+    setResultMessage("Tente novamente!");
+    setTimeout(() => setShowResult(true), 500);
   };
 
-  const handlePlayAgain = async () => {
-    setShowWinModal(false);
-    setShowLossToast(false);
+  const handlePlayAgain = () => {
+    setShowResult(false);
     setGameStarted(false);
     setGamePhase('ready');
-    await generateScratchCard();
+    // Gerar nova raspadinha e cobrar automaticamente
+    generateScratchCard();
   };
 
-  const handleCloseLossToast = () => {
-    setShowLossToast(false);
-  };
-
-  const handleCloseWinModal = () => {
-    setShowWinModal(false);
-  };
-
-  const getButtonText = () => {
-    if (gamePhase === 'ready') {
-      return `Começar Jogo: R$ ${scratchCardTypes[selectedType].price.toFixed(2)}`;
-    } else if (gamePhase === 'playing') {
-      return 'Revelar Tudo';
-    } else {
-      return `Jogar Novamente: R$ ${scratchCardTypes[selectedType].price.toFixed(2)}`;
-    }
-  };
-
-  const getButtonAction = () => {
-    if (gamePhase === 'ready') {
-      return handleScratchStart;
-    } else if (gamePhase === 'playing') {
-      return handleRevealAll;
-    } else {
-      return handlePlayAgain;
-    }
+  const handleCloseResult = () => {
+    setShowResult(false);
   };
 
   return (
@@ -170,11 +127,7 @@ const ScratchCardGame = () => {
           <CardContent className="p-4 space-y-4">
             <div className="space-y-2">
               <label className="text-sm font-medium">Tipo de Raspadinha:</label>
-              <Select 
-                value={selectedType} 
-                onValueChange={(value: ScratchCardType) => setSelectedType(value)}
-                disabled={gamePhase === 'playing'}
-              >
+              <Select value={selectedType} onValueChange={(value: ScratchCardType) => setSelectedType(value)}>
                 <SelectTrigger className="w-full">
                   <SelectValue />
                 </SelectTrigger>
@@ -212,7 +165,7 @@ const ScratchCardGame = () => {
         </Card>
 
         {/* Área do Jogo */}
-        <Card className="relative">
+        <Card>
           <CardContent className="p-6">
             {symbols.length > 0 ? (
               <motion.div
@@ -220,40 +173,51 @@ const ScratchCardGame = () => {
                 animate={{ opacity: 1, scale: 1 }}
                 className="space-y-4"
               >
-                {/* Toast de derrota discreto */}
-                <ScratchLossToast 
-                  isVisible={showLossToast}
-                  message="Que pena! Tente novamente com sorte."
-                  onClose={handleCloseLossToast}
-                  onPlayAgain={handlePlayAgain}
-                />
-
                 <ScratchGameCanvas
                   symbols={symbols}
                   onWin={handleWin}
                   onComplete={handleComplete}
                   onScratchStart={handleScratchStart}
                   gameStarted={gameStarted}
-                  scratchType={selectedType}
                   ref={canvasRef}
                 />
                 
-                {/* Botão dinâmico unificado */}
+                {/* Botão dinâmico baseado na fase do jogo */}
                 {symbols.length > 0 && (
-                  <div className="mt-4">
-                    <Button 
-                      onClick={getButtonAction()}
-                      className="w-full"
-                      disabled={isLoading}
-                    >
-                      {getButtonText()}
-                    </Button>
+                  <div className="flex gap-2 mt-4">
+                    {gamePhase === 'ready' && (
+                      <Button 
+                        onClick={handleScratchStart}
+                        className="flex-1"
+                      >
+                        Raspar: R$ {scratchCardTypes[selectedType].price.toFixed(2)}
+                      </Button>
+                    )}
+                    
+                     {gamePhase === 'playing' && (
+                       <Button 
+                         onClick={handleRevealAll}
+                         variant="outline" 
+                         className="flex-1"
+                       >
+                         Revelar Tudo
+                       </Button>
+                     )}
+                    
+                    {gamePhase === 'complete' && (
+                      <Button 
+                        onClick={handlePlayAgain}
+                        className="flex-1"
+                      >
+                        Repetir: R$ {scratchCardTypes[selectedType].price.toFixed(2)}
+                      </Button>
+                    )}
                   </div>
                 )}
                 
                 <div className="text-center">
                   <p className={`text-sm font-medium ${
-                    winningItem ? "text-yellow-500" : "text-muted-foreground"
+                    winningSymbol ? "text-yellow-500" : "text-muted-foreground"
                   }`}>
                     {resultMessage}
                   </p>
@@ -271,12 +235,16 @@ const ScratchCardGame = () => {
           </CardContent>
         </Card>
 
-        {/* Modal Unificado de Vitória */}
-        <UnifiedWinModal
-          isOpen={showWinModal}
-          onClose={handleCloseWinModal}
-          winningItem={winningItem}
+        {/* Modal de Resultado */}
+        <ScratchCardResult
+          isOpen={showResult}
+          onClose={handleCloseResult}
           onPlayAgain={handlePlayAgain}
+          winningCombination={winningSymbol ? { 
+            pattern: [], 
+            winningSymbol: symbols.find(s => s.name === winningSymbol) || symbols[0] 
+          } : null}
+          hasWin={hasWin}
         />
       </div>
     </div>
