@@ -30,6 +30,11 @@
     --chart-3: 30 80% 55%;
     --chart-4: 280 65% 60%;
     --chart-5: 340 75% 55%;
+    
+    /* Golden theme colors */
+    --gold-start: 45 93% 58%;
+    --gold-middle: 43 96% 56%;
+    --gold-end: 38 92% 50%;
   }
 }
 
@@ -47,7 +52,7 @@
 @layer components {
   /* Tema dourado para elementos de interface */
   .gold-gradient {
-    @apply bg-gradient-to-r from-yellow-400 via-amber-400 to-yellow-600;
+    background: linear-gradient(to right, hsl(var(--gold-start)), hsl(var(--gold-middle)), hsl(var(--gold-end)));
   }
   
   /* Animações sutis mantidas */
