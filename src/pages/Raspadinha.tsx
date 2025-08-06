@@ -6,7 +6,7 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Eye } from 'lucide-react';
 import ScratchCardGame from '@/components/scratch-card/ScratchCardGame';
-import { ScratchCardPrizeCatalog } from '@/components/scratch-card/ScratchCardPrizeCatalog';
+import ScratchCardPrizeCatalog from '@/components/scratch-card/ScratchCardPrizeCatalog';
 import { ScratchCardType, scratchCardTypes } from '@/types/scratchCard';
 
 const Raspadinha = () => {
@@ -39,21 +39,21 @@ const Raspadinha = () => {
       title: 'Sorte',
       image: 'https://jhbafgzfphiizpuoqksj.supabase.co/storage/v1/object/public/head-images/quadradoraspadinha01.png',
       maxPrize: 'R$ 100',
-      description: 'Teste sua sorte com prêmios incríveis!'
+      description: 'Teste sua sorte!'
     },
     {
       type: 'dupla' as ScratchCardType,
       title: 'Dupla',
       image: 'https://jhbafgzfphiizpuoqksj.supabase.co/storage/v1/object/public/head-images/quadradoraspadinha03.png',
       maxPrize: 'R$ 500',
-      description: 'Dobrar sua sorte, dupla premiação!'
+      description: 'Dupla premiação!'
     },
     {
       type: 'ouro' as ScratchCardType,
       title: 'Ouro',
       image: 'https://jhbafgzfphiizpuoqksj.supabase.co/storage/v1/object/public/head-images/qaudradoraspadinhaouro2.png',
       maxPrize: 'R$ 1.000',
-      description: 'Vale ouro, prêmios valiosos!'
+      description: 'Prêmios valiosos!'
     },
     {
       type: 'diamante' as ScratchCardType,
@@ -94,7 +94,7 @@ const Raspadinha = () => {
           </p>
         </div>
 
-        {/* Grid de Cards */}
+        {/* Grid de Cards Otimizado */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 max-w-6xl mx-auto">
           {cardData.map((card, index) => (
             <motion.div
@@ -105,49 +105,52 @@ const Raspadinha = () => {
             >
               <Card className="bg-slate-800/50 border-slate-700 hover:border-purple-500/50 transition-all duration-300 hover:scale-105 overflow-hidden">
                 <CardContent className="p-0">
-                  {/* Badge do Tipo */}
+                  {/* Badge Discreto no Canto Superior Esquerdo */}
                   <div className="relative">
                     <Badge 
                       variant="secondary" 
-                      className="absolute top-2 left-2 z-10 bg-purple-600 text-white text-xs"
+                      className="absolute top-2 left-2 z-10 bg-purple-600/90 text-white text-xs px-2 py-1"
                     >
                       {card.title}
                     </Badge>
                     
-                    {/* Imagem */}
-                    <div className="h-48 overflow-hidden">
+                    {/* Imagem Maior - Mais Espaço Central */}
+                    <div className="h-56 overflow-hidden">
                       <img
                         src={card.image}
                         alt={card.title}
-                        className="w-full h-full object-cover"
+                        className="w-full h-full object-cover transition-transform duration-300 hover:scale-110"
                       />
                     </div>
                   </div>
 
-                  {/* Conteúdo */}
-                  <div className="p-4">
+                  {/* Conteúdo Compacto */}
+                  <div className="p-3">
+                    {/* Título e Descrição Menores */}
                     <div className="mb-3">
-                      <h3 className="text-lg font-bold text-white mb-1">
+                      <h3 className="text-base font-bold text-white mb-1">
                         Raspadinha {card.title}
                       </h3>
-                      <p className="text-slate-400 text-sm">
+                      <p className="text-slate-400 text-xs leading-tight">
                         {card.description}
                       </p>
                     </div>
 
-                    {/* Informações */}
-                    <div className="flex items-center justify-between mb-4">
-                      <div className="text-sm text-slate-300">
-                        <div>Preço: <span className="text-yellow-400 font-bold">R$ {scratchCardTypes[card.type].price}</span></div>
-                        <div>Máximo: <span className="text-green-400 font-bold">{card.maxPrize}</span></div>
+                    {/* Informações nos Cantos */}
+                    <div className="flex items-center justify-between text-xs mb-3">
+                      <div className="text-slate-300">
+                        <div>Preço: <span className="text-yellow-400 font-semibold">R$ {scratchCardTypes[card.type].price}</span></div>
+                      </div>
+                      <div className="text-right text-slate-300">
+                        <div>Max: <span className="text-green-400 font-semibold">{card.maxPrize}</span></div>
                       </div>
                     </div>
 
-                    {/* Botões */}
+                    {/* Botões Compactos */}
                     <div className="flex gap-2">
                       <Button
                         onClick={() => handlePlayCard(card.type)}
-                        className="flex-1 bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700"
+                        className="flex-1 bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 h-8 text-xs"
                       >
                         Jogar Agora
                       </Button>
@@ -155,10 +158,11 @@ const Raspadinha = () => {
                       <Button
                         onClick={() => handleViewItems(card.type)}
                         variant="outline"
-                        size="icon"
-                        className="border-slate-600 text-slate-300 hover:bg-slate-700"
+                        size="sm"
+                        className="border-slate-600 text-slate-300 hover:bg-slate-700 h-8 px-3"
+                        title="Ver Prêmios"
                       >
-                        <Eye className="h-4 w-4" />
+                        <Eye className="h-3 w-3" />
                       </Button>
                     </div>
                   </div>
@@ -179,7 +183,7 @@ const Raspadinha = () => {
         </div>
       </div>
 
-      {/* Modal do Catálogo */}
+      {/* Modal do Catálogo com Atalho */}
       <ScratchCardPrizeCatalog
         isOpen={showCatalog}
         onClose={() => setShowCatalog(false)}
