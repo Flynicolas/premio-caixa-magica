@@ -42,34 +42,10 @@
     font-family: 'Inter', system-ui, -apple-system, sans-serif;
   }
   
-  /* CORREÇÃO 2.4: Remover barras brancas problemáticas */
-  html, body {
-    @apply h-auto min-h-screen;
-    overflow-x: hidden;
-  }
-  
-  /* Corrigir containers que causam overflow */
-  .container {
-    @apply max-w-full;
-  }
-  
-  /* CORREÇÃO 2.3: Prevenir scroll automático indesejado */
-  .prevent-scroll {
-    scroll-behavior: auto !important;
-  }
 }
 
 @layer components {
-  /* CORREÇÃO 2.1: Remover animações piscantes excessivas */
-  .animate-pulse {
-    animation: none !important;
-  }
-  
-  .animate-bounce {
-    animation: none !important;
-  }
-  
-  /* Manter apenas animações sutis */
+  /* Animações sutis mantidas */
   .hover-scale {
     @apply transition-transform duration-200 hover:scale-105;
   }
@@ -83,38 +59,9 @@
   }
 }
 
-/* Correções específicas para componentes de raspadinha */
-.scratch-game-container {
-  @apply relative w-full max-w-sm mx-auto;
-  /* CORREÇÃO 2.4: Evitar overflow */
-  overflow: visible;
-}
-
-.scratch-modal-overlay {
-  /* CORREÇÃO 2.4: Corrigir z-index e posicionamento */
-  @apply fixed inset-0;
-  background: rgba(0, 0, 0, 0.8);
-  backdrop-filter: blur(4px);
-}
-
-/* CORREÇÃO 2.1: Remover animações problemáticas de itens */
-.scratch-item {
-  @apply transition-none;
-}
-
-.scratch-item:hover {
-  @apply scale-105;
-  transition: transform 0.2s ease;
-}
-
-/* Melhorias de responsividade */
+/* Responsividade mobile */
 @media (max-width: 640px) {
-  .scratch-game-container {
-    @apply mx-2;
-  }
-  
-  /* CORREÇÃO 2.4: Evitar overflow horizontal em mobile */
-  body {
-    overflow-x: hidden;
+  .container {
+    @apply px-4;
   }
 }

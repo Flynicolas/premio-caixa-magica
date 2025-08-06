@@ -1,7 +1,7 @@
 
-import { motion, AnimatePresence } from "framer-motion";
-import { Button } from "@/components/ui/button";
-import { RotateCcw } from "lucide-react";
+import React from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
+import { X, RotateCcw } from 'lucide-react';
 
 interface ScratchLossToastProps {
   isVisible: boolean;
@@ -14,44 +14,41 @@ const ScratchLossToast = ({ isVisible, onClose, onPlayAgain }: ScratchLossToastP
     <AnimatePresence>
       {isVisible && (
         <motion.div
-          initial={{ opacity: 0, y: 10, scale: 0.95 }}
-          animate={{ opacity: 1, y: 0, scale: 1 }}
-          exit={{ opacity: 0, y: -10, scale: 0.95 }}
-          transition={{ duration: 0.3, ease: "easeOut" }}
-          className="relative mx-auto max-w-sm mt-4 bg-card border border-border rounded-lg p-4 shadow-md"
+          initial={{ opacity: 0, scale: 0.9 }}
+          animate={{ opacity: 1, scale: 1 }}
+          exit={{ opacity: 0, scale: 0.9 }}
+          transition={{ duration: 0.2 }}
+          className="fixed top-4 left-1/2 transform -translate-x-1/2 z-50 w-80 max-w-[90vw]"
         >
-          <div className="text-center space-y-3">
-            {/* CORREÇÃO 2.1: Remover animações piscantes excessivas */}
-            <div className="text-2xl opacity-70">😔</div>
-            
-            {/* Mensagem mais discreta */}
-            <div className="space-y-2">
-              <h3 className="text-base font-medium text-muted-foreground">
-                Que pena!
-              </h3>
-              <p className="text-sm text-muted-foreground/80">
-                Tente novamente, sua sorte pode estar na próxima!
-              </p>
-            </div>
-
-            {/* Botões mais discretos */}
-            <div className="flex gap-2 pt-2">
-              <Button
-                variant="outline"
-                size="sm"
+          <div className="bg-gradient-to-r from-red-500 to-pink-600 text-white p-4 rounded-lg shadow-xl border border-red-400/30">
+            <div className="flex items-center justify-between mb-2">
+              <h3 className="font-semibold text-lg">Que pena!</h3>
+              <button
                 onClick={onClose}
-                className="flex-1 text-xs"
+                className="text-white/80 hover:text-white transition-colors"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+            
+            <p className="text-white/90 mb-4 text-sm">
+              Não foi desta vez, mas não desista! Tente novamente.
+            </p>
+            
+            <div className="flex gap-2">
+              <button
+                onClick={onClose}
+                className="flex-1 px-4 py-2 text-sm bg-white/20 text-white rounded-lg hover:bg-white/30 transition-colors backdrop-blur-sm border border-white/20"
               >
                 Fechar
-              </Button>
-              <Button
+              </button>
+              <button
                 onClick={onPlayAgain}
-                size="sm"
-                className="flex-1 text-xs bg-gradient-to-r from-orange-500 to-red-500 hover:from-orange-600 hover:to-red-600"
+                className="flex-1 flex items-center justify-center gap-2 px-4 py-2 text-sm bg-gradient-to-r from-yellow-400 to-orange-500 text-white rounded-lg hover:from-yellow-500 hover:to-orange-600 transition-all duration-200 font-medium shadow-lg"
               >
-                <RotateCcw className="h-3 w-3 mr-1" />
+                <RotateCcw className="w-4 h-4" />
                 Tentar Novamente
-              </Button>
+              </button>
             </div>
           </div>
         </motion.div>
