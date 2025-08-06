@@ -1,3 +1,4 @@
+
 import { useRef, useEffect, useState, useCallback, forwardRef, useImperativeHandle } from 'react';
 import { cn } from '@/lib/utils';
 import { ScratchSymbol } from '@/types/scratchCard';
@@ -30,6 +31,7 @@ const ScratchGameCanvas = forwardRef<{ revealAll: () => void }, ScratchGameCanva
   const [canvasFullyLoaded, setCanvasFullyLoaded] = useState(false);
   const [isVerifying, setIsVerifying] = useState(false);
   const [revealedPositions, setRevealedPositions] = useState<boolean[]>(Array(9).fill(false));
+  const [winDetected, setWinDetected] = useState(false); // CORREÇÃO 1.2: Flag para evitar múltiplas detecções
   const lastProgressCheck = useRef(Date.now());
   const progressCheckInterval = 50;
   const scratchAreas = useRef<ScratchAreaMap>({ center: 0, corners: 0, sides: 0 });
@@ -156,6 +158,7 @@ const ScratchGameCanvas = forwardRef<{ revealAll: () => void }, ScratchGameCanva
     setIsRevealed(false);
     setScratchProgress(0);
     setIsVerifying(false);
+    setWinDetected(false); // CORREÇÃO 1.2: Reset da flag de vitória
     setRevealedPositions(Array(9).fill(false));
     scratchAreas.current = { center: 0, corners: 0, sides: 0 };
     lastProgressCheck.current = Date.now();
@@ -249,7 +252,7 @@ const ScratchGameCanvas = forwardRef<{ revealAll: () => void }, ScratchGameCanva
     
     setScratchProgress(Math.round(finalProgress));
     
-    // Verificar vitória em tempo real das posições reveladas
+    // CORREÇÃO 1.2: Verificar vitória em tempo real das posições reveladas
     checkWinFromRevealedPositions(newRevealedPositions);
     
     // Revelação mais robusta aos 85% ponderados
@@ -283,9 +286,9 @@ const ScratchGameCanvas = forwardRef<{ revealAll: () => void }, ScratchGameCanva
     }
   }, [isRevealed, isVerifying, progressCheckInterval, revealedPositions]);
 
-  // Verificar vitória baseada nas posições reveladas
+  // CORREÇÃO 1.2: Verificar vitória baseada nas posições reveladas com delay
   const checkWinFromRevealedPositions = useCallback((positions: boolean[]) => {
-    if (!symbols.length || isVerifying) return;
+    if (!symbols.length || isVerifying || winDetected) return; // Evitar múltiplas detecções
 
     console.log('🎯 Verificando vitória com posições:', positions);
     console.log('🎯 Símbolos disponíveis:', symbols.map(s => s.name));
@@ -303,18 +306,25 @@ const ScratchGameCanvas = forwardRef<{ revealAll: () => void }, ScratchGameCanva
     for (const symbolName in count) {
       if (count[symbolName] >= 3) {
         console.log('🏆 VITÓRIA DETECTADA! Símbolo:', symbolName, 'Quantidade:', count[symbolName]);
+        setWinDetected(true); // Marcar como detectado
         highlightWinners(symbolName);
-        onWin(symbolName);
+        
+        // CORREÇÃO 1.2: Adicionar delay de 1.2s antes de chamar onWin
+        setTimeout(() => {
+          onWin(symbolName);
+        }, 1200);
         return;
       }
     }
     
     // Se todas as posições foram reveladas e não há vitória
-    if (positions.every(pos => pos)) {
+    if (positions.every(pos => pos) && !winDetected) {
       console.log('❌ Jogo completo - sem vitória');
-      onComplete();
+      setTimeout(() => {
+        onComplete();
+      }, 500);
     }
-  }, [symbols, onWin, onComplete, isVerifying]);
+  }, [symbols, onWin, onComplete, isVerifying, winDetected]);
 
   // Verificar vitória (método legado mantido para compatibilidade)
   const checkWin = useCallback(() => {
@@ -440,18 +450,15 @@ const ScratchGameCanvas = forwardRef<{ revealAll: () => void }, ScratchGameCanva
 
     const handleMouseMove = (e: MouseEvent) => {
       if (disabled || !isReallyScratching.current) return;
-      console.log('Mouse move - scratching'); // Debug log
       draw(e);
     };
     
     const handleMouseUp = () => {
-      console.log('Mouse up - stopping scratch'); // Debug log
       isReallyScratching.current = false;
       setIsScratching(false);
     };
     
     const handleMouseLeave = () => {
-      console.log('Mouse leave - stopping scratch'); // Debug log
       isReallyScratching.current = false;
       setIsScratching(false);
     };
@@ -459,7 +466,6 @@ const ScratchGameCanvas = forwardRef<{ revealAll: () => void }, ScratchGameCanva
     const handleTouchStart = (e: TouchEvent) => {
       if (disabled) return;
       e.preventDefault();
-      console.log('Touch start'); // Debug log
       isReallyScratching.current = true;
       setIsScratching(true);
       draw(e);
@@ -469,7 +475,6 @@ const ScratchGameCanvas = forwardRef<{ revealAll: () => void }, ScratchGameCanva
       if (disabled) return;
       e.preventDefault();
       if (isReallyScratching.current) {
-        console.log('Touch move - scratching'); // Debug log
         draw(e);
       }
     };
@@ -497,7 +502,7 @@ const ScratchGameCanvas = forwardRef<{ revealAll: () => void }, ScratchGameCanva
       canvas.removeEventListener('touchmove', handleTouchMove);
       canvas.removeEventListener('touchend', handleTouchEnd);
     };
-  }, [draw]); // Apenas 'draw' como dependência
+  }, [draw]);
 
   // Debug: verificar se os useEffects estão executando na ordem correta
   useEffect(() => {

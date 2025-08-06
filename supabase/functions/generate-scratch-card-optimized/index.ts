@@ -1,3 +1,4 @@
+
 import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.45.0";
 
@@ -119,7 +120,12 @@ serve(async (req) => {
       throw new Error(`Nenhum item configurado para raspadinha tipo: ${scratchType}`);
     }
 
-    const itemIds = probabilities.map(p => p.item_id).filter(Boolean);
+    // CORREÇÃO 1.1: Filtrar apenas itens com probability_weight > 0 para símbolos visuais
+    const itemIds = probabilities
+      .filter(p => p.probability_weight > 0) // Só itens que podem ser sorteados
+      .map(p => p.item_id)
+      .filter(Boolean);
+      
     const { data: items, error: itemsError } = await supabase
       .from('items')
       .select('*')
@@ -189,18 +195,21 @@ serve(async (req) => {
       hasWin = Math.random() < winProbability;
       
       if (hasWin) {
-        // Filtrar itens baseado no orçamento disponível
-        let eligibleItems = items;
-        
-        if (remainingBudget > 0) {
-          // Se há orçamento, filtrar por valor e priorizar itens de menor valor
-          eligibleItems = items.filter(item => 
-            item.category !== 'dinheiro' || item.base_value <= remainingBudget
-          );
-        } else {
+        // CORREÇÃO 1.1: Filtrar itens baseado no orçamento disponível E probability_weight > 0
+        let eligibleItems = items.filter(item => {
+          const prob = probabilities.find(p => p.item_id === item.id);
+          const hasValidProbability = prob && prob.probability_weight > 0;
+          
+          if (!hasValidProbability) return false;
+          
+          // Filtrar por orçamento se necessário
+          if (remainingBudget > 0) {
+            return item.category !== 'dinheiro' || item.base_value <= remainingBudget;
+          }
+          
           // Sem orçamento, apenas itens físicos
-          eligibleItems = items.filter(item => item.category !== 'dinheiro');
-        }
+          return item.category !== 'dinheiro';
+        });
 
         if (eligibleItems.length > 0) {
           // Ordenar por valor (menor primeiro) para manter controle
@@ -209,34 +218,39 @@ serve(async (req) => {
           // Selecionar item baseado na probabilidade configurada
           const totalWeight = eligibleItems.reduce((sum, item) => {
             const prob = probabilities.find(p => p.item_id === item.id);
-            return sum + (prob ? prob.probability_weight : 1);
+            return sum + (prob ? prob.probability_weight : 0);
           }, 0);
           
-          let randomWeight = Math.random() * totalWeight;
-          let selectedItem = eligibleItems[0];
-          
-          for (const item of eligibleItems) {
-            const prob = probabilities.find(p => p.item_id === item.id);
-            const weight = prob ? prob.probability_weight : 1;
-            randomWeight -= weight;
-            if (randomWeight <= 0) {
-              selectedItem = item;
-              break;
+          if (totalWeight > 0) {
+            let randomWeight = Math.random() * totalWeight;
+            let selectedItem = eligibleItems[0];
+            
+            for (const item of eligibleItems) {
+              const prob = probabilities.find(p => p.item_id === item.id);
+              const weight = prob ? prob.probability_weight : 0;
+              randomWeight -= weight;
+              if (randomWeight <= 0) {
+                selectedItem = item;
+                break;
+              }
             }
+
+            winningItem = {
+              id: selectedItem.id,
+              symbolId: selectedItem.id,
+              name: selectedItem.name,
+              image_url: selectedItem.image_url,
+              rarity: selectedItem.rarity,
+              base_value: selectedItem.base_value,
+              isWinning: true,
+              category: selectedItem.category
+            };
+
+            console.log(`🏆 Item vencedor sistema 90/10: ${winningItem.name} - R$ ${winningItem.base_value}`);
+          } else {
+            hasWin = false;
+            console.log(`❌ Sem peso de probabilidade válido - forçando não-vitória`);
           }
-
-          winningItem = {
-            id: selectedItem.id,
-            symbolId: selectedItem.id,
-            name: selectedItem.name,
-            image_url: selectedItem.image_url,
-            rarity: selectedItem.rarity,
-            base_value: selectedItem.base_value,
-            isWinning: true,
-            category: selectedItem.category
-          };
-
-          console.log(`🏆 Item vencedor sistema 90/10: ${winningItem.name} - R$ ${winningItem.base_value}`);
         } else {
           // Sem itens elegíveis, forçar não-vitória
           hasWin = false;
@@ -249,34 +263,38 @@ serve(async (req) => {
     const symbols: ScratchSymbol[] = [];
     const symbolPool: ScratchSymbol[] = [];
     
-    // Criar pool baseado nas probabilidades
+    // CORREÇÃO 1.1: Criar pool apenas com itens que têm probability_weight > 0
     probabilities.forEach(prob => {
-      const item = items.find(i => i.id === prob.item_id);
-      if (item) {
-        const symbol: ScratchSymbol = {
-          id: item.id,
-          symbolId: item.id,
-          name: item.name,
-          image_url: item.image_url,
-          rarity: item.rarity,
-          base_value: item.base_value,
-          isWinning: false,
-          category: item.category
-        };
+      if (prob.probability_weight > 0) { // Só adicionar itens que podem aparecer
+        const item = items.find(i => i.id === prob.item_id);
+        if (item) {
+          const symbol: ScratchSymbol = {
+            id: item.id,
+            symbolId: item.id,
+            name: item.name,
+            image_url: item.image_url,
+            rarity: item.rarity,
+            base_value: item.base_value,
+            isWinning: false,
+            category: item.category
+          };
 
-        for (let i = 0; i < prob.probability_weight; i++) {
-          symbolPool.push(symbol);
+          for (let i = 0; i < prob.probability_weight; i++) {
+            symbolPool.push(symbol);
+          }
         }
       }
     });
 
     // Gerar 9 símbolos
     for (let i = 0; i < 9; i++) {
-      const randomSymbol = symbolPool[Math.floor(Math.random() * symbolPool.length)];
-      symbols.push({
-        ...randomSymbol,
-        isWinning: false
-      });
+      if (symbolPool.length > 0) {
+        const randomSymbol = symbolPool[Math.floor(Math.random() * symbolPool.length)];
+        symbols.push({
+          ...randomSymbol,
+          isWinning: false
+        });
+      }
     }
 
     // Se há vitória, garantir 3 símbolos iguais do item vencedor
