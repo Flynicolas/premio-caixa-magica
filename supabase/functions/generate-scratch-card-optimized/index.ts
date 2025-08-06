@@ -1,3 +1,4 @@
+
 import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.45.0";
 
@@ -61,54 +62,49 @@ serve(async (req) => {
       .eq('date', new Date().toISOString().split('T')[0])
       .single();
 
-    // Configurações padrão do sistema 90/10
-    let winProbability = 0.30; // 30% base
+    // Sistema de premiação mais restritivo
+    let winProbability = 0.15; // Reduzido de 30% para 15%
     let remainingBudget = 0;
-    let percentagePrizes = 0.10; // 10% padrão
+    let percentagePrizes = 0.08; // Reduzido de 10% para 8%
 
     if (financialControl) {
-      percentagePrizes = financialControl.percentage_prizes || 0.10;
+      percentagePrizes = financialControl.percentage_prizes || 0.08;
       remainingBudget = financialControl.remaining_budget || 0;
       
-      // Sistema inteligente de ajuste automático
+      // Sistema mais rígido de controle
       const currentProfit = financialControl.total_sales - financialControl.total_prizes_given;
       const totalSales = financialControl.total_sales;
       
       if (totalSales > 0) {
         const profitMargin = (currentProfit / totalSales) * 100;
         
-        // Ajustar probabilidade baseado na margem de lucro
+        // Ajustes mais conservadores
         if (profitMargin > 95) {
-          // Lucro muito alto (>95%), aumentar prêmios
-          winProbability = 0.45;
+          winProbability = 0.25; // Reduzido de 45%
+        } else if (profitMargin > 92) {
+          winProbability = 0.18; // Reduzido de 30%
         } else if (profitMargin > 90) {
-          // Lucro alto (90-95%), prêmios normais
-          winProbability = 0.30;
-        } else if (profitMargin > 85) {
-          // Lucro médio (85-90%), reduzir prêmios ligeiramente
-          winProbability = 0.20;
-        } else if (profitMargin > 80) {
-          // Lucro baixo (80-85%), reduzir mais
-          winProbability = 0.15;
+          winProbability = 0.12; // Reduzido de 20%
+        } else if (profitMargin > 88) {
+          winProbability = 0.08; // Reduzido de 15%
         } else {
-          // Lucro crítico (<80%), blackout quase total
-          winProbability = 0.05;
+          winProbability = 0.03; // Mais restritivo
         }
       }
 
-      // Aplicar ajustes baseados no orçamento
+      // Controle rigoroso de orçamento
       if (remainingBudget <= 0) {
-        winProbability = 0.02; // Blackout quase total
+        winProbability = 0.01; // Quase blackout total
+      } else if (remainingBudget < 20) {
+        winProbability = Math.min(winProbability, 0.05);
       } else if (remainingBudget < 10) {
-        winProbability = Math.min(winProbability, 0.10); // Limite máximo de 10%
-      } else if (remainingBudget < 5) {
-        winProbability = Math.min(winProbability, 0.05); // Emergência
+        winProbability = Math.min(winProbability, 0.03);
       }
     }
 
     console.log(`💰 Sistema 90/10 - Probabilidade: ${(winProbability * 100).toFixed(1)}%, Orçamento: R$ ${remainingBudget.toFixed(2)}`);
 
-    // Buscar probabilidades e itens
+    // Buscar probabilidades e itens (incluindo itens com probabilidade 0)
     const { data: probabilities, error: probError } = await supabase
       .from('scratch_card_probabilities')
       .select('*')
@@ -129,6 +125,17 @@ serve(async (req) => {
     if (itemsError || !items || items.length === 0) {
       throw new Error(`Nenhum item encontrado para raspadinha tipo: ${scratchType}`);
     }
+
+    // Separar itens ativos (probabilidade > 0) dos visuais (probabilidade = 0)
+    const activeItems = items.filter(item => {
+      const prob = probabilities.find(p => p.item_id === item.id);
+      return prob && prob.probability_weight > 0;
+    });
+
+    const visualItems = items.filter(item => {
+      const prob = probabilities.find(p => p.item_id === item.id);
+      return prob && prob.probability_weight === 0;
+    });
 
     // Verificar liberações manuais (prioridade máxima)
     const { data: manualReleases } = await supabase
@@ -183,30 +190,33 @@ serve(async (req) => {
       }
     }
     
-    // Prioridade 2: Sistema inteligente 90/10
-    if (!hasWin) {
-      // Verificar se deve ter vitória baseado na probabilidade calculada
-      hasWin = Math.random() < winProbability;
+    // Prioridade 2: Sistema restritivo - SÓ PREMIA QUANDO DEVIDO
+    if (!hasWin && activeItems.length > 0) {
+      // Verificar se REALMENTE deve ter vitória
+      const shouldWin = Math.random() < winProbability;
       
-      if (hasWin) {
-        // Filtrar itens baseado no orçamento disponível
-        let eligibleItems = items;
+      if (shouldWin) {
+        // Filtrar itens baseado no orçamento
+        let eligibleItems = activeItems;
         
         if (remainingBudget > 0) {
-          // Se há orçamento, filtrar por valor e priorizar itens de menor valor
-          eligibleItems = items.filter(item => 
+          eligibleItems = activeItems.filter(item => 
             item.category !== 'dinheiro' || item.base_value <= remainingBudget
           );
         } else {
-          // Sem orçamento, apenas itens físicos
-          eligibleItems = items.filter(item => item.category !== 'dinheiro');
+          // Sem orçamento, apenas itens físicos de baixo valor
+          eligibleItems = activeItems.filter(item => 
+            item.category !== 'dinheiro' && item.base_value <= 5
+          );
         }
 
         if (eligibleItems.length > 0) {
-          // Ordenar por valor (menor primeiro) para manter controle
+          hasWin = true;
+          
+          // Ordenar por valor (menor primeiro)
           eligibleItems.sort((a, b) => a.base_value - b.base_value);
           
-          // Selecionar item baseado na probabilidade configurada
+          // Selecionar item baseado na probabilidade
           const totalWeight = eligibleItems.reduce((sum, item) => {
             const prob = probabilities.find(p => p.item_id === item.id);
             return sum + (prob ? prob.probability_weight : 1);
@@ -236,23 +246,26 @@ serve(async (req) => {
             category: selectedItem.category
           };
 
-          console.log(`🏆 Item vencedor sistema 90/10: ${winningItem.name} - R$ ${winningItem.base_value}`);
+          console.log(`🏆 Item vencedor: ${winningItem.name} - R$ ${winningItem.base_value}`);
         } else {
-          // Sem itens elegíveis, forçar não-vitória
           hasWin = false;
-          console.log(`❌ Sem itens elegíveis no orçamento - forçando não-vitória`);
+          console.log(`❌ Sem itens elegíveis - forçando não-vitória`);
         }
+      } else {
+        console.log(`❌ Sistema decidiu não premiar nesta rodada (${(winProbability * 100).toFixed(1)}%)`);
       }
     }
 
     // Gerar símbolos da raspadinha
     const symbols: ScratchSymbol[] = [];
+    
+    // Criar pool combinando itens ativos e visuais
     const symbolPool: ScratchSymbol[] = [];
     
-    // Criar pool baseado nas probabilidades
-    probabilities.forEach(prob => {
-      const item = items.find(i => i.id === prob.item_id);
-      if (item) {
+    // Adicionar itens ativos ao pool (podem ser sorteados)
+    activeItems.forEach(item => {
+      const prob = probabilities.find(p => p.item_id === item.id);
+      if (prob) {
         const symbol: ScratchSymbol = {
           id: item.id,
           symbolId: item.id,
@@ -264,13 +277,29 @@ serve(async (req) => {
           category: item.category
         };
 
+        // Adicionar baseado no peso da probabilidade
         for (let i = 0; i < prob.probability_weight; i++) {
           symbolPool.push(symbol);
         }
       }
     });
 
-    // Gerar 9 símbolos
+    // Adicionar itens visuais ao pool (apenas visual, peso 1)
+    visualItems.forEach(item => {
+      const symbol: ScratchSymbol = {
+        id: item.id,
+        symbolId: item.id,
+        name: item.name,
+        image_url: item.image_url,
+        rarity: item.rarity,
+        base_value: item.base_value,
+        isWinning: false,
+        category: item.category
+      };
+      symbolPool.push(symbol);
+    });
+
+    // Gerar 9 símbolos aleatórios
     for (let i = 0; i < 9; i++) {
       const randomSymbol = symbolPool[Math.floor(Math.random() * symbolPool.length)];
       symbols.push({
@@ -279,16 +308,27 @@ serve(async (req) => {
       });
     }
 
-    // Se há vitória, garantir 3 símbolos iguais do item vencedor
+    // CRÍTICO: Só garantir 3 símbolos iguais se REALMENTE há vitória
     if (hasWin && winningItem) {
-      const positions = [0, 1, 2, 3, 4, 5, 6, 7, 8];
-      for (let i = 0; i < 3; i++) {
-        const randomIndex = Math.floor(Math.random() * positions.length);
-        const position = positions.splice(randomIndex, 1)[0];
-        symbols[position] = {
-          ...winningItem,
-          isWinning: true
-        };
+      // Verificar se o item vencedor está nos itens ativos (não nos visuais)
+      const isActiveWinner = activeItems.some(item => item.id === winningItem.id);
+      
+      if (isActiveWinner) {
+        // Garantir 3 posições com o item vencedor
+        const positions = [0, 1, 2, 3, 4, 5, 6, 7, 8];
+        for (let i = 0; i < 3; i++) {
+          const randomIndex = Math.floor(Math.random() * positions.length);
+          const position = positions.splice(randomIndex, 1)[0];
+          symbols[position] = {
+            ...winningItem,
+            isWinning: true
+          };
+        }
+      } else {
+        // Se o item não está ativo, cancelar a vitória
+        hasWin = false;
+        winningItem = null;
+        console.log(`❌ Item vencedor não está ativo - cancelando vitória`);
       }
     }
 
@@ -299,7 +339,7 @@ serve(async (req) => {
       scratchType
     };
 
-    console.log(`✅ Sistema 90/10 - Raspadinha gerada: hasWin=${hasWin}, prob=${(winProbability * 100).toFixed(1)}%`);
+    console.log(`✅ Sistema corrigido - hasWin=${hasWin}, probabilidade real=${(winProbability * 100).toFixed(1)}%`);
 
     return new Response(JSON.stringify(scratchCard), {
       headers: { ...corsHeaders, "Content-Type": "application/json" },
@@ -307,7 +347,7 @@ serve(async (req) => {
     });
 
   } catch (error) {
-    console.error("❌ Erro no sistema 90/10:", error);
+    console.error("❌ Erro no sistema:", error);
     return new Response(
       JSON.stringify({ error: error.message || "Erro interno do servidor" }),
       {
