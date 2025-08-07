@@ -125,53 +125,45 @@ serve(async (req) => {
       .gt('expires_at', new Date().toISOString())
       .limit(1);
 
-    // ✅ ETAPA 5: CALCULAR PROBABILIDADE INTELIGENTE
-    // Base: controle financeiro
-    if (profitMargin > 95) {
-      winProbability = 0.35; // Lucro alto, dar mais prêmios
-    } else if (profitMargin > 90) {
-      winProbability = 0.25; // Lucro normal
-    } else if (profitMargin > 85) {
-      winProbability = 0.15; // Lucro médio, reduzir
-    } else if (profitMargin > 80) {
-      winProbability = 0.08; // Lucro baixo
-    } else {
-      winProbability = 0.02; // Emergência
+    // ✅ ETAPA 5: SISTEMA 90/10 EMERGENCIAL - PROBABILIDADES RIGOROSAMENTE CONTROLADAS
+    
+    // 🚨 BLACKOUT TOTAL - Orçamento crítico (< R$ 5)
+    if (remainingBudget < 5) {
+      winProbability = 0.01; // 1% apenas para emergência
+      console.log(`🚨 BLACKOUT CRÍTICO: Orçamento R$ ${remainingBudget} - Probabilidade 1%`);
+    }
+    // ⚠️ Orçamento baixo (R$ 5-20) - Apenas dinheiro pequeno
+    else if (remainingBudget < 20) {
+      winProbability = 0.02; // 2% máximo
+      console.log(`⚠️ ORÇAMENTO BAIXO: R$ ${remainingBudget} - Probabilidade 2%`);
+    }
+    // 💰 Orçamento médio (R$ 20-50)
+    else if (remainingBudget < 50) {
+      winProbability = 0.03; // 3%
+      console.log(`💰 ORÇAMENTO MÉDIO: R$ ${remainingBudget} - Probabilidade 3%`);
+    }
+    // 📈 Orçamento alto (R$ 50-100)
+    else if (remainingBudget < 100) {
+      winProbability = 0.05; // 5%
+      console.log(`📈 ORÇAMENTO ALTO: R$ ${remainingBudget} - Probabilidade 5%`);
+    }
+    // 🎯 Orçamento excelente (> R$ 100)
+    else {
+      winProbability = 0.08; // Máximo absoluto: 8%
+      console.log(`🎯 ORÇAMENTO EXCELENTE: R$ ${remainingBudget} - Probabilidade 8%`);
     }
 
-    // Ajuste baseado no comportamento do usuário
-    const userMultiplier = Math.max(0.5, Math.min(2.0, behaviorData.behavior_score / 50));
-    winProbability *= userMultiplier;
-
-    // Aplicar boost para usuários elegíveis
-    if (behaviorData.eligibility_tier === 'vip') {
-      winProbability *= 1.5;
-      console.log(`🌟 Usuário VIP - Probabilidade aumentada em 50%`);
-    } else if (behaviorData.eligibility_tier === 'priority') {
-      winProbability *= 1.2;
-      console.log(`⭐ Usuário Priority - Probabilidade aumentada em 20%`);
+    // Ajuste mínimo para usuários premium (máximo +1%)
+    if (behaviorData.eligibility_tier === 'vip' && remainingBudget >= 20) {
+      winProbability = Math.min(winProbability + 0.01, 0.08);
+      console.log(`🌟 Usuário VIP - Bonus +1%`);
+    } else if (behaviorData.eligibility_tier === 'priority' && remainingBudget >= 30) {
+      winProbability = Math.min(winProbability + 0.005, 0.08);
+      console.log(`⭐ Usuário Priority - Bonus +0.5%`);
     }
 
-    // Boost para usuários sem ganhar há muito tempo
-    if (behaviorData.days_since_last_win >= 15) {
-      winProbability *= 2.0;
-      console.log(`🎯 Boost por perda longa - ${behaviorData.days_since_last_win} dias sem ganhar`);
-    } else if (behaviorData.days_since_last_win >= 7) {
-      winProbability *= 1.5;
-      console.log(`🎯 Boost moderado - ${behaviorData.days_since_last_win} dias sem ganhar`);
-    }
-
-    // Limitações de orçamento
-    if (remainingBudget <= 0) {
-      winProbability = Math.min(winProbability, 0.03); // Blackout quase total
-      console.log(`🚫 BLACKOUT: Orçamento esgotado`);
-    } else if (remainingBudget < 10) {
-      winProbability = Math.min(winProbability, 0.10);
-      console.log(`⚠️ Orçamento baixo: limitando probabilidade`);
-    }
-
-    // Limitar entre 1% e 50%
-    winProbability = Math.max(0.01, Math.min(0.50, winProbability));
+    // LIMITE MÁXIMO ABSOLUTO: 8%
+    winProbability = Math.max(0.01, Math.min(0.08, winProbability));
 
     console.log(`🧮 Probabilidade Calculada: ${(winProbability * 100).toFixed(2)}% (Score usuário: ${behaviorData.behavior_score})`);
 
@@ -285,20 +277,38 @@ serve(async (req) => {
         decisionType = 'intelligent_win';
         decisionReason = `Sistema 90/10 - Roll: ${(randomRoll * 100).toFixed(2)}% vs ${(winProbability * 100).toFixed(2)}%`;
         
-        // Filtrar itens elegíveis baseado no orçamento
+        // 🚨 FILTRO RIGOROSO DE ITENS - CONTROLE 90/10 EMERGENCIAL
         let eligibleItems = items.filter(item => {
           const prob = probabilities.find(p => p.item_id === item.id);
           const hasValidProbability = prob && prob.probability_weight > 0;
           
           if (!hasValidProbability) return false;
           
-          // Se há orçamento, verificar se item cabe
-          if (remainingBudget > 0) {
-            return item.category !== 'dinheiro' || item.base_value <= remainingBudget;
+          // 🚨 BLACKOUT CRÍTICO: Apenas dinheiro até R$ 3
+          if (remainingBudget < 5) {
+            return item.category === 'dinheiro' && item.base_value <= 3;
           }
           
-          // Sem orçamento, apenas itens físicos
-          return item.category !== 'dinheiro';
+          // ⚠️ ORÇAMENTO BAIXO: Apenas dinheiro até R$ 5
+          if (remainingBudget < 20) {
+            return item.category === 'dinheiro' && item.base_value <= 5;
+          }
+          
+          // 💰 ORÇAMENTO MÉDIO: Priorizar dinheiro, físicos só até R$ 15
+          if (remainingBudget < 50) {
+            if (item.category === 'dinheiro') return item.base_value <= remainingBudget;
+            return item.base_value <= 15;
+          }
+          
+          // 📈 ORÇAMENTO ALTO: 80% dinheiro, 20% físicos
+          if (remainingBudget < 100) {
+            if (item.category === 'dinheiro') return item.base_value <= remainingBudget;
+            return item.base_value <= 30; // Limitar físicos
+          }
+          
+          // 🎯 ORÇAMENTO EXCELENTE: Permitir itens maiores mas com controle
+          if (item.category === 'dinheiro') return item.base_value <= remainingBudget;
+          return item.base_value <= Math.min(50, remainingBudget * 0.8); // Máximo 50 ou 80% do orçamento
         });
 
         if (eligibleItems.length > 0) {
