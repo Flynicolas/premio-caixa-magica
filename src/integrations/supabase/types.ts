@@ -1327,6 +1327,68 @@ export type Database = {
         }
         Relationships: []
       }
+      programmed_prize_queue: {
+        Row: {
+          created_at: string
+          created_by: string
+          current_uses: number | null
+          expires_at: string
+          id: string
+          item_id: string
+          max_uses: number | null
+          metadata: Json | null
+          priority: number
+          scheduled_for: string | null
+          scratch_type: string
+          status: string
+          target_behavior_criteria: Json | null
+          target_user_id: string | null
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          created_by: string
+          current_uses?: number | null
+          expires_at?: string
+          id?: string
+          item_id: string
+          max_uses?: number | null
+          metadata?: Json | null
+          priority?: number
+          scheduled_for?: string | null
+          scratch_type: string
+          status?: string
+          target_behavior_criteria?: Json | null
+          target_user_id?: string | null
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          created_by?: string
+          current_uses?: number | null
+          expires_at?: string
+          id?: string
+          item_id?: string
+          max_uses?: number | null
+          metadata?: Json | null
+          priority?: number
+          scheduled_for?: string | null
+          scratch_type?: string
+          status?: string
+          target_behavior_criteria?: Json | null
+          target_user_id?: string | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "programmed_prize_queue_item_id_fkey"
+            columns: ["item_id"]
+            isOneToOne: false
+            referencedRelation: "items"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       referral_activities: {
         Row: {
           activity_data: Json | null
@@ -1758,6 +1820,51 @@ export type Database = {
         }
         Relationships: []
       }
+      scratch_decision_logs: {
+        Row: {
+          budget_available: number
+          created_at: string
+          decision_reason: string
+          decision_type: string
+          financial_context: Json
+          id: string
+          probability_calculated: number
+          result_data: Json
+          scratch_type: string
+          user_context: Json
+          user_id: string
+          user_score: number
+        }
+        Insert: {
+          budget_available?: number
+          created_at?: string
+          decision_reason: string
+          decision_type: string
+          financial_context?: Json
+          id?: string
+          probability_calculated?: number
+          result_data?: Json
+          scratch_type: string
+          user_context?: Json
+          user_id: string
+          user_score?: number
+        }
+        Update: {
+          budget_available?: number
+          created_at?: string
+          decision_reason?: string
+          decision_type?: string
+          financial_context?: Json
+          id?: string
+          probability_calculated?: number
+          result_data?: Json
+          scratch_type?: string
+          user_context?: Json
+          user_id?: string
+          user_score?: number
+        }
+        Relationships: []
+      }
       test_payments: {
         Row: {
           amount: number
@@ -1932,6 +2039,72 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      user_behavior_analysis: {
+        Row: {
+          analysis_date: string
+          avg_bet_amount: number
+          behavior_score: number
+          created_at: string
+          days_since_last_win: number | null
+          eligibility_tier: string
+          engagement_level: string
+          id: string
+          last_deposit_date: string | null
+          last_win_date: string | null
+          metadata: Json | null
+          play_pattern: string
+          total_games_played: number
+          total_spent: number
+          total_won: number
+          updated_at: string
+          user_id: string
+          win_frequency: number
+          withdrawal_frequency: number | null
+        }
+        Insert: {
+          analysis_date?: string
+          avg_bet_amount?: number
+          behavior_score?: number
+          created_at?: string
+          days_since_last_win?: number | null
+          eligibility_tier?: string
+          engagement_level?: string
+          id?: string
+          last_deposit_date?: string | null
+          last_win_date?: string | null
+          metadata?: Json | null
+          play_pattern?: string
+          total_games_played?: number
+          total_spent?: number
+          total_won?: number
+          updated_at?: string
+          user_id: string
+          win_frequency?: number
+          withdrawal_frequency?: number | null
+        }
+        Update: {
+          analysis_date?: string
+          avg_bet_amount?: number
+          behavior_score?: number
+          created_at?: string
+          days_since_last_win?: number | null
+          eligibility_tier?: string
+          engagement_level?: string
+          id?: string
+          last_deposit_date?: string | null
+          last_win_date?: string | null
+          metadata?: Json | null
+          play_pattern?: string
+          total_games_played?: number
+          total_spent?: number
+          total_won?: number
+          updated_at?: string
+          user_id?: string
+          win_frequency?: number
+          withdrawal_frequency?: number | null
+        }
+        Relationships: []
       }
       user_chests: {
         Row: {
@@ -2228,6 +2401,18 @@ export type Database = {
         Args: { p_user_id: string; p_amount: number; p_description?: string }
         Returns: boolean
       }
+      analyze_user_behavior: {
+        Args: { p_user_id: string }
+        Returns: {
+          behavior_score: number
+          eligibility_tier: string
+          play_pattern: string
+          engagement_level: string
+          days_since_last_win: number
+          win_frequency: number
+          analysis_data: Json
+        }[]
+      }
       approve_conversion: {
         Args: { p_conversion_id: string; p_admin_user_id: string }
         Returns: {
@@ -2296,6 +2481,16 @@ export type Database = {
           total_conversions: number
           total_amount: number
           unique_users: number
+        }[]
+      }
+      get_next_programmed_prize: {
+        Args: { p_scratch_type: string; p_user_id?: string }
+        Returns: {
+          prize_id: string
+          item_id: string
+          priority: number
+          target_criteria: Json
+          metadata: Json
         }[]
       }
       get_ranking_top10: {
