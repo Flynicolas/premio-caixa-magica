@@ -226,6 +226,51 @@ export type Database = {
         }
         Relationships: []
       }
+      cash_control_system: {
+        Row: {
+          alert_level: string | null
+          created_at: string | null
+          emergency_stop: boolean | null
+          id: string
+          last_reconciliation: string | null
+          net_profit: number
+          total_deposits_real: number
+          total_prizes_given: number
+          total_scratch_sales: number
+          total_system_balance: number
+          total_withdrawals_real: number
+          updated_at: string | null
+        }
+        Insert: {
+          alert_level?: string | null
+          created_at?: string | null
+          emergency_stop?: boolean | null
+          id?: string
+          last_reconciliation?: string | null
+          net_profit?: number
+          total_deposits_real?: number
+          total_prizes_given?: number
+          total_scratch_sales?: number
+          total_system_balance?: number
+          total_withdrawals_real?: number
+          updated_at?: string | null
+        }
+        Update: {
+          alert_level?: string | null
+          created_at?: string | null
+          emergency_stop?: boolean | null
+          id?: string
+          last_reconciliation?: string | null
+          net_profit?: number
+          total_deposits_real?: number
+          total_prizes_given?: number
+          total_scratch_sales?: number
+          total_system_balance?: number
+          total_withdrawals_real?: number
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
       chest_financial_control: {
         Row: {
           chest_type: string
@@ -378,6 +423,54 @@ export type Database = {
           is_used?: boolean | null
           role?: string
           token?: string
+        }
+        Relationships: []
+      }
+      critical_financial_alerts: {
+        Row: {
+          action_taken: string | null
+          alert_level: string
+          alert_type: string
+          amount: number | null
+          created_at: string | null
+          current_balance: number | null
+          description: string
+          id: string
+          is_resolved: boolean | null
+          metadata: Json | null
+          resolved_at: string | null
+          resolved_by: string | null
+          user_id: string | null
+        }
+        Insert: {
+          action_taken?: string | null
+          alert_level: string
+          alert_type: string
+          amount?: number | null
+          created_at?: string | null
+          current_balance?: number | null
+          description: string
+          id?: string
+          is_resolved?: boolean | null
+          metadata?: Json | null
+          resolved_at?: string | null
+          resolved_by?: string | null
+          user_id?: string | null
+        }
+        Update: {
+          action_taken?: string | null
+          alert_level?: string
+          alert_type?: string
+          amount?: number | null
+          created_at?: string | null
+          current_balance?: number | null
+          description?: string
+          id?: string
+          is_resolved?: boolean | null
+          metadata?: Json | null
+          resolved_at?: string | null
+          resolved_by?: string | null
+          user_id?: string | null
         }
         Relationships: []
       }
@@ -607,6 +700,57 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      financial_audit_log: {
+        Row: {
+          actual_value: number | null
+          audit_type: string
+          created_at: string | null
+          description: string | null
+          discrepancy: number | null
+          expected_value: number | null
+          id: string
+          metadata: Json | null
+          resolved: boolean | null
+          resolved_at: string | null
+          resolved_by: string | null
+          severity: string | null
+          transaction_id: string | null
+          user_id: string | null
+        }
+        Insert: {
+          actual_value?: number | null
+          audit_type: string
+          created_at?: string | null
+          description?: string | null
+          discrepancy?: number | null
+          expected_value?: number | null
+          id?: string
+          metadata?: Json | null
+          resolved?: boolean | null
+          resolved_at?: string | null
+          resolved_by?: string | null
+          severity?: string | null
+          transaction_id?: string | null
+          user_id?: string | null
+        }
+        Update: {
+          actual_value?: number | null
+          audit_type?: string
+          created_at?: string | null
+          description?: string | null
+          discrepancy?: number | null
+          expected_value?: number | null
+          id?: string
+          metadata?: Json | null
+          resolved?: boolean | null
+          resolved_at?: string | null
+          resolved_by?: string | null
+          severity?: string | null
+          transaction_id?: string | null
+          user_id?: string | null
+        }
+        Relationships: []
       }
       item_change_log: {
         Row: {
@@ -2420,6 +2564,10 @@ export type Database = {
           message: string
         }[]
       }
+      audit_financial_consistency: {
+        Args: Record<PropertyKey, never>
+        Returns: undefined
+      }
       calculate_user_level: {
         Args: { experience: number }
         Returns: {
@@ -2515,6 +2663,10 @@ export type Database = {
           level_title: string
           position: number
         }[]
+      }
+      initialize_cash_control_system: {
+        Args: Record<PropertyKey, never>
+        Returns: undefined
       }
       is_admin_role: {
         Args: Record<PropertyKey, never>
