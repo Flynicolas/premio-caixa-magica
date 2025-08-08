@@ -5,7 +5,7 @@ import { Button } from '@/components/ui/button';
 import { useAuth } from '@/hooks/useAuth';
 import { useWallet } from '@/hooks/useWalletProvider';
 import { scratchCardTypes, ScratchCardType } from '@/types/scratchCard';
-import ScratchCardModal from '@/components/scratch-card/ScratchCardModal';
+
 import AuthModal from '@/components/AuthModal';
 import ResponsiveBanner from '@/components/ResponsiveBanner';
 import { Star, Diamond, Crown, Coins, Zap, Gift } from 'lucide-react';
@@ -299,15 +299,6 @@ const Raspadinha = () => {
         onClose={() => setShowAuthModal(false)} 
       />
 
-      {/* Modal da Raspadinha */}
-      {selectedType && (
-        <ScratchCardModal
-          isOpen={!!selectedType}
-          onClose={() => setSelectedType(null)}
-          selectedType={selectedType}
-          onAuthRequired={() => setShowAuthModal(true)}
-        />
-      )}
     </div>
   );
 };
