@@ -9,19 +9,20 @@ import ScratchCardModal from '@/components/scratch-card/ScratchCardModal';
 import AuthModal from '@/components/AuthModal';
 import ResponsiveBanner from '@/components/ResponsiveBanner';
 import { Star, Diamond, Crown, Coins, Zap, Gift } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
 
 const Raspadinha = () => {
   const { user } = useAuth();
   const { walletData } = useWallet();
   const [showAuthModal, setShowAuthModal] = useState(false);
-  const [selectedType, setSelectedType] = useState<ScratchCardType | null>(null);
+  const navigate = useNavigate();
 
   const handleCardClick = (type: ScratchCardType) => {
     if (!user) {
       setShowAuthModal(true);
       return;
     }
-    setSelectedType(type);
+    navigate(`/raspadinhas/${type}`);
   };
 
   // Mapeamento das raspadinhas com descrições premium

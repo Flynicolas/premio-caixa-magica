@@ -34,6 +34,7 @@ import TesteErro from "./pages/TesteErro";
 import TesteDePagamento from "./pages/TesteDePagamento";
 import Rascunho from "./pages/Rascunho";
 import { WalletProvider } from "@/hooks/useWalletProvider";
+import RaspadinhaPlay from "./pages/RaspadinhaPlay";
 
 const queryClient = new QueryClient();
 
@@ -71,6 +72,7 @@ const App = () => {
                     <Route path="/configuracoes" element={<Configuracoes />} />
                     <Route path="/admin" element={<Admin />} />
                     <Route path="/raspadinha" element={<Raspadinha />} />
+                    <Route path="/raspadinhas/:tipo" element={<RaspadinhaPlay />} />
                     <Route path="/central-ajuda" element={<CentralAjuda />} />
                     <Route path="/termos-uso" element={<TermosUso />} />
                     <Route path="/politica-privacidade" element={<PoliticaPrivacidade />} />
