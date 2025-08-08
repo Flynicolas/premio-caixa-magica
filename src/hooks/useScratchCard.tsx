@@ -1,8 +1,9 @@
-import { useState, useCallback } from "react";
+import { useState, useCallback, useRef } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { useWallet } from "@/hooks/useWalletProvider";
 import { ScratchCard, ScratchBlockState, ScratchCardType, scratchCardTypes } from "@/types/scratchCard";
+import { useAdminTestMode } from "@/hooks/useAdminTestMode";
 
 export const useScratchCard = () => {
   const [isLoading, setIsLoading] = useState(false);
@@ -12,6 +13,7 @@ export const useScratchCard = () => {
   const [gameId, setGameId] = useState<string | null>(null);
   const { toast } = useToast();
   const { refetchWallet } = useWallet();
+  const { isEnabled: adminTestMode } = useAdminTestMode();
 
   const generateScratchCard = useCallback(
     async (chestType: ScratchCardType, forcedWin = false) => {
@@ -19,7 +21,117 @@ export const useScratchCard = () => {
       setGameComplete(false);
       
       try {
-        // Retry logic to avoid transient network failures
+        // Admin Test Mode: gerar localmente sem afetar backend/saldo real
+        if (adminTestMode) {
+          // Carregar probabilidades e itens ativos
+          const { data: probs } = await supabase
+            .from('scratch_card_probabilities')
+            .select('item_id, probability_weight')
+            .eq('scratch_type', chestType)
+            .eq('is_active', true);
+
+          const ids = (probs || []).map((p: any) => p.item_id);
+          const { data: items } = ids.length > 0
+            ? await supabase
+                .from('items')
+                .select('id, name, image_url, rarity, base_value, category')
+                .in('id', ids)
+                .eq('is_active', true)
+            : { data: [] as any[] } as any;
+
+          const weights: Record<string, number> = {};
+          (probs || []).forEach((p: any) => { weights[p.item_id] = p.probability_weight || 0; });
+          const allItems = (items || []);
+          const candidates = allItems.filter((i: any) => (weights[i.id] || 0) > 0);
+          const pool = candidates.length > 0 ? candidates : allItems;
+
+          const pickWeighted = () => {
+            const total = pool.reduce((sum: number, it: any) => sum + Math.max(0, weights[it.id] || 1), 0);
+            let r = Math.random() * (total || 1);
+            for (const it of pool) {
+              r -= Math.max(0, weights[it.id] || 1);
+              if (r <= 0) return it;
+            }
+            return pool[0];
+          };
+
+          const toSymbol = (it: any, isWinning = false) => ({
+            id: it.id,
+            symbolId: it.id,
+            name: it.name,
+            image_url: it.image_url || '',
+            rarity: it.rarity || 'comum',
+            base_value: it.base_value || 0,
+            isWinning,
+            category: it.category || undefined,
+          });
+
+          const hasWin = forcedWin || Math.random() < 0.4;
+          const symbols: any[] = Array(9).fill(null);
+          const counts: Record<string, number> = {};
+
+          if (hasWin && pool.length > 0) {
+            const winItem = pickWeighted();
+            // escolher 3 posições únicas
+            const pos = new Set<number>();
+            while (pos.size < 3) pos.add(Math.floor(Math.random() * 9));
+            for (const p of Array.from(pos)) {
+              symbols[p] = toSymbol(winItem, true);
+            }
+            counts[winItem.id] = 3;
+            // preencher o resto sem formar outra trinca
+            for (let i = 0; i < 9; i++) {
+              if (symbols[i]) continue;
+              let tries = 0;
+              let chosen: any = null;
+              while (tries < 20) {
+                const it = allItems[Math.floor(Math.random() * allItems.length)] || winItem;
+                if (it.id === winItem.id) { tries++; continue; }
+                const cnt = counts[it.id] || 0;
+                if (cnt < 2) { chosen = it; break; }
+                tries++;
+              }
+              chosen = chosen || pool[0] || winItem;
+              counts[chosen.id] = (counts[chosen.id] || 0) + 1;
+              symbols[i] = toSymbol(chosen, false);
+            }
+          } else {
+            // Sem vitória: garantir que nenhum símbolo apareça 3x
+            for (let i = 0; i < 9; i++) {
+              let tries = 0;
+              let chosen: any = null;
+              while (tries < 30) {
+                const it = allItems[Math.floor(Math.random() * allItems.length)] || pool[0];
+                const cnt = counts[it.id] || 0;
+                if (cnt < 2) { chosen = it; break; }
+                tries++;
+              }
+              chosen = chosen || pool[0] || allItems[0];
+              counts[chosen.id] = (counts[chosen.id] || 0) + 1;
+              symbols[i] = toSymbol(chosen, false);
+            }
+          }
+
+          const winningItem = hasWin ? symbols.find(s => s && s.isWinning) || null : null;
+          const cardData: ScratchCard = {
+            symbols: symbols as any,
+            winningItem: winningItem as any,
+            hasWin,
+            scratchType: chestType,
+          };
+
+          setScratchCard(cardData);
+          setGameId(`admin-test-${Date.now()}`);
+          const initialBlocks: ScratchBlockState[] = Array.from({ length: 9 }, (_, index) => ({
+            id: index,
+            isScratched: false,
+            symbol: cardData.symbols[index] || null,
+          }));
+          setBlocks(initialBlocks);
+          return cardData;
+        }
+
+        // Modo normal: usar a Edge Function
         let data: any = null; let error: any = null;
         for (let attempt = 0; attempt < 2; attempt++) {
           const res = await supabase.functions.invoke(
@@ -62,7 +174,7 @@ export const useScratchCard = () => {
         setIsLoading(false);
       }
     },
-    [toast, refetchWallet],
+    [toast, refetchWallet, adminTestMode],
   );
 
   const processGame = useCallback(
