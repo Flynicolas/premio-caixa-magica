@@ -50,13 +50,15 @@ const ScratchCardPrizeCatalog = ({ isOpen, onClose, scratchType }: ScratchCardPr
         return;
       }
 
-      if (!probabilities || probabilities.length === 0) {
+      // Filtrar apenas itens com peso > 0
+      const filteredProbs = (probabilities || []).filter(p => (p as any).probability_weight > 0);
+      if (filteredProbs.length === 0) {
         setItems([]);
         return;
       }
 
       // Buscar itens pelos IDs
-      const itemIds = probabilities.map(p => p.item_id);
+      const itemIds = filteredProbs.map(p => p.item_id);
       const { data: itemsData, error: itemsError } = await supabase
         .from('items')
         .select('id, name, image_url, rarity, base_value')
@@ -71,7 +73,7 @@ const ScratchCardPrizeCatalog = ({ isOpen, onClose, scratchType }: ScratchCardPr
       // Combinar dados
       const processedItems = itemsData
         .map(item => {
-          const probability = probabilities.find(p => p.item_id === item.id);
+          const probability = (probabilities || []).find(p => p.item_id === item.id);
           return {
             id: item.id,
             name: item.name,
@@ -81,6 +83,7 @@ const ScratchCardPrizeCatalog = ({ isOpen, onClose, scratchType }: ScratchCardPr
             probability_weight: probability?.probability_weight || 1
           };
         })
+        .filter(i => i.probability_weight > 0)
         .sort((a, b) => b.base_value - a.base_value); // Ordenar por valor
 
       setItems(processedItems);

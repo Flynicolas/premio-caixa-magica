@@ -30,12 +30,13 @@ const RaspadinhaPlay = () => {
   const [winModal, setWinModal] = useState<{ open: boolean; type: "item" | "money"; data: any }>(
     { open: false, type: "item", data: null }
   );
-  const canvasRef = useRef<{ revealAll: () => void }>(null);
+const canvasRef = useRef<{ revealAll: () => void }>(null);
+const startedRef = useRef<string | null>(null);
 
-  const scratchType = useMemo(() => {
-    const key = (tipo as ScratchCardType) || "sorte";
-    return key in scratchCardTypes ? key : null;
-  }, [tipo]);
+const scratchType = useMemo(() => {
+  const key = (tipo as ScratchCardType) || "sorte";
+  return key in scratchCardTypes ? key : null;
+}, [tipo]);
 
   const {
     scratchCard,
@@ -102,12 +103,15 @@ const RaspadinhaPlay = () => {
   }, [scratchType]);
 
   // Initialize game when page opens
-  useEffect(() => {
-    if (!scratchType) return;
-    if (!user) return; // require login to auto-start
-    resetGame();
-    generateScratchCard(scratchType);
-  }, [scratchType, user, resetGame, generateScratchCard]);
+useEffect(() => {
+  if (!scratchType) return;
+  if (!user) return; // require login to auto-start
+  if (startedRef.current === scratchType && scratchCard) return; // avoid re-init loops
+  startedRef.current = scratchType;
+  resetGame();
+  generateScratchCard(scratchType);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+}, [scratchType, user]);
 
   // When game completes, process and show minimal win modal
   useEffect(() => {
