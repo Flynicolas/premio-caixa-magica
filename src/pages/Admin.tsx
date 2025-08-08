@@ -3,11 +3,12 @@ import { useAuth } from '@/hooks/useAuth';
 import { useAdminData } from '@/hooks/useAdminData';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Switch } from '@/components/ui/switch';
 import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { Shield, Package, Settings, Users, Wallet, Target, Truck, AlertTriangle, Gamepad2, TestTube, DollarSign, Palette } from 'lucide-react';
 import { useSearchParams } from 'react-router-dom';
-
+import { supabase } from '@/integrations/supabase/client';
 // Lazy-load heavy admin modules to improve performance without changing logic
 const CollaboratorManagement = lazy(() => import('@/components/admin/CollaboratorManagement'));
 const WalletControlPanel = lazy(() => import('@/components/admin/WalletControlPanel'));
@@ -21,12 +22,38 @@ const ScratchCardManager = lazy(() => import('@/components/admin/ScratchCardMana
 const DemoItemsManager = lazy(() => import('@/components/admin/DemoItemsManager'));
 const CaixaGeralDashboard = lazy(() => import('@/components/admin/CaixaGeralDashboard'));
 const VisualCustomizationPanel = lazy(() => import('@/components/admin/VisualCustomizationPanel'));
+const CashControlDashboard = lazy(() => import('@/components/admin/CashControlDashboard').then(m => ({ default: (m as any).default || (m as any).CashControlDashboard })));
+const FinancialReconciliation = lazy(() => import('@/components/admin/FinancialReconciliation').then(m => ({ default: (m as any).default || (m as any).FinancialReconciliation })));
+
 
 
 const Admin = () => {
   const { user } = useAuth();
   const { items, loading, isAdmin, refreshItems } = useAdminData();
 const [showGoalsDialog, setShowGoalsDialog] = useState(false);
+
+  // Feature flag (local, read-only rollout)
+  const [financeV2, setFinanceV2] = useState<boolean>(() => localStorage.getItem('admin_finance_v2') === 'true');
+  const [precheck, setPrecheck] = useState<{ checked: boolean; ok: boolean; error?: string }>({ checked: false, ok: false });
+
+  // Read-only pre-verification (tables presence) to avoid runtime errors
+  useEffect(() => {
+    if (!isAdmin) return;
+    const run = async () => {
+      try {
+        const [a, b, c] = await Promise.all([
+          supabase.from('cash_control_system').select('id').limit(1),
+          supabase.from('financial_audit_log').select('id').limit(1),
+          supabase.from('critical_financial_alerts').select('id').limit(1),
+        ]);
+        const ok = !a.error && !b.error && !c.error;
+        setPrecheck({ checked: true, ok, error: ok ? undefined : (a.error?.message || b.error?.message || c.error?.message) });
+      } catch (e: any) {
+        setPrecheck({ checked: true, ok: false, error: String(e) });
+      }
+    };
+    run();
+  }, [isAdmin]);
 
   // Sync active tab with URL (?tab=)
   const [searchParams, setSearchParams] = useSearchParams();
@@ -94,9 +121,23 @@ const [showGoalsDialog, setShowGoalsDialog] = useState(false);
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-900 via-black to-gray-900">
       <div className="container mx-auto px-4 py-8">
-      <div className="mb-8">
-        <h1 className="text-3xl font-bold mb-2">Painel Administrativo</h1>
-        <p className="text-muted-foreground">Gerencie o sistema de baús, itens, entregas e usuários</p>
+<div className="mb-8 flex items-start justify-between gap-4">
+        <div>
+          <h1 className="text-3xl font-bold mb-2">Painel Administrativo</h1>
+          <p className="text-muted-foreground">Gerencie o sistema de baús, itens, entregas e usuários</p>
+        </div>
+        <div className="flex items-center gap-3">
+          <span className="text-sm text-muted-foreground">Financeiro v2 (beta)</span>
+          <Switch
+            checked={financeV2 && precheck.ok}
+            onCheckedChange={(val) => {
+              const next = Boolean(val);
+              localStorage.setItem('admin_finance_v2', String(next));
+              setFinanceV2(next);
+            }}
+            disabled={!precheck.checked || !precheck.ok}
+          />
+        </div>
       </div>
 
       <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
@@ -121,6 +162,12 @@ const [showGoalsDialog, setShowGoalsDialog] = useState(false);
             <Wallet className="w-4 h-4" />
             Caixa Geral
           </TabsTrigger>
+          {financeV2 && precheck.ok && (
+            <TabsTrigger value="finance" className="flex items-center gap-2">
+              <DollarSign className="w-4 h-4" />
+              Financeiro
+            </TabsTrigger>
+          )}
           <TabsTrigger value="users" className="flex items-center gap-2">
             <Users className="w-4 h-4" />
             Usuários
@@ -205,6 +252,19 @@ const [showGoalsDialog, setShowGoalsDialog] = useState(false);
             <VisualCustomizationPanel />
           </Suspense>
         </TabsContent>
+
+        {financeV2 && precheck.ok && (
+          <TabsContent value="finance">
+            <div className="space-y-6">
+              <Suspense fallback={<div className="p-6 text-muted-foreground">Carregando financeiro...</div>}>
+                <CashControlDashboard />
+              </Suspense>
+              <Suspense fallback={<div className="p-6 text-muted-foreground">Carregando reconciliação...</div>}>
+                <FinancialReconciliation />
+              </Suspense>
+            </div>
+          </TabsContent>
+        )}
 
       </Tabs>
       </div>
