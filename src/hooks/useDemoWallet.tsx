@@ -144,6 +144,37 @@ export const useDemoWallet = () => {
     }
   };
 
+  const depositDemo = async (amount: number) => {
+    if (!user || !walletData.is_demo) {
+      return { error: 'Usuário não está em modo demo' };
+    }
+
+    try {
+      const newBalance = (walletData.balance || 0) + amount;
+
+      const { error } = await supabase
+        .from('profiles')
+        .update({ credito_demo: newBalance })
+        .eq('id', user.id);
+
+      if (error) {
+        console.error('Erro ao atualizar crédito demo (depósito):', error);
+        return { error: 'Erro ao processar depósito' };
+      }
+
+      setWalletData(prev => ({
+        ...prev,
+        balance: newBalance,
+        total_deposited: (prev.total_deposited || 0) + amount,
+      }));
+
+      return { error: null };
+    } catch (error) {
+      console.error('Erro no depósito demo:', error);
+      return { error: 'Erro interno' };
+    }
+  };
+
   useEffect(() => {
     fetchDemoWallet();
   }, [user]);
@@ -153,6 +184,7 @@ export const useDemoWallet = () => {
     loading,
     purchaseChestDemo,
     withdrawDemo,
+    depositDemo,
     refreshData: fetchDemoWallet
   };
 };

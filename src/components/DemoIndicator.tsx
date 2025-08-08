@@ -5,8 +5,12 @@ import { TestTube, Sparkles } from 'lucide-react';
 
 const DemoIndicator = () => {
   const { isDemo, loading } = useDemo();
+  const [show, setShow] = React.useState(false);
+  React.useEffect(() => {
+    try { setShow(localStorage.getItem('show_demo_badge') === 'true'); } catch {}
+  }, []);
 
-  if (loading || !isDemo) return null;
+  if (loading || !isDemo || !show) return null;
 
   return (
     <div className="fixed top-20 right-4 z-50">

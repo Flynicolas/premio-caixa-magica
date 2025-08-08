@@ -5,6 +5,8 @@ import { Badge } from '@/components/ui/badge';
 import { Dialog, DialogContent } from '@/components/ui/dialog';
 import { useAuth } from '@/hooks/useAuth';
 import { useWallet } from '@/hooks/useWalletProvider';
+import { useDemo } from '@/hooks/useDemo';
+import { useDemoWallet } from '@/hooks/useDemoWallet';
 import { scratchCardTypes, ScratchCardType } from '@/types/scratchCard';
 import { useScratchCard } from '@/hooks/useScratchCard';
 import { useKirvanoTest } from '@/hooks/useKirvanoTest';
@@ -28,6 +30,8 @@ interface ScratchCardModalProps {
 const ScratchCardModal = ({ isOpen, onClose, selectedType, onAuthRequired }: ScratchCardModalProps) => {
   const { user } = useAuth();
   const { walletData } = useWallet();
+  const { isDemo } = useDemo();
+  const { walletData: demoWallet, purchaseChestDemo, refreshData: refreshDemoWallet } = useDemoWallet();
   const [showResult, setShowResult] = useState(false);
   const [hasDetectedWin, setHasDetectedWin] = useState(false);
   const [showLoader, setShowLoader] = useState(false);
@@ -78,7 +82,7 @@ const ScratchCardModal = ({ isOpen, onClose, selectedType, onAuthRequired }: Scr
     await generateScratchCard(selectedType, false);
   };
 
-  // Cobrar e iniciar jogo
+// Cobrar e iniciar jogo
   const handleStartGame = async () => {
     if (!user) {
       onAuthRequired();
@@ -86,8 +90,16 @@ const ScratchCardModal = ({ isOpen, onClose, selectedType, onAuthRequired }: Scr
     }
 
     const price = scratchCardTypes[selectedType].price;
-    if (!walletData || walletData.balance < price) {
+    const balance = isDemo ? (demoWallet?.balance || 0) : (walletData?.balance || 0);
+    if (balance < price) {
       return;
+    }
+
+    // No DEMO, debita do crédito demo sem back-end
+    if (isDemo) {
+      const res = await purchaseChestDemo(selectedType, price);
+      if (res && res.error) return;
+      await refreshDemoWallet();
     }
     
     setGamePhase('playing');
@@ -232,7 +244,8 @@ const ScratchCardModal = ({ isOpen, onClose, selectedType, onAuthRequired }: Scr
     onClose();
   };
 
-  const canAfford = walletData && walletData.balance >= scratchCardTypes[selectedType].price;
+  const displayedBalance = isDemo ? (demoWallet?.balance || 0) : (walletData?.balance || 0);
+  const canAfford = displayedBalance >= scratchCardTypes[selectedType].price;
 
   const cardIcons = {
     pix: Coins,
@@ -261,7 +274,7 @@ const ScratchCardModal = ({ isOpen, onClose, selectedType, onAuthRequired }: Scr
                   <p className="text-sm text-muted-foreground">R$ {config.price.toFixed(2)}</p>
                   {user && (
                     <span className="text-xs bg-primary/10 text-primary px-2 py-0.5 rounded-full">
-                      Saldo: R$ {walletData?.balance.toFixed(2) || '0,00'}
+                      Saldo: R$ {displayedBalance.toFixed(2)}
                     </span>
                   )}
                 </div>

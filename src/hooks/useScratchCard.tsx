@@ -4,6 +4,9 @@ import { useToast } from "@/hooks/use-toast";
 import { useWallet } from "@/hooks/useWalletProvider";
 import { ScratchCard, ScratchBlockState, ScratchCardType, scratchCardTypes } from "@/types/scratchCard";
 import { useAdminTestMode } from "@/hooks/useAdminTestMode";
+import { useDemo } from "@/hooks/useDemo";
+import { useDemoWallet } from "@/hooks/useDemoWallet";
+import { useDemoInventory } from "@/hooks/useDemoInventory";
 
 export const useScratchCard = () => {
   const [isLoading, setIsLoading] = useState(false);
@@ -14,6 +17,9 @@ export const useScratchCard = () => {
   const { toast } = useToast();
   const { refetchWallet } = useWallet();
   const { isEnabled: adminTestMode } = useAdminTestMode();
+  const { isDemo, demoSettings } = useDemo();
+  const { purchaseChestDemo, depositDemo, refreshData: refreshDemoWallet } = useDemoWallet();
+  const { addDemoItem } = useDemoInventory();
 
   const generateScratchCard = useCallback(
     async (chestType: ScratchCardType, forcedWin = false) => {
@@ -21,8 +27,8 @@ export const useScratchCard = () => {
       setGameComplete(false);
       
       try {
-        // Admin Test Mode: gerar localmente sem afetar backend/saldo real
-        if (adminTestMode) {
+        // Admin Test Mode ou DEMO: gerar localmente sem afetar backend/saldo real
+        if (adminTestMode || isDemo) {
           // Carregar probabilidades e itens ativos
           const { data: probs } = await supabase
             .from('scratch_card_probabilities')
@@ -39,17 +45,28 @@ export const useScratchCard = () => {
                 .eq('is_active', true)
             : { data: [] as any[] } as any;
 
-          const weights: Record<string, number> = {};
-          (probs || []).forEach((p: any) => { weights[p.item_id] = p.probability_weight || 0; });
+          const rawWeights: Record<string, number> = {};
+          (probs || []).forEach((p: any) => { rawWeights[p.item_id] = p.probability_weight || 1; });
           const allItems = (items || []);
-          const candidates = allItems.filter((i: any) => (weights[i.id] || 0) > 0);
+          const candidates = allItems.filter((i: any) => (rawWeights[i.id] || 1) > 0);
           const pool = candidates.length > 0 ? candidates : allItems;
 
+          const cfg: any = (demoSettings?.probabilidades_chest as any)?.[chestType] || {};
+          const demoWinRate = cfg.win_rate ?? (isDemo ? 0.7 : 0.4);
+          const rareMul = cfg.rare_multiplier ?? (isDemo ? 2 : 1);
+          const rarityBoost: Record<string, number> = { comum: 1, raro: 2, epico: 3, lendario: 5 };
+
+          const effectiveWeight = (it: any) => {
+            const base = Math.max(0, rawWeights[it.id] || 1);
+            const boost = rarityBoost[(it.rarity || 'comum').toLowerCase()] || 1;
+            return base * Math.max(1, boost * rareMul);
+          };
+
           const pickWeighted = () => {
-            const total = pool.reduce((sum: number, it: any) => sum + Math.max(0, weights[it.id] || 1), 0);
+            const total = pool.reduce((sum: number, it: any) => sum + effectiveWeight(it), 0);
             let r = Math.random() * (total || 1);
             for (const it of pool) {
-              r -= Math.max(0, weights[it.id] || 1);
+              r -= effectiveWeight(it);
               if (r <= 0) return it;
             }
             return pool[0];
@@ -66,7 +83,7 @@ export const useScratchCard = () => {
             category: it.category || undefined,
           });
 
-          const hasWin = forcedWin || Math.random() < 0.4;
+          const hasWin = forcedWin || Math.random() < demoWinRate;
           const symbols: any[] = Array(9).fill(null);
           const counts: Record<string, number> = {};
 
@@ -174,33 +191,54 @@ export const useScratchCard = () => {
         setIsLoading(false);
       }
     },
-    [toast, refetchWallet, adminTestMode],
+    [toast, refetchWallet, adminTestMode, isDemo, demoSettings],
   );
 
   const processGame = useCallback(
     async (_chestType: ScratchCardType, hasWinDetected: boolean, winningItem?: any) => {
-      // O processamento já foi feito no backend ao gerar a raspadinha (play-scratch-card)
       try {
-        // Apenas feedback visual consistente com o resultado detectado na grade
+        if (adminTestMode || isDemo) {
+          // Processamento local DEMO: premia carteira demo ou inventário demo
+          if (hasWinDetected && winningItem) {
+            if ((winningItem.category || '').toLowerCase() === 'dinheiro' || (winningItem.name || '').toLowerCase().includes('dinheiro') || (winningItem.name || '').toLowerCase().includes('real')) {
+              await depositDemo(winningItem.base_value || 0);
+            } else {
+              await addDemoItem({
+                item_name: winningItem.name,
+                item_image: winningItem.image_url,
+                chest_type: `scratch_${_chestType}`,
+                rarity: winningItem.rarity || 'comum',
+                item_id: winningItem.id,
+              });
+            }
+            await refreshDemoWallet();
+          }
+
+          toast({
+            title: hasWinDetected ? 'Parabéns!' : 'Que pena!',
+            description: hasWinDetected ? 'Você ganhou! (DEMO)' : 'Não foi desta vez, tente novamente!',
+          });
+          return { success: true, gameId, walletBalance: undefined } as any;
+        }
+
+        // Modo normal: já processado na Edge Function
         await refetchWallet();
         toast({
-          title: hasWinDetected ? "Parabéns!" : "Que pena!",
-          description: hasWinDetected
-            ? "Você ganhou! Seu saldo foi atualizado."
-            : "Não foi desta vez, tente novamente!",
+          title: hasWinDetected ? 'Parabéns!' : 'Que pena!',
+          description: hasWinDetected ? 'Você ganhou! Seu saldo foi atualizado.' : 'Não foi desta vez, tente novamente!',
         });
         return { success: true, gameId, walletBalance: undefined } as any;
       } catch (error: any) {
-        console.error("Erro ao finalizar jogo:", error);
+        console.error('Erro ao finalizar jogo:', error);
         toast({
-          title: "Erro",
-          description: error.message || "Erro ao finalizar o jogo.",
-          variant: "destructive",
+          title: 'Erro',
+          description: error.message || 'Erro ao finalizar o jogo.',
+          variant: 'destructive',
         });
         return null;
       }
     },
-    [toast, refetchWallet, gameId],
+    [toast, refetchWallet, gameId, adminTestMode, isDemo, depositDemo, addDemoItem, refreshDemoWallet],
   );
 
   const scratchBlock = useCallback((blockId: number) => {
