@@ -5,6 +5,7 @@ import { useWallet } from "@/hooks/useWalletProvider";
 import { useScratchCard } from "@/hooks/useScratchCard";
 import ScratchGameCanvas from "@/components/scratch-card/ScratchGameCanvas";
 import ScratchCardAnimations from "@/components/scratch-card/ScratchCardAnimations";
+import SimpleScratchWinModal from "@/components/scratch-card/SimpleScratchWinModal";
 import { scratchCardTypes, ScratchCardType } from "@/types/scratchCard";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
