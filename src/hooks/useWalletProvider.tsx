@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useState, useEffect, ReactNode, useCallback, useMemo } from 'react';
+import React, { createContext, useContext, useState, useEffect, ReactNode, useCallback, useMemo, useRef } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from './useAuth';
 import { useToast } from './use-toast';
@@ -52,7 +52,8 @@ export const WalletProvider = ({ children }: { children: ReactNode }) => {
   const [transactions, setTransactions] = useState<Transaction[]>([]);
   const [loading, setLoading] = useState(true);
   const [showPaymentModal, setShowPaymentModal] = useState(false);
-  const [requiredAmount, setRequiredAmount] = useState<number | undefined>();
+const [requiredAmount, setRequiredAmount] = useState<number | undefined>();
+  const lastWalletErrorAtRef = useRef<number>(0);
 
   // Determinar se está em modo demo
   const isDemo = useMemo(() => demoWalletData.is_demo, [demoWalletData.is_demo]);
@@ -178,18 +179,16 @@ export const WalletProvider = ({ children }: { children: ReactNode }) => {
       console.log('✅ [WalletProvider] Carteira carregada com sucesso');
     } catch (error) {
       console.error('❌ [WalletProvider] Erro ao carregar carteira:', error);
-      toast({
-        title: "Erro ao carregar carteira",
-        description: "Não foi possível carregar os dados da carteira.",
-        variant: "destructive"
-      });
-      
-      setWalletData({
-        balance: 0,
-        total_deposited: 0,
-        total_withdrawn: 0,
-        total_spent: 0
-      });
+      const now = Date.now();
+      if (now - (lastWalletErrorAtRef.current || 0) > 20000) {
+        toast({
+          title: "Erro ao carregar carteira",
+          description: "Não foi possível carregar os dados da carteira.",
+          variant: "destructive"
+        });
+        lastWalletErrorAtRef.current = now;
+      }
+      // Mantém último estado conhecido da carteira para evitar sumiço do saldo em falhas transitórias
     } finally {
       setLoading(false);
     }

@@ -19,12 +19,17 @@ export const useScratchCard = () => {
       setGameComplete(false);
       
       try {
-        const { data, error } = await supabase.functions.invoke(
-          "play-scratch-card",
-          {
-            body: { scratchType: chestType, forcedWin },
-          },
-        );
+        // Retry logic to avoid transient network failures
+        let data: any = null; let error: any = null;
+        for (let attempt = 0; attempt < 2; attempt++) {
+          const res = await supabase.functions.invoke(
+            "play-scratch-card",
+            { body: { scratchType: chestType, forcedWin } },
+          );
+          data = res.data; error = res.error;
+          if (!error && data) break;
+          await new Promise((r) => setTimeout(r, 300));
+        }
 
         if (error) throw error;
 
