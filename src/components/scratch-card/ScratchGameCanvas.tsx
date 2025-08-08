@@ -12,7 +12,9 @@ interface ScratchGameCanvasProps {
   scratchType?: string;
   className?: string;
   disabled?: boolean;
+  size?: number; // canvas width/height in px (default 400)
 }
+
 
 interface ScratchAreaMap {
   center: number;    // Peso 3x (posição 4)
@@ -20,7 +22,7 @@ interface ScratchAreaMap {
   sides: number;     // Peso 2x (posições 1,3,5,7)
 }
 
-const ScratchGameCanvas = forwardRef<{ revealAll: () => void }, ScratchGameCanvasProps>(({ symbols, onWin, onComplete, onScratchStart, gameStarted = false, scratchType = 'sorte', className, disabled = false }, ref) => {
+const ScratchGameCanvas = forwardRef<{ revealAll: () => void }, ScratchGameCanvasProps>(({ symbols, onWin, onComplete, onScratchStart, gameStarted = false, scratchType = 'sorte', className, disabled = false, size = 400 }, ref) => {
   console.log('🎯 ScratchGameCanvas mounted/rendered, symbols.length:', symbols.length);
   
   const canvasRef = useRef<HTMLCanvasElement>(null);
@@ -527,19 +529,19 @@ const ScratchGameCanvas = forwardRef<{ revealAll: () => void }, ScratchGameCanva
   }, [canvasFullyLoaded, symbols.length, renderGrid]);
 
   return (
-    <div className={cn("relative w-full max-w-sm mx-auto", className)}>
+    <div className={cn("relative w-full mx-auto", className)} style={{ maxWidth: `${size}px` }}>
       {/* Grid de símbolos */}
       <div
         ref={gridRef}
         className="grid grid-cols-3 gap-1 p-2 bg-gray-800 rounded-xl relative z-10"
-        style={{ minHeight: '300px' }}
+        style={{ minHeight: `${Math.max(300, size - 100)}px` }}
       />
       
       {/* Canvas de raspagem - área limpa sem overlays */}
       <canvas
         ref={canvasRef}
-        width={400}
-        height={400}
+        width={size}
+        height={size}
         className="absolute top-0 left-0 w-full h-full rounded-xl cursor-pointer z-20"
         style={{ touchAction: 'none' }}
       />

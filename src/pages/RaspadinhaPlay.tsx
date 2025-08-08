@@ -4,12 +4,12 @@ import { useAuth } from "@/hooks/useAuth";
 import { useWallet } from "@/hooks/useWalletProvider";
 import { useScratchCard } from "@/hooks/useScratchCard";
 import ScratchGameCanvas from "@/components/scratch-card/ScratchGameCanvas";
-import SimpleScratchWinModal from "@/components/scratch-card/SimpleScratchWinModal";
+import ScratchCardAnimations from "@/components/scratch-card/ScratchCardAnimations";
 import { scratchCardTypes, ScratchCardType } from "@/types/scratchCard";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Gift } from "lucide-react";
+import { Gift, AlertCircle, RefreshCcw } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 
 interface PrizeItem {
@@ -30,7 +30,8 @@ const RaspadinhaPlay = () => {
   const [winModal, setWinModal] = useState<{ open: boolean; type: "item" | "money"; data: any }>(
     { open: false, type: "item", data: null }
   );
-const canvasRef = useRef<{ revealAll: () => void }>(null);
+  const [showLossBanner, setShowLossBanner] = useState(false);
+  const canvasRef = useRef<{ revealAll: () => void }>(null);
 const startedRef = useRef<string | null>(null);
 
 const scratchType = useMemo(() => {
