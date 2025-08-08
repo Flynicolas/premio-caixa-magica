@@ -1,28 +1,44 @@
-import React, { useState } from 'react';
+import React, { useState, lazy, Suspense, useEffect } from 'react';
 import { useAuth } from '@/hooks/useAuth';
 import { useAdminData } from '@/hooks/useAdminData';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
-import CollaboratorManagement from '@/components/admin/CollaboratorManagement';
-import WalletControlPanel from '@/components/admin/WalletControlPanel';
-import ItemManagementTab from '@/components/admin/ItemManagementTab';
-import EnhancedChestProbabilityManager from '@/components/admin/EnhancedChestProbabilityManager';
-import DeliveryManagementTab from '@/components/admin/DeliveryManagementTab';
-import UsersManagement from '@/components/admin/UsersManagement';
-import ChestGoalsManager from '@/components/admin/ChestGoalsManager';
-import { AdminErrorDashboard } from '@/components/admin/AdminErrorDashboard';
-import ScratchCardManager from '@/components/admin/ScratchCardManager';
-import DemoItemsManager from '@/components/admin/DemoItemsManager';
-import CaixaGeralDashboard from '@/components/admin/CaixaGeralDashboard';
 import { Shield, Package, Settings, Users, Wallet, Target, Truck, AlertTriangle, Gamepad2, TestTube, DollarSign, Palette } from 'lucide-react';
-import VisualCustomizationPanel from '@/components/admin/VisualCustomizationPanel';
+import { useSearchParams } from 'react-router-dom';
+
+// Lazy-load heavy admin modules to improve performance without changing logic
+const CollaboratorManagement = lazy(() => import('@/components/admin/CollaboratorManagement'));
+const WalletControlPanel = lazy(() => import('@/components/admin/WalletControlPanel'));
+const ItemManagementTab = lazy(() => import('@/components/admin/ItemManagementTab'));
+const EnhancedChestProbabilityManager = lazy(() => import('@/components/admin/EnhancedChestProbabilityManager'));
+const DeliveryManagementTab = lazy(() => import('@/components/admin/DeliveryManagementTab'));
+const UsersManagement = lazy(() => import('@/components/admin/UsersManagement'));
+const ChestGoalsManager = lazy(() => import('@/components/admin/ChestGoalsManager'));
+const AdminErrorDashboard = lazy(() => import('@/components/admin/AdminErrorDashboard').then(m => ({ default: m.AdminErrorDashboard })));
+const ScratchCardManager = lazy(() => import('@/components/admin/ScratchCardManager'));
+const DemoItemsManager = lazy(() => import('@/components/admin/DemoItemsManager'));
+const CaixaGeralDashboard = lazy(() => import('@/components/admin/CaixaGeralDashboard'));
+const VisualCustomizationPanel = lazy(() => import('@/components/admin/VisualCustomizationPanel'));
+
 
 const Admin = () => {
   const { user } = useAuth();
   const { items, loading, isAdmin, refreshItems } = useAdminData();
-  const [showGoalsDialog, setShowGoalsDialog] = useState(false);
+const [showGoalsDialog, setShowGoalsDialog] = useState(false);
+
+  // Sync active tab with URL (?tab=)
+  const [searchParams, setSearchParams] = useSearchParams();
+  const initialTab = searchParams.get('tab') || 'items';
+  const [activeTab, setActiveTab] = useState<string>(initialTab);
+  useEffect(() => {
+    setSearchParams(prev => {
+      const p = new URLSearchParams(prev);
+      p.set('tab', activeTab);
+      return p;
+    }, { replace: true });
+  }, [activeTab, setSearchParams]);
 
   if (!user) {
     return (
@@ -83,7 +99,7 @@ const Admin = () => {
         <p className="text-muted-foreground">Gerencie o sistema de baús, itens, entregas e usuários</p>
       </div>
 
-      <Tabs defaultValue="items" className="space-y-6">
+      <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
         <TabsList className="grid w-full grid-cols-10">
           <TabsTrigger value="items" className="flex items-center gap-2">
             <Package className="w-4 h-4" />
@@ -127,47 +143,67 @@ const Admin = () => {
           </TabsTrigger>
         </TabsList>
 
-        <TabsContent value="items">
-          <ItemManagementTab />
+<TabsContent value="items">
+          <Suspense fallback={<div className="p-6 text-muted-foreground">Carregando itens...</div>}>
+            <ItemManagementTab />
+          </Suspense>
         </TabsContent>
 
         <TabsContent value="chests">
-          <EnhancedChestProbabilityManager 
-            items={items.filter(item => item.is_active)} 
-            onRefresh={refreshItems} 
-          />
+          <Suspense fallback={<div className="p-6 text-muted-foreground">Carregando gerenciador de baús...</div>}>
+            <EnhancedChestProbabilityManager 
+              items={items.filter(item => item.is_active)} 
+              onRefresh={refreshItems} 
+            />
+          </Suspense>
         </TabsContent>
 
         <TabsContent value="scratch">
-          <ScratchCardManager />
+          <Suspense fallback={<div className="p-6 text-muted-foreground">Carregando raspadinha...</div>}>
+            <ScratchCardManager />
+          </Suspense>
         </TabsContent>
 
         <TabsContent value="deliveries">
-          <DeliveryManagementTab />
+          <Suspense fallback={<div className="p-6 text-muted-foreground">Carregando entregas...</div>}>
+            <DeliveryManagementTab />
+          </Suspense>
         </TabsContent>
 
         <TabsContent value="caixa-geral">
-          <CaixaGeralDashboard />
+          <Suspense fallback={<div className="p-6 text-muted-foreground">Carregando caixa geral...</div>}>
+            <CaixaGeralDashboard />
+          </Suspense>
         </TabsContent>
 
         <TabsContent value="users">
-          <UsersManagement />
+          <Suspense fallback={<div className="p-6 text-muted-foreground">Carregando usuários...</div>}>
+            <UsersManagement />
+          </Suspense>
         </TabsContent>
 
         <TabsContent value="collaborators">
-          <CollaboratorManagement />
+          <Suspense fallback={<div className="p-6 text-muted-foreground">Carregando colaboradores...</div>}>
+            <CollaboratorManagement />
+          </Suspense>
         </TabsContent>
 
         <TabsContent value="errors">
-          <AdminErrorDashboard />
+          <Suspense fallback={<div className="p-6 text-muted-foreground">Carregando relatórios de erro...</div>}>
+            <AdminErrorDashboard />
+          </Suspense>
         </TabsContent>
 
         <TabsContent value="demo">
-          <DemoItemsManager />
+          <Suspense fallback={<div className="p-6 text-muted-foreground">Carregando itens demo...</div>}>
+            <DemoItemsManager />
+          </Suspense>
         </TabsContent>
 
         <TabsContent value="visual">
-          <VisualCustomizationPanel />
+          <Suspense fallback={<div className="p-6 text-muted-foreground">Carregando personalização visual...</div>}>
+            <VisualCustomizationPanel />
+          </Suspense>
         </TabsContent>
 
       </Tabs>
