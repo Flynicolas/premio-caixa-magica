@@ -79,11 +79,15 @@ serve(async (req) => {
       return jsonError(`Nenhum item configurado para raspadinha tipo: ${scratchType}`, 400);
     }
 
-    const itemIds = probs.filter(p => p.probability_weight > 0).map(p => p.item_id);
+    // Build item pools (winners only from >0 weight; fillers can include 0-weight)
+    const positiveIds = probs.filter(p => p.probability_weight > 0).map(p => p.item_id);
+    const zeroWeightIds = probs.filter(p => p.probability_weight <= 0).map(p => p.item_id);
+    const allIds = Array.from(new Set([...positiveIds, ...zeroWeightIds]));
+
     const { data: items, error: itemsErr } = await supabase
       .from('items')
       .select('*')
-      .in('id', itemIds)
+      .in('id', allIds)
       .eq('is_active', true);
     if (itemsErr || !items || items.length === 0) {
       return jsonError(`Nenhum item encontrado para raspadinha tipo: ${scratchType}`, 400);
@@ -94,10 +98,10 @@ serve(async (req) => {
     let winningItem: ScratchSymbol | null = null;
 
     if (hasWin) {
-      // filter eligible items by remaining budget safety
+      // filter eligible items by remaining budget safety (only >0 weight)
       let eligible = items.filter(i => {
         const weight = probs.find(p => p.item_id === i.id)?.probability_weight ?? 0;
-        if (weight <= 0) return false;
+        if (weight <= 0) return false; // never pick 0-weight as prize
         if (remainingBudget < 5) return i.category === 'dinheiro' && i.base_value <= 3;
         if (remainingBudget < 20) return i.category === 'dinheiro' && i.base_value <= 5;
         if (remainingBudget < 50) return i.category === 'dinheiro' ? i.base_value <= remainingBudget : i.base_value <= 15;
@@ -108,14 +112,14 @@ serve(async (req) => {
       if (eligible.length === 0) {
         hasWin = false; // fallback to safe loss
       } else {
-        // weighted pick
-        const totalW = eligible.reduce((s, i) => s + (probs.find(p => p.item_id === i.id)?.probability_weight ?? 0), 0);
+        // weighted pick among >0 weight only
+        const totalW = eligible.reduce((s, it) => s + (probs.find(p => p.item_id === it.id)?.probability_weight ?? 0), 0);
         let r = Math.random() * totalW;
         let chosen = eligible[0];
-        for (const i of eligible) {
-          const w = probs.find(p => p.item_id === i.id)?.probability_weight ?? 0;
+        for (const it of eligible) {
+          const w = probs.find(p => p.item_id === it.id)?.probability_weight ?? 0;
           r -= w;
-          if (r <= 0) { chosen = i; break; }
+          if (r <= 0) { chosen = it; break; }
         }
         winningItem = {
           id: chosen.id,
@@ -130,41 +134,68 @@ serve(async (req) => {
       }
     }
 
-    // Build 3x3 grid symbols from weighted pool
-    const symbolPool: ScratchSymbol[] = [];
-    probs.forEach(p => {
-      if (p.probability_weight > 0) {
-        const item = items.find(i => i.id === p.item_id);
-        if (item) {
-          const symbol: ScratchSymbol = {
-            id: item.id,
-            symbolId: item.id,
-            name: item.name,
-            image_url: item.image_url,
-            rarity: item.rarity,
-            base_value: item.base_value,
-            isWinning: false,
-            category: item.category
-          };
-          for (let i = 0; i < p.probability_weight; i++) symbolPool.push(symbol);
-        }
-      }
-    });
-
-    const symbols: ScratchSymbol[] = [];
-    for (let i = 0; i < 9; i++) {
-      const rand = symbolPool[Math.floor(Math.random() * symbolPool.length)];
-      symbols.push({ ...rand, isWinning: false });
+    // Prepare unique filler candidates (including zero-probability items)
+    const candidateMap = new Map<string, ScratchSymbol>();
+    for (const it of items) {
+      candidateMap.set(it.id, {
+        id: it.id,
+        symbolId: it.id,
+        name: it.name,
+        image_url: it.image_url,
+        rarity: it.rarity,
+        base_value: it.base_value,
+        isWinning: false,
+        category: it.category
+      });
     }
+    const fillerCandidates = Array.from(candidateMap.values());
+
+    // Helper to pick a random candidate that respects a per-id cap
+    const pickWithCap = (counts: Record<string, number>, disallowId?: string, cap = 2): ScratchSymbol => {
+      // Build list of allowed candidates
+      const allowed = fillerCandidates.filter(c => {
+        if (disallowId && c.id === disallowId) return false;
+        const current = counts[c.id] || 0;
+        return current < cap; // cap occurrences
+      });
+      if (allowed.length === 0) {
+        // If impossible due to low variety, fallback to any candidate different from disallowId
+        const pool = fillerCandidates.filter(c => !disallowId || c.id !== disallowId);
+        return pool[Math.floor(Math.random() * pool.length)];
+      }
+      return allowed[Math.floor(Math.random() * allowed.length)];
+    };
+
+    // Build 3x3 grid ensuring no accidental 3-of-a-kind when it's a loss
+    const symbols: ScratchSymbol[] = Array(9).fill(null);
+    const counts: Record<string, number> = {};
 
     if (hasWin && winningItem) {
+      // Place exactly 3 winning symbols in random positions
       const positions = [0,1,2,3,4,5,6,7,8];
       for (let i = 0; i < 3; i++) {
         const idx = Math.floor(Math.random() * positions.length);
         const pos = positions.splice(idx, 1)[0];
         symbols[pos] = { ...winningItem };
       }
+      counts[winningItem.id] = 3;
+
+      // Fill remaining cells with capped non-winning candidates
+      for (let pos of positions) {
+        const chosen = pickWithCap(counts, winningItem.id, 2);
+        symbols[pos] = { ...chosen, isWinning: false };
+        counts[chosen.id] = (counts[chosen.id] || 0) + 1;
+      }
+    } else {
+      // Loss: fill all positions using cap so that no id appears >= 3
+      const positions = [0,1,2,3,4,5,6,7,8];
+      for (let pos of positions) {
+        const chosen = pickWithCap(counts, undefined, 2);
+        symbols[pos] = { ...chosen, isWinning: false };
+        counts[chosen.id] = (counts[chosen.id] || 0) + 1;
+      }
     }
+
 
     // Fetch current price
     const { data: setting } = await supabase
