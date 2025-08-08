@@ -1,3 +1,6 @@
 project_id = "jhbafgzfphiizpuoqksj"
 [functions.mercadopago-webhook]
 verify_jwt = false
+
+[functions.play-scratch-card]
+verify_jwt = true
