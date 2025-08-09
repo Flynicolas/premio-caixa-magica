@@ -62,6 +62,25 @@ serve(async (req) => {
 
     let remainingBudget = financial?.remaining_budget ?? 0;
 
+    // Fetch current price FIRST for prize cap calculations
+    const { data: setting } = await supabase
+      .from('scratch_card_settings')
+      .select('price')
+      .eq('scratch_type', scratchType)
+      .eq('is_active', true)
+      .maybeSingle();
+    const gamePrice = Number(setting?.price ?? 0);
+    if (!gamePrice || gamePrice <= 0) return jsonError('Preço da raspadinha não configurado', 400);
+
+    // Define prize multipliers by scratch type to cap winnings
+    const prizeMultipliers: Record<string, number> = {
+      pix: 5,       // PIX max 5x (R$0.50 -> max R$2.50)
+      dupla: 10,    // Dupla max 10x
+      premium: 20,  // Premium max 20x
+      deluxe: 25,   // Deluxe max 25x
+    };
+    const maxPrizeValue = gamePrice * (prizeMultipliers[scratchType] || 10);
+
     // Base probability targeting payout control (capped 8%)
     let winProbability = 0.08; // default cap
     if (remainingBudget < 5) winProbability = 0.01;
@@ -98,15 +117,23 @@ serve(async (req) => {
     let winningItem: ScratchSymbol | null = null;
 
     if (hasWin) {
-      // filter eligible items by remaining budget safety (only >0 weight)
+      // filter eligible items by remaining budget safety AND prize cap (only >0 weight)
       let eligible = items.filter(i => {
         const weight = probs.find(p => p.item_id === i.id)?.probability_weight ?? 0;
         if (weight <= 0) return false; // never pick 0-weight as prize
-        if (remainingBudget < 5) return i.category === 'dinheiro' && i.base_value <= 3;
-        if (remainingBudget < 20) return i.category === 'dinheiro' && i.base_value <= 5;
-        if (remainingBudget < 50) return i.category === 'dinheiro' ? i.base_value <= remainingBudget : i.base_value <= 15;
-        if (remainingBudget < 100) return i.category === 'dinheiro' ? i.base_value <= remainingBudget : i.base_value <= 30;
-        return i.category === 'dinheiro' ? i.base_value <= remainingBudget : i.base_value <= Math.min(50, remainingBudget * 0.8);
+        
+        // Check if item is money category (both 'dinheiro' and 'money')
+        const isMoneyItem = i.category === 'dinheiro' || i.category === 'money';
+        
+        // Apply prize cap - money items can't exceed maxPrizeValue
+        if (isMoneyItem && i.base_value > maxPrizeValue) return false;
+        
+        // Apply budget safety checks
+        if (remainingBudget < 5) return isMoneyItem && i.base_value <= 3;
+        if (remainingBudget < 20) return isMoneyItem && i.base_value <= 5;
+        if (remainingBudget < 50) return isMoneyItem ? i.base_value <= remainingBudget : i.base_value <= 15;
+        if (remainingBudget < 100) return isMoneyItem ? i.base_value <= remainingBudget : i.base_value <= 30;
+        return isMoneyItem ? i.base_value <= remainingBudget : i.base_value <= Math.min(50, remainingBudget * 0.8);
       });
 
       if (eligible.length === 0) {
@@ -197,18 +224,8 @@ serve(async (req) => {
     }
 
 
-    // Fetch current price
-    const { data: setting } = await supabase
-      .from('scratch_card_settings')
-      .select('price')
-      .eq('scratch_type', scratchType)
-      .eq('is_active', true)
-      .maybeSingle();
-    const gamePrice = Number(setting?.price ?? 0);
-    if (!gamePrice || gamePrice <= 0) return jsonError('Preço da raspadinha não configurado', 400);
-
-    // Compute winning money amount if applicable
-    const winningAmount = hasWin && winningItem && (winningItem.category === 'dinheiro')
+    // Compute winning money amount if applicable (check both 'dinheiro' and 'money' categories)
+    const winningAmount = hasWin && winningItem && (winningItem.category === 'dinheiro' || winningItem.category === 'money')
       ? Number(winningItem.base_value || 0)
       : 0;
 
