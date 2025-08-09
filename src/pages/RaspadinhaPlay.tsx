@@ -6,6 +6,7 @@ import { useScratchCard } from "@/hooks/useScratchCard";
 import ScratchGameCanvas from "@/components/scratch-card/ScratchGameCanvas";
 import ScratchCardAnimations from "@/components/scratch-card/ScratchCardAnimations";
 import SimpleScratchWinModal from "@/components/scratch-card/SimpleScratchWinModal";
+import ScratchLossToast from "@/components/scratch-card/ScratchLossToast";
 import { scratchCardTypes, ScratchCardType } from "@/types/scratchCard";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -32,8 +33,9 @@ const RaspadinhaPlay = () => {
     { open: false, type: "item", data: null }
   );
   const [showLossBanner, setShowLossBanner] = useState(false);
+  const [showDebitNote, setShowDebitNote] = useState(false);
   const canvasRef = useRef<{ revealAll: () => void }>(null);
-const startedRef = useRef<string | null>(null);
+  const startedRef = useRef<string | null>(null);
 
 const scratchType = useMemo(() => {
   const key = (tipo as ScratchCardType) || "sorte";
@@ -73,7 +75,7 @@ const scratchType = useMemo(() => {
     link.setAttribute('href', window.location.href);
   }, [scratchType]);
 
-  // Load items with weight > 0 for visual list
+  // Carregar TODOS os itens (inclusive prob 0) para o mostruário
   useEffect(() => {
     if (!scratchType) return;
     const load = async () => {
@@ -83,9 +85,8 @@ const scratchType = useMemo(() => {
         .eq('scratch_type', scratchType)
         .eq('is_active', true);
       if (pErr) return;
-      const valid = (probs || []).filter(p => (p as any).probability_weight > 0);
-      if (valid.length === 0) { setItems([]); return; }
-      const ids = valid.map((p: any) => p.item_id);
+      const ids = (probs || []).map((p: any) => p.item_id);
+      if (ids.length === 0) { setItems([]); return; }
       const { data: its } = await supabase
         .from('items')
         .select('id, name, image_url, rarity, base_value')
@@ -97,25 +98,22 @@ const scratchType = useMemo(() => {
         image_url: i.image_url,
         rarity: i.rarity as string,
         base_value: i.base_value,
-        probability_weight: valid.find(v => v.item_id === i.id)?.probability_weight || 1,
+        probability_weight: (probs || []).find((v: any) => v.item_id === i.id)?.probability_weight ?? 0,
       })).sort((a,b)=> b.base_value - a.base_value);
       setItems(merged);
     };
     load();
   }, [scratchType]);
 
-  // Initialize game when page opens
-useEffect(() => {
-  if (!scratchType) return;
-  if (!user) return; // require login to auto-start
-  if (startedRef.current === scratchType && scratchCard) return; // avoid re-init loops
-  startedRef.current = scratchType;
-  resetGame();
-  generateScratchCard(scratchType);
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-}, [scratchType, user]);
+  // Inicialização: não iniciar automaticamente; o usuário clica em "Jogar"
+  useEffect(() => {
+    if (!scratchType) return;
+    resetGame();
+    startedRef.current = null;
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [scratchType]);
 
-  // When game completes, process and show minimal win modal
+  // Quando o jogo termina, processar e mostrar win/loss
   useEffect(() => {
     if (!gameComplete || !scratchType) return;
     const combo = checkWinningCombination();
@@ -125,6 +123,9 @@ useEffect(() => {
       const sym: any = combo.winningSymbol;
       const isMoney = (sym.category === 'dinheiro') || /dinheiro|real/i.test(sym.name || '');
       setWinModal({ open: true, type: isMoney ? 'money' : 'item', data: isMoney ? { amount: sym.base_value } : sym });
+    } else {
+      setShowLossBanner(true);
+      setTimeout(() => setShowLossBanner(false), 3500);
     }
   }, [gameComplete, checkWinningCombination, processGame, scratchType]);
 
@@ -168,9 +169,15 @@ useEffect(() => {
                   className="w-full max-w-[360px]"
                 />
               ) : (
-                <Button disabled={isLoading || !balanceOk} onClick={() => generateScratchCard(scratchType)}>
-                  {isLoading ? 'Carregando...' : `Jogar: R$ ${config.price.toFixed(2)}`}
-                </Button>
+                <>
+                  <Button disabled={isLoading || !balanceOk} onClick={() => { setShowDebitNote(true); setTimeout(()=>setShowDebitNote(false), 4000); generateScratchCard(scratchType); }}>
+                    {isLoading ? 'Carregando...' : `Raspar agora • R$ ${config.price.toFixed(2)}`}
+                  </Button>
+                  {!balanceOk && <p className="text-xs text-muted-foreground">Saldo insuficiente</p>}
+                  {showDebitNote && balanceOk && (
+                    <p className="text-xs text-muted-foreground">Debitado R$ {config.price.toFixed(2)} da sua carteira</p>
+                  )}
+                </>
               )
             ) : (
               <div className="text-center">
@@ -184,7 +191,9 @@ useEffect(() => {
             {scratchCard?.symbols && (
               <div className="flex gap-2">
                 <Button variant="outline" onClick={() => canvasRef.current?.revealAll()}>Revelar tudo</Button>
-                <Button onClick={() => { resetGame(); generateScratchCard(scratchType); }}>Jogar novamente</Button>
+                <Button onClick={() => { setShowDebitNote(true); setTimeout(()=>setShowDebitNote(false), 4000); resetGame(); generateScratchCard(scratchType); }}>
+                  Jogar novamente • R$ {config.price.toFixed(2)}
+                </Button>
               </div>
             )}
           </CardContent>
@@ -229,12 +238,12 @@ useEffect(() => {
         {/* Shortcuts to other scratch types */}
         <section className="max-w-4xl mx-auto">
           <h2 className="text-xl font-semibold text-foreground mb-3">Outras raspadinhas</h2>
-          <div className="flex flex-wrap gap-2">
+          <div className="flex flex-wrap gap-3">
             {Object.keys(scratchCardTypes)
               .filter((k) => k !== scratchType)
               .map((k) => (
                 <Link key={k} to={`/raspadinhas/${k}`} className="inline-block">
-                  <Badge variant="secondary" className="cursor-pointer">{scratchCardTypes[k as ScratchCardType].name}</Badge>
+                  <Button variant="hero" size="sm" className="hover-scale">{scratchCardTypes[k as ScratchCardType].name}</Button>
                 </Link>
               ))}
           </div>
@@ -247,6 +256,13 @@ useEffect(() => {
         onClose={() => setWinModal((w) => ({ ...w, open: false }))}
         winType={winModal.type}
         winData={winModal.data}
+      />
+
+      {/* Loss toast */}
+      <ScratchLossToast
+        isVisible={showLossBanner}
+        onClose={() => setShowLossBanner(false)}
+        onPlayAgain={() => { setShowLossBanner(false); setShowDebitNote(true); setTimeout(()=>setShowDebitNote(false), 4000); resetGame(); generateScratchCard(scratchType!); }}
       />
     </div>
   );

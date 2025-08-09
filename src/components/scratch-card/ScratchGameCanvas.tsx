@@ -2,6 +2,7 @@
 import { useRef, useEffect, useState, useCallback, forwardRef, useImperativeHandle } from 'react';
 import { cn } from '@/lib/utils';
 import { ScratchSymbol } from '@/types/scratchCard';
+import scratchBanner from '@/assets/scratch-banner.jpg';
 
 interface ScratchGameCanvasProps {
   symbols: ScratchSymbol[];
@@ -118,14 +119,14 @@ const ScratchGameCanvas = forwardRef<{ revealAll: () => void }, ScratchGameCanva
     setCanvasFullyLoaded(false);
     console.log('🎯 Resetting canvas, canvasFullyLoaded set to false');
 
-    // Usar a imagem temática específica do tipo de raspadinha
+    // Usar a imagem temática específica do tipo de raspadinha (local, confiável)
     const scratchCardConfig = {
-      sorte: 'https://jhbafgzfphiizpuoqksj.supabase.co/storage/v1/object/public/head-images//quadradoraspadinha01.png',
-      dupla: 'https://jhbafgzfphiizpuoqksj.supabase.co/storage/v1/object/public/head-images//quadradoraspadinha03.png',
-      ouro: 'https://jhbafgzfphiizpuoqksj.supabase.co/storage/v1/object/public/head-images//qaudradoraspadinhaouro2.png',
-      diamante: 'https://jhbafgzfphiizpuoqksj.supabase.co/storage/v1/object/public/head-images//raspadinha-bannerquadradodiamante01%20(1).png',
-      premium: 'https://jhbafgzfphiizpuoqksj.supabase.co/storage/v1/object/public/head-images//raspadinha-bannerquadradopremium01%20(1).png'
-    };
+      sorte: scratchBanner,
+      dupla: scratchBanner,
+      ouro: scratchBanner,
+      diamante: scratchBanner,
+      premium: scratchBanner
+    } as const;
 
     const imageUrl = scratchCardConfig[scratchType as keyof typeof scratchCardConfig];
     
