@@ -1,7 +1,7 @@
 
 import { useState, useEffect } from "react";
 import { Link, useLocation } from "react-router-dom";
-import { Home, Users, User, Wallet, Eye, EyeOff } from "lucide-react";
+import { Home, Users, User, Wallet, Eye, EyeOff, Sparkles } from "lucide-react";
 import { Button } from "./ui/button";
 import { cn } from "@/lib/utils";
 import { useWallet } from "@/hooks/useWalletProvider";
@@ -46,13 +46,13 @@ const BottomNavBar = ({ onAddBalance }: BottomNavBarProps) => {
   const navItems = [
     { path: "/", icon: Home, label: "Início" },
     { path: "/convidar", icon: Users, label: "Convidar" },
-    { path: "/carteira", icon: Wallet, label: "Carteira" },
+    { path: "/raspadinha", icon: Sparkles, label: "Raspar" },
     { path: "/perfil", icon: User, label: "Perfil" },
   ];
 
   return (
     <nav className="fixed bottom-0 left-0 right-0 bg-card border-t border-primary/20 md:hidden z-40">
-      <div className="flex items-center justify-between py-2 px-2">
+      <div className="flex items-center justify-between py-1 px-2">
         {/* Left side navigation */}
         <div className="flex items-center space-x-1">
           {navItems.slice(0, 2).map((item) => (
@@ -60,7 +60,7 @@ const BottomNavBar = ({ onAddBalance }: BottomNavBarProps) => {
               key={item.path}
               to={item.path}
               className={cn(
-                "flex flex-col items-center justify-center py-2 px-2 rounded-lg transition-colors min-w-[55px]",
+                "flex flex-col items-center justify-center py-1.5 px-2 rounded-lg transition-colors min-w-[52px]",
                 isActive(item.path)
                   ? "text-primary bg-primary/10"
                   : "text-muted-foreground hover:text-primary"
@@ -112,7 +112,7 @@ const BottomNavBar = ({ onAddBalance }: BottomNavBarProps) => {
               key={item.path}
               to={item.path}
               className={cn(
-                "flex flex-col items-center justify-center py-2 px-2 rounded-lg transition-colors min-w-[55px]",
+                "flex flex-col items-center justify-center py-1.5 px-2 rounded-lg transition-colors min-w-[52px]",
                 isActive(item.path)
                   ? "text-primary bg-primary/10"
                   : "text-muted-foreground hover:text-primary"

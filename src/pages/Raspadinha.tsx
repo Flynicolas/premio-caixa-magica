@@ -99,25 +99,22 @@ const Raspadinha = () => {
       />
       
       <div className="container mx-auto px-4 py-8">
-        {/* Header Premium */}
-        <div className="text-center mb-8">
-          <h2 className="text-3xl md:text-4xl font-bold text-white mb-3">
-            🎰 Raspadinhas Premium
-          </h2>
-          <p className="text-gray-300 text-lg">
-            Prêmios incríveis te esperam! Escolha sua raspadinha favorita
-          </p>
+        {/* Quick top menu - subtle header */}
+        <div className="mb-6">
+          <div className="flex items-center justify-between mb-2">
+            <h2 className="text-base font-semibold text-white/80">Escolha sua raspadinha</h2>
+            <span className="text-xs text-white/60">Atalhos</span>
+          </div>
+          <div className="flex gap-2 overflow-x-auto no-scrollbar py-1">
+            {premiumScratchCards.map((c) => (
+              <a key={c.id} href={`#card-${c.id}`} className="px-3 py-1.5 rounded-full bg-white/10 text-white/90 text-xs hover:bg-white/15 transition-colors whitespace-nowrap">
+                #{c.title}
+              </a>
+            ))}
+          </div>
         </div>
 
-        {/* Balance Display */}
-        {user && (
-          <div className="text-center mb-8">
-            <div className="inline-flex items-center gap-2 bg-gray-800/50 rounded-xl px-6 py-3 border border-gray-700">
-              <span className="text-gray-300">💰 Seu saldo:</span>
-              <span className="text-yellow-400 font-bold text-lg">R$ {walletData?.balance.toFixed(2).replace('.', ',') || '0,00'}</span>
-            </div>
-          </div>
-        )}
+        {/* Balance Display removed as requested */}
         
         {!user && (
           <div className="text-center mb-8">
@@ -192,15 +189,7 @@ const Raspadinha = () => {
                         {card.description}
                       </p>
 
-                      {/* Overlay de saldo insuficiente para usuários logados */}
-                      {!canAfford && user && (
-                        <div className="absolute inset-0 bg-black/80 flex items-center justify-center z-20 rounded-2xl">
-                          <div className="text-center">
-                            <p className="text-red-400 font-bold text-lg mb-2">Saldo Insuficiente</p>
-                            <p className="text-gray-400 text-sm">Adicione créditos para jogar</p>
-                          </div>
-                        </div>
-                      )}
+                      {/* Aviso de saldo insuficiente removido na página inicial */}
 
                       {/* Action Button - Mobile optimized */}
                       <button
