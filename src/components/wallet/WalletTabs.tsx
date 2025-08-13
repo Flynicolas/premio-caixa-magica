@@ -7,8 +7,12 @@ import { TransactionHistoryTab } from './TransactionHistoryTab';
 import { SecurityBanner } from './SecurityBanner';
 import { Wallet, Download, Upload, History } from 'lucide-react';
 
-export const WalletTabs = () => {
-  const [activeTab, setActiveTab] = useState('deposit');
+interface WalletTabsProps {
+  initialTab?: string;
+}
+
+export const WalletTabs = ({ initialTab = 'deposit' }: WalletTabsProps) => {
+  const [activeTab, setActiveTab] = useState(initialTab);
 
   return (
     <div className="w-full max-w-4xl mx-auto">

@@ -1,6 +1,6 @@
 
 import { useState, useEffect } from "react";
-import { Link, useLocation } from "react-router-dom";
+import { Link, useLocation, useNavigate } from "react-router-dom";
 import { Home, Users, User, Wallet, Eye, EyeOff, Sparkles } from "lucide-react";
 import { Button } from "./ui/button";
 import { cn } from "@/lib/utils";
@@ -13,6 +13,7 @@ interface BottomNavBarProps {
 
 const BottomNavBar = ({ onAddBalance }: BottomNavBarProps) => {
   const location = useLocation();
+  const navigate = useNavigate();
   const { walletData } = useWallet();
   const { user } = useAuth();
   const [showBalance, setShowBalance] = useState(true);
@@ -36,7 +37,7 @@ const BottomNavBar = ({ onAddBalance }: BottomNavBarProps) => {
 
   const handleBalanceClick = (e: React.MouseEvent) => {
     e.preventDefault();
-    onAddBalance();
+    navigate('/carteira');
   };
 
   const isActive = (path: string) => {

@@ -10,7 +10,7 @@ import { ErrorTrackingProvider } from "@/hooks/useErrorTracking";
 import Header from "./components/Header";
 import Footer from "./components/Footer";
 import BottomNavBar from "./components/BottomNavBar";
-import WalletPanel from "./components/WalletPanel";
+import { WalletMiniPanel } from "./components/WalletMiniPanel";
 import Index from "./pages/Index";
 import Premios from "./pages/Premios";
 import MeusPremios from "./pages/MeusPremios";
@@ -87,11 +87,9 @@ const App = () => {
                 </main>
                 <Footer />
                 <BottomNavBar onAddBalance={handleOpenWallet} />
-                <WalletPanel 
+                <WalletMiniPanel 
                   isOpen={showWalletPanel} 
                   onClose={() => setShowWalletPanel(false)}
-                  balance={0}
-                  prizes={[]}
                 />
               </div>
             </BrowserRouter>

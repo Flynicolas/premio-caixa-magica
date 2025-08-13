@@ -8,12 +8,16 @@ import {
   Wallet, 
   ArrowLeft
 } from 'lucide-react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 
 const Carteira = () => {
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
   const { user } = useAuth();
   const { walletData, loading } = useWallet();
+  
+  // Get initial tab from URL params
+  const initialTab = searchParams.get('tab') || 'deposit';
   
   const balance = walletData?.balance || 0;
 
@@ -75,7 +79,7 @@ const Carteira = () => {
         </Card>
 
         {/* New Wallet Tabs System */}
-        <WalletTabs />
+        <WalletTabs initialTab={initialTab} />
       </div>
     </div>
   );

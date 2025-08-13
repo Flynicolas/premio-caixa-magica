@@ -165,7 +165,7 @@ const Header = () => {
                 <Button 
                   variant="ghost" 
                   className="hidden sm:flex items-center space-x-2 gold-gradient-subtle hover:gold-gradient-subtle border gold-border px-3 py-1 rounded-full h-auto"
-                  onClick={() => setShowWalletPanel(true)}
+                  onClick={() => navigate('/carteira')}
                 >
                   <Wallet className="w-4 h-4 gold-text" />
                   <span className="text-sm font-bold gold-text">
