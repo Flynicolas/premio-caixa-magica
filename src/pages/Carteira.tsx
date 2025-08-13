@@ -35,9 +35,9 @@ const Carteira = () => {
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-background via-background/95 to-primary/5">
-      <div className="container mx-auto px-4 py-8 max-w-6xl">
+      <div className="container mx-auto px-4 py-4 md:py-8 max-w-6xl">
         {/* Header */}
-        <div className="flex items-center justify-between mb-8">
+        <div className="flex items-center justify-between mb-4 md:mb-8">
           <div className="flex items-center gap-4">
             <Button
               variant="ghost"
@@ -48,7 +48,7 @@ const Carteira = () => {
               <ArrowLeft className="w-4 h-4" />
               Voltar
             </Button>
-            <div className="flex items-center gap-3">
+            <div className="hidden md:flex items-center gap-3">
               <div className="w-10 h-10 bg-gradient-to-r from-yellow-400 to-orange-500 rounded-full flex items-center justify-center shadow-lg">
                 <Wallet className="w-6 h-6 text-black" />
               </div>
@@ -56,11 +56,42 @@ const Carteira = () => {
                 Minha Carteira
               </h1>
             </div>
+            <h1 className="md:hidden text-xl font-bold bg-gradient-to-r from-yellow-400 to-orange-500 bg-clip-text text-transparent">
+              Carteira
+            </h1>
           </div>
         </div>
 
-        {/* Balance Card */}
-        <Card className="p-6 mb-8 bg-gradient-to-br from-primary/10 via-secondary/50 to-primary/5 border-2 border-primary/30 shadow-xl">
+        {/* Mobile: Wallet Tabs First */}
+        <div className="md:hidden mb-6">
+          <WalletTabs initialTab={initialTab} />
+        </div>
+
+        {/* Mobile: Compact Balance Card */}
+        <Card className="md:hidden p-4 mb-6 bg-gradient-to-r from-primary/5 to-secondary/5 border border-primary/20">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-3">
+              <div className="w-8 h-8 bg-gradient-to-r from-yellow-400 to-orange-500 rounded-full flex items-center justify-center">
+                <Wallet className="w-4 h-4 text-black" />
+              </div>
+              <div>
+                <p className="text-xs text-muted-foreground">Saldo</p>
+                <h2 className="text-lg font-bold text-yellow-400">
+                  {balance.toLocaleString("pt-BR", {
+                    style: "currency",
+                    currency: "BRL",
+                  })}
+                </h2>
+              </div>
+            </div>
+            <div className="px-3 py-1 bg-primary/10 rounded-full">
+              <span className="text-xs text-primary font-medium">Ativa</span>
+            </div>
+          </div>
+        </Card>
+
+        {/* Desktop: Balance Card */}
+        <Card className="hidden md:block p-6 mb-8 bg-gradient-to-br from-primary/10 via-secondary/50 to-primary/5 border-2 border-primary/30 shadow-xl">
           <div className="text-center">
             <div className="w-20 h-20 gold-gradient rounded-full flex items-center justify-center mx-auto mb-6 shadow-2xl ring-4 ring-primary/20">
               <Wallet className="w-10 h-10 text-black" />
@@ -78,8 +109,10 @@ const Carteira = () => {
           </div>
         </Card>
 
-        {/* New Wallet Tabs System */}
-        <WalletTabs initialTab={initialTab} />
+        {/* Desktop: Wallet Tabs */}
+        <div className="hidden md:block">
+          <WalletTabs initialTab={initialTab} />
+        </div>
       </div>
     </div>
   );
