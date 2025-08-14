@@ -22,7 +22,7 @@ const RaspadinhasSwitchBar = ({
 }: RaspadinhasSwitchBarProps) => {
   
   // Auto-hide durante scratching, reexibir em success/fail
-  const shouldHide = hideOnScratch && gameState === 'scratching';
+  const shouldHide = hideOnScratch && (gameState === 'scratching' || gameState === 'fastReveal' || gameState === 'resolving');
   
   if (shouldHide) {
     return null;
