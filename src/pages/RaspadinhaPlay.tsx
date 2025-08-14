@@ -7,8 +7,12 @@ import ScratchGameCanvas from "@/components/scratch-card/ScratchGameCanvas";
 import ScratchCardAnimations from "@/components/scratch-card/ScratchCardAnimations";
 import SimpleScratchWinModal from "@/components/scratch-card/SimpleScratchWinModal";
 import ScratchLossToast from "@/components/scratch-card/ScratchLossToast";
+import BannerRaspadinha from "@/components/scratch-card/BannerRaspadinha";
+import RaspadinhasSwitchBar from "@/components/scratch-card/RaspadinhasSwitchBar";
+import StatusBar from "@/components/scratch-card/StatusBar";
+import CompactScratchCatalog from "@/components/scratch-card/CompactScratchCatalog";
 import { scratchCardTypes, ScratchCardType } from "@/types/scratchCard";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Gift, AlertCircle, RefreshCcw } from "lucide-react";
@@ -23,6 +27,8 @@ interface PrizeItem {
   probability_weight: number;
 }
 
+type GamePhase = 'idle' | 'ready' | 'scratching' | 'revealing' | 'success' | 'fail' | 'loading';
+
 const RaspadinhaPlay = () => {
   const { tipo } = useParams<{ tipo: ScratchCardType }>();
   const navigate = useNavigate();
@@ -33,14 +39,24 @@ const RaspadinhaPlay = () => {
     { open: false, type: "item", data: null }
   );
   const [showLossBanner, setShowLossBanner] = useState(false);
-  const [showDebitNote, setShowDebitNote] = useState(false);
+  const [gamePhase, setGamePhase] = useState<GamePhase>('idle');
+  const [isTransitioning, setIsTransitioning] = useState(false);
   const canvasRef = useRef<{ revealAll: () => void }>(null);
-  const startedRef = useRef<string | null>(null);
+  const [statusMessage, setStatusMessage] = useState<string>("");
+
+const [currentScratch, setCurrentScratch] = useState<ScratchCardType>('pix');
 
 const scratchType = useMemo(() => {
-  const key = (tipo as ScratchCardType) || "sorte";
+  const key = (tipo as ScratchCardType) || "pix";
   return key in scratchCardTypes ? key : null;
 }, [tipo]);
+
+// Sync current scratch with URL param
+useEffect(() => {
+  if (scratchType) {
+    setCurrentScratch(scratchType);
+  }
+}, [scratchType]);
 
   const {
     scratchCard,
@@ -105,11 +121,12 @@ const scratchType = useMemo(() => {
     load();
   }, [scratchType]);
 
-  // Inicialização: não iniciar automaticamente; o usuário clica em "Jogar"
+  // Inicialização: resetar quando mudar tipo
   useEffect(() => {
     if (!scratchType) return;
     resetGame();
-    startedRef.current = null;
+    setGamePhase('idle');
+    setStatusMessage("");
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [scratchType]);
 
@@ -118,16 +135,72 @@ const scratchType = useMemo(() => {
     if (!gameComplete || !scratchType) return;
     const combo = checkWinningCombination();
     const hasWin = !!combo;
-    processGame(scratchType, hasWin, combo?.winningSymbol);
-    if (hasWin && combo?.winningSymbol) {
-      const sym: any = combo.winningSymbol;
-      const isMoney = (sym.category === 'dinheiro') || /dinheiro|real/i.test(sym.name || '');
-      setWinModal({ open: true, type: isMoney ? 'money' : 'item', data: isMoney ? { amount: sym.base_value } : sym });
-    } else {
-      setShowLossBanner(true);
-      setTimeout(() => setShowLossBanner(false), 3500);
-    }
+    
+    setGamePhase('revealing');
+    setTimeout(() => {
+      processGame(scratchType, hasWin, combo?.winningSymbol);
+      
+      if (hasWin && combo?.winningSymbol) {
+        setGamePhase('success');
+        const sym: any = combo.winningSymbol;
+        const isMoney = (sym.category === 'dinheiro') || /dinheiro|real/i.test(sym.name || '');
+        
+        // Aguardar animação dourada por 2.5s
+        setTimeout(() => {
+          setWinModal({ open: true, type: isMoney ? 'money' : 'item', data: isMoney ? { amount: sym.base_value } : sym });
+        }, 2500);
+      } else {
+        setGamePhase('fail');
+        setShowLossBanner(true);
+        setTimeout(() => setShowLossBanner(false), 3500);
+      }
+    }, 300);
   }, [gameComplete, checkWinningCombination, processGame, scratchType]);
+
+  // Handlers
+  const handleScratchChange = (newType: ScratchCardType) => {
+    if (isTransitioning || newType === currentScratch) return;
+    
+    setIsTransitioning(true);
+    setGamePhase('loading');
+    
+    // Micro-loading com skeleton
+    setTimeout(() => {
+      setCurrentScratch(newType);
+      navigate(`/raspadinhas/${newType}`, { replace: true });
+      setIsTransitioning(false);
+      setGamePhase('idle');
+    }, 250);
+  };
+
+  const handleStartGame = async () => {
+    if (!scratchType || gamePhase === 'scratching' || isLoading) return;
+    
+    setGamePhase('scratching');
+    setStatusMessage("Raspando cartela...");
+    
+    try {
+      await generateScratchCard(scratchType);
+    } catch (error) {
+      setGamePhase('idle');
+      setStatusMessage("Erro ao gerar cartela");
+    }
+  };
+
+  const handleRepeatGame = () => {
+    if (isLoading) return;
+    
+    setGamePhase('loading');
+    resetGame();
+    setTimeout(() => {
+      handleStartGame();
+    }, 150);
+  };
+
+  const handleRevealAll = () => {
+    if (gamePhase !== 'scratching' || !canvasRef.current) return;
+    canvasRef.current.revealAll();
+  };
 
   if (!scratchType) {
     return (
@@ -140,113 +213,132 @@ const scratchType = useMemo(() => {
 
   const config = scratchCardTypes[scratchType];
   const balanceOk = !!walletData && walletData.balance >= config.price;
+  
+  // Button state logic
+  const getButtonState = () => {
+    if (gamePhase === 'scratching') return { disabled: true, label: "Raspando..." };
+    if (gamePhase === 'loading') return { disabled: true, label: "Carregando..." };
+    if (gamePhase === 'success' || gamePhase === 'fail') return { disabled: false, label: "Jogar de novo" };
+    if (!balanceOk) return { disabled: true, label: `Raspar • R$ ${config.price.toFixed(2)}` };
+    return { disabled: false, label: `Raspar • R$ ${config.price.toFixed(2)}` };
+  };
+
+  const buttonState = getButtonState();
 
   return (
     <div className="min-h-screen bg-background">
-      <header className="bg-gradient-to-b from-background to-muted/30">
-        <div className="container mx-auto px-4 py-6 text-center">
-          <h1 className="text-3xl font-bold text-foreground">{config.name}</h1>
-          <p className="text-muted-foreground mt-1">R$ {config.price.toFixed(2)}</p>
-        </div>
+      {/* Banner Header */}
+      <header className="w-full">
+        <BannerRaspadinha 
+          imageUrl={config.coverImage || "/placeholder.svg"}
+          alt={`Banner ${config.name}`}
+          height={100}
+          width="auto" 
+          mode="cover"
+          className="w-full"
+        />
       </header>
 
-      <main className="container mx-auto px-4 py-8 space-y-10">
+      <main className="container mx-auto px-4 py-6 space-y-6">
+        {/* Switch Bar */}
+        <div className="max-w-4xl mx-auto">
+          <RaspadinhasSwitchBar
+            currentScratch={currentScratch}
+            onScratchChange={handleScratchChange}
+            isLoading={isTransitioning}
+          />
+        </div>
+
         {/* Game panel */}
         <Card className="max-w-2xl mx-auto">
-          <CardHeader className="text-center">
-            <CardTitle>Raspe para revelar</CardTitle>
-          </CardHeader>
-          <CardContent className="flex flex-col items-center gap-4">
-            {user ? (
-              scratchCard?.symbols ? (
-                <ScratchGameCanvas
-                  ref={canvasRef}
-                  symbols={scratchCard.symbols}
-                  onWin={() => {}}
-                  onComplete={() => { /* processing handled by effect */ }}
-                  gameStarted={true}
-                  scratchType={scratchType}
-                  className="w-full max-w-[360px]"
-                />
+          <CardContent className="p-6">
+            <div className="flex flex-col items-center gap-4">
+              {user ? (
+                scratchCard?.symbols ? (
+                  <>
+                    <ScratchGameCanvas
+                      ref={canvasRef}
+                      symbols={scratchCard.symbols}
+                      onWin={() => {}}
+                      onComplete={() => { /* processing handled by effect */ }}
+                      gameStarted={true}
+                      scratchType={scratchType}
+                      className="w-full max-w-[360px]"
+                    />
+                    
+                    {/* Game Controls */}
+                    <div className="flex gap-2 w-full max-w-[360px]">
+                      <Button 
+                        variant="outline" 
+                        onClick={handleRevealAll}
+                        disabled={gamePhase !== 'scratching'}
+                        className="flex-1"
+                      >
+                        Revelar tudo
+                      </Button>
+                      <Button 
+                        onClick={handleRepeatGame}
+                        disabled={buttonState.disabled && gamePhase !== 'success' && gamePhase !== 'fail'}
+                        className="flex-1"
+                      >
+                        Jogar de novo
+                      </Button>
+                    </div>
+                  </>
+                ) : (
+                  <div className="text-center space-y-4">
+                    <Button 
+                      disabled={buttonState.disabled} 
+                      onClick={gamePhase === 'success' || gamePhase === 'fail' ? handleRepeatGame : handleStartGame}
+                      className="min-w-[200px]"
+                      size="lg"
+                    >
+                      {buttonState.label}
+                    </Button>
+                    
+                    {!balanceOk && (
+                      <div className="flex items-center justify-center gap-2 text-xs text-muted-foreground">
+                        <AlertCircle className="w-4 h-4" />
+                        <span>Saldo insuficiente</span>
+                      </div>
+                    )}
+                    
+                    {walletData && (
+                      <p className="text-xs text-muted-foreground">
+                        Saldo: R$ {walletData.balance.toFixed(2)}
+                      </p>
+                    )}
+                  </div>
+                )
               ) : (
-                <>
-                  <Button disabled={isLoading || !balanceOk} onClick={() => { setShowDebitNote(true); setTimeout(()=>setShowDebitNote(false), 4000); generateScratchCard(scratchType); }}>
-                    {isLoading ? 'Carregando...' : `Raspar agora • R$ ${config.price.toFixed(2)}`}
-                  </Button>
-                  {!balanceOk && <p className="text-xs text-muted-foreground">Saldo insuficiente</p>}
-                  {showDebitNote && balanceOk && (
-                    <p className="text-xs text-muted-foreground">Debitado R$ {config.price.toFixed(2)} da sua carteira</p>
-                  )}
-                </>
-              )
-            ) : (
-              <div className="text-center">
-                <p className="text-sm text-muted-foreground mb-3">Faça login para jogar</p>
-                <Link to="/perfil">
-                  <Button>Entrar</Button>
-                </Link>
-              </div>
-            )}
-
-            {scratchCard?.symbols && (
-              <div className="flex gap-2">
-                <Button variant="outline" onClick={() => canvasRef.current?.revealAll()}>Revelar tudo</Button>
-                <Button onClick={() => { setShowDebitNote(true); setTimeout(()=>setShowDebitNote(false), 4000); resetGame(); generateScratchCard(scratchType); }}>
-                  Jogar novamente • R$ {config.price.toFixed(2)}
-                </Button>
-              </div>
-            )}
+                <div className="text-center space-y-3">
+                  <p className="text-sm text-muted-foreground">Faça login para jogar</p>
+                  <Link to="/perfil">
+                    <Button>Entrar</Button>
+                  </Link>
+                </div>
+              )}
+            </div>
           </CardContent>
         </Card>
 
-        {/* Mini como funciona */}
-        <section className="max-w-3xl mx-auto text-center">
-          <h2 className="text-xl font-semibold text-foreground mb-2">Como funciona</h2>
-          <p className="text-sm text-muted-foreground">Raspe a cartela e encontre 3 símbolos iguais para ganhar. Itens com peso zero não são premiáveis e servem apenas como preenchimento visual.</p>
-        </section>
-
-        {/* Prize list below game */}
-        <section className="max-w-5xl mx-auto">
-          <h2 className="text-xl font-semibold text-foreground mb-4">Prêmios desta raspadinha</h2>
-          {items.length === 0 ? (
-            <div className="text-center py-10 text-muted-foreground">
-              <Gift className="w-8 h-8 mx-auto mb-2" />
-              <p>Nenhum prêmio configurado.</p>
-            </div>
-          ) : (
-            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4">
-              {items.map((it) => (
-                <Card key={it.id} className="overflow-hidden">
-                  <CardContent className="p-3 text-center">
-                    {it.image_url ? (
-                      <img src={it.image_url} alt={it.name} className="w-16 h-16 object-contain mx-auto" />
-                    ) : (
-                      <div className="w-16 h-16 bg-muted rounded mx-auto" />
-                    )}
-                    <p className="mt-2 text-sm font-medium truncate" title={it.name}>{it.name}</p>
-                    <div className="flex items-center justify-center gap-2 mt-1">
-                      <Badge variant="outline" className="capitalize">{it.rarity}</Badge>
-                      <Badge variant="outline">R$ {it.base_value.toFixed(2)}</Badge>
-                    </div>
-                  </CardContent>
-                </Card>
-              ))}
-            </div>
-          )}
-        </section>
-
-        {/* Shortcuts to other scratch types */}
-        <section className="max-w-4xl mx-auto">
-          <h2 className="text-xl font-semibold text-foreground mb-3">Outras raspadinhas</h2>
-          <div className="flex flex-wrap gap-3">
-            {Object.keys(scratchCardTypes)
-              .filter((k) => k !== scratchType)
-              .map((k) => (
-                <Link key={k} to={`/raspadinhas/${k}`} className="inline-block">
-                  <Button variant="hero" size="sm" className="hover-scale">{scratchCardTypes[k as ScratchCardType].name}</Button>
-                </Link>
-              ))}
+        {/* Como funciona - Copys limpas */}
+        <section className="max-w-3xl mx-auto text-center space-y-3">
+          <h2 className="text-xl font-semibold text-foreground">Como funciona</h2>
+          <div className="text-sm text-muted-foreground space-y-2">
+            <p>1. Escolha a raspadinha e toque em <strong>Raspar</strong></p>
+            <p>2. Revele os quadrados — ao encontrar <strong>3 figuras iguais</strong>, você vence</p>
+            <p>3. Use <strong>Revelar tudo</strong> se quiser acelerar</p>
+            <p>4. O resultado aparece na hora e você pode jogar novamente</p>
           </div>
+        </section>
+
+        {/* Catálogo Compacto */}
+        <section className="max-w-6xl mx-auto">
+          <CompactScratchCatalog
+            currentType={currentScratch}
+            onPlayType={handleScratchChange}
+          />
         </section>
       </main>
 
@@ -262,7 +354,13 @@ const scratchType = useMemo(() => {
       <ScratchLossToast
         isVisible={showLossBanner}
         onClose={() => setShowLossBanner(false)}
-        onPlayAgain={() => { setShowLossBanner(false); setShowDebitNote(true); setTimeout(()=>setShowDebitNote(false), 4000); resetGame(); generateScratchCard(scratchType!); }}
+        onPlayAgain={handleRepeatGame}
+      />
+
+      {/* Status Bar */}
+      <StatusBar 
+        status={gamePhase} 
+        message={statusMessage}
       />
     </div>
   );
