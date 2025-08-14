@@ -27,8 +27,6 @@ export const useScratchCard = () => {
   const [gameId, setGameId] = useState<string | null>(null);
   const [gameState, setGameState] = useState<ScratchGameState>('idle');
   const [fastRevealTriggered, setFastRevealTriggered] = useState(false);
-  const [symbols, setSymbols] = useState<any[]>([]);
-  const [watchdogTimer, setWatchdogTimer] = useState<NodeJS.Timeout | null>(null);
   const { toast } = useToast();
   const { refetchWallet } = useWallet();
   const { isEnabled: adminTestMode } = useAdminTestMode();
@@ -153,7 +151,6 @@ export const useScratchCard = () => {
           };
 
           setScratchCard(cardData);
-          setSymbols(cardData.symbols || []);
           setGameId(`admin-test-${Date.now()}`);
           const initialBlocks: ScratchBlockState[] = Array.from({ length: 9 }, (_, index) => ({
             id: index,
@@ -161,7 +158,6 @@ export const useScratchCard = () => {
             symbol: cardData.symbols[index] || null,
           }));
           setBlocks(initialBlocks);
-          setGameState('ready');
           return cardData;
         }
 
@@ -181,7 +177,6 @@ export const useScratchCard = () => {
 
         const cardData: ScratchCard = data;
         setScratchCard(cardData);
-        setSymbols(cardData.symbols || []);
         setGameId((data as any)?.gameId || null);
 
         // Inicializar blocos
@@ -192,7 +187,6 @@ export const useScratchCard = () => {
         }));
 
         setBlocks(initialBlocks);
-        setGameState('ready');
 
         // Atualizar saldo da carteira após processamento no backend
         await refetchWallet();
@@ -310,21 +304,14 @@ export const useScratchCard = () => {
     return null;
   }, [blocks, scratchCard, gameComplete]);
 
-  const resetGame = useCallback(() => {
-    // Limpar watchdog timer
-    if (watchdogTimer) {
-      clearTimeout(watchdogTimer);
-      setWatchdogTimer(null);
-    }
-    
+  const resetGame = () => {
     setScratchCard(null);
     setBlocks([]);
-    setSymbols([]);
     setGameComplete(false);
     setGameId(null);
-    setGameState('ready');
+    setGameState('idle');
     setFastRevealTriggered(false);
-  }, [watchdogTimer]);
+  };
 
   const scratchAll = useCallback(() => {
     setBlocks(prev => prev.map(block => ({ ...block, isScratched: true })));
@@ -341,25 +328,11 @@ export const useScratchCard = () => {
 
   const startGame = useCallback(async (chestType: ScratchCardType) => {
     setGameState('scratching');
-    
-    // Iniciar watchdog timer para estado 'resolving'
-    const timer = setTimeout(() => {
-      console.warn('Watchdog: Estado resolving durou mais de 3s, forçando término');
-      setGameState('fail');
-    }, 3000);
-    setWatchdogTimer(timer);
-    
     await generateScratchCard(chestType);
   }, [generateScratchCard]);
 
   const processGameResult = useCallback(async (chestType: ScratchCardType, hasWin: boolean, winningItem?: any) => {
     setGameState('resolving');
-    
-    // Limpar watchdog timer
-    if (watchdogTimer) {
-      clearTimeout(watchdogTimer);
-      setWatchdogTimer(null);
-    }
     
     try {
       await processGame(chestType, hasWin, winningItem);
@@ -367,7 +340,7 @@ export const useScratchCard = () => {
     } catch (error) {
       setGameState('fail');
     }
-  }, [processGame, watchdogTimer]);
+  }, [processGame]);
 
 
   return {
@@ -382,7 +355,6 @@ export const useScratchCard = () => {
     processGameResult,
     scratchCard,
     blocks,
-    symbols,
     isLoading,
     gameComplete,
     gameId,

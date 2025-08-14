@@ -1,20 +1,19 @@
-import { useEffect, useMemo, useState, useCallback } from "react";
-import { useParams, useNavigate } from "react-router-dom";
+import { useEffect, useMemo, useRef, useState, useCallback } from "react";
+import { useParams, Link, useNavigate } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
 import { useWallet } from "@/hooks/useWalletProvider";
 import { useScratchCard } from "@/hooks/useScratchCard";
+import ScratchModal from "@/components/scratch-card/ScratchModal";
 import ScratchActionButton, { ScratchGameState } from "@/components/scratch-card/ScratchActionButton";
 import SimpleScratchWinModal from "@/components/scratch-card/SimpleScratchWinModal";
-import StatusBar from "@/components/scratch-card/StatusBar";
-import CompactScratchCatalog from "@/components/scratch-card/CompactScratchCatalog";
-import ScratchGameCanvas from "@/components/scratch-card/ScratchGameCanvas";
+import ScratchLossToast from "@/components/scratch-card/ScratchLossToast";
 import BannerRaspadinha from "@/components/scratch-card/BannerRaspadinha";
 import RaspadinhasSwitchBar from "@/components/scratch-card/RaspadinhasSwitchBar";
-import ModernAuthModal from "@/components/ModernAuthModal";
+import StatusBar from "@/components/scratch-card/StatusBar";
+import CompactScratchCatalog from "@/components/scratch-card/CompactScratchCatalog";
 import { scratchCardTypes, ScratchCardType } from "@/types/scratchCard";
-import { Card } from "@/components/ui/card";
+import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { LogIn, ArrowLeft } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import confetti from 'canvas-confetti';
 
@@ -27,121 +26,124 @@ interface PrizeItem {
   probability_weight: number;
 }
 
-const APP_NAME = "Raspadinha";
+// Removed - using FSM from ScratchActionButton
 
 const RaspadinhaPlay = () => {
   const { tipo } = useParams<{ tipo: ScratchCardType }>();
   const navigate = useNavigate();
   const { user } = useAuth();
   const { walletData } = useWallet();
-  
-  const isAuthenticated = !!user;
-  const balance = walletData?.balance || 0;
-  
-  const [showWinModal, setShowWinModal] = useState(false);
-  const [showLoginModal, setShowLoginModal] = useState(false);
-  const [winResult, setWinResult] = useState<any>(null);
   const [items, setItems] = useState<PrizeItem[]>([]);
+  const [winModal, setWinModal] = useState<{ open: boolean; type: "item" | "money"; data: any }>(
+    { open: false, type: "item", data: null }
+  );
+  const [showLossToast, setShowLossToast] = useState(false);
   const [isTransitioning, setIsTransitioning] = useState(false);
+  const [modalOpen, setModalOpen] = useState(false);
+  const canvasRef = useRef<{ revealAll: () => void }>(null);
 
-  // Current scratch type management
-  const currentScratch = useMemo(() => {
-    return (tipo && scratchCardTypes[tipo]) ? tipo : 'pix';
-  }, [tipo]);
+const [currentScratch, setCurrentScratch] = useState<ScratchCardType>('pix');
 
-  const currentPrice = scratchCardTypes[currentScratch]?.price || 5;
+const scratchType = useMemo(() => {
+  const key = (tipo as ScratchCardType) || "pix";
+  return key in scratchCardTypes ? key : null;
+}, [tipo]);
 
-  // Usar o hook de scratch card
+// Sync current scratch with URL param
+useEffect(() => {
+  if (scratchType) {
+    setCurrentScratch(scratchType);
+  }
+}, [scratchType]);
+
   const {
-    isLoading,
     scratchCard,
-    blocks,
-    symbols,
+    isLoading,
     gameComplete,
     gameState,
-    scratchBlock,
-    resetGame,
+    setGameState,
     startGame,
     triggerFastReveal,
-    processGameResult
+    processGameResult,
+    resetGame,
+    checkWinningCombination,
   } = useScratchCard();
 
-  // Carregar itens do catálogo (inclusive probabilidade 0)
+  // SEO basics
   useEffect(() => {
-    const loadItems = async () => {
-      try {
-        const { data: probs } = await supabase
-          .from('scratch_card_probabilities')
-          .select('item_id, probability_weight')
-          .eq('scratch_type', currentScratch)
-          .eq('is_active', true);
+    if (!scratchType) return;
+    const config = scratchCardTypes[scratchType];
+    document.title = `${config.name} | Raspadinha`;
+    const desc = `Jogue a raspadinha ${config.name} e concorra a prêmios. Preço: R$ ${config.price.toFixed(2)}`;
+    let meta = document.querySelector('meta[name="description"]');
+    if (!meta) {
+      meta = document.createElement('meta');
+      meta.setAttribute('name', 'description');
+      document.head.appendChild(meta);
+    }
+    meta.setAttribute('content', desc);
+    // canonical
+    let link = document.querySelector('link[rel="canonical"]');
+    if (!link) {
+      link = document.createElement('link');
+      link.setAttribute('rel', 'canonical');
+      document.head.appendChild(link);
+    }
+    link.setAttribute('href', window.location.href);
+  }, [scratchType]);
 
-        if (!probs || probs.length === 0) {
-          setItems([]);
-          return;
-        }
-
-        const itemIds = probs.map(p => p.item_id);
-        const { data: itemsData } = await supabase
-          .from('items')
-          .select('id, name, image_url, rarity, base_value')
-          .in('id', itemIds)
-          .eq('is_active', true);
-
-        if (!itemsData) {
-          setItems([]);
-          return;
-        }
-
-        const mergedItems: PrizeItem[] = itemsData.map(item => ({
-          id: item.id,
-          name: item.name,
-          image_url: item.image_url,
-          rarity: item.rarity as string,
-          base_value: item.base_value,
-          probability_weight: probs.find(p => p.item_id === item.id)?.probability_weight || 0,
-        })).sort((a, b) => b.base_value - a.base_value);
-
-        setItems(mergedItems);
-      } catch (error) {
-        console.error('Erro ao carregar itens:', error);
-        setItems([]);
-      }
+  // Carregar TODOS os itens (inclusive prob 0) para o mostruário
+  useEffect(() => {
+    if (!scratchType) return;
+    const load = async () => {
+      const { data: probs, error: pErr } = await supabase
+        .from('scratch_card_probabilities')
+        .select('item_id, probability_weight')
+        .eq('scratch_type', scratchType)
+        .eq('is_active', true);
+      if (pErr) return;
+      const ids = (probs || []).map((p: any) => p.item_id);
+      if (ids.length === 0) { setItems([]); return; }
+      const { data: its } = await supabase
+        .from('items')
+        .select('id, name, image_url, rarity, base_value')
+        .in('id', ids)
+        .eq('is_active', true);
+      const merged: PrizeItem[] = (its || []).map(i => ({
+        id: i.id,
+        name: i.name,
+        image_url: i.image_url,
+        rarity: i.rarity as string,
+        base_value: i.base_value,
+        probability_weight: (probs || []).find((v: any) => v.item_id === i.id)?.probability_weight ?? 0,
+      })).sort((a,b)=> b.base_value - a.base_value);
+      setItems(merged);
     };
+    load();
+  }, [scratchType]);
 
-    loadItems();
-  }, [currentScratch]);
-
-  // Auto-reset when changing scratch type
+  // Inicialização: resetar quando mudar tipo + abrir modal automaticamente
   useEffect(() => {
+    if (!scratchType) return;
     resetGame();
-  }, [currentScratch, resetGame]);
+    setGameState('idle');
+    
+    // Auto-abrir modal de canvas ao entrar na raspadinha
+    if (user && walletData && walletData.balance >= config.price) {
+      setModalOpen(true);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [scratchType, user, walletData]);
 
-  // Process game completion
+  // Quando o jogo termina, processar e mostrar win/loss
   useEffect(() => {
-    if (!gameComplete || !scratchCard) return;
-
-    // Check for winning combination
-    const symbolCount: Record<string, number> = {};
-    let winningSymbol: any = null;
-
-    blocks.forEach(block => {
-      if (block.symbol && block.isScratched) {
-        const symbolId = block.symbol.id;
-        symbolCount[symbolId] = (symbolCount[symbolId] || 0) + 1;
-        
-        if (symbolCount[symbolId] >= 3) {
-          winningSymbol = block.symbol;
-        }
-      }
-    });
-
-    const hasWin = !!winningSymbol;
-
-    // Process result
-    processGameResult(currentScratch, hasWin, winningSymbol);
-
-    if (hasWin) {
+    if (!gameComplete || !scratchType) return;
+    const combo = checkWinningCombination();
+    const hasWin = !!combo;
+    
+    processGameResult(scratchType, hasWin, combo?.winningSymbol);
+    
+    if (hasWin && combo?.winningSymbol) {
       // Trigger confetti
       confetti({
         particleCount: 100,
@@ -149,202 +151,206 @@ const RaspadinhaPlay = () => {
         origin: { y: 0.6 }
       });
 
-      // Show win modal after golden highlight
+      const sym: any = combo.winningSymbol;
+      const isMoney = (sym.category === 'dinheiro') || /dinheiro|real/i.test(sym.name || '');
+      
+      // Aguardar animação dourada por 2.5s
       setTimeout(() => {
-        setWinResult(winningSymbol);
-        setShowWinModal(true);
+        setWinModal({ open: true, type: isMoney ? 'money' : 'item', data: isMoney ? { amount: sym.base_value } : sym });
       }, 2500);
+    } else {
+      setShowLossToast(true);
+      setTimeout(() => setShowLossToast(false), 3500);
     }
-  }, [gameComplete, blocks, scratchCard, currentScratch, processGameResult]);
+  }, [gameComplete, checkWinningCombination, processGameResult, scratchType]);
 
-  // Handle scratch type change
-  const handleScratchChange = useCallback((newType: ScratchCardType) => {
+  // Handlers
+  const handleScratchChange = (newType: ScratchCardType) => {
     if (isTransitioning || newType === currentScratch) return;
     
     setIsTransitioning(true);
+    setGameState('locked');
+    setModalOpen(false); // Fechar modal durante transição
     
     // Micro-loading com skeleton
     setTimeout(() => {
+      setCurrentScratch(newType);
       navigate(`/raspadinhas/${newType}`, { replace: true });
       setIsTransitioning(false);
+      setGameState('idle');
     }, 250);
-  }, [isTransitioning, currentScratch, navigate]);
+  };
 
-  // Determine button state
+  const config = scratchCardTypes[scratchType];
+  const balanceOk = !!walletData && walletData.balance >= config.price;
+
+  // Determinar estado do botão baseado na autenticação, saldo e game state
   const getButtonState = useCallback((): ScratchGameState => {
-    if (!isAuthenticated) return 'locked';
+    if (!user) return 'locked';
     if (isLoading || isTransitioning) return 'locked';
-    if (balance < currentPrice) return 'locked';
+    if (!balanceOk) return 'locked';
 
     return gameState;
-  }, [isAuthenticated, isLoading, isTransitioning, balance, currentPrice, gameState]);
+  }, [user, isLoading, isTransitioning, balanceOk, gameState]);
 
-  // Handle button action
+  const buttonState = getButtonState();
+
+  // Handle main button action based on current state
   const handleButtonAction = useCallback(async () => {
-    const buttonState = getButtonState();
-
-    if (buttonState === 'idle' || buttonState === 'ready') {
-      // Start game
-      await startGame(currentScratch);
-    } else if (buttonState === 'scratching') {
-      // Reveal all
-      triggerFastReveal();
-    } else if (buttonState === 'success' || buttonState === 'fail') {
-      // Play again
-      resetGame();
-      setWinResult(null);
-      setShowWinModal(false);
+    switch (buttonState) {
+      case 'idle':
+      case 'ready':
+        // Abrir modal e iniciar jogo
+        setModalOpen(true);
+        break;
+      
+      case 'success':
+      case 'fail':
+        // Play again - reset and restart
+        resetGame();
+        setGameState('ready');
+        setModalOpen(true);
+        break;
+      
+      default:
+        // Do nothing for locked states
+        break;
     }
-  }, [getButtonState, startGame, currentScratch, triggerFastReveal, resetGame]);
+  }, [buttonState, resetGame, setGameState]);
 
-  // Função para lidar com a conclusão do jogo
-  const handleComplete = useCallback((hasWin: boolean, winningItem?: any) => {
-    console.log('Jogo completo:', { hasWin, winningItem });
-    
-    if (hasWin && winningItem) {
-      setWinResult(winningItem);
-      setShowWinModal(true);
-    }
-    
-    processGameResult(currentScratch, hasWin, winningItem);
-  }, [currentScratch, processGameResult]);
-
+  // Handle add balance (for locked state)
   const handleAddBalance = useCallback(() => {
     navigate('/carteira');
   }, [navigate]);
 
-  // Função para obter mensagem de status
-  const getStatusMessage = useCallback(() => {
-    switch (gameState) {
-      case 'ready':
-      case 'idle':
-        return "Pronto para jogar.";
-      case 'scratching':
-        return "Raspando... toque novamente para revelar tudo.";
-      case 'fastReveal':
-        return "Revelando...";
-      case 'resolving':
-        return "Verificando resultado...";
-      case 'success':
-        return "Você ganhou! 🎉";
-      case 'fail':
-        return "Não foi desta vez 😕";
-      case 'locked':
-        return "Saldo insuficiente.";
-      default:
-        return "";
-    }
-  }, [gameState]);
-
-  if (!scratchCardTypes[currentScratch]) {
+  if (!scratchType) {
     return (
-      <div className="min-h-screen bg-background flex items-center justify-center">
-        <Card className="p-8 text-center">
-          <h1 className="text-2xl font-bold text-destructive mb-4">
-            Raspadinha não encontrada
-          </h1>
-          <p className="text-muted-foreground mb-6">
-            O tipo de raspadinha "{currentScratch}" não existe.
-          </p>
-          <Button onClick={() => navigate('/raspadinhas/pix')}>
-            <ArrowLeft className="w-4 h-4 mr-2" />
-            Voltar para PIX
-          </Button>
-        </Card>
+      <div className="container mx-auto px-4 py-12 text-center">
+        <p className="text-muted-foreground">Raspadinha inválida.</p>
+        <Button className="mt-4" onClick={() => navigate('/raspadinha')}>Voltar</Button>
       </div>
     );
   }
 
-      return (
-        <>
 
-      <main className="min-h-screen bg-background">
-        <div className="container mx-auto px-4 py-6 space-y-6">
-          {/* Banner da raspadinha */}
-          <BannerRaspadinha 
-            imageUrl={scratchCardTypes[currentScratch]?.coverImage || "/placeholder.svg"}
-            alt={`Banner ${scratchCardTypes[currentScratch]?.name}`}
-          />
-          
-          {/* Switch bar para trocar de raspadinha */}
-          <RaspadinhasSwitchBar 
+  return (
+    <div className="min-h-screen bg-background">
+      {/* Banner Header */}
+      <header className="w-full">
+        <BannerRaspadinha 
+          imageUrl={config.coverImage || "/placeholder.svg"}
+          alt={`Banner ${config.name}`}
+          height={100}
+          width="auto" 
+          mode="cover"
+          className="w-full"
+        />
+      </header>
+
+      <main className="container mx-auto px-4 py-6 space-y-6">
+        {/* Switch Bar - Dinâmica/Compacta */}
+        <div className="max-w-4xl mx-auto">
+          <RaspadinhasSwitchBar
             currentScratch={currentScratch}
             onScratchChange={handleScratchChange}
             isLoading={isTransitioning}
-            gameState={gameState}
             hideOnScratch={true}
+            gameState={gameState}
           />
-
-          {/* Canvas inline - sempre visível */}
-          <Card className="p-6">
-            <div className="space-y-4">
-              {/* Canvas de jogo */}
-              <div className="relative">
-                <ScratchGameCanvas
-                  symbols={symbols}
-                  onWin={() => {}}
-                  onComplete={() => {}}
-                  disabled={!isAuthenticated || (gameState !== 'scratching' && gameState !== 'fastReveal')}
-                />
-              </div>
-
-              {/* Status bar */}
-              <StatusBar 
-                status={gameState} 
-                message={getStatusMessage()}
-                className="text-center"
-              />
-
-              {/* Saldo e botão de ação */}
-              {isAuthenticated ? (
-                <div className="space-y-4">
-                  <div className="flex justify-between items-center bg-muted/30 p-3 rounded-lg">
-                    <span className="text-sm text-muted-foreground">Seu saldo:</span>
-                    <span className="font-bold text-primary">
-                      R$ {balance.toFixed(2)}
-                    </span>
-                  </div>
-
-                  <ScratchActionButton
-                    state={getButtonState()}
-                    onAction={handleButtonAction}
-                    price={currentPrice}
-                    balance={balance}
-                    onAddBalance={handleAddBalance}
-                  />
-                </div>
-              ) : (
-                <div className="bg-muted/50 p-4 rounded-lg border border-border text-center">
-                  <p className="text-muted-foreground mb-4">
-                    Entre para jogar e concorrer a prêmios reais!
-                  </p>
-                  <Button onClick={() => setShowLoginModal(true)} className="w-full">
-                    <LogIn className="w-4 h-4 mr-2" />
-                    Entrar
-                  </Button>
-                </div>
-              )}
-            </div>
-          </Card>
-
-          {/* Catálogo de prêmios */}
-          <CompactScratchCatalog currentType={currentScratch} onPlayType={handleScratchChange} />
         </div>
 
-        {/* Modais */}
-        <ModernAuthModal
-          isOpen={showLoginModal}
-          onClose={() => setShowLoginModal(false)}
-        />
+        {/* Game panel - Botão único inteligente */}
+        <Card className="max-w-2xl mx-auto">
+          <CardContent className="p-6">
+            <div className="flex flex-col items-center gap-6">
+              {/* Preview area */}
+              <div className="w-full max-w-[300px] h-[300px] bg-muted rounded-lg border-2 border-dashed border-muted-foreground/30 flex items-center justify-center">
+                <div className="text-center space-y-2">
+                  <div className="text-4xl opacity-50">🎲</div>
+                  <p className="text-sm text-muted-foreground">
+                    Clique em "Raspar" para abrir o jogo
+                  </p>
+                </div>
+              </div>
 
-        <SimpleScratchWinModal
-          isOpen={showWinModal}
-          onClose={() => setShowWinModal(false)}
-          winType={winResult?.category === 'dinheiro' ? 'money' : 'item'}
-          winData={winResult}
-        />
+              {/* Smart Action Button */}
+              <ScratchActionButton
+                state={buttonState}
+                onAction={handleButtonAction}
+                onAddBalance={handleAddBalance}
+                price={config.price}
+                balance={walletData?.balance || 0}
+                className="w-full max-w-[300px]"
+              />
+
+              {/* Auth prompt for non-authenticated users */}
+              {!user && (
+                <div className="text-center space-y-3">
+                  <p className="text-sm text-muted-foreground">Faça login para jogar</p>
+                  <Link to="/perfil">
+                    <Button variant="outline">Entrar</Button>
+                  </Link>
+                </div>
+              )}
+
+              {/* Saldo info para usuários autenticados */}
+              {user && walletData && (
+                <p className="text-xs text-muted-foreground text-center">
+                  Saldo: R$ {walletData.balance.toFixed(2)}
+                </p>
+              )}
+            </div>
+          </CardContent>
+        </Card>
+
+        {/* Como funciona - Copys limpas */}
+        <section className="max-w-3xl mx-auto text-center space-y-3">
+          <h2 className="text-xl font-semibold text-foreground">Como funciona</h2>
+          <div className="text-sm text-muted-foreground space-y-2">
+            <p>1. Escolha a raspadinha e toque em <strong>Raspar</strong></p>
+            <p>2. Revele os quadrados — ao encontrar <strong>3 figuras iguais</strong>, você vence</p>
+            <p>3. Use <strong>Revelar tudo</strong> se quiser acelerar</p>
+            <p>4. O resultado aparece na hora e você pode jogar novamente</p>
+          </div>
+        </section>
+
+        {/* Catálogo Compacto */}
+        <section className="max-w-6xl mx-auto">
+          <CompactScratchCatalog
+            currentType={currentScratch}
+            onPlayType={handleScratchChange}
+          />
+        </section>
       </main>
-    </>
+
+      {/* Minimal win modal */}
+      <SimpleScratchWinModal
+        isOpen={winModal.open}
+        onClose={() => setWinModal((w) => ({ ...w, open: false }))}
+        winType={winModal.type}
+        winData={winModal.data}
+      />
+
+      {/* Loss toast */}
+      <ScratchLossToast
+        isVisible={showLossToast}
+        onClose={() => setShowLossToast(false)}
+        onPlayAgain={handleButtonAction}
+      />
+
+      {/* Status Bar */}
+      <StatusBar 
+        status={gameState as any} 
+      />
+
+      {/* Modal de Canvas Automático */}
+      <ScratchModal
+        isOpen={modalOpen}
+        onClose={() => setModalOpen(false)}
+        scratchType={scratchType}
+        price={config.price}
+      />
+    </div>
   );
 };
 

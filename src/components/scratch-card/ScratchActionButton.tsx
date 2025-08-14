@@ -82,7 +82,7 @@ const ScratchActionButton = ({
       },
       success: {
         label: 'Jogar de novo',
-        icon: Sparkles,
+        icon: RotateCcw,
         variant: 'default' as const,
         disabled: false,
         showSpinner: false
