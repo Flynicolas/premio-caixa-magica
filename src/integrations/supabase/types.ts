@@ -271,6 +271,36 @@ export type Database = {
         }
         Relationships: []
       }
+      cashouts: {
+        Row: {
+          amount_cents: number
+          created_at: string | null
+          e2eid: string | null
+          id: string
+          pix_key: string
+          status: string
+          user_id: string
+        }
+        Insert: {
+          amount_cents: number
+          created_at?: string | null
+          e2eid?: string | null
+          id?: string
+          pix_key: string
+          status?: string
+          user_id: string
+        }
+        Update: {
+          amount_cents?: number
+          created_at?: string | null
+          e2eid?: string | null
+          id?: string
+          pix_key?: string
+          status?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       chest_financial_control: {
         Row: {
           chest_type: string
@@ -1305,6 +1335,213 @@ export type Database = {
           redemption_id?: string | null
           resolved_at?: string | null
           resolved_by?: string | null
+          user_id?: string
+        }
+        Relationships: []
+      }
+      payments: {
+        Row: {
+          amount_cents: number
+          brcode: string | null
+          created_at: string | null
+          description: string | null
+          expires_at: string | null
+          id: string
+          metadata: Json | null
+          provider: string
+          provider_payment_id: string | null
+          qrcode: string | null
+          status: string
+          updated_at: string | null
+          user_id: string
+        }
+        Insert: {
+          amount_cents: number
+          brcode?: string | null
+          created_at?: string | null
+          description?: string | null
+          expires_at?: string | null
+          id?: string
+          metadata?: Json | null
+          provider: string
+          provider_payment_id?: string | null
+          qrcode?: string | null
+          status: string
+          updated_at?: string | null
+          user_id: string
+        }
+        Update: {
+          amount_cents?: number
+          brcode?: string | null
+          created_at?: string | null
+          description?: string | null
+          expires_at?: string | null
+          id?: string
+          metadata?: Json | null
+          provider?: string
+          provider_payment_id?: string | null
+          qrcode?: string | null
+          status?: string
+          updated_at?: string | null
+          user_id?: string
+        }
+        Relationships: []
+      }
+      payouts: {
+        Row: {
+          amount_cents: number
+          created_at: string | null
+          description: string | null
+          id: string
+          metadata: Json | null
+          pix_key: string
+          pix_key_type: string
+          provider: string
+          provider_payout_id: string | null
+          status: string
+          updated_at: string | null
+          user_id: string
+        }
+        Insert: {
+          amount_cents: number
+          created_at?: string | null
+          description?: string | null
+          id?: string
+          metadata?: Json | null
+          pix_key: string
+          pix_key_type: string
+          provider?: string
+          provider_payout_id?: string | null
+          status?: string
+          updated_at?: string | null
+          user_id: string
+        }
+        Update: {
+          amount_cents?: number
+          created_at?: string | null
+          description?: string | null
+          id?: string
+          metadata?: Json | null
+          pix_key?: string
+          pix_key_type?: string
+          provider?: string
+          provider_payout_id?: string | null
+          status?: string
+          updated_at?: string | null
+          user_id?: string
+        }
+        Relationships: []
+      }
+      pix_charges: {
+        Row: {
+          amount_cents: number
+          created_at: string | null
+          status: string
+          txid: string
+          user_id: string
+        }
+        Insert: {
+          amount_cents: number
+          created_at?: string | null
+          status?: string
+          txid: string
+          user_id: string
+        }
+        Update: {
+          amount_cents?: number
+          created_at?: string | null
+          status?: string
+          txid?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      pix_in_events: {
+        Row: {
+          amount_cents: number | null
+          created_at: string | null
+          e2eid: string | null
+          raw: Json | null
+          txid: string
+        }
+        Insert: {
+          amount_cents?: number | null
+          created_at?: string | null
+          e2eid?: string | null
+          raw?: Json | null
+          txid: string
+        }
+        Update: {
+          amount_cents?: number | null
+          created_at?: string | null
+          e2eid?: string | null
+          raw?: Json | null
+          txid?: string
+        }
+        Relationships: []
+      }
+      pix_intents: {
+        Row: {
+          amount_cents: number
+          created_at: string
+          paid_at: string | null
+          raw: Json | null
+          status: string
+          txid: string
+          user_id: string
+          wallet_id: string
+        }
+        Insert: {
+          amount_cents: number
+          created_at?: string
+          paid_at?: string | null
+          raw?: Json | null
+          status?: string
+          txid: string
+          user_id: string
+          wallet_id: string
+        }
+        Update: {
+          amount_cents?: number
+          created_at?: string
+          paid_at?: string | null
+          raw?: Json | null
+          status?: string
+          txid?: string
+          user_id?: string
+          wallet_id?: string
+        }
+        Relationships: []
+      }
+      pix_transactions: {
+        Row: {
+          amount: number
+          created_at: string | null
+          description: string | null
+          id: number
+          pix_key: string
+          status: string | null
+          transaction_id: string | null
+          user_id: string
+        }
+        Insert: {
+          amount: number
+          created_at?: string | null
+          description?: string | null
+          id?: never
+          pix_key: string
+          status?: string | null
+          transaction_id?: string | null
+          user_id: string
+        }
+        Update: {
+          amount?: number
+          created_at?: string | null
+          description?: string | null
+          id?: never
+          pix_key?: string
+          status?: string | null
+          transaction_id?: string | null
           user_id?: string
         }
         Relationships: []
@@ -2490,35 +2727,50 @@ export type Database = {
       }
       wallet_transactions: {
         Row: {
-          amount: number
+          amount: number | null
+          amount_cents: number
           chest_type: string | null
           created_at: string
           description: string
           id: string
           metadata: Json | null
+          reference: string | null
+          reference_id: string | null
+          source: string | null
           type: string
+          unique_key: string | null
           user_id: string
           wallet_id: string
         }
         Insert: {
-          amount: number
+          amount?: number | null
+          amount_cents: number
           chest_type?: string | null
           created_at?: string
           description: string
           id?: string
           metadata?: Json | null
+          reference?: string | null
+          reference_id?: string | null
+          source?: string | null
           type: string
+          unique_key?: string | null
           user_id: string
           wallet_id: string
         }
         Update: {
-          amount?: number
+          amount?: number | null
+          amount_cents?: number
           chest_type?: string | null
           created_at?: string
           description?: string
           id?: string
           metadata?: Json | null
+          reference?: string | null
+          reference_id?: string | null
+          source?: string | null
           type?: string
+          unique_key?: string | null
           user_id?: string
           wallet_id?: string
         }
@@ -2841,6 +3093,41 @@ export type Database = {
           redemption_count: number
           security_score: number
         }[]
+      }
+      wallet_cashout_mark_paid: {
+        Args: { p_payout_id: string; p_provider_payout_id: string }
+        Returns: undefined
+      }
+      wallet_cashout_mark_processing: {
+        Args: { p_payout_id: string; p_provider_payout_id: string }
+        Returns: undefined
+      }
+      wallet_cashout_refund: {
+        Args: { p_payout_id: string; p_reason?: string }
+        Returns: undefined
+      }
+      wallet_cashout_request: {
+        Args: {
+          p_user_id: string
+          p_amount_cents: number
+          p_pix_key: string
+          p_pix_key_type: string
+          p_description?: string
+        }
+        Returns: string
+      }
+      wallet_credit_pix: {
+        Args: {
+          p_user_id: string
+          p_amount_cents: number
+          p_provider_payment_id: string
+          p_payment_id: string
+        }
+        Returns: undefined
+      }
+      wallet_get_available_balance: {
+        Args: { p_user_id: string }
+        Returns: number
       }
     }
     Enums: {
