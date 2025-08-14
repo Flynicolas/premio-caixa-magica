@@ -2,7 +2,7 @@ import React from 'react';
 import { cn } from '@/lib/utils';
 import { motion, AnimatePresence } from 'framer-motion';
 
-type StatusType = 'idle' | 'ready' | 'scratching' | 'revealing' | 'success' | 'fail' | 'loading';
+type StatusType = 'idle' | 'ready' | 'scratching' | 'fastReveal' | 'resolving' | 'success' | 'fail' | 'loading' | 'locked';
 
 interface StatusBarProps {
   status: StatusType;
@@ -15,37 +15,43 @@ const StatusBar = ({ status, message, className }: StatusBarProps) => {
   const getStatusConfig = (status: StatusType) => {
     const configs = {
       idle: {
-        message: "Clique em 'Raspar' para começar",
+        message: "Pronto para jogar.",
         color: "text-muted-foreground",
         bg: "bg-muted/30",
         icon: "💰"
       },
       ready: {
-        message: "Pronto para raspar! Clique no botão abaixo",
+        message: "Pronto para jogar.",
         color: "text-blue-600",
         bg: "bg-blue-50 dark:bg-blue-950/30",
         icon: "🎯"
       },
       scratching: {
-        message: "Raspe os quadrados para revelar os prêmios",
+        message: "Raspando… toque novamente para revelar tudo.",
         color: "text-green-600",
         bg: "bg-green-50 dark:bg-green-950/30",
         icon: "✨"
       },
-      revealing: {
-        message: "Revelando todos os prêmios...",
+      fastReveal: {
+        message: "Revelando…",
         color: "text-orange-600",
         bg: "bg-orange-50 dark:bg-orange-950/30",
         icon: "🎲"
       },
+      resolving: {
+        message: "Verificando resultado…",
+        color: "text-purple-600",
+        bg: "bg-purple-50 dark:bg-purple-950/30",
+        icon: "🔍"
+      },
       success: {
-        message: "Parabéns! Você ganhou!",
+        message: "Você ganhou!",
         color: "text-green-600",
         bg: "bg-green-50 dark:bg-green-950/30",
         icon: "🎉"
       },
       fail: {
-        message: "Não foi desta vez, mas continue tentando!",
+        message: "Não foi desta vez 😕",
         color: "text-yellow-600",
         bg: "bg-yellow-50 dark:bg-yellow-950/30",
         icon: "😔"
@@ -55,6 +61,12 @@ const StatusBar = ({ status, message, className }: StatusBarProps) => {
         color: "text-primary",
         bg: "bg-primary/10",
         icon: "⏳"
+      },
+      locked: {
+        message: "Sem saldo suficiente ou indisponível",
+        color: "text-red-600",
+        bg: "bg-red-50 dark:bg-red-950/30",
+        icon: "🔒"
       }
     };
     
@@ -86,7 +98,7 @@ const StatusBar = ({ status, message, className }: StatusBarProps) => {
           <span className="text-xs sm:text-sm font-medium">
             {displayMessage}
           </span>
-          {status === 'loading' && (
+          {(status === 'loading' || status === 'fastReveal' || status === 'resolving') && (
             <div className="w-3 h-3 border border-current border-t-transparent rounded-full animate-spin" />
           )}
         </div>

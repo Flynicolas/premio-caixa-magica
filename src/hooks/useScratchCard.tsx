@@ -8,12 +8,25 @@ import { useDemo } from "@/hooks/useDemo";
 import { useDemoWallet } from "@/hooks/useDemoWallet";
 import { useDemoInventory } from "@/hooks/useDemoInventory";
 
+// FSM States para o botão inteligente
+export type ScratchGameState = 
+  | 'idle' 
+  | 'ready' 
+  | 'scratching' 
+  | 'fastReveal' 
+  | 'resolving' 
+  | 'success' 
+  | 'fail' 
+  | 'locked';
+
 export const useScratchCard = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [scratchCard, setScratchCard] = useState<ScratchCard | null>(null);
   const [blocks, setBlocks] = useState<ScratchBlockState[]>([]);
   const [gameComplete, setGameComplete] = useState(false);
   const [gameId, setGameId] = useState<string | null>(null);
+  const [gameState, setGameState] = useState<ScratchGameState>('idle');
+  const [fastRevealTriggered, setFastRevealTriggered] = useState(false);
   const { toast } = useToast();
   const { refetchWallet } = useWallet();
   const { isEnabled: adminTestMode } = useAdminTestMode();
@@ -296,12 +309,39 @@ export const useScratchCard = () => {
     setBlocks([]);
     setGameComplete(false);
     setGameId(null);
+    setGameState('idle');
+    setFastRevealTriggered(false);
   };
 
   const scratchAll = useCallback(() => {
     setBlocks(prev => prev.map(block => ({ ...block, isScratched: true })));
     setGameComplete(true);
   }, []);
+
+  const triggerFastReveal = useCallback(() => {
+    if (gameState === 'scratching' && !fastRevealTriggered) {
+      setFastRevealTriggered(true);
+      setGameState('fastReveal');
+      scratchAll();
+    }
+  }, [gameState, fastRevealTriggered, scratchAll]);
+
+  const startGame = useCallback(async (chestType: ScratchCardType) => {
+    setGameState('scratching');
+    await generateScratchCard(chestType);
+  }, [generateScratchCard]);
+
+  const processGameResult = useCallback(async (chestType: ScratchCardType, hasWin: boolean, winningItem?: any) => {
+    setGameState('resolving');
+    
+    try {
+      await processGame(chestType, hasWin, winningItem);
+      setGameState(hasWin ? 'success' : 'fail');
+    } catch (error) {
+      setGameState('fail');
+    }
+  }, [processGame]);
+
 
   return {
     generateScratchCard,
@@ -310,10 +350,16 @@ export const useScratchCard = () => {
     scratchAll,
     checkWinningCombination,
     resetGame,
+    triggerFastReveal,
+    startGame,
+    processGameResult,
     scratchCard,
     blocks,
     isLoading,
     gameComplete,
     gameId,
+    gameState,
+    setGameState,
+    fastRevealTriggered,
   };
 };

@@ -1,10 +1,10 @@
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState, useCallback } from "react";
 import { useParams, Link, useNavigate } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
 import { useWallet } from "@/hooks/useWalletProvider";
 import { useScratchCard } from "@/hooks/useScratchCard";
-import ScratchGameCanvas from "@/components/scratch-card/ScratchGameCanvas";
-import ScratchCardAnimations from "@/components/scratch-card/ScratchCardAnimations";
+import ScratchModal from "@/components/scratch-card/ScratchModal";
+import ScratchActionButton, { ScratchGameState } from "@/components/scratch-card/ScratchActionButton";
 import SimpleScratchWinModal from "@/components/scratch-card/SimpleScratchWinModal";
 import ScratchLossToast from "@/components/scratch-card/ScratchLossToast";
 import BannerRaspadinha from "@/components/scratch-card/BannerRaspadinha";
@@ -14,9 +14,8 @@ import CompactScratchCatalog from "@/components/scratch-card/CompactScratchCatal
 import { scratchCardTypes, ScratchCardType } from "@/types/scratchCard";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
-import { Gift, AlertCircle, RefreshCcw } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
+import confetti from 'canvas-confetti';
 
 interface PrizeItem {
   id: string;
@@ -27,7 +26,7 @@ interface PrizeItem {
   probability_weight: number;
 }
 
-type GamePhase = 'idle' | 'ready' | 'scratching' | 'revealing' | 'success' | 'fail' | 'loading';
+// Removed - using FSM from ScratchActionButton
 
 const RaspadinhaPlay = () => {
   const { tipo } = useParams<{ tipo: ScratchCardType }>();
@@ -38,11 +37,10 @@ const RaspadinhaPlay = () => {
   const [winModal, setWinModal] = useState<{ open: boolean; type: "item" | "money"; data: any }>(
     { open: false, type: "item", data: null }
   );
-  const [showLossBanner, setShowLossBanner] = useState(false);
-  const [gamePhase, setGamePhase] = useState<GamePhase>('idle');
+  const [showLossToast, setShowLossToast] = useState(false);
   const [isTransitioning, setIsTransitioning] = useState(false);
+  const [modalOpen, setModalOpen] = useState(false);
   const canvasRef = useRef<{ revealAll: () => void }>(null);
-  const [statusMessage, setStatusMessage] = useState<string>("");
 
 const [currentScratch, setCurrentScratch] = useState<ScratchCardType>('pix');
 
@@ -62,8 +60,11 @@ useEffect(() => {
     scratchCard,
     isLoading,
     gameComplete,
-    generateScratchCard,
-    processGame,
+    gameState,
+    setGameState,
+    startGame,
+    triggerFastReveal,
+    processGameResult,
     resetGame,
     checkWinningCombination,
   } = useScratchCard();
@@ -121,14 +122,18 @@ useEffect(() => {
     load();
   }, [scratchType]);
 
-  // Inicialização: resetar quando mudar tipo
+  // Inicialização: resetar quando mudar tipo + abrir modal automaticamente
   useEffect(() => {
     if (!scratchType) return;
     resetGame();
-    setGamePhase('idle');
-    setStatusMessage("");
+    setGameState('idle');
+    
+    // Auto-abrir modal de canvas ao entrar na raspadinha
+    if (user && walletData && walletData.balance >= config.price) {
+      setModalOpen(true);
+    }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [scratchType]);
+  }, [scratchType, user, walletData]);
 
   // Quando o jogo termina, processar e mostrar win/loss
   useEffect(() => {
@@ -136,71 +141,87 @@ useEffect(() => {
     const combo = checkWinningCombination();
     const hasWin = !!combo;
     
-    setGamePhase('revealing');
-    setTimeout(() => {
-      processGame(scratchType, hasWin, combo?.winningSymbol);
+    processGameResult(scratchType, hasWin, combo?.winningSymbol);
+    
+    if (hasWin && combo?.winningSymbol) {
+      // Trigger confetti
+      confetti({
+        particleCount: 100,
+        spread: 70,
+        origin: { y: 0.6 }
+      });
+
+      const sym: any = combo.winningSymbol;
+      const isMoney = (sym.category === 'dinheiro') || /dinheiro|real/i.test(sym.name || '');
       
-      if (hasWin && combo?.winningSymbol) {
-        setGamePhase('success');
-        const sym: any = combo.winningSymbol;
-        const isMoney = (sym.category === 'dinheiro') || /dinheiro|real/i.test(sym.name || '');
-        
-        // Aguardar animação dourada por 2.5s
-        setTimeout(() => {
-          setWinModal({ open: true, type: isMoney ? 'money' : 'item', data: isMoney ? { amount: sym.base_value } : sym });
-        }, 2500);
-      } else {
-        setGamePhase('fail');
-        setShowLossBanner(true);
-        setTimeout(() => setShowLossBanner(false), 3500);
-      }
-    }, 300);
-  }, [gameComplete, checkWinningCombination, processGame, scratchType]);
+      // Aguardar animação dourada por 2.5s
+      setTimeout(() => {
+        setWinModal({ open: true, type: isMoney ? 'money' : 'item', data: isMoney ? { amount: sym.base_value } : sym });
+      }, 2500);
+    } else {
+      setShowLossToast(true);
+      setTimeout(() => setShowLossToast(false), 3500);
+    }
+  }, [gameComplete, checkWinningCombination, processGameResult, scratchType]);
 
   // Handlers
   const handleScratchChange = (newType: ScratchCardType) => {
     if (isTransitioning || newType === currentScratch) return;
     
     setIsTransitioning(true);
-    setGamePhase('loading');
+    setGameState('locked');
+    setModalOpen(false); // Fechar modal durante transição
     
     // Micro-loading com skeleton
     setTimeout(() => {
       setCurrentScratch(newType);
       navigate(`/raspadinhas/${newType}`, { replace: true });
       setIsTransitioning(false);
-      setGamePhase('idle');
+      setGameState('idle');
     }, 250);
   };
 
-  const handleStartGame = async () => {
-    if (!scratchType || gamePhase === 'scratching' || isLoading) return;
-    
-    setGamePhase('scratching');
-    setStatusMessage("Raspando cartela...");
-    
-    try {
-      await generateScratchCard(scratchType);
-    } catch (error) {
-      setGamePhase('idle');
-      setStatusMessage("Erro ao gerar cartela");
+  const config = scratchCardTypes[scratchType];
+  const balanceOk = !!walletData && walletData.balance >= config.price;
+
+  // Determinar estado do botão baseado na autenticação, saldo e game state
+  const getButtonState = useCallback((): ScratchGameState => {
+    if (!user) return 'locked';
+    if (isLoading || isTransitioning) return 'locked';
+    if (!balanceOk) return 'locked';
+
+    return gameState;
+  }, [user, isLoading, isTransitioning, balanceOk, gameState]);
+
+  const buttonState = getButtonState();
+
+  // Handle main button action based on current state
+  const handleButtonAction = useCallback(async () => {
+    switch (buttonState) {
+      case 'idle':
+      case 'ready':
+        // Abrir modal e iniciar jogo
+        setModalOpen(true);
+        break;
+      
+      case 'success':
+      case 'fail':
+        // Play again - reset and restart
+        resetGame();
+        setGameState('ready');
+        setModalOpen(true);
+        break;
+      
+      default:
+        // Do nothing for locked states
+        break;
     }
-  };
+  }, [buttonState, resetGame, setGameState]);
 
-  const handleRepeatGame = () => {
-    if (isLoading) return;
-    
-    setGamePhase('loading');
-    resetGame();
-    setTimeout(() => {
-      handleStartGame();
-    }, 150);
-  };
-
-  const handleRevealAll = () => {
-    if (gamePhase !== 'scratching' || !canvasRef.current) return;
-    canvasRef.current.revealAll();
-  };
+  // Handle add balance (for locked state)
+  const handleAddBalance = useCallback(() => {
+    navigate('/carteira');
+  }, [navigate]);
 
   if (!scratchType) {
     return (
@@ -211,19 +232,6 @@ useEffect(() => {
     );
   }
 
-  const config = scratchCardTypes[scratchType];
-  const balanceOk = !!walletData && walletData.balance >= config.price;
-  
-  // Button state logic
-  const getButtonState = () => {
-    if (gamePhase === 'scratching') return { disabled: true, label: "Raspando..." };
-    if (gamePhase === 'loading') return { disabled: true, label: "Carregando..." };
-    if (gamePhase === 'success' || gamePhase === 'fail') return { disabled: false, label: "Jogar de novo" };
-    if (!balanceOk) return { disabled: true, label: `Raspar • R$ ${config.price.toFixed(2)}` };
-    return { disabled: false, label: `Raspar • R$ ${config.price.toFixed(2)}` };
-  };
-
-  const buttonState = getButtonState();
 
   return (
     <div className="min-h-screen bg-background">
@@ -240,83 +248,56 @@ useEffect(() => {
       </header>
 
       <main className="container mx-auto px-4 py-6 space-y-6">
-        {/* Switch Bar */}
+        {/* Switch Bar - Dinâmica/Compacta */}
         <div className="max-w-4xl mx-auto">
           <RaspadinhasSwitchBar
             currentScratch={currentScratch}
             onScratchChange={handleScratchChange}
             isLoading={isTransitioning}
+            hideOnScratch={true}
+            gameState={gameState}
           />
         </div>
 
-        {/* Game panel */}
+        {/* Game panel - Botão único inteligente */}
         <Card className="max-w-2xl mx-auto">
           <CardContent className="p-6">
-            <div className="flex flex-col items-center gap-4">
-              {user ? (
-                scratchCard?.symbols ? (
-                  <>
-                    <ScratchGameCanvas
-                      ref={canvasRef}
-                      symbols={scratchCard.symbols}
-                      onWin={() => {}}
-                      onComplete={() => { /* processing handled by effect */ }}
-                      gameStarted={true}
-                      scratchType={scratchType}
-                      className="w-full max-w-[360px]"
-                    />
-                    
-                    {/* Game Controls */}
-                    <div className="flex gap-2 w-full max-w-[360px]">
-                      <Button 
-                        variant="outline" 
-                        onClick={handleRevealAll}
-                        disabled={gamePhase !== 'scratching'}
-                        className="flex-1"
-                      >
-                        Revelar tudo
-                      </Button>
-                      <Button 
-                        onClick={handleRepeatGame}
-                        disabled={buttonState.disabled && gamePhase !== 'success' && gamePhase !== 'fail'}
-                        className="flex-1"
-                      >
-                        Jogar de novo
-                      </Button>
-                    </div>
-                  </>
-                ) : (
-                  <div className="text-center space-y-4">
-                    <Button 
-                      disabled={buttonState.disabled} 
-                      onClick={gamePhase === 'success' || gamePhase === 'fail' ? handleRepeatGame : handleStartGame}
-                      className="min-w-[200px]"
-                      size="lg"
-                    >
-                      {buttonState.label}
-                    </Button>
-                    
-                    {!balanceOk && (
-                      <div className="flex items-center justify-center gap-2 text-xs text-muted-foreground">
-                        <AlertCircle className="w-4 h-4" />
-                        <span>Saldo insuficiente</span>
-                      </div>
-                    )}
-                    
-                    {walletData && (
-                      <p className="text-xs text-muted-foreground">
-                        Saldo: R$ {walletData.balance.toFixed(2)}
-                      </p>
-                    )}
-                  </div>
-                )
-              ) : (
+            <div className="flex flex-col items-center gap-6">
+              {/* Preview area */}
+              <div className="w-full max-w-[300px] h-[300px] bg-muted rounded-lg border-2 border-dashed border-muted-foreground/30 flex items-center justify-center">
+                <div className="text-center space-y-2">
+                  <div className="text-4xl opacity-50">🎲</div>
+                  <p className="text-sm text-muted-foreground">
+                    Clique em "Raspar" para abrir o jogo
+                  </p>
+                </div>
+              </div>
+
+              {/* Smart Action Button */}
+              <ScratchActionButton
+                state={buttonState}
+                onAction={handleButtonAction}
+                onAddBalance={handleAddBalance}
+                price={config.price}
+                balance={walletData?.balance || 0}
+                className="w-full max-w-[300px]"
+              />
+
+              {/* Auth prompt for non-authenticated users */}
+              {!user && (
                 <div className="text-center space-y-3">
                   <p className="text-sm text-muted-foreground">Faça login para jogar</p>
                   <Link to="/perfil">
-                    <Button>Entrar</Button>
+                    <Button variant="outline">Entrar</Button>
                   </Link>
                 </div>
+              )}
+
+              {/* Saldo info para usuários autenticados */}
+              {user && walletData && (
+                <p className="text-xs text-muted-foreground text-center">
+                  Saldo: R$ {walletData.balance.toFixed(2)}
+                </p>
               )}
             </div>
           </CardContent>
@@ -352,15 +333,22 @@ useEffect(() => {
 
       {/* Loss toast */}
       <ScratchLossToast
-        isVisible={showLossBanner}
-        onClose={() => setShowLossBanner(false)}
-        onPlayAgain={handleRepeatGame}
+        isVisible={showLossToast}
+        onClose={() => setShowLossToast(false)}
+        onPlayAgain={handleButtonAction}
       />
 
       {/* Status Bar */}
       <StatusBar 
-        status={gamePhase} 
-        message={statusMessage}
+        status={gameState as any} 
+      />
+
+      {/* Modal de Canvas Automático */}
+      <ScratchModal
+        isOpen={modalOpen}
+        onClose={() => setModalOpen(false)}
+        scratchType={scratchType}
+        price={config.price}
       />
     </div>
   );

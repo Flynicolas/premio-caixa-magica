@@ -8,14 +8,25 @@ interface RaspadinhasSwitchBarProps {
   onScratchChange: (gameId: ScratchCardType) => void;
   isLoading?: boolean;
   className?: string;
+  hideOnScratch?: boolean;
+  gameState?: string;
 }
 
 const RaspadinhasSwitchBar = ({ 
   currentScratch, 
   onScratchChange, 
   isLoading = false,
-  className 
+  className,
+  hideOnScratch = false,
+  gameState
 }: RaspadinhasSwitchBarProps) => {
+  
+  // Auto-hide durante scratching, reexibir em success/fail
+  const shouldHide = hideOnScratch && gameState === 'scratching';
+  
+  if (shouldHide) {
+    return null;
+  }
   
   const getIcon = (type: ScratchCardType) => {
     const icons = {
@@ -39,9 +50,9 @@ const RaspadinhasSwitchBar = ({
   };
 
   return (
-    <div className={cn("w-full", className)}>
-      {/* Container com scroll horizontal no mobile */}
-      <div className="flex gap-2 overflow-x-auto scrollbar-hide py-2 px-1">
+    <div className={cn("w-full transition-all duration-300", className)}>
+      {/* Container compacto com scroll horizontal no mobile */}
+      <div className="flex gap-1.5 overflow-x-auto scrollbar-hide py-2 px-1 scroll-smooth snap-x snap-mandatory">
         {getScratchTypes().map((type) => {
           const config = scratchCardTypes[type];
           const Icon = getIcon(type);
@@ -54,8 +65,8 @@ const RaspadinhasSwitchBar = ({
               onClick={() => handleScratchClick(type)}
               disabled={isDisabled}
               className={cn(
-                // Layout base
-                "flex items-center gap-2 px-3 py-2 rounded-full transition-all duration-300 whitespace-nowrap min-w-fit",
+                // Layout base compacto
+                "flex items-center gap-1.5 px-2.5 py-1.5 rounded-full transition-all duration-300 whitespace-nowrap min-w-fit snap-center",
                 // Estados visuais
                 {
                   // Selecionado
@@ -70,15 +81,20 @@ const RaspadinhasSwitchBar = ({
               )}
             >
               {/* Ícone/Miniatura */}
-              <Icon className="w-4 h-4 flex-shrink-0" />
+              <Icon className="w-3.5 h-3.5 flex-shrink-0" />
               
-              {/* Nome curto */}
-              <span className="text-sm font-medium">
-                {config.name.replace('Raspadinha', '').replace('do', '').replace('da', '').trim()}
+              {/* Nome curto no mobile, completo no desktop */}
+              <span className="text-xs sm:text-sm font-medium">
+                <span className="sm:hidden">
+                  {config.name.slice(0, 3)}
+                </span>
+                <span className="hidden sm:inline">
+                  {config.name.replace('Raspadinha', '').replace('do', '').replace('da', '').trim()}
+                </span>
               </span>
               
-              {/* Preço */}
-              <span className="text-xs opacity-80">
+              {/* Preço apenas no desktop */}
+              <span className="hidden sm:inline text-xs opacity-80">
                 R$ {config.price.toFixed(2)}
               </span>
             </button>
