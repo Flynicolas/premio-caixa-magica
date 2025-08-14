@@ -291,6 +291,7 @@ export const useMoneyRedemptionAdmin = () => {
           user_id: redemption.user_id,
           wallet_id: wallet.id,
           amount: redemption.redemption_amount,
+          amount_cents: Math.round(redemption.redemption_amount * 100),
           type: 'money_redemption',
           description: 'Resgate de prêmio em dinheiro (aprovação manual)',
           metadata: {

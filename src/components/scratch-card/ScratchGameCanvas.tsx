@@ -62,10 +62,10 @@ const ScratchGameCanvas = forwardRef<{ revealAll: () => void }, ScratchGameCanva
       const div = document.createElement('div');
       div.className = 'scratch-block';
       div.style.cssText = `
-        padding: 20px 4px;
+        padding: 16px 8px;
         text-align: center;
-        border-radius: 8px;
-        background: #333;
+        border-radius: 12px;
+        background: linear-gradient(135deg, #333 0%, #444 100%);
         color: #fff;
         border: 2px solid ${rarityColors[rarity] || '#888'};
         display: flex;
@@ -73,6 +73,9 @@ const ScratchGameCanvas = forwardRef<{ revealAll: () => void }, ScratchGameCanva
         align-items: center;
         justify-content: center;
         min-height: 90px;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3), inset 0 1px 2px rgba(255, 255, 255, 0.1);
+        position: relative;
+        transition: all 0.3s ease;
       `;
       
       // Criar img element
@@ -334,19 +337,34 @@ const ScratchGameCanvas = forwardRef<{ revealAll: () => void }, ScratchGameCanva
     checkWinFromRevealedPositions(Array(9).fill(true));
   }, [checkWinFromRevealedPositions]);
 
-  // Destacar símbolos vencedores
+  // Destacar símbolos vencedores com destaque dourado
   const highlightWinners = useCallback((winningSymbol: string) => {
     const grid = gridRef.current;
     if (!grid) return;
 
-    Array.from(grid.children).forEach((div: any) => {
+    Array.from(grid.children).forEach((div: any, index: number) => {
       if (div.dataset.symbol === winningSymbol) {
-        div.style.border = '3px solid gold';
-        div.style.background = '#444';
-        div.style.transform = 'scale(1.05)';
-        div.style.boxShadow = '0 0 20px rgba(255, 215, 0, 0.5)';
+        // Aplicar classe .win com borda #D4AF37 + glow
+        div.style.border = '3px solid #D4AF37';
+        div.style.background = 'linear-gradient(135deg, #FFD700 0%, #FFA500 100%)';
+        div.style.transform = 'scale(1.08)';
+        div.style.boxShadow = '0 0 25px rgba(212, 175, 55, 0.8), 0 0 50px rgba(212, 175, 55, 0.4)';
+        div.style.zIndex = '10';
+        div.classList.add('win');
+        
+        // Animação de pulso dourado
+        div.style.animation = 'pulse 1s ease-in-out infinite alternate';
       }
     });
+
+    // Manter destaque por 2.5s antes de abrir modal de vitória
+    setTimeout(() => {
+      Array.from(grid.children).forEach((div: any) => {
+        if (div.dataset.symbol === winningSymbol) {
+          div.style.animation = 'none';
+        }
+      });
+    }, 2500);
   }, []);
 
   // Função de raspagem inteligente
@@ -531,21 +549,31 @@ const ScratchGameCanvas = forwardRef<{ revealAll: () => void }, ScratchGameCanva
 
   return (
     <div className={cn("relative w-full mx-auto", className)} style={{ maxWidth: `${size}px` }}>
-      {/* Grid de símbolos */}
+      {/* Grid de símbolos com melhorias visuais */}
       <div
         ref={gridRef}
-        className="grid grid-cols-3 gap-1 p-2 bg-gray-800 rounded-xl relative z-10"
+        className="grid grid-cols-3 gap-2 p-3 bg-gray-800 rounded-xl relative z-10 shadow-lg"
         style={{ minHeight: `${Math.max(300, size - 100)}px` }}
       />
       
-      {/* Canvas de raspagem - área limpa sem overlays */}
+      {/* Canvas de raspagem melhorado */}
       <canvas
         ref={canvasRef}
         width={size}
         height={size}
-        className="absolute top-0 left-0 w-full h-full rounded-xl cursor-pointer z-20"
+        className={cn(
+          "absolute top-0 left-0 w-full h-full rounded-xl z-20 transition-opacity duration-300",
+          disabled ? "cursor-not-allowed opacity-50" : "cursor-crosshair"
+        )}
         style={{ touchAction: 'none' }}
       />
+      
+      {/* Progresso de raspagem */}
+      {scratchProgress > 0 && scratchProgress < 100 && (
+        <div className="absolute bottom-2 right-2 bg-black/80 text-white text-xs px-2 py-1 rounded-full z-30">
+          {scratchProgress}%
+        </div>
+      )}
     </div>
   );
 });

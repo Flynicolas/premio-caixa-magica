@@ -18,6 +18,9 @@ import ScratchCardPrizeCatalog from '@/components/scratch-card/ScratchCardPrizeC
 import ScratchWinModal from '@/components/scratch-card/ScratchWinModal';
 import ScratchLossToast from '@/components/scratch-card/ScratchLossToast';
 import PixTestModal from '@/components/PixTestModal';
+import BannerRaspadinha from '@/components/scratch-card/BannerRaspadinha';
+import RaspadinhasSwitchBar from '@/components/scratch-card/RaspadinhasSwitchBar';
+import CompactScratchCatalog from '@/components/scratch-card/CompactScratchCatalog';
 import { Coins, Sparkles, X, Star, Diamond, Crown, Eye } from 'lucide-react';
 
 interface ScratchCardModalProps {
@@ -262,26 +265,44 @@ const ScratchCardModal = ({ isOpen, onClose, selectedType, onAuthRequired }: Scr
     <>
       <Dialog open={isOpen} onOpenChange={handleClose}>
         <DialogContent className="max-w-full max-h-full w-screen h-screen p-0 m-0 rounded-none border-0 bg-gradient-to-br from-background via-secondary/20 to-background overflow-hidden">
-          {/* Header fixo com botão fechar e título */}
-          <div className="sticky top-0 z-50 bg-background/95 backdrop-blur-sm border-b p-4 flex items-center justify-between">
-            <div className="flex items-center gap-3">
-              <div className={`w-10 h-10 rounded-full flex items-center justify-center bg-gradient-to-br ${config.color} shadow-lg`}>
-                {React.createElement(cardIcons[selectedType], { className: "w-5 h-5 text-white" })}
-              </div>
-              <div className="flex flex-col">
-                <h1 className="font-bold text-lg text-foreground">{config.name}</h1>
-                <div className="flex items-center gap-2">
-                  <p className="text-sm text-muted-foreground">R$ {config.price.toFixed(2)}</p>
-                  {user && (
-                    <span className="text-xs bg-primary/10 text-primary px-2 py-0.5 rounded-full">
-                      Saldo: R$ {displayedBalance.toFixed(2)}
-                    </span>
-                  )}
-                </div>
-              </div>
-            </div>
+          {/* Header com banner (substitui título textual) */}
+          <div className="sticky top-0 z-50 bg-background/95 backdrop-blur-sm border-b p-4">
+            {/* Banner no topo */}
+            <BannerRaspadinha 
+              imageUrl={config.scratchImage || config.coverImage}
+              alt={`Banner ${config.name}`}
+              height={100}
+              className="mb-4"
+            />
             
-            <div className="flex items-center gap-2">
+            {/* Barra de atalho entre raspadinhas */}
+            <RaspadinhasSwitchBar 
+              currentScratch={selectedType}
+              onScratchChange={(newType) => {
+                // Implementar troca de raspadinha com micro-loading
+                setGamePhase('locked');
+                setShowLoader(true);
+                setTimeout(() => {
+                  // Aqui chamaria uma função para trocar o tipo e reinicializar
+                  // Por enquanto mantém a funcionalidade atual
+                }, 150);
+              }}
+              isLoading={showLoader}
+              className="mb-4"
+            />
+            
+            {/* Info do usuário */}
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <p className="text-sm text-muted-foreground">R$ {config.price.toFixed(2)}</p>
+                {user && (
+                  <span className="text-xs bg-primary/10 text-primary px-2 py-0.5 rounded-full">
+                    Saldo: R$ {displayedBalance.toFixed(2)}
+                  </span>
+                )}
+              </div>
+              
+              <div className="flex items-center gap-2">
               {/* Botão catálogo de prêmios */}
               <Button
                 variant="outline"
@@ -304,6 +325,7 @@ const ScratchCardModal = ({ isOpen, onClose, selectedType, onAuthRequired }: Scr
               >
                 <X className="w-5 h-5" />
               </Button>
+              </div>
             </div>
           </div>
 
@@ -388,16 +410,16 @@ const ScratchCardModal = ({ isOpen, onClose, selectedType, onAuthRequired }: Scr
                         )}
                       </div>
 
-                      {/* Botão Dinâmico - Muito maior no mobile */}
+                      {/* BOTÃO PRINCIPAL "Raspar" — MÁQUINA DE ESTADOS */}
                       <div className="flex justify-center">
                         {gamePhase === 'ready' && (
                           <Button 
                             onClick={handleStartGame}
-                            disabled={!imagesLoaded || !canAfford}
-                            className={`bg-gradient-to-r ${config.color} hover:opacity-90 text-white font-bold text-lg px-8 py-4 rounded-xl transition-all duration-300 shadow-xl hover:shadow-2xl transform hover:scale-105 w-full max-w-sm h-14`}
+                            disabled={!imagesLoaded || !canAfford || isLoading}
+                            className={`bg-gradient-to-r ${config.color} hover:opacity-90 text-white font-bold text-lg px-8 py-4 rounded-xl transition-all duration-300 shadow-xl hover:shadow-2xl transform hover:scale-105 w-full max-w-sm h-14 disabled:opacity-50`}
                           >
                             <Coins className="w-5 h-5 mr-3" />
-                            Raspar: R$ {config.price.toFixed(2)}
+                            {isLoading ? 'Carregando...' : 'Raspar'}
                           </Button>
                         )}
                         
@@ -412,14 +434,14 @@ const ScratchCardModal = ({ isOpen, onClose, selectedType, onAuthRequired }: Scr
                           </Button>
                         )}
                         
-                        {gamePhase === 'locked' && (
+                        {(gamePhase === 'locked' || hasDetectedWin || showLossMessage) && (
                           <Button 
                             onClick={handleRepeatGame}
-                            disabled={!canAfford}
-                            className={`bg-gradient-to-r ${config.color} hover:opacity-90 text-white font-bold text-lg px-8 py-4 rounded-xl transition-all duration-300 shadow-xl hover:shadow-2xl transform hover:scale-105 w-full max-w-sm h-14`}
+                            disabled={!canAfford || isLoading}
+                            className={`bg-gradient-to-r ${config.color} hover:opacity-90 text-white font-bold text-lg px-8 py-4 rounded-xl transition-all duration-300 shadow-xl hover:shadow-2xl transform hover:scale-105 w-full max-w-sm h-14 disabled:opacity-50`}
                           >
                             <Coins className="w-5 h-5 mr-3" />
-                            Raspar denovo: R$ {config.price.toFixed(2)}
+                            {isLoading ? 'Raspando...' : 'Jogar de novo'}
                           </Button>
                         )}
                       </div>
