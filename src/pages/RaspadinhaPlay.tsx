@@ -3,14 +3,13 @@ import { useParams, Link, useNavigate } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
 import { useWallet } from "@/hooks/useWalletProvider";
 import { useScratchCard } from "@/hooks/useScratchCard";
-import ScratchModal from "@/components/scratch-card/ScratchModal";
+import ScratchGameCanvas from "@/components/scratch-card/ScratchGameCanvas";
 import ScratchActionButton, { ScratchGameState } from "@/components/scratch-card/ScratchActionButton";
 import SimpleScratchWinModal from "@/components/scratch-card/SimpleScratchWinModal";
 import ScratchLossToast from "@/components/scratch-card/ScratchLossToast";
 import BannerRaspadinha from "@/components/scratch-card/BannerRaspadinha";
 import RaspadinhasSwitchBar from "@/components/scratch-card/RaspadinhasSwitchBar";
 import StatusBar from "@/components/scratch-card/StatusBar";
-import CompactScratchCatalog from "@/components/scratch-card/CompactScratchCatalog";
 import { scratchCardTypes, ScratchCardType } from "@/types/scratchCard";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -39,8 +38,10 @@ const RaspadinhaPlay = () => {
   );
   const [showLossToast, setShowLossToast] = useState(false);
   const [isTransitioning, setIsTransitioning] = useState(false);
-  const [modalOpen, setModalOpen] = useState(false);
   const canvasRef = useRef<{ revealAll: () => void }>(null);
+  
+  // Watchdog timer para prevenir loops infinitos no estado 'resolving'
+  const watchdogTimerRef = useRef<NodeJS.Timeout | null>(null);
 
 const [currentScratch, setCurrentScratch] = useState<ScratchCardType>('pix');
 
@@ -122,55 +123,92 @@ useEffect(() => {
     load();
   }, [scratchType]);
 
-  // Inicialização: resetar quando mudar tipo + abrir modal automaticamente
+  // Inicialização: resetar quando mudar tipo
   useEffect(() => {
     if (!scratchType) return;
     resetGame();
     setGameState('idle');
-    
-    // Auto-abrir modal de canvas ao entrar na raspadinha
-    if (user && walletData && walletData.balance >= config.price) {
-      setModalOpen(true);
-    }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [scratchType, user, walletData]);
+  }, [scratchType]);
 
-  // Quando o jogo termina, processar e mostrar win/loss
+  // Watchdog para prevenir loop infinito no estado 'resolving'
   useEffect(() => {
-    if (!gameComplete || !scratchType) return;
-    const combo = checkWinningCombination();
-    const hasWin = !!combo;
-    
-    processGameResult(scratchType, hasWin, combo?.winningSymbol);
-    
-    if (hasWin && combo?.winningSymbol) {
-      // Trigger confetti
+    if (gameState === 'resolving') {
+      watchdogTimerRef.current = setTimeout(() => {
+        console.warn('🚨 Watchdog: Estado resolving por mais de 3s, forçando término');
+        setGameState('fail');
+        if (watchdogTimerRef.current) {
+          clearTimeout(watchdogTimerRef.current);
+          watchdogTimerRef.current = null;
+        }
+      }, 3000);
+    } else {
+      if (watchdogTimerRef.current) {
+        clearTimeout(watchdogTimerRef.current);
+        watchdogTimerRef.current = null;
+      }
+    }
+
+    return () => {
+      if (watchdogTimerRef.current) {
+        clearTimeout(watchdogTimerRef.current);
+        watchdogTimerRef.current = null;
+      }
+    };
+  }, [gameState]);
+
+  // Limpar timers no unmount
+  useEffect(() => {
+    return () => {
+      if (watchdogTimerRef.current) {
+        clearTimeout(watchdogTimerRef.current);
+        watchdogTimerRef.current = null;
+      }
+    };
+  }, []);
+
+  // Handlers de canvas inline
+  const handleCanvasWin = useCallback((winningSymbol: string) => {
+    const sym = scratchCard?.symbols.find(s => s.name === winningSymbol);
+    if (sym) {
+      // Trigger confetti apenas em vitórias
       confetti({
         particleCount: 100,
         spread: 70,
         origin: { y: 0.6 }
       });
 
-      const sym: any = combo.winningSymbol;
       const isMoney = (sym.category === 'dinheiro') || /dinheiro|real/i.test(sym.name || '');
       
       // Aguardar animação dourada por 2.5s
       setTimeout(() => {
-        setWinModal({ open: true, type: isMoney ? 'money' : 'item', data: isMoney ? { amount: sym.base_value } : sym });
+        setWinModal({ 
+          open: true, 
+          type: isMoney ? 'money' : 'item', 
+          data: isMoney ? { amount: sym.base_value } : sym 
+        });
+        processGameResult(scratchType, true, sym);
       }, 2500);
-    } else {
-      setShowLossToast(true);
-      setTimeout(() => setShowLossToast(false), 3500);
     }
-  }, [gameComplete, checkWinningCombination, processGameResult, scratchType]);
+  }, [scratchCard, processGameResult, scratchType]);
 
-  // Handlers
+  const handleCanvasComplete = useCallback(() => {
+    // Derrota rápida e discreta - sem modal
+    setShowLossToast(true);
+    setTimeout(() => setShowLossToast(false), 1000); // Reduzido para 1s
+    processGameResult(scratchType, false);
+  }, [processGameResult, scratchType]);
+
+  const handleCanvasScratchStart = useCallback(() => {
+    setGameState('scratching');
+  }, []);
+
+  // Handlers de navegação
   const handleScratchChange = (newType: ScratchCardType) => {
     if (isTransitioning || newType === currentScratch) return;
     
     setIsTransitioning(true);
     setGameState('locked');
-    setModalOpen(false); // Fechar modal durante transição
     
     // Micro-loading com skeleton
     setTimeout(() => {
@@ -200,23 +238,36 @@ useEffect(() => {
     switch (buttonState) {
       case 'idle':
       case 'ready':
-        // Abrir modal e iniciar jogo
-        setModalOpen(true);
+        // Iniciar jogo inline
+        setGameState('ready');
+        await startGame(scratchType);
+        break;
+      
+      case 'scratching':
+        // Revelar tudo
+        if (canvasRef.current) {
+          setGameState('fastReveal');
+          canvasRef.current.revealAll();
+        }
         break;
       
       case 'success':
       case 'fail':
-        // Play again - reset and restart
+        // Jogar de novo - reset completo
         resetGame();
         setGameState('ready');
-        setModalOpen(true);
+        // Dar foco no botão após reset
+        setTimeout(() => {
+          const button = document.querySelector('[aria-label*="Raspar"]') as HTMLButtonElement;
+          if (button) button.focus();
+        }, 100);
         break;
       
       default:
         // Do nothing for locked states
         break;
     }
-  }, [buttonState, resetGame, setGameState]);
+  }, [buttonState, resetGame, setGameState, startGame, scratchType]);
 
   // Handle add balance (for locked state)
   const handleAddBalance = useCallback(() => {
@@ -259,18 +310,36 @@ useEffect(() => {
           />
         </div>
 
-        {/* Game panel - Botão único inteligente */}
+        {/* Game panel - Canvas Inline sempre visível */}
         <Card className="max-w-2xl mx-auto">
           <CardContent className="p-6">
             <div className="flex flex-col items-center gap-6">
-              {/* Preview area */}
-              <div className="w-full max-w-[300px] h-[300px] bg-muted rounded-lg border-2 border-dashed border-muted-foreground/30 flex items-center justify-center">
-                <div className="text-center space-y-2">
-                  <div className="text-4xl opacity-50">🎲</div>
-                  <p className="text-sm text-muted-foreground">
-                    Clique em "Raspar" para abrir o jogo
-                  </p>
-                </div>
+              {/* Canvas area - sempre presente */}
+              <div className="w-full max-w-[400px] h-[400px] relative">
+                {scratchCard && scratchCard.symbols ? (
+                  <ScratchGameCanvas
+                    ref={canvasRef}
+                    symbols={scratchCard.symbols}
+                    onWin={handleCanvasWin}
+                    onComplete={handleCanvasComplete}
+                    onScratchStart={handleCanvasScratchStart}
+                    gameStarted={gameState === 'scratching' || gameState === 'fastReveal'}
+                    scratchType={scratchType}
+                    disabled={gameState !== 'scratching'}
+                    size={400}
+                    className="w-full h-full"
+                  />
+                ) : (
+                  // Placeholder até carregar jogo
+                  <div className="w-full h-full bg-muted rounded-lg border-2 border-dashed border-muted-foreground/30 flex items-center justify-center">
+                    <div className="text-center space-y-2">
+                      <div className="text-4xl opacity-50">🎲</div>
+                      <p className="text-sm text-muted-foreground">
+                        {gameState === 'idle' ? 'Clique em "Raspar" para iniciar' : 'Carregando...'}
+                      </p>
+                    </div>
+                  </div>
+                )}
               </div>
 
               {/* Smart Action Button */}
@@ -314,13 +383,7 @@ useEffect(() => {
           </div>
         </section>
 
-        {/* Catálogo Compacto */}
-        <section className="max-w-6xl mx-auto">
-          <CompactScratchCatalog
-            currentType={currentScratch}
-            onPlayType={handleScratchChange}
-          />
-        </section>
+        {/* Catálogo removido conforme solicitado */}
       </main>
 
       {/* Minimal win modal */}
@@ -341,14 +404,6 @@ useEffect(() => {
       {/* Status Bar */}
       <StatusBar 
         status={gameState as any} 
-      />
-
-      {/* Modal de Canvas Automático */}
-      <ScratchModal
-        isOpen={modalOpen}
-        onClose={() => setModalOpen(false)}
-        scratchType={scratchType}
-        price={config.price}
       />
     </div>
   );

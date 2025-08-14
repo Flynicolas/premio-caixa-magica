@@ -51,10 +51,10 @@ const StatusBar = ({ status, message, className }: StatusBarProps) => {
         icon: "🎉"
       },
       fail: {
-        message: "Não foi desta vez 😕",
-        color: "text-yellow-600",
-        bg: "bg-yellow-50 dark:bg-yellow-950/30",
-        icon: "😔"
+        message: "Que pena 😢 Tente novamente!",
+        color: "text-orange-600",
+        bg: "bg-orange-50 dark:bg-orange-950/30",
+        icon: "🔄"
       },
       loading: {
         message: "Carregando nova raspadinha...",

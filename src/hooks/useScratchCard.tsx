@@ -27,6 +27,7 @@ export const useScratchCard = () => {
   const [gameId, setGameId] = useState<string | null>(null);
   const [gameState, setGameState] = useState<ScratchGameState>('idle');
   const [fastRevealTriggered, setFastRevealTriggered] = useState(false);
+  const [winDetected, setWinDetected] = useState(false); // Prevenir múltiplas detecções
   const { toast } = useToast();
   const { refetchWallet } = useWallet();
   const { isEnabled: adminTestMode } = useAdminTestMode();
@@ -273,7 +274,7 @@ export const useScratchCard = () => {
   }, [gameComplete]);
 
   const checkWinningCombination = useCallback(() => {
-    if (!scratchCard || !gameComplete) return null;
+    if (!scratchCard || !gameComplete || winDetected) return null;
 
     // Sistema de contagem baseado no código HTML - 3 símbolos iguais
     const symbolCount: Record<string, number[]> = {};
@@ -293,6 +294,7 @@ export const useScratchCard = () => {
       if (positions.length >= 3) {
         const winningSymbol = blocks[positions[0]]?.symbol;
         if (winningSymbol) {
+          setWinDetected(true); // Marcar como detectado
           return {
             pattern: positions.slice(0, 3), // Pegar os primeiros 3
             winningSymbol
@@ -302,7 +304,7 @@ export const useScratchCard = () => {
     }
 
     return null;
-  }, [blocks, scratchCard, gameComplete]);
+  }, [blocks, scratchCard, gameComplete, winDetected]);
 
   const resetGame = () => {
     setScratchCard(null);
@@ -311,6 +313,7 @@ export const useScratchCard = () => {
     setGameId(null);
     setGameState('idle');
     setFastRevealTriggered(false);
+    setWinDetected(false);
   };
 
   const scratchAll = useCallback(() => {

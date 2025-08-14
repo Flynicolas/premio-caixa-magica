@@ -48,11 +48,11 @@ const ScratchGameCanvas = forwardRef<{ revealAll: () => void }, ScratchGameCanva
     special: '#f472b6'
   };
 
-  // Renderizar grid com símbolos - só quando canvas estiver pronto
+  // Renderizar grid com símbolos - só quando canvas estiver pronto E jogo iniciado
   const renderGrid = useCallback(() => {
     const grid = gridRef.current;
-    if (!grid || !symbols.length || !canvasFullyLoaded) {
-      console.log('🎯 Grid render blocked - canvasFullyLoaded:', canvasFullyLoaded);
+    if (!grid || !symbols.length || !canvasFullyLoaded || !gameStarted) {
+      console.log('🎯 Grid render blocked - canvasFullyLoaded:', canvasFullyLoaded, 'gameStarted:', gameStarted);
       return;
     }
 
@@ -109,7 +109,7 @@ const ScratchGameCanvas = forwardRef<{ revealAll: () => void }, ScratchGameCanva
       div.dataset.symbol = name;
       grid.appendChild(div);
     });
-  }, [symbols, rarityColors, canvasFullyLoaded]);
+  }, [symbols, rarityColors, canvasFullyLoaded, gameStarted]);
 
   // Resetar canvas com imagem temática - controle de carregamento
   const resetCanvas = useCallback((scratchType: string) => {
@@ -292,7 +292,7 @@ const ScratchGameCanvas = forwardRef<{ revealAll: () => void }, ScratchGameCanva
     }
   }, [isRevealed, isVerifying, progressCheckInterval, revealedPositions]);
 
-  // CORREÇÃO 1.2: Verificar vitória baseada nas posições reveladas com delay
+  // CORREÇÃO: Verificar vitória baseada nas posições reveladas com proteção
   const checkWinFromRevealedPositions = useCallback((positions: boolean[]) => {
     if (!symbols.length || isVerifying || winDetected) return; // Evitar múltiplas detecções
 
@@ -309,16 +309,19 @@ const ScratchGameCanvas = forwardRef<{ revealAll: () => void }, ScratchGameCanva
 
     console.log('🎯 Contagem de símbolos revelados:', count);
 
+    // Proteção: só executar uma vez por símbolo
     for (const symbolName in count) {
-      if (count[symbolName] >= 3) {
+      if (count[symbolName] >= 3 && !winDetected) {
         console.log('🏆 VITÓRIA DETECTADA! Símbolo:', symbolName, 'Quantidade:', count[symbolName]);
-        setWinDetected(true); // Marcar como detectado
+        setWinDetected(true); // Marcar como detectado ANTES de qualquer ação
         highlightWinners(symbolName);
         
-        // CORREÇÃO 1.2: Adicionar delay de 1.2s antes de chamar onWin
+        // Delay reduzido para melhor UX
         setTimeout(() => {
-          onWin(symbolName);
-        }, 1200);
+          if (!winDetected) { // Dupla verificação
+            onWin(symbolName);
+          }
+        }, 800);
         return;
       }
     }
@@ -328,7 +331,7 @@ const ScratchGameCanvas = forwardRef<{ revealAll: () => void }, ScratchGameCanva
       console.log('❌ Jogo completo - sem vitória');
       setTimeout(() => {
         onComplete();
-      }, 500);
+      }, 300); // Reduzido para derrota rápida
     }
   }, [symbols, onWin, onComplete, isVerifying, winDetected]);
 
@@ -357,7 +360,7 @@ const ScratchGameCanvas = forwardRef<{ revealAll: () => void }, ScratchGameCanva
       }
     });
 
-    // Manter destaque por 2.5s antes de abrir modal de vitória
+    // Manter destaque dourado por 2.5s conforme especificado
     setTimeout(() => {
       Array.from(grid.children).forEach((div: any) => {
         if (div.dataset.symbol === winningSymbol) {
