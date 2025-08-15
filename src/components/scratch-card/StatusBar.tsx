@@ -15,57 +15,57 @@ const StatusBar = ({ status, message, className }: StatusBarProps) => {
   const getStatusConfig = (status: StatusType) => {
     const configs = {
       idle: {
-        message: "Pronto para jogar.",
-        color: "text-muted-foreground",
-        bg: "bg-muted/30",
-        icon: "💰"
+        message: "Pronto para começar",
+        color: "text-foreground/70",
+        bg: "backdrop-blur-sm bg-background/60 border-border/50",
+        icon: ""
       },
       ready: {
-        message: "Pronto para jogar.",
-        color: "text-blue-600",
-        bg: "bg-blue-50 dark:bg-blue-950/30",
+        message: "Toque para iniciar",
+        color: "text-foreground",
+        bg: "backdrop-blur-sm bg-background/80 border-border",
         icon: "🎯"
       },
       scratching: {
-        message: "Raspando… toque novamente para revelar tudo.",
-        color: "text-green-600",
-        bg: "bg-green-50 dark:bg-green-950/30",
-        icon: "✨"
+        message: "Raspando… toque novamente para revelar",
+        color: "text-foreground",
+        bg: "backdrop-blur-sm bg-background/80 border-border",
+        icon: ""
       },
       fastReveal: {
-        message: "Revelando…",
-        color: "text-orange-600",
-        bg: "bg-orange-50 dark:bg-orange-950/30",
-        icon: "🎲"
+        message: "Revelando resultado",
+        color: "text-foreground/80",
+        bg: "backdrop-blur-sm bg-background/70 border-border/60",
+        icon: ""
       },
       resolving: {
-        message: "Verificando resultado…",
-        color: "text-purple-600",
-        bg: "bg-purple-50 dark:bg-purple-950/30",
-        icon: "🔍"
+        message: "Processando",
+        color: "text-foreground/80",
+        bg: "backdrop-blur-sm bg-background/70 border-border/60",
+        icon: ""
       },
       success: {
-        message: "Você ganhou!",
-        color: "text-green-600",
-        bg: "bg-green-50 dark:bg-green-950/30",
+        message: "Parabéns! Você ganhou",
+        color: "text-green-600 dark:text-green-400",
+        bg: "backdrop-blur-sm bg-green-500/10 border-green-500/30",
         icon: "🎉"
       },
       fail: {
-        message: "Que pena 😢 Tente novamente!",
-        color: "text-orange-600",
-        bg: "bg-orange-50 dark:bg-orange-950/30",
-        icon: "🔄"
+        message: "Tente novamente",
+        color: "text-foreground/70",
+        bg: "backdrop-blur-sm bg-background/60 border-border/50",
+        icon: ""
       },
       loading: {
-        message: "Carregando nova raspadinha...",
-        color: "text-primary",
-        bg: "bg-primary/10",
-        icon: "⏳"
+        message: "Carregando",
+        color: "text-foreground/70",
+        bg: "backdrop-blur-sm bg-background/60 border-border/50",
+        icon: ""
       },
       locked: {
-        message: "Sem saldo suficiente ou indisponível",
-        color: "text-red-600",
-        bg: "bg-red-50 dark:bg-red-950/30",
+        message: "Indisponível no momento",
+        color: "text-muted-foreground",
+        bg: "backdrop-blur-sm bg-muted/30 border-muted/50",
         icon: "🔒"
       }
     };
@@ -85,7 +85,7 @@ const StatusBar = ({ status, message, className }: StatusBarProps) => {
         exit={{ opacity: 0, y: -10 }}
         transition={{ duration: 0.2 }}
         className={cn(
-          "px-4 py-3 rounded-lg shadow-sm border",
+          "px-4 py-3 rounded-xl border",
           "max-w-full text-center",
           config.bg,
           config.color,
