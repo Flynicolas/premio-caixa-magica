@@ -13,7 +13,6 @@ interface ScratchGameCanvasProps {
   scratchType?: string;
   className?: string;
   disabled?: boolean;
-  size?: number; // canvas width/height in px (default 400)
 }
 
 
@@ -23,7 +22,7 @@ interface ScratchAreaMap {
   sides: number;     // Peso 2x (posições 1,3,5,7)
 }
 
-const ScratchGameCanvas = forwardRef<{ revealAll: () => void }, ScratchGameCanvasProps>(({ symbols, onWin, onComplete, onScratchStart, gameStarted = false, scratchType = 'sorte', className, disabled = false, size = 400 }, ref) => {
+const ScratchGameCanvas = forwardRef<{ revealAll: () => void }, ScratchGameCanvasProps>(({ symbols, onWin, onComplete, onScratchStart, gameStarted = false, scratchType = 'sorte', className, disabled = false }, ref) => {
   console.log('🎯 ScratchGameCanvas mounted/rendered, symbols.length:', symbols.length);
   
   const canvasRef = useRef<HTMLCanvasElement>(null);
@@ -39,14 +38,8 @@ const ScratchGameCanvas = forwardRef<{ revealAll: () => void }, ScratchGameCanva
   const progressCheckInterval = 50;
   const scratchAreas = useRef<ScratchAreaMap>({ center: 0, corners: 0, sides: 0 });
 
-  const rarityColors = {
-    common: '#aaa',
-    uncommon: '#4ade80',
-    rare: '#3b82f6',
-    epic: '#a855f7',
-    legendary: '#facc15',
-    special: '#f472b6'
-  };
+  // Cores neutras até detectar vitória
+  const getNeutralColor = () => '#888';
 
   // Renderizar grid com símbolos - só quando canvas estiver pronto E jogo iniciado
   const renderGrid = useCallback(() => {
@@ -67,7 +60,7 @@ const ScratchGameCanvas = forwardRef<{ revealAll: () => void }, ScratchGameCanva
         border-radius: 12px;
         background: linear-gradient(135deg, #333 0%, #444 100%);
         color: #fff;
-        border: 2px solid ${rarityColors[rarity] || '#888'};
+        border: 2px solid ${getNeutralColor()};
         display: flex;
         flex-direction: column;
         align-items: center;
@@ -109,7 +102,7 @@ const ScratchGameCanvas = forwardRef<{ revealAll: () => void }, ScratchGameCanva
       div.dataset.symbol = name;
       grid.appendChild(div);
     });
-  }, [symbols, rarityColors, canvasFullyLoaded, gameStarted]);
+  }, [symbols, canvasFullyLoaded, gameStarted]);
 
   // Resetar canvas com imagem temática - controle de carregamento
   const resetCanvas = useCallback((scratchType: string) => {
@@ -551,30 +544,39 @@ const ScratchGameCanvas = forwardRef<{ revealAll: () => void }, ScratchGameCanva
   }, [canvasFullyLoaded, symbols.length, renderGrid]);
 
   return (
-    <div className={cn("relative w-full mx-auto", className)} style={{ maxWidth: `${size}px` }}>
-      {/* Grid de símbolos com melhorias visuais */}
+    <div className={cn("relative w-full aspect-square bg-secondary/20 rounded-lg overflow-hidden", className)}>
+      {/* Grid de símbolos */}
       <div
         ref={gridRef}
-        className="grid grid-cols-3 gap-2 p-3 bg-gray-800 rounded-xl relative z-10 shadow-lg"
-        style={{ minHeight: `${Math.max(300, size - 100)}px` }}
+        className="absolute inset-0 grid grid-cols-3 gap-1 p-2"
       />
       
-      {/* Canvas de raspagem melhorado */}
+      {/* Canvas de raspagem responsivo */}
       <canvas
         ref={canvasRef}
-        width={size}
-        height={size}
         className={cn(
-          "absolute top-0 left-0 w-full h-full rounded-xl z-20 transition-opacity duration-300",
+          "absolute inset-0 w-full h-full rounded-lg transition-opacity duration-300",
           disabled ? "cursor-not-allowed opacity-50" : "cursor-crosshair"
         )}
-        style={{ touchAction: 'none' }}
+        style={{ 
+          touchAction: 'none',
+          zIndex: isRevealed ? -1 : 10 
+        }}
       />
       
       {/* Progresso de raspagem */}
-      {scratchProgress > 0 && scratchProgress < 100 && (
-        <div className="absolute bottom-2 right-2 bg-black/80 text-white text-xs px-2 py-1 rounded-full z-30">
+      {scratchProgress > 0 && scratchProgress < 100 && !isRevealed && (
+        <div className="absolute bottom-2 left-2 bg-black/70 text-white px-2 py-1 rounded text-xs">
           {scratchProgress}%
+        </div>
+      )}
+      
+      {/* Placeholder quando jogo não iniciado */}
+      {!gameStarted && canvasFullyLoaded && (
+        <div className="absolute inset-0 flex items-center justify-center bg-black/20 rounded-lg">
+          <p className="text-sm text-muted-foreground font-medium px-4 py-2 bg-background/80 rounded">
+            Raspe aqui!
+          </p>
         </div>
       )}
     </div>

@@ -169,7 +169,6 @@ const ScratchModal = ({ isOpen, onClose, scratchType, price }: ScratchModalProps
                   onComplete={() => {}}
                   gameStarted={gameState === 'scratching'}
                   scratchType={scratchType}
-                  size={300}
                 />
               </motion.div>
             ) : (

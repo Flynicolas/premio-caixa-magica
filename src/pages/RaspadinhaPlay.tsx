@@ -6,9 +6,8 @@ import { useScratchCard } from "@/hooks/useScratchCard";
 import ScratchGameCanvas from "@/components/scratch-card/ScratchGameCanvas";
 import ScratchActionButton, { ScratchGameState } from "@/components/scratch-card/ScratchActionButton";
 import SimpleScratchWinModal from "@/components/scratch-card/SimpleScratchWinModal";
-import ScratchLossToast from "@/components/scratch-card/ScratchLossToast";
 import BannerRaspadinha from "@/components/scratch-card/BannerRaspadinha";
-import RaspadinhasSwitchBar from "@/components/scratch-card/RaspadinhasSwitchBar";
+import ResponsiveSwitchBar from "@/components/scratch-card/ResponsiveSwitchBar";
 import StatusBar from "@/components/scratch-card/StatusBar";
 import { scratchCardTypes, ScratchCardType } from "@/types/scratchCard";
 import { Card, CardContent } from "@/components/ui/card";
@@ -36,7 +35,7 @@ const RaspadinhaPlay = () => {
   const [winModal, setWinModal] = useState<{ open: boolean; type: "item" | "money"; data: any }>(
     { open: false, type: "item", data: null }
   );
-  const [showLossToast, setShowLossToast] = useState(false);
+  
   const [isTransitioning, setIsTransitioning] = useState(false);
   const canvasRef = useRef<{ revealAll: () => void }>(null);
   
@@ -193,11 +192,10 @@ useEffect(() => {
   }, [scratchCard, processGameResult, scratchType]);
 
   const handleCanvasComplete = useCallback(() => {
-    // Derrota rápida e discreta - sem modal
-    setShowLossToast(true);
-    setTimeout(() => setShowLossToast(false), 1000); // Reduzido para 1s
+    // Derrota rápida e discreta - apenas atualizar estado
+    setGameState('fail');
     processGameResult(scratchType, false);
-  }, [processGameResult, scratchType]);
+  }, [processGameResult, scratchType, setGameState]);
 
   const handleCanvasScratchStart = useCallback(() => {
     setGameState('scratching');
@@ -299,9 +297,9 @@ useEffect(() => {
       </header>
 
       <main className="container mx-auto px-4 py-6 space-y-6">
-        {/* Switch Bar - Dinâmica/Compacta */}
+        {/* Switch Bar - Responsiva e Robusta */}
         <div className="max-w-4xl mx-auto">
-          <RaspadinhasSwitchBar
+          <ResponsiveSwitchBar
             currentScratch={currentScratch}
             onScratchChange={handleScratchChange}
             isLoading={isTransitioning}
@@ -314,8 +312,8 @@ useEffect(() => {
         <Card className="max-w-2xl mx-auto">
           <CardContent className="p-6">
             <div className="flex flex-col items-center gap-6">
-              {/* Canvas area - sempre presente */}
-              <div className="w-full max-w-[400px] h-[400px] relative">
+              {/* Canvas area - responsivo */}
+              <div className="w-full aspect-square max-w-[400px] relative">
                 {scratchCard && scratchCard.symbols ? (
                   <ScratchGameCanvas
                     ref={canvasRef}
@@ -326,7 +324,6 @@ useEffect(() => {
                     gameStarted={gameState === 'scratching' || gameState === 'fastReveal'}
                     scratchType={scratchType}
                     disabled={gameState !== 'scratching'}
-                    size={400}
                     className="w-full h-full"
                   />
                 ) : (
@@ -394,14 +391,7 @@ useEffect(() => {
         winData={winModal.data}
       />
 
-      {/* Loss toast */}
-      <ScratchLossToast
-        isVisible={showLossToast}
-        onClose={() => setShowLossToast(false)}
-        onPlayAgain={handleButtonAction}
-      />
-
-      {/* Status Bar */}
+      {/* Status Bar - abaixo do botão */}
       <StatusBar 
         status={gameState as any} 
       />
