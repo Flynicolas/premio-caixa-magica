@@ -571,14 +571,6 @@ const ScratchGameCanvas = forwardRef<{ revealAll: () => void }, ScratchGameCanva
         </div>
       )}
       
-      {/* Placeholder quando jogo não iniciado */}
-      {!gameStarted && canvasFullyLoaded && (
-        <div className="absolute inset-0 flex items-center justify-center bg-black/20 rounded-lg">
-          <p className="text-sm text-muted-foreground font-medium px-4 py-2 bg-background/80 rounded">
-            Raspe aqui!
-          </p>
-        </div>
-      )}
     </div>
   );
 });

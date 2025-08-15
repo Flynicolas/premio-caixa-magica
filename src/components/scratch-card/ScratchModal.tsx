@@ -5,6 +5,7 @@ import ScratchGameCanvas from './ScratchGameCanvas';
 import ScratchActionButton, { ScratchGameState } from './ScratchActionButton';
 import SimpleScratchWinModal from './SimpleScratchWinModal';
 import ScratchLossToast from './ScratchLossToast';
+import StatusBar from './StatusBar';
 import { useAuth } from '@/hooks/useAuth';
 import { useWallet } from '@/hooks/useWalletProvider';
 import { useScratchCard } from '@/hooks/useScratchCard';
@@ -143,7 +144,7 @@ const ScratchModal = ({ isOpen, onClose, scratchType, price }: ScratchModalProps
   return (
     <>
       <Dialog open={isOpen} onOpenChange={onClose}>
-        <DialogContent className="max-w-md p-6 space-y-6">
+        <DialogContent className="max-w-lg w-[95vw] p-6 space-y-6">
           <div className="text-center">
             <h2 className="text-xl font-bold mb-2">Raspadinha {scratchType.toUpperCase()}</h2>
             <p className="text-sm text-muted-foreground">
@@ -160,7 +161,7 @@ const ScratchModal = ({ isOpen, onClose, scratchType, price }: ScratchModalProps
                 animate={{ opacity: 1, scale: 1 }}
                 exit={{ opacity: 0, scale: 0.9 }}
                 transition={{ duration: 0.3 }}
-                className="w-full max-w-[300px] mx-auto"
+                className="w-full max-w-[400px] mx-auto"
               >
                 <ScratchGameCanvas
                   ref={canvasRef}
@@ -177,7 +178,7 @@ const ScratchModal = ({ isOpen, onClose, scratchType, price }: ScratchModalProps
                 initial={{ opacity: 0 }}
                 animate={{ opacity: 1 }}
                 exit={{ opacity: 0 }}
-                className="w-full max-w-[300px] mx-auto h-[300px] bg-muted rounded-lg flex items-center justify-center"
+                className="w-full max-w-[400px] mx-auto h-[400px] bg-muted rounded-lg flex items-center justify-center"
               >
                 <p className="text-muted-foreground">
                   {gameState === 'locked' ? 'Clique em "Raspar" para começar' : 'Preparando jogo...'}
@@ -194,18 +195,11 @@ const ScratchModal = ({ isOpen, onClose, scratchType, price }: ScratchModalProps
             balance={walletData?.balance || 0}
           />
 
-          {/* Balance info for locked state */}
-          {buttonState === 'locked' && !isAuthenticated && (
-            <p className="text-xs text-center text-muted-foreground">
-              Faça login para jogar
-            </p>
-          )}
-          
-          {buttonState === 'locked' && isAuthenticated && !hasBalance && (
-            <p className="text-xs text-center text-muted-foreground">
-              Saldo insuficiente: R$ {walletData?.balance.toFixed(2) || '0,00'}
-            </p>
-          )}
+          {/* Status messages integrated below button */}
+          <StatusBar 
+            status={buttonState as any}
+            className="static"
+          />
         </DialogContent>
       </Dialog>
 

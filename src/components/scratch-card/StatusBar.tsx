@@ -85,9 +85,8 @@ const StatusBar = ({ status, message, className }: StatusBarProps) => {
         exit={{ opacity: 0, y: -10 }}
         transition={{ duration: 0.2 }}
         className={cn(
-          "fixed bottom-24 left-1/2 transform -translate-x-1/2 z-40",
-          "px-4 py-2 rounded-full shadow-lg backdrop-blur-sm border",
-          "max-w-[90vw] text-center",
+          "px-4 py-3 rounded-lg shadow-sm border",
+          "max-w-full text-center",
           config.bg,
           config.color,
           className

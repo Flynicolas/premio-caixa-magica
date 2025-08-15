@@ -349,6 +349,12 @@ useEffect(() => {
                 className="w-full max-w-[300px]"
               />
 
+              {/* Status Bar - integrated below button */}
+              <StatusBar 
+                status={gameState as any}
+                className="w-full max-w-[300px]"
+              />
+
               {/* Auth prompt for non-authenticated users */}
               {!user && (
                 <div className="text-center space-y-3">
@@ -359,12 +365,6 @@ useEffect(() => {
                 </div>
               )}
 
-              {/* Saldo info para usuários autenticados */}
-              {user && walletData && (
-                <p className="text-xs text-muted-foreground text-center">
-                  Saldo: R$ {walletData.balance.toFixed(2)}
-                </p>
-              )}
             </div>
           </CardContent>
         </Card>
@@ -391,10 +391,6 @@ useEffect(() => {
         winData={winModal.data}
       />
 
-      {/* Status Bar - abaixo do botão */}
-      <StatusBar 
-        status={gameState as any} 
-      />
     </div>
   );
 };
