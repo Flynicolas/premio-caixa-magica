@@ -24,6 +24,9 @@ import ItemWinModal from '@/components/scratch-card/ItemWinModal';
 import PrizeShowcaseStyleOne from '@/components/scratch-card/PrizeShowcaseStyleOne';
 import PrizeShowcaseStyleTwo from '@/components/scratch-card/PrizeShowcaseStyleTwo';
 import PrizeShowcaseStyleThree from '@/components/scratch-card/PrizeShowcaseStyleThree';
+import PrizeShowcaseStyleFour from '@/components/scratch-card/PrizeShowcaseStyleFour';
+import PrizeShowcaseStyleFive from '@/components/scratch-card/PrizeShowcaseStyleFive';
+import PrizeShowcaseStyleSix from '@/components/scratch-card/PrizeShowcaseStyleSix';
 
 const Rascunho = () => {
   const { user } = useAuth();
@@ -356,32 +359,48 @@ const Rascunho = () => {
           />
         </section>
 
-        {/* 3 TIPOS DE MOSTRUÁRIO DE PRÊMIOS - USANDO RASPADINHA "SORTE" */}
+        {/* 6 TIPOS DE MOSTRUÁRIO DE PRÊMIOS - USANDO RASPADINHA "SORTE" */}
         <section className="mt-16 mb-12 space-y-8">
           <div className="text-center mb-8">
             <h2 className="text-2xl md:text-3xl font-bold mb-4 text-primary">
-              🎯 3 Estilos de Mostruário de Prêmios
+              🎯 6 Estilos de Mostruário de Prêmios
             </h2>
             <p className="text-muted-foreground">
               Testando diferentes layouts para exibir os prêmios da raspadinha "SORTE"
             </p>
           </div>
 
-          {/* Estilo 1: Compacto Mobile */}
+          {/* Primeiros 3 estilos */}
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
             <PrizeShowcaseStyleOne 
               scratchType="sorte"
               className="w-full"
             />
             
-            {/* Estilo 2: Cards Horizontais */}
             <PrizeShowcaseStyleTwo 
               scratchType="sorte"
               className="w-full"
             />
             
-            {/* Estilo 3: Grid Elegante */}
             <PrizeShowcaseStyleThree 
+              scratchType="sorte"
+              className="w-full"
+            />
+          </div>
+
+          {/* Novos 3 estilos */}
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+            <PrizeShowcaseStyleFour 
+              scratchType="sorte"
+              className="w-full"
+            />
+            
+            <PrizeShowcaseStyleFive 
+              scratchType="sorte"
+              className="w-full"
+            />
+            
+            <PrizeShowcaseStyleSix 
               scratchType="sorte"
               className="w-full"
             />
