@@ -296,24 +296,15 @@ useEffect(() => {
         />
       </header>
 
-      <main className="container mx-auto px-4 py-6 space-y-6">
-        {/* Switch Bar - Responsiva e Robusta */}
-        <div className="max-w-4xl mx-auto">
-          <ResponsiveSwitchBar
-            currentScratch={currentScratch}
-            onScratchChange={handleScratchChange}
-            isLoading={isTransitioning}
-            hideOnScratch={true}
-            gameState={gameState}
-          />
-        </div>
+      <main className="container mx-auto px-4 py-2 space-y-4">
+        {/* Game panel movido para cima - mais próximo do banner */}
 
-        {/* Game panel - Canvas Inline sempre visível */}
-        <Card className="max-w-2xl mx-auto">
-          <CardContent className="p-6">
-            <div className="flex flex-col items-center gap-6">
-              {/* Canvas area - responsivo */}
-              <div className="w-full aspect-square max-w-[400px] relative">
+        {/* Game panel - Canvas Inline sempre visível - MODAL MAIOR */}
+        <Card className="max-w-3xl mx-auto relative">
+          <CardContent className="p-4 sm:p-6">
+            <div className="flex flex-col items-center gap-4">
+              {/* Canvas area - maior para melhor experiência */}
+              <div className="w-full aspect-square max-w-[480px] relative">
                 {scratchCard && scratchCard.symbols ? (
                   <ScratchGameCanvas
                     ref={canvasRef}
@@ -365,6 +356,18 @@ useEffect(() => {
                 </div>
               )}
 
+            </div>
+            
+            {/* Menu fixo no bottom do modal */}
+            <div className="sticky bottom-0 bg-background/95 backdrop-blur-sm border-t border-border p-3 -mx-4 sm:-mx-6">
+              <ResponsiveSwitchBar
+                currentScratch={currentScratch}
+                onScratchChange={handleScratchChange}
+                isLoading={isTransitioning}
+                hideOnScratch={false}
+                gameState={gameState}
+                className="max-w-full"
+              />
             </div>
           </CardContent>
         </Card>

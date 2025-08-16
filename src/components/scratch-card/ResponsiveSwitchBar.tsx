@@ -66,10 +66,10 @@ const ResponsiveSwitchBar = ({
                 onClick={() => handleScratchClick(type)}
                 disabled={isDisabled}
                 className={cn(
-                  // Layout responsivo
-                  "flex flex-col sm:flex-row items-center gap-1.5 sm:gap-2",
-                  "px-3 py-2.5 sm:px-4 sm:py-2 rounded-lg sm:rounded-full",
-                  "min-w-[80px] sm:min-w-fit whitespace-nowrap snap-center",
+                  // Layout responsivo - menor no mobile
+                  "flex flex-col sm:flex-row items-center gap-1 sm:gap-2",
+                  "px-2 py-2 sm:px-4 sm:py-2 rounded-lg sm:rounded-full",
+                  "min-w-[70px] sm:min-w-fit whitespace-nowrap snap-center",
                   "transition-all duration-300 relative",
                   // Estados visuais
                   {

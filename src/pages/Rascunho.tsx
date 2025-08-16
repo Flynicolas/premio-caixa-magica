@@ -21,6 +21,9 @@ import ScratchModalStyleTwo from '@/components/scratch-card/ScratchModalStyleTwo
 import ScratchModalStyleThree from '@/components/scratch-card/ScratchModalStyleThree';
 import MoneyWinModal from '@/components/scratch-card/MoneyWinModal';
 import ItemWinModal from '@/components/scratch-card/ItemWinModal';
+import PrizeShowcaseStyleOne from '@/components/scratch-card/PrizeShowcaseStyleOne';
+import PrizeShowcaseStyleTwo from '@/components/scratch-card/PrizeShowcaseStyleTwo';
+import PrizeShowcaseStyleThree from '@/components/scratch-card/PrizeShowcaseStyleThree';
 
 const Rascunho = () => {
   const { user } = useAuth();
@@ -351,6 +354,45 @@ const Rascunho = () => {
             onCardSelect={(cardId) => console.log('Card Premium selecionado:', cardId)}
             userBalance={walletData?.balance || 1000}
           />
+        </section>
+
+        {/* 3 TIPOS DE MOSTRUÁRIO DE PRÊMIOS - USANDO RASPADINHA "SORTE" */}
+        <section className="mt-16 mb-12 space-y-8">
+          <div className="text-center mb-8">
+            <h2 className="text-2xl md:text-3xl font-bold mb-4 text-primary">
+              🎯 3 Estilos de Mostruário de Prêmios
+            </h2>
+            <p className="text-muted-foreground">
+              Testando diferentes layouts para exibir os prêmios da raspadinha "SORTE"
+            </p>
+          </div>
+
+          {/* Estilo 1: Compacto Mobile */}
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+            <PrizeShowcaseStyleOne 
+              scratchType="sorte"
+              className="w-full"
+            />
+            
+            {/* Estilo 2: Cards Horizontais */}
+            <PrizeShowcaseStyleTwo 
+              scratchType="sorte"
+              className="w-full"
+            />
+            
+            {/* Estilo 3: Grid Elegante */}
+            <PrizeShowcaseStyleThree 
+              scratchType="sorte"
+              className="w-full"
+            />
+          </div>
+
+          <div className="text-center p-6 bg-primary/10 rounded-xl border border-primary/20">
+            <p className="text-sm text-muted-foreground">
+              💡 <strong>Instrução:</strong> Escolha o estilo que mais se adequa ao mobile e desktop, 
+              depois implementaremos na página principal de raspadinhas!
+            </p>
+          </div>
         </section>
 
         {/* TESTE DOS MODAIS DE RASPAGEM */}

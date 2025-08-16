@@ -10,6 +10,30 @@ interface StatusBarProps {
   className?: string;
 }
 
+// Mensagens dinâmicas de loading
+const loadingMessages = [
+  "🎲 Embaralhando raspadinha...",
+  "✨ Preparando sua sorte...",
+  "🍀 Clique em 'Raspar' para começar...",
+  "🎰 Carregando prêmios...",
+  "🏆 Sua sorte está sendo preparada...",
+  "🎯 Organizando símbolos...",
+  "💎 Misturando premiações...",
+  "🌟 Configurando jogo...",
+  "🎪 Preparando diversão...",
+  "⚡ Energia de sorte carregando...",
+  "🎁 Envolvendo surpresas...",
+  "🔥 Aquecendo a sorte..."
+];
+
+let messageIndex = 0;
+
+const getRandomLoadingMessage = () => {
+  const message = loadingMessages[messageIndex];
+  messageIndex = (messageIndex + 1) % loadingMessages.length;
+  return message;
+};
+
 const StatusBar = ({ status, message, className }: StatusBarProps) => {
   
   const getStatusConfig = (status: StatusType) => {
@@ -57,7 +81,7 @@ const StatusBar = ({ status, message, className }: StatusBarProps) => {
         icon: ""
       },
       loading: {
-        message: "Carregando",
+        message: getRandomLoadingMessage(),
         color: "text-foreground/70",
         bg: "backdrop-blur-sm bg-background/60 border-border/50",
         icon: ""

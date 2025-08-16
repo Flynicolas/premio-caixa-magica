@@ -46,15 +46,15 @@ const ScratchActionButton = ({
   const getButtonConfig = useCallback(() => {
     const configs = {
       idle: {
-        label: `Raspar • R$ ${price.toFixed(2)}`,
-        icon: Play,
+        label: `🎯 Raspar Agora! • R$ ${price.toFixed(2)}`,
+        icon: Sparkles,
         variant: 'default' as const,
         disabled: false,
         showSpinner: false
       },
       ready: {
-        label: `Raspar • R$ ${price.toFixed(2)}`,
-        icon: Play,
+        label: `🎯 Raspar Agora! • R$ ${price.toFixed(2)}`,
+        icon: Sparkles,
         variant: 'default' as const,
         disabled: false,
         showSpinner: false
