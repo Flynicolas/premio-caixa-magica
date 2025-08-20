@@ -7,7 +7,7 @@ export type Json =
   | Json[]
 
 export type Database = {
-  // Allows to automatically instanciate createClient with right options
+  // Allows to automatically instantiate createClient with right options
   // instead of createClient<Database, { PostgrestVersion: 'XX' }>(URL, KEY)
   __InternalSupabase: {
     PostgrestVersion: "12.2.3 (519615d)"
@@ -223,6 +223,33 @@ export type Database = {
           total_chest_sales?: number | null
           total_system_balance?: number | null
           total_withdrawals?: number | null
+        }
+        Relationships: []
+      }
+      app_settings: {
+        Row: {
+          created_at: string | null
+          description: string | null
+          id: string
+          setting_key: string
+          setting_value: string
+          updated_at: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          description?: string | null
+          id?: string
+          setting_key: string
+          setting_value: string
+          updated_at?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          description?: string | null
+          id?: string
+          setting_key?: string
+          setting_value?: string
+          updated_at?: string | null
         }
         Relationships: []
       }
@@ -730,6 +757,36 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      event_log: {
+        Row: {
+          admin_id: string | null
+          created_at: string
+          details: Json
+          event_type: string
+          id: number
+          ref_id: string | null
+          user_id: string | null
+        }
+        Insert: {
+          admin_id?: string | null
+          created_at?: string
+          details?: Json
+          event_type: string
+          id?: number
+          ref_id?: string | null
+          user_id?: string | null
+        }
+        Update: {
+          admin_id?: string | null
+          created_at?: string
+          details?: Json
+          event_type?: string
+          id?: number
+          ref_id?: string | null
+          user_id?: string | null
+        }
+        Relationships: []
       }
       financial_audit_log: {
         Row: {
@@ -1955,6 +2012,7 @@ export type Database = {
       }
       scratch_card_financial_control: {
         Row: {
+          bank_balance: number | null
           budget_percentage: number | null
           cards_played: number | null
           created_at: string | null
@@ -1962,7 +2020,10 @@ export type Database = {
           date: string
           goal_reached: boolean | null
           id: string
+          min_bank_balance: number | null
           net_profit: number | null
+          pay_upto_percentage: number | null
+          payout_mode: string | null
           percentage_prizes: number | null
           percentage_profit: number | null
           profit_goal: number | null
@@ -1973,6 +2034,7 @@ export type Database = {
           updated_at: string | null
         }
         Insert: {
+          bank_balance?: number | null
           budget_percentage?: number | null
           cards_played?: number | null
           created_at?: string | null
@@ -1980,7 +2042,10 @@ export type Database = {
           date?: string
           goal_reached?: boolean | null
           id?: string
+          min_bank_balance?: number | null
           net_profit?: number | null
+          pay_upto_percentage?: number | null
+          payout_mode?: string | null
           percentage_prizes?: number | null
           percentage_profit?: number | null
           profit_goal?: number | null
@@ -1991,6 +2056,7 @@ export type Database = {
           updated_at?: string | null
         }
         Update: {
+          bank_balance?: number | null
           budget_percentage?: number | null
           cards_played?: number | null
           created_at?: string | null
@@ -1998,7 +2064,10 @@ export type Database = {
           date?: string
           goal_reached?: boolean | null
           id?: string
+          min_bank_balance?: number | null
           net_profit?: number | null
+          pay_upto_percentage?: number | null
+          payout_mode?: string | null
           percentage_prizes?: number | null
           percentage_profit?: number | null
           profit_goal?: number | null
@@ -2057,8 +2126,36 @@ export type Database = {
           },
         ]
       }
+      scratch_card_presets: {
+        Row: {
+          created_at: string | null
+          description: string | null
+          id: number
+          name: string
+          pay_upto_percentage: number
+          win_probability_global: number
+        }
+        Insert: {
+          created_at?: string | null
+          description?: string | null
+          id?: number
+          name: string
+          pay_upto_percentage: number
+          win_probability_global: number
+        }
+        Update: {
+          created_at?: string | null
+          description?: string | null
+          id?: number
+          name?: string
+          pay_upto_percentage?: number
+          win_probability_global?: number
+        }
+        Relationships: []
+      }
       scratch_card_probabilities: {
         Row: {
+          active: boolean
           created_at: string | null
           id: string
           is_active: boolean | null
@@ -2069,6 +2166,7 @@ export type Database = {
           scratch_type: string
         }
         Insert: {
+          active?: boolean
           created_at?: string | null
           id?: string
           is_active?: boolean | null
@@ -2079,6 +2177,7 @@ export type Database = {
           scratch_type: string
         }
         Update: {
+          active?: boolean
           created_at?: string | null
           id?: string
           is_active?: boolean | null
@@ -2164,40 +2263,61 @@ export type Database = {
       }
       scratch_card_settings: {
         Row: {
+          backend_cost: number
           background_image: string | null
+          category: string | null
           created_at: string | null
           house_edge: number | null
           id: string
           is_active: boolean | null
           name: string
           price: number
+          price_display: number
           scratch_type: string
+          sort_order: number | null
           updated_at: string | null
           win_probability: number | null
+          win_probability_global: number
+          win_probability_influencer: number | null
+          win_probability_normal: number | null
         }
         Insert: {
+          backend_cost?: number
           background_image?: string | null
+          category?: string | null
           created_at?: string | null
           house_edge?: number | null
           id?: string
           is_active?: boolean | null
           name: string
           price: number
+          price_display?: number
           scratch_type: string
+          sort_order?: number | null
           updated_at?: string | null
           win_probability?: number | null
+          win_probability_global?: number
+          win_probability_influencer?: number | null
+          win_probability_normal?: number | null
         }
         Update: {
+          backend_cost?: number
           background_image?: string | null
+          category?: string | null
           created_at?: string | null
           house_edge?: number | null
           id?: string
           is_active?: boolean | null
           name?: string
           price?: number
+          price_display?: number
           scratch_type?: string
+          sort_order?: number | null
           updated_at?: string | null
           win_probability?: number | null
+          win_probability_global?: number
+          win_probability_influencer?: number | null
+          win_probability_normal?: number | null
         }
         Relationships: []
       }
@@ -2794,26 +2914,30 @@ export type Database = {
         Returns: undefined
       }
       add_wallet_balance: {
-        Args: { p_user_id: string; p_amount: number; p_description?: string }
+        Args: { p_amount: number; p_description?: string; p_user_id: string }
         Returns: boolean
       }
       analyze_user_behavior: {
         Args: { p_user_id: string }
         Returns: {
-          behavior_score: number
-          eligibility_tier: string
-          play_pattern: string
-          engagement_level: string
-          days_since_last_win: number
-          win_frequency: number
           analysis_data: Json
+          behavior_score: number
+          days_since_last_win: number
+          eligibility_tier: string
+          engagement_level: string
+          play_pattern: string
+          win_frequency: number
         }[]
       }
+      apply_preset_to_scratch: {
+        Args: { p_preset_id: number; p_scratch_type: string }
+        Returns: undefined
+      }
       approve_conversion: {
-        Args: { p_conversion_id: string; p_admin_user_id: string }
+        Args: { p_admin_user_id: string; p_conversion_id: string }
         Returns: {
-          success: boolean
           message: string
+          success: boolean
         }[]
       }
       audit_financial_consistency: {
@@ -2823,11 +2947,11 @@ export type Database = {
       calculate_user_level: {
         Args: { experience: number }
         Returns: {
+          benefits: Json
+          color: string
+          icon: string
           level: number
           name: string
-          icon: string
-          color: string
-          benefits: Json
         }[]
       }
       check_admin_direct: {
@@ -2835,7 +2959,7 @@ export type Database = {
         Returns: boolean
       }
       check_user_role: {
-        Args: { p_user_id: string; p_role: string }
+        Args: { p_role: string; p_user_id: string }
         Returns: boolean
       }
       cleanup_expired_invites: {
@@ -2849,11 +2973,21 @@ export type Database = {
         }[]
       }
       create_payment_preference: {
-        Args: { p_user_id: string; p_amount: number; p_description?: string }
+        Args: { p_amount: number; p_description?: string; p_user_id: string }
         Returns: {
           preference_id: string
           transaction_id: string
         }[]
+      }
+      event_log_add: {
+        Args: {
+          p_admin_id: string
+          p_details: Json
+          p_event_type: string
+          p_ref_id: string
+          p_user_id: string
+        }
+        Returns: undefined
       }
       expire_old_manual_releases: {
         Args: Record<PropertyKey, never>
@@ -2866,54 +3000,54 @@ export type Database = {
       get_conversion_stats: {
         Args: Record<PropertyKey, never>
         Returns: {
-          total_conversions: number
-          total_amount: number
-          pending_approvals: number
-          completed_today: number
           amount_today: number
           avg_conversion_amount: number
+          completed_today: number
+          pending_approvals: number
+          total_amount: number
+          total_conversions: number
         }[]
       }
       get_daily_conversion_data: {
         Args: { days_back?: number }
         Returns: {
           date: string
-          total_conversions: number
           total_amount: number
+          total_conversions: number
           unique_users: number
         }[]
       }
       get_next_programmed_prize: {
         Args: { p_scratch_type: string; p_user_id?: string }
         Returns: {
-          prize_id: string
           item_id: string
-          priority: number
-          target_criteria: Json
           metadata: Json
+          priority: number
+          prize_id: string
+          target_criteria: Json
         }[]
       }
       get_ranking_top10: {
         Args: Record<PropertyKey, never>
         Returns: {
-          id: string
           full_name: string
-          total_spent: number
-          total_prizes_won: number
+          id: string
           level: number
           level_title: string
+          total_prizes_won: number
+          total_spent: number
         }[]
       }
       get_user_ranking_position: {
         Args: { user_id_input: string }
         Returns: {
-          id: string
           full_name: string
-          total_spent: number
-          total_prizes_won: number
+          id: string
           level: number
           level_title: string
           position: number
+          total_prizes_won: number
+          total_spent: number
         }[]
       }
       initialize_cash_control_system: {
@@ -2938,127 +3072,146 @@ export type Database = {
       }
       log_admin_action: {
         Args: {
-          p_admin_user_id: string
           p_action_type: string
-          p_description: string
-          p_affected_table?: string
+          p_admin_user_id: string
           p_affected_record_id?: string
-          p_old_data?: Json
-          p_new_data?: Json
+          p_affected_table?: string
+          p_description: string
           p_metadata?: Json
+          p_new_data?: Json
+          p_old_data?: Json
         }
         Returns: string
       }
       log_user_activity: {
         Args: {
-          p_user_id: string
           p_activity_type: string
           p_description: string
-          p_metadata?: Json
           p_experience_gained?: number
+          p_metadata?: Json
+          p_user_id: string
         }
         Returns: string
       }
       migrate_chest_data: {
         Args: { items_data: Json }
         Returns: {
-          migrated_count: number
-          updated_count: number
           error_count: number
           errors: string[]
+          migrated_count: number
+          updated_count: number
         }[]
       }
       open_chest: {
-        Args: { p_user_id: string; p_chest_id: string; p_item_id: string }
+        Args: { p_chest_id: string; p_item_id: string; p_user_id: string }
         Returns: boolean
       }
       process_excel_import: {
-        Args: { import_id: string; excel_data: Json; column_mapping: Json }
+        Args: { column_mapping: Json; excel_data: Json; import_id: string }
         Returns: boolean
       }
       process_mercadopago_webhook: {
         Args: {
-          p_preference_id: string
           p_payment_id: string
           p_payment_status: string
+          p_preference_id: string
           p_webhook_data: Json
         }
         Returns: boolean
       }
       process_monetary_conversion: {
         Args: {
-          p_user_id: string
-          p_item_id: string
-          p_inventory_id: string
           p_conversion_amount: number
+          p_inventory_id: string
+          p_item_id: string
+          p_user_id: string
         }
         Returns: {
           conversion_id: string
-          status: string
           message: string
+          status: string
         }[]
       }
       process_money_item_redemption: {
         Args: {
-          p_user_id: string
-          p_item_id: string
           p_inventory_id: string
+          p_item_id: string
           p_redemption_amount: number
+          p_user_id: string
         }
         Returns: {
+          message: string
           redemption_id: string
           status: string
-          message: string
         }[]
       }
       process_referral_signup: {
         Args: {
-          p_referred_user_id: string
+          p_ip_address?: string
           p_referral_code: string
           p_referral_source?: string
-          p_ip_address?: string
+          p_referred_user_id: string
           p_user_agent?: string
         }
         Returns: boolean
       }
       process_scratch_card_game: {
         Args: {
-          p_user_id: string
-          p_scratch_type: string
           p_game_price: number
-          p_symbols: Json
           p_has_win?: boolean
-          p_winning_item_id?: string
+          p_scratch_type: string
+          p_symbols: Json
+          p_user_id: string
           p_winning_amount?: number
+          p_winning_item_id?: string
         }
         Returns: {
           game_id: string
-          wallet_balance: number
-          success: boolean
           message: string
+          success: boolean
+          wallet_balance: number
         }[]
       }
       purchase_chest: {
-        Args: { p_user_id: string; p_chest_type: string; p_price: number }
+        Args: { p_chest_type: string; p_price: number; p_user_id: string }
         Returns: string
       }
       reject_conversion: {
         Args: {
-          p_conversion_id: string
           p_admin_user_id: string
+          p_conversion_id: string
           p_rejection_reason: string
         }
         Returns: {
-          success: boolean
           message: string
+          success: boolean
         }[]
       }
       reset_demo_credits: {
         Args: Record<PropertyKey, never>
         Returns: undefined
       }
+      scratch_effective_probability: {
+        Args: {
+          p_global: number
+          p_influencer: number
+          p_is_influencer: boolean
+          p_normal: number
+        }
+        Returns: number
+      }
+      scratch_validate_payout: {
+        Args: {
+          p_bank_balance: number
+          p_min_bank_balance: number
+          p_pay_upto_percentage: number
+          p_payout_mode: string
+          p_requested: number
+        }
+        Returns: boolean
+      }
       validate_balance_operation: {
-        Args: { p_user_id: string; p_amount: number; p_operation_type: string }
+        Args: { p_amount: number; p_operation_type: string; p_user_id: string }
         Returns: boolean
       }
       validate_cpf_for_withdrawal: {
@@ -3067,30 +3220,30 @@ export type Database = {
       }
       validate_monetary_conversion: {
         Args: {
-          p_user_id: string
-          p_item_id: string
           p_conversion_amount: number
+          p_item_id: string
+          p_user_id: string
         }
         Returns: {
+          conversion_count: number
+          daily_total: number
+          error_message: string
           is_valid: boolean
           requires_approval: boolean
-          error_message: string
-          daily_total: number
-          conversion_count: number
         }[]
       }
       validate_money_item_redemption: {
         Args: {
-          p_user_id: string
           p_item_id: string
           p_redemption_amount: number
+          p_user_id: string
         }
         Returns: {
-          is_valid: boolean
-          requires_approval: boolean
-          error_message: string
           daily_total: number
+          error_message: string
+          is_valid: boolean
           redemption_count: number
+          requires_approval: boolean
           security_score: number
         }[]
       }
@@ -3108,20 +3261,20 @@ export type Database = {
       }
       wallet_cashout_request: {
         Args: {
-          p_user_id: string
           p_amount_cents: number
+          p_description?: string
           p_pix_key: string
           p_pix_key_type: string
-          p_description?: string
+          p_user_id: string
         }
         Returns: string
       }
       wallet_credit_pix: {
         Args: {
-          p_user_id: string
           p_amount_cents: number
-          p_provider_payment_id: string
           p_payment_id: string
+          p_provider_payment_id: string
+          p_user_id: string
         }
         Returns: undefined
       }
