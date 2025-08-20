@@ -4,6 +4,7 @@ import { DatabaseItem } from '@/types/database';
 import { Settings, Package } from 'lucide-react';
 import UnifiedScratchCardManager from './UnifiedScratchCardManager';
 import ScratchCardFinancialControl from './scratch-card-probability/ScratchCardFinancialControl';
+import ScratchCardProfitDashboard from './ScratchCardProfitDashboard';
 
 interface ScratchCardProbabilityManagerProps {
   items: DatabaseItem[];
@@ -15,7 +16,7 @@ const ScratchCardProbabilityManager = ({ items, onRefresh }: ScratchCardProbabil
   return (
     <div className="space-y-6">
       <Tabs defaultValue="manage" className="w-full">
-        <TabsList className="grid w-full grid-cols-2">
+        <TabsList className="grid w-full grid-cols-3">
           <TabsTrigger value="manage" className="flex items-center gap-2">
             <Package className="w-4 h-4" />
             Gerenciar Raspadinhas
@@ -23,6 +24,10 @@ const ScratchCardProbabilityManager = ({ items, onRefresh }: ScratchCardProbabil
           <TabsTrigger value="financial" className="flex items-center gap-2">
             <Settings className="w-4 h-4" />
             Controle Financeiro 90/10
+          </TabsTrigger>
+          <TabsTrigger value="monitoring" className="flex items-center gap-2">
+            <Settings className="w-4 h-4" />
+            Monitoramento de Lucro
           </TabsTrigger>
         </TabsList>
 
@@ -32,6 +37,10 @@ const ScratchCardProbabilityManager = ({ items, onRefresh }: ScratchCardProbabil
 
         <TabsContent value="financial">
           <ScratchCardFinancialControl />
+        </TabsContent>
+
+        <TabsContent value="monitoring">
+          <ScratchCardProfitDashboard />
         </TabsContent>
       </Tabs>
     </div>

@@ -492,6 +492,42 @@ serve(async (req) => {
       }
     };
 
+    // ✅ ETAPA 9: ATUALIZAR MONITORAMENTO DE LUCRO (SISTEMA 90/10)
+    const updateProfitMonitoring = async () => {
+      try {
+        // Buscar configurações da raspadinha para obter o preço
+        const { data: settings } = await supabase
+          .from('scratch_card_settings')
+          .select('price')
+          .eq('scratch_type', scratchType)
+          .single();
+
+        const gamePrice = settings?.price || 5.00; // Preço padrão
+        const prizeValue = hasWin && winningItem ? winningItem.base_value : 0;
+
+        // Atualizar monitoramento de lucro
+        const { error: monitoringError } = await supabase
+          .from('scratch_card_profit_monitoring')
+          .upsert({
+            scratch_type: scratchType,
+            date: new Date().toISOString().split('T')[0],
+            total_sales: gamePrice, // Será somado pelo SQL
+            total_prizes_paid: prizeValue // Será somado pelo SQL
+          }, {
+            onConflict: 'scratch_type,date',
+            ignoreDuplicates: false
+          });
+
+        if (monitoringError) {
+          console.error('❌ Erro ao atualizar monitoramento:', monitoringError);
+        } else {
+          console.log(`💰 Monitoramento atualizado: +R$ ${gamePrice} vendas, +R$ ${prizeValue} prêmios`);
+        }
+      } catch (error) {
+        console.error('❌ Erro no monitoramento de lucro:', error);
+      }
+    };
+
     const scratchCard: ScratchCard = {
       symbols,
       winningItem,
@@ -505,12 +541,18 @@ serve(async (req) => {
     console.log(`💰 Orçamento restante: R$ ${remainingBudget.toFixed(2)}`);
     console.log(`👤 Score do usuário: ${behaviorData.behavior_score} (${behaviorData.eligibility_tier})`);
 
-    // Executar log em background (não bloquear resposta)
+    // Executar log e monitoramento em background (não bloquear resposta)
     if (typeof EdgeRuntime !== 'undefined' && EdgeRuntime.waitUntil) {
-      EdgeRuntime.waitUntil(decisionLog());
+      EdgeRuntime.waitUntil(Promise.all([
+        decisionLog(),
+        updateProfitMonitoring()
+      ]));
     } else {
       // Fallback para desenvolvimento/teste
-      setTimeout(decisionLog, 0);
+      setTimeout(() => {
+        decisionLog();
+        updateProfitMonitoring();
+      }, 0);
     }
 
     return new Response(JSON.stringify(scratchCard), {

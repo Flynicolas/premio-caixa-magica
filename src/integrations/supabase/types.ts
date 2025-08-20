@@ -2222,6 +2222,45 @@ export type Database = {
         }
         Relationships: []
       }
+      scratch_card_profit_monitoring: {
+        Row: {
+          created_at: string | null
+          date: string | null
+          id: string
+          is_healthy: boolean | null
+          profit_margin_percentage: number | null
+          scratch_type: string
+          target_margin_percentage: number | null
+          total_prizes_paid: number | null
+          total_sales: number | null
+          updated_at: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          date?: string | null
+          id?: string
+          is_healthy?: boolean | null
+          profit_margin_percentage?: number | null
+          scratch_type: string
+          target_margin_percentage?: number | null
+          total_prizes_paid?: number | null
+          total_sales?: number | null
+          updated_at?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          date?: string | null
+          id?: string
+          is_healthy?: boolean | null
+          profit_margin_percentage?: number | null
+          scratch_type?: string
+          target_margin_percentage?: number | null
+          total_prizes_paid?: number | null
+          total_sales?: number | null
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
       scratch_card_security_alerts: {
         Row: {
           alert_data: Json | null
@@ -2943,6 +2982,10 @@ export type Database = {
       audit_financial_consistency: {
         Args: Record<PropertyKey, never>
         Returns: undefined
+      }
+      calculate_auto_weight_by_value: {
+        Args: { item_value: number }
+        Returns: number
       }
       calculate_user_level: {
         Args: { experience: number }
