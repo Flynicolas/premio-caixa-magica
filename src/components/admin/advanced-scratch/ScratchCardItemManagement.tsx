@@ -20,7 +20,7 @@ interface ScratchCardProbability {
   probability_weight: number;
   min_quantity: number;
   max_quantity: number;
-  active: boolean;
+  is_active: boolean;
   item: {
     id: string;
     name: string;
@@ -73,7 +73,7 @@ export const ScratchCardItemManagement: React.FC = () => {
         .from('scratch_card_probabilities')
         .select(`
           *,
-          items:item_id (
+          item:items (
             id,
             name,
             image_url,
@@ -89,7 +89,7 @@ export const ScratchCardItemManagement: React.FC = () => {
 
       const formattedData = data?.map((prob: any) => ({
         ...prob,
-        item: prob.items
+        item: prob.item
       })) || [];
 
       setConfiguredItems(formattedData);
@@ -119,7 +119,7 @@ export const ScratchCardItemManagement: React.FC = () => {
           probability_weight: 1,
           min_quantity: 1,
           max_quantity: 1,
-          active: true
+          is_active: true
         });
 
       if (error) throw error;
@@ -188,7 +188,7 @@ export const ScratchCardItemManagement: React.FC = () => {
 
   // Estatísticas
   const totalWeight = configuredItems.reduce((sum, config) => sum + config.probability_weight, 0);
-  const activeItems = configuredItems.filter(config => config.active).length;
+  const activeItems = configuredItems.filter(config => config.is_active).length;
 
   const getRarityColor = (rarity: string) => {
     const colors = {
@@ -391,8 +391,8 @@ export const ScratchCardItemManagement: React.FC = () => {
                         </div>
                         <div className="flex items-center gap-2">
                           <Switch
-                            checked={config.active}
-                            onCheckedChange={(checked) => updateItemConfig(config.id, 'active', checked)}
+                            checked={config.is_active}
+                            onCheckedChange={(checked) => updateItemConfig(config.id, 'is_active', checked)}
                           />
                           <Button
                             size="sm"
