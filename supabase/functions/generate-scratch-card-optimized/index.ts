@@ -505,18 +505,12 @@ serve(async (req) => {
         const gamePrice = settings?.price || 5.00; // Preço padrão
         const prizeValue = hasWin && winningItem ? winningItem.base_value : 0;
 
-        // Atualizar monitoramento de lucro
-        const { error: monitoringError } = await supabase
-          .from('scratch_card_profit_monitoring')
-          .upsert({
-            scratch_type: scratchType,
-            date: new Date().toISOString().split('T')[0],
-            total_sales: gamePrice, // Será somado pelo SQL
-            total_prizes_paid: prizeValue // Será somado pelo SQL
-          }, {
-            onConflict: 'scratch_type,date',
-            ignoreDuplicates: false
-          });
+        // Atualizar monitoramento de lucro usando função SQL
+        const { error: monitoringError } = await supabase.rpc('update_scratch_profit_monitoring', {
+          p_scratch_type: scratchType,
+          p_sales_amount: gamePrice,
+          p_prizes_amount: prizeValue
+        });
 
         if (monitoringError) {
           console.error('❌ Erro ao atualizar monitoramento:', monitoringError);

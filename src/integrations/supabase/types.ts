@@ -3253,6 +3253,14 @@ export type Database = {
         }
         Returns: boolean
       }
+      update_scratch_profit_monitoring: {
+        Args: {
+          p_prizes_amount: number
+          p_sales_amount: number
+          p_scratch_type: string
+        }
+        Returns: undefined
+      }
       validate_balance_operation: {
         Args: { p_amount: number; p_operation_type: string; p_user_id: string }
         Returns: boolean

@@ -3,14 +3,15 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
+import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Alert, AlertDescription } from '@/components/ui/alert';
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
 import { DatabaseItem } from '@/types/database';
 import { ScratchCardType, scratchCardTypes } from '@/types/scratchCard';
-import { Plus, Trash2, Save, Package, AlertCircle, Eye, Target } from 'lucide-react';
+import { Plus, Trash2, Save, Package, AlertCircle, Eye, Target, Calculator, RefreshCw } from 'lucide-react';
+import { useAutoWeightCalculator } from '@/hooks/useAutoWeightCalculator';
 
 interface UnifiedScratchCardManagerProps {
   items: DatabaseItem[];
@@ -35,6 +36,12 @@ const UnifiedScratchCardManager = ({ items, onRefresh }: UnifiedScratchCardManag
   const [saving, setSaving] = useState(false);
   const [selectedItem, setSelectedItem] = useState<string>('');
   const { toast } = useToast();
+  
+  const { 
+    updating, 
+    applyAutoWeightsToScratchCards,
+    getWeightRecommendation
+  } = useAutoWeightCalculator();
 
   useEffect(() => {
     loadProbabilities();
@@ -226,6 +233,14 @@ const UnifiedScratchCardManager = ({ items, onRefresh }: UnifiedScratchCardManag
     };
   };
 
+  const handleApplyAutoWeights = async () => {
+    const success = await applyAutoWeightsToScratchCards();
+    if (success) {
+      await loadProbabilities();
+      onRefresh();
+    }
+  };
+
   const hasChanges = Object.keys(editingWeights).length > 0;
 
   if (loading) {
@@ -240,27 +255,36 @@ const UnifiedScratchCardManager = ({ items, onRefresh }: UnifiedScratchCardManag
 
   return (
     <div className="space-y-6">
-      {/* Header */}
-      <div className="flex justify-between items-center">
+      <div className="flex items-center justify-between">
         <div>
-          <h2 className="text-2xl font-bold text-primary flex items-center gap-2">
-            <Package className="w-6 h-6" />
-            Gerenciamento de Raspadinhas
-          </h2>
+          <h2 className="text-2xl font-bold">Configuração de Raspadinhas</h2>
           <p className="text-muted-foreground">
-            Peso 0 = Visual | Peso &gt; 0 = Sorteável
+            Gerencie probabilidades e itens para cada tipo de raspadinha
           </p>
         </div>
-        
-        {hasChanges && (
-          <Button onClick={saveChanges} disabled={saving} className="gap-2">
-            <Save className="w-4 h-4" />
-            {saving ? 'Salvando...' : `Salvar (${Object.keys(editingWeights).length})`}
-          </Button>
-        )}
+        <Button 
+          onClick={handleApplyAutoWeights}
+          disabled={updating || loading}
+          className="flex items-center gap-2"
+        >
+          {updating ? (
+            <RefreshCw className="w-4 h-4 animate-spin" />
+          ) : (
+            <Calculator className="w-4 h-4" />
+          )}
+          {updating ? 'Aplicando...' : 'Aplicar Pesos Automáticos (90/10)'}
+        </Button>
       </div>
 
-      {/* Tabs por tipo de raspadinha */}
+      {updating && (
+        <Alert>
+          <Calculator className="w-4 h-4" />
+          <AlertDescription>
+            Aplicando sistema 90/10: pesos automáticos baseados no valor dos itens...
+          </AlertDescription>
+        </Alert>
+      )}
+        {/* Tabs por tipo de raspadinha */}
       <Tabs defaultValue="pix" className="w-full">
         <TabsList className="grid w-full grid-cols-6">
           {Object.entries(scratchCardTypes).map(([key, config]) => {
