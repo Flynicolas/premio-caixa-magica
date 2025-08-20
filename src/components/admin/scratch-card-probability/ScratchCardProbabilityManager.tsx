@@ -196,7 +196,7 @@ const ScratchCardProbabilityManager = () => {
     try {
       const { error } = await supabase
         .from('scratch_card_probabilities')
-        .delete()
+        .update({ is_active: false })
         .eq('id', probId);
 
       if (error) throw error;

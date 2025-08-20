@@ -52,7 +52,7 @@ const ItemTableRow = ({ item, onEdit, onDelete, onToggleActive, onUpdate }: Item
         .from('scratch_card_probabilities')
         .select('scratch_type')
         .eq('item_id', item.id)
-        .eq('active', true);
+        .eq('is_active', true);
 
       const scratchTypes = scratchUsage?.map(s => s.scratch_type) || [];
       

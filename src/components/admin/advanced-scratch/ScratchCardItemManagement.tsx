@@ -71,26 +71,16 @@ export const ScratchCardItemManagement: React.FC = () => {
     try {
       const { data, error } = await supabase
         .from('scratch_card_probabilities')
-        .select(`
-          *,
-          item:items (
-            id,
-            name,
-            image_url,
-            category,
-            rarity,
-            base_value
-          )
-        `)
+        .select('*')
         .eq('scratch_type', selectedScratchType)
         .order('probability_weight', { ascending: false });
 
       if (error) throw error;
 
-      const formattedData = data?.map((prob: any) => ({
+      const formattedData = (data || []).map((prob: any) => ({
         ...prob,
-        item: prob.item
-      })) || [];
+        item: items.find((it) => it.id === prob.item_id) || null
+      }));
 
       setConfiguredItems(formattedData);
     } catch (error) {
@@ -159,7 +149,7 @@ export const ScratchCardItemManagement: React.FC = () => {
     try {
       const { error } = await supabase
         .from('scratch_card_probabilities')
-        .delete()
+        .update({ is_active: false })
         .eq('id', configId);
 
       if (error) throw error;

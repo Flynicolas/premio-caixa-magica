@@ -45,17 +45,14 @@ const UnifiedScratchCardManager = ({ items, onRefresh }: UnifiedScratchCardManag
     try {
       const { data, error } = await supabase
         .from('scratch_card_probabilities')
-        .select(`
-          *,
-          item:items(*)
-        `)
+        .select('*')
         .eq('is_active', true)
         .order('scratch_type')
         .order('probability_weight', { ascending: false });
 
       if (error) throw error;
 
-      const grouped = (data || []).reduce((acc, prob) => {
+      const grouped = (data || []).reduce((acc, prob: any) => {
         const typedProb: ScratchCardProbability = {
           id: prob.id,
           item_id: prob.item_id,
@@ -64,7 +61,7 @@ const UnifiedScratchCardManager = ({ items, onRefresh }: UnifiedScratchCardManag
           min_quantity: prob.min_quantity,
           max_quantity: prob.max_quantity,
           is_active: prob.is_active,
-          item: prob.item ? prob.item as unknown as DatabaseItem : undefined
+          item: items.find((it) => it.id === prob.item_id)
         };
 
         if (!acc[typedProb.scratch_type]) {
