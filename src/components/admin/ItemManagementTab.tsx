@@ -10,7 +10,7 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/table';
-import { Plus } from 'lucide-react';
+import { Plus, Settings } from 'lucide-react';
 import ItemSearchAndFilters from './ItemSearchAndFilters';
 import EnhancedItemEditDialog from './EnhancedItemEditDialog';
 import ItemTableRow from './ItemManagementTab/ItemTableRow';
@@ -161,11 +161,24 @@ const ItemManagementTab = () => {
       <Card>
 <CardHeader>
   <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-4">
-    <CardTitle className="text-lg sm:text-2xl">Gerenciar Itens ({filteredItems.length})</CardTitle>
-    <Button onClick={() => setIsCreateDialogOpen(true)} className="w-full sm:w-auto">
-      <Plus className="w-4 h-4 mr-2" />
-      Adicionar Item
-    </Button>
+    <div>
+      <CardTitle className="text-lg sm:text-2xl">Catálogo Universal de Itens ({filteredItems.length})</CardTitle>
+      <p className="text-muted-foreground mt-1">
+        Gerencie todos os itens do sistema. Estes itens podem ser usados em baús e raspadinhas.
+      </p>
+    </div>
+    <div className="flex gap-2">
+      <Button variant="outline" asChild>
+        <a href="/admin?tab=scratch">
+          <Settings className="w-4 h-4 mr-2" />
+          Configurar Raspadinhas
+        </a>
+      </Button>
+      <Button onClick={() => setIsCreateDialogOpen(true)} className="w-full sm:w-auto">
+        <Plus className="w-4 h-4 mr-2" />
+        Adicionar Item
+      </Button>
+    </div>
   </div>
 </CardHeader>
 
@@ -192,6 +205,7 @@ const ItemManagementTab = () => {
                     <TableHead>Nome</TableHead>
                     <TableHead>Preço</TableHead>
                     <TableHead>Raridade</TableHead>
+                    <TableHead>Usado em</TableHead>
                     <TableHead>Baús Atribuídos</TableHead>
                     <TableHead>Status</TableHead>
                     <TableHead>Ações</TableHead>
