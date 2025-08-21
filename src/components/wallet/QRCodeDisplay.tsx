@@ -161,10 +161,13 @@ export const QRCodeDisplay = ({
           Escaneie o QR Code
         </h3>
         <div className="flex justify-center mb-4">
-          <div 
-            className="bg-white p-4 rounded-lg shadow-inner"
-            dangerouslySetInnerHTML={{ __html: qrCode }}
-          />
+          <div className="bg-white p-4 rounded-lg shadow-inner">
+            {qrCode.startsWith('data:image') ? (
+              <img src={qrCode} alt="QR Code PIX" className="w-48 h-48" />
+            ) : (
+              <div dangerouslySetInnerHTML={{ __html: qrCode }} />
+            )}
+          </div>
         </div>
         <p className="text-sm text-muted-foreground">
           Abra o aplicativo do seu banco e escaneie o código
