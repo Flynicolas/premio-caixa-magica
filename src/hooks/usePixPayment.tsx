@@ -24,7 +24,10 @@ export const usePixPayment = () => {
           client_name: "Usuário Baú Premiado",
           client_document: "00000000000", // Será configurado depois com dados do usuário
           amount: amount,
-          webhookUrl: "https://jhbafgzfphiizpuoqksj.supabase.co/functions/v1/suitpay-webhook"
+          webhookUrl: "https://0ab8a7ca7a39.ngrok-free.app/webhook"
+        },
+        headers: {
+          'HEADER_SECRET': '671e0639-f911-401d-9de6-0fd975d1ce51'
         }
       });
 
