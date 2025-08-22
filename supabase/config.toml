@@ -4,3 +4,6 @@ verify_jwt = false
 
 [functions.play-scratch-card]
 verify_jwt = true
+
+[functions.suitpay-request-qrcode]
+verify_jwt = false
