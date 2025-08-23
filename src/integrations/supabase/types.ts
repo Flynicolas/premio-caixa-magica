@@ -444,6 +444,33 @@ export type Database = {
         }
         Relationships: []
       }
+      client_transactions: {
+        Row: {
+          client_tx_id: string
+          created_at: string | null
+          game_type: string
+          result: Json | null
+          status: string
+          user_id: string
+        }
+        Insert: {
+          client_tx_id: string
+          created_at?: string | null
+          game_type: string
+          result?: Json | null
+          status?: string
+          user_id: string
+        }
+        Update: {
+          client_tx_id?: string
+          created_at?: string | null
+          game_type?: string
+          result?: Json | null
+          status?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       collaborator_invites: {
         Row: {
           accepted_at: string | null
@@ -836,6 +863,39 @@ export type Database = {
           severity?: string | null
           transaction_id?: string | null
           user_id?: string | null
+        }
+        Relationships: []
+      }
+      game_rounds: {
+        Row: {
+          bet: number
+          decided_at: string
+          game_type: string
+          id: number
+          meta: Json | null
+          prize: number
+          rtp_after: number | null
+          user_id: string
+        }
+        Insert: {
+          bet: number
+          decided_at?: string
+          game_type: string
+          id?: number
+          meta?: Json | null
+          prize: number
+          rtp_after?: number | null
+          user_id: string
+        }
+        Update: {
+          bet?: number
+          decided_at?: string
+          game_type?: string
+          id?: number
+          meta?: Json | null
+          prize?: number
+          rtp_after?: number | null
+          user_id?: string
         }
         Relationships: []
       }
@@ -1905,6 +1965,66 @@ export type Database = {
         }
         Relationships: []
       }
+      rtp_cap_awards: {
+        Row: {
+          awarded: boolean
+          awarded_at: string | null
+          created_at: string
+          game_type: string
+          user_id: string
+        }
+        Insert: {
+          awarded?: boolean
+          awarded_at?: string | null
+          created_at?: string
+          game_type: string
+          user_id: string
+        }
+        Update: {
+          awarded?: boolean
+          awarded_at?: string | null
+          created_at?: string
+          game_type?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      rtp_pots: {
+        Row: {
+          cap_enabled: boolean
+          cap_value: number
+          created_at: string
+          game_type: string
+          is_active: boolean
+          rtp_target: number
+          total_bet: number
+          total_paid: number
+          updated_at: string
+        }
+        Insert: {
+          cap_enabled?: boolean
+          cap_value?: number
+          created_at?: string
+          game_type: string
+          is_active?: boolean
+          rtp_target?: number
+          total_bet?: number
+          total_paid?: number
+          updated_at?: string
+        }
+        Update: {
+          cap_enabled?: boolean
+          cap_value?: number
+          created_at?: string
+          game_type?: string
+          is_active?: boolean
+          rtp_target?: number
+          total_bet?: number
+          total_paid?: number
+          updated_at?: string
+        }
+        Relationships: []
+      }
       scratch_card_daily_budget: {
         Row: {
           budget_percentage: number
@@ -2312,6 +2432,7 @@ export type Database = {
           name: string
           price: number
           price_display: number
+          rtp_enabled: boolean | null
           scratch_type: string
           sort_order: number | null
           updated_at: string | null
@@ -2331,6 +2452,7 @@ export type Database = {
           name: string
           price: number
           price_display?: number
+          rtp_enabled?: boolean | null
           scratch_type: string
           sort_order?: number | null
           updated_at?: string | null
@@ -2350,6 +2472,7 @@ export type Database = {
           name?: string
           price?: number
           price_display?: number
+          rtp_enabled?: boolean | null
           scratch_type?: string
           sort_order?: number | null
           updated_at?: string | null
@@ -2402,6 +2525,45 @@ export type Database = {
           user_context?: Json
           user_id?: string
           user_score?: number
+        }
+        Relationships: []
+      }
+      scratch_prizes: {
+        Row: {
+          created_at: string
+          game_type: string
+          id: number
+          is_active: boolean
+          max_quantity: number | null
+          min_quantity: number | null
+          name: string
+          updated_at: string
+          value: number
+          weight: number
+        }
+        Insert: {
+          created_at?: string
+          game_type: string
+          id?: number
+          is_active?: boolean
+          max_quantity?: number | null
+          min_quantity?: number | null
+          name: string
+          updated_at?: string
+          value: number
+          weight?: number
+        }
+        Update: {
+          created_at?: string
+          game_type?: string
+          id?: number
+          is_active?: boolean
+          max_quantity?: number | null
+          min_quantity?: number | null
+          name?: string
+          updated_at?: string
+          value?: number
+          weight?: number
         }
         Relationships: []
       }
@@ -2942,6 +3104,33 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      webhook_logs: {
+        Row: {
+          created_at: string | null
+          error_message: string | null
+          id: number
+          payload: Json
+          status: string
+          transaction_id: string
+        }
+        Insert: {
+          created_at?: string | null
+          error_message?: string | null
+          id?: never
+          payload: Json
+          status: string
+          transaction_id: string
+        }
+        Update: {
+          created_at?: string | null
+          error_message?: string | null
+          id?: never
+          payload?: Json
+          status?: string
+          transaction_id?: string
+        }
+        Relationships: []
       }
     }
     Views: {
