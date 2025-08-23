@@ -4,9 +4,10 @@ import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { BrowserRouter, Routes, Route } from "react-router-dom";
+import { BrowserRouter, Routes, Route, useLocation } from "react-router-dom";
 import { AuthProvider } from "@/hooks/useAuth";
 import { ErrorTrackingProvider } from "@/hooks/useErrorTracking";
+import { useIsMobile } from "@/hooks/use-mobile";
 import Header from "./components/Header";
 import Footer from "./components/Footer";
 import BottomNavBar from "./components/BottomNavBar";
@@ -38,13 +39,61 @@ import RaspadinhaPlay from "./pages/RaspadinhaPlay";
 
 const queryClient = new QueryClient();
 
-const App = () => {
+const AppContent = () => {
   const [showWalletPanel, setShowWalletPanel] = useState(false);
+  const location = useLocation();
+  const isMobile = useIsMobile();
+  
+  const isRaspadinhaPage = location.pathname.includes('/raspadinhas/');
+  const hideNavOnMobile = isMobile && isRaspadinhaPage;
 
   const handleOpenWallet = () => {
     setShowWalletPanel(true);
   };
 
+  return (
+    <div className="min-h-screen flex flex-col bg-background">
+      <Header />
+      <main className={hideNavOnMobile ? "flex-1" : "flex-1 pb-20 md:pb-0"}>
+        <Routes>
+          <Route path="/" element={<Index />} />
+          <Route path="/baus" element={<Premios />} />
+          <Route path="/premios" element={<Premios />} />
+          <Route path="/meus-premios" element={<MeusPremios />} />
+          <Route path="/sobre" element={<Sobre />} />
+          <Route path="/convidar" element={<Convidar />} />
+          <Route path="/convite/:codigo" element={<ConviteRedirect />} />
+          <Route path="/convite/:code" element={<Index />} />
+          <Route path="/perfil" element={<Perfil />} />
+          <Route path="/carteira" element={<Carteira />} />
+          <Route path="/entregas" element={<MinhasEntregas />} />
+          <Route path="/configuracoes" element={<Configuracoes />} />
+          <Route path="/admin" element={<Admin />} />
+          <Route path="/raspadinha" element={<Raspadinha />} />
+          <Route path="/raspadinhas/:tipo" element={<RaspadinhaPlay />} />
+          <Route path="/central-ajuda" element={<CentralAjuda />} />
+          <Route path="/termos-uso" element={<TermosUso />} />
+          <Route path="/politica-privacidade" element={<PoliticaPrivacidade />} />
+          <Route path="/faq" element={<FAQ />} />
+          <Route path="/testedepagamento" element={<TesteDePagamento />} />
+          <Route path="/teste-pagamento" element={<TestePagamento />} />
+          <Route path="/teste-sucesso" element={<TesteSucesso />} />
+          <Route path="/teste-erro" element={<TesteErro />} />
+          <Route path="/rascunho" element={<Rascunho />} />
+          <Route path="*" element={<NotFound />} />
+        </Routes>
+      </main>
+      <Footer />
+      {!hideNavOnMobile && <BottomNavBar onAddBalance={handleOpenWallet} />}
+      <WalletMiniPanel 
+        isOpen={showWalletPanel} 
+        onClose={() => setShowWalletPanel(false)}
+      />
+    </div>
+  );
+};
+
+const App = () => {
   return (
     <QueryClientProvider client={queryClient}>
       <AuthProvider>
@@ -54,44 +103,7 @@ const App = () => {
             <Toaster />
             <Sonner />
             <BrowserRouter>
-              <div className="min-h-screen flex flex-col bg-background">
-                <Header />
-                <main className="flex-1 pb-20 md:pb-0">
-                  <Routes>
-                    <Route path="/" element={<Index />} />
-                    <Route path="/baus" element={<Premios />} />
-                    <Route path="/premios" element={<Premios />} />
-                    <Route path="/meus-premios" element={<MeusPremios />} />
-                    <Route path="/sobre" element={<Sobre />} />
-          <Route path="/convidar" element={<Convidar />} />
-          <Route path="/convite/:codigo" element={<ConviteRedirect />} />
-          <Route path="/convite/:code" element={<Index />} />
-                    <Route path="/perfil" element={<Perfil />} />
-                    <Route path="/carteira" element={<Carteira />} />
-                    <Route path="/entregas" element={<MinhasEntregas />} />
-                    <Route path="/configuracoes" element={<Configuracoes />} />
-                    <Route path="/admin" element={<Admin />} />
-                    <Route path="/raspadinha" element={<Raspadinha />} />
-                    <Route path="/raspadinhas/:tipo" element={<RaspadinhaPlay />} />
-                    <Route path="/central-ajuda" element={<CentralAjuda />} />
-                    <Route path="/termos-uso" element={<TermosUso />} />
-                    <Route path="/politica-privacidade" element={<PoliticaPrivacidade />} />
-                    <Route path="/faq" element={<FAQ />} />
-                    <Route path="/testedepagamento" element={<TesteDePagamento />} />
-                    <Route path="/teste-pagamento" element={<TestePagamento />} />
-                    <Route path="/teste-sucesso" element={<TesteSucesso />} />
-                    <Route path="/teste-erro" element={<TesteErro />} />
-                    <Route path="/rascunho" element={<Rascunho />} />
-                    <Route path="*" element={<NotFound />} />
-                  </Routes>
-                </main>
-                <Footer />
-                <BottomNavBar onAddBalance={handleOpenWallet} />
-                <WalletMiniPanel 
-                  isOpen={showWalletPanel} 
-                  onClose={() => setShowWalletPanel(false)}
-                />
-              </div>
+              <AppContent />
             </BrowserRouter>
           </TooltipProvider>
           </WalletProvider>

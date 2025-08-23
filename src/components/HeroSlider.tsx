@@ -31,7 +31,7 @@ const HeroSlider = () => {
   };
 
   return (
-    <div className="relative h-40 md:h-96 overflow-hidden rounded-lg bg-gradient-to-r from-primary/10 to-secondary/10">
+    <div className="relative h-48 md:h-80 lg:h-96 overflow-hidden rounded-lg bg-gradient-to-r from-primary/10 to-secondary/10">
       {slides.map((slide, index) => (
         <div
           key={slide.id}
@@ -39,12 +39,12 @@ const HeroSlider = () => {
             index === currentSlide ? 'translate-x-0' : 
             index < currentSlide ? '-translate-x-full' : 'translate-x-full'
           }`}
-          style={{
-            backgroundImage: `url(${slide.image})`,
-            backgroundSize: 'cover',
-            backgroundPosition: 'center'
-          }}
         >
+          <img 
+            src={slide.image} 
+            alt={slide.title}
+            className="w-full h-full object-cover object-center"
+          />
           <div className="absolute inset-0 bg-black/20" />
         </div>
       ))}

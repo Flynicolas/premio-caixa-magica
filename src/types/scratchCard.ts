@@ -32,7 +32,7 @@ export const scratchCardTypes = {
     bgColor: 'bg-cyan-500',
     textColor: 'text-cyan-700',
     coverImage: '/lovable-uploads/a4ad10b1-f1f1-4dd4-9bdc-3ff0166406cd.png',
-    scratchImage: 'https://jhbafgzfphiizpuoqksj.supabase.co/storage/v1/object/public/head-images//quadradoraspadinhapix.png'
+    scratchImage: '/lovable-uploads/48ed5b87-131b-4136-bfc1-5822f0e61a25.png'
   },
   sorte: { 
     name: 'Raspadinha da Sorte', 
