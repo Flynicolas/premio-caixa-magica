@@ -31,21 +31,22 @@ const HeroSlider = () => {
   };
 
   return (
-    <div className="relative h-48 md:h-80 lg:h-96 overflow-hidden rounded-lg bg-gradient-to-r from-primary/10 to-secondary/10">
+    <div className="relative h-48 md:h-80 lg:h-96 overflow-hidden rounded-lg">
       {slides.map((slide, index) => (
         <div
           key={slide.id}
-          className={`absolute inset-0 transition-transform duration-500 ease-in-out ${
-            index === currentSlide ? 'translate-x-0' : 
-            index < currentSlide ? '-translate-x-full' : 'translate-x-full'
+          className={`absolute inset-0 transition-all duration-700 ease-in-out ${
+            index === currentSlide ? 'translate-x-0 opacity-100 scale-100' : 
+            index < currentSlide ? '-translate-x-full opacity-0 scale-95' : 'translate-x-full opacity-0 scale-95'
           }`}
         >
           <img 
             src={slide.image} 
             alt={slide.title}
-            className="w-full h-full object-cover object-center"
+            className={`w-full h-full object-contain object-center transition-all duration-700 ${
+              index === currentSlide ? 'animate-fade-in hover-scale' : ''
+            }`}
           />
-          <div className="absolute inset-0 bg-black/20" />
         </div>
       ))}
 
