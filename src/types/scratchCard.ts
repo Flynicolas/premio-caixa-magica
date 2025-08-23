@@ -31,7 +31,7 @@ export const scratchCardTypes = {
     color: 'from-cyan-400 to-cyan-600',
     bgColor: 'bg-cyan-500',
     textColor: 'text-cyan-700',
-    coverImage: 'https://jhbafgzfphiizpuoqksj.supabase.co/storage/v1/object/public/head-images//capa-raspadinha-pix.png',
+    coverImage: '/lovable-uploads/a4ad10b1-f1f1-4dd4-9bdc-3ff0166406cd.png',
     scratchImage: 'https://jhbafgzfphiizpuoqksj.supabase.co/storage/v1/object/public/head-images//quadradoraspadinhapix.png'
   },
   sorte: { 

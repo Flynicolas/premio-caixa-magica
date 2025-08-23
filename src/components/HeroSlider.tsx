@@ -5,21 +5,9 @@ import { ChevronLeft, ChevronRight } from 'lucide-react';
 const slides = [
   {
     id: 1,
-    title: "Concorra a uma Viagem para Dubai",
-    subtitle: "Abra baús premium e de rubi e tenha a chance de ganhar essa viagem incrível",
-    image: "/lovable-uploads/c63b549b-1ab3-4334-8f46-74c5594d732a.png"
-  },
-  {
-    id: 2,
-    title: "Baú de Ouro - Prêmios Raros",
-    subtitle: "10x mais chances de ganhar prêmios incríveis de 5 a 15 de julho",
-    image: "/lovable-uploads/177b350c-1b44-4a17-b20e-b66e11c96cc5.png"
-  },
-  {
-    id: 3,
-    title: "Chegou o novo baú Premium, todos os prêmios maximos!",
-    subtitle: "O baú que te dá 100% de oportunidade.",
-    image: "https://jhbafgzfphiizpuoqksj.supabase.co/storage/v1/object/public/head-images//CAPA01.png"
+    title: "PIX na Conta",
+    subtitle: "Ache 3 iguais e ganha na hora. Concorra até 10 mil em prêmios!",
+    image: "/lovable-uploads/81f74e08-b67f-4422-9b2b-5df3a043726c.png"
   }
 ];
 
