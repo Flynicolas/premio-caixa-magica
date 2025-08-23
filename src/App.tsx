@@ -4,10 +4,9 @@ import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { BrowserRouter, Routes, Route, useLocation } from "react-router-dom";
+import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { AuthProvider } from "@/hooks/useAuth";
 import { ErrorTrackingProvider } from "@/hooks/useErrorTracking";
-import { useIsMobile } from "@/hooks/use-mobile";
 import Header from "./components/Header";
 import Footer from "./components/Footer";
 import BottomNavBar from "./components/BottomNavBar";
@@ -41,11 +40,6 @@ const queryClient = new QueryClient();
 
 const AppContent = () => {
   const [showWalletPanel, setShowWalletPanel] = useState(false);
-  const location = useLocation();
-  const isMobile = useIsMobile();
-  
-  const isRaspadinhaPage = location.pathname.includes('/raspadinhas/');
-  const hideNavOnMobile = isMobile && isRaspadinhaPage;
 
   const handleOpenWallet = () => {
     setShowWalletPanel(true);
@@ -54,7 +48,7 @@ const AppContent = () => {
   return (
     <div className="min-h-screen flex flex-col bg-background">
       <Header />
-      <main className={hideNavOnMobile ? "flex-1" : "flex-1 pb-20 md:pb-0"}>
+      <main className="flex-1 pb-20 md:pb-0">
         <Routes>
           <Route path="/" element={<Index />} />
           <Route path="/baus" element={<Premios />} />
@@ -84,7 +78,7 @@ const AppContent = () => {
         </Routes>
       </main>
       <Footer />
-      {!hideNavOnMobile && <BottomNavBar onAddBalance={handleOpenWallet} />}
+      <BottomNavBar onAddBalance={handleOpenWallet} />
       <WalletMiniPanel 
         isOpen={showWalletPanel} 
         onClose={() => setShowWalletPanel(false)}
