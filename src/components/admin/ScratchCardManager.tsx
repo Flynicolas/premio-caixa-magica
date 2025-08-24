@@ -7,24 +7,25 @@ import ScratchCardManualReleaseSystem from './scratch-card-probability/ScratchCa
 import AdvancedScratchDashboard from './AdvancedScratchDashboard';
 import ScratchCard90TenStatus from './ScratchCard90TenStatus';
 import SimpleBannerManager from './SimpleBannerManager';
+import { RTPControlPanel } from './RTPControlPanel';
 
 const ScratchCardManager = () => {
   return (
     <div className="container mx-auto p-6">
-      <Tabs defaultValue="status" className="w-full">
+      <Tabs defaultValue="rtp-control" className="w-full">
         <TabsList className="grid w-full grid-cols-8">
-          <TabsTrigger value="status">Status 90/10</TabsTrigger>
+          <TabsTrigger value="rtp-control">Controle RTP</TabsTrigger>
           <TabsTrigger value="advanced">Sistema Avançado</TabsTrigger>
           <TabsTrigger value="central">Central Inteligente</TabsTrigger>
           <TabsTrigger value="probabilities">Probabilidades</TabsTrigger>
-          <TabsTrigger value="intelligent">Sistema 90/10</TabsTrigger>
           <TabsTrigger value="manual">Liberação Manual</TabsTrigger>
           <TabsTrigger value="reports">Relatórios</TabsTrigger>
           <TabsTrigger value="banners">Banners</TabsTrigger>
+          <TabsTrigger value="legacy">Sistema Legado</TabsTrigger>
         </TabsList>
         
-        <TabsContent value="status" className="space-y-6">
-          <ScratchCard90TenStatus />
+        <TabsContent value="rtp-control" className="space-y-6">
+          <RTPControlPanel />
         </TabsContent>
         
         <TabsContent value="advanced" className="space-y-6">
@@ -39,8 +40,8 @@ const ScratchCardManager = () => {
           <ScratchCardProbabilityManager />
         </TabsContent>
         
-        <TabsContent value="intelligent" className="space-y-6">
-          <ScratchCardIntelligentControl />
+        <TabsContent value="legacy" className="space-y-6">
+          <ScratchCard90TenStatus />
         </TabsContent>
         
         <TabsContent value="manual" className="space-y-6">

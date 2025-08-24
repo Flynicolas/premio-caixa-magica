@@ -2435,6 +2435,7 @@ export type Database = {
           rtp_enabled: boolean | null
           scratch_type: string
           sort_order: number | null
+          target_rtp: number | null
           updated_at: string | null
           win_probability: number | null
           win_probability_global: number
@@ -2455,6 +2456,7 @@ export type Database = {
           rtp_enabled?: boolean | null
           scratch_type: string
           sort_order?: number | null
+          target_rtp?: number | null
           updated_at?: string | null
           win_probability?: number | null
           win_probability_global?: number
@@ -2475,6 +2477,7 @@ export type Database = {
           rtp_enabled?: boolean | null
           scratch_type?: string
           sort_order?: number | null
+          target_rtp?: number | null
           updated_at?: string | null
           win_probability?: number | null
           win_probability_global?: number
