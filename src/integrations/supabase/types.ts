@@ -3338,6 +3338,24 @@ export type Database = {
         Args: { p_chest_id: string; p_item_id: string; p_user_id: string }
         Returns: boolean
       }
+      play_scratch_rtp: {
+        Args: {
+          p_game_price: number
+          p_scratch_type: string
+          p_symbols: Json
+          p_user_id: string
+        }
+        Returns: {
+          game_id: string
+          has_win: boolean
+          message: string
+          rtp_controlled: boolean
+          success: boolean
+          wallet_balance: number
+          winning_amount: number
+          winning_item_id: string
+        }[]
+      }
       process_excel_import: {
         Args: { column_mapping: Json; excel_data: Json; import_id: string }
         Returns: boolean
@@ -3431,6 +3449,21 @@ export type Database = {
           p_normal: number
         }
         Returns: number
+      }
+      scratch_play_tx: {
+        Args: {
+          p_client_tx_id: string
+          p_game_price: number
+          p_scratch_type: string
+          p_symbols: Json
+          p_user_id: string
+        }
+        Returns: {
+          client_tx_id: string
+          message: string
+          server_result: Json
+          success: boolean
+        }[]
       }
       scratch_validate_payout: {
         Args: {
