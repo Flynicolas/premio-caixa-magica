@@ -19,7 +19,7 @@ const UsersManagement = lazy(() => import('@/components/admin/UsersManagement'))
 const ChestGoalsManager = lazy(() => import('@/components/admin/ChestGoalsManager'));
 const AdminErrorDashboard = lazy(() => import('@/components/admin/AdminErrorDashboard').then(m => ({ default: m.AdminErrorDashboard })));
 const ScratchCardManager = lazy(() => import('@/components/admin/ScratchCardManager'));
-const AdvancedScratchManager = lazy(() => import('@/components/admin/AdvancedScratchManager').then(m => ({ default: m.AdvancedScratchManager })));
+
 const DemoItemsManager = lazy(() => import('@/components/admin/DemoItemsManager'));
 const CaixaGeralDashboard = lazy(() => import('@/components/admin/CaixaGeralDashboard'));
 const VisualCustomizationPanel = lazy(() => import('@/components/admin/VisualCustomizationPanel'));
@@ -207,8 +207,8 @@ const [showGoalsDialog, setShowGoalsDialog] = useState(false);
         </TabsContent>
 
         <TabsContent value="scratch">
-          <Suspense fallback={<div className="p-6 text-muted-foreground">Carregando sistema avançado de raspadinha...</div>}>
-            <AdvancedScratchManager />
+          <Suspense fallback={<div className="p-6 text-muted-foreground">Carregando sistema RTP...</div>}>
+            <ScratchCardManager />
           </Suspense>
         </TabsContent>
 
