@@ -33,7 +33,7 @@ export const useRTPControl = () => {
       
       const { data: settings, error } = await supabase
         .from('scratch_card_settings')
-        .select('*')
+        .select('id, scratch_type, name, price, target_rtp, rtp_enabled, is_active')
         .eq('is_active', true)
         .order('price');
 
@@ -101,7 +101,7 @@ export const useRTPControl = () => {
       const { error } = await supabase
         .from('scratch_card_settings')
         .update({
-          rtp_target: targetRtp,
+          target_rtp: targetRtp,
           updated_at: new Date().toISOString()
         })
         .eq('scratch_type', scratchType);
@@ -111,8 +111,8 @@ export const useRTPControl = () => {
       // Atualizar também na tabela rtp_pots se existir
       const { error: potError } = await supabase
         .from('rtp_pots')
-        .update({ target_rtp: targetRtp / 100 })
-        .eq('scratch_type', scratchType);
+        .update({ rtp_target: targetRtp / 100 })
+        .eq('game_type', scratchType);
 
       // Ignorar erro se a tabela não existir
       if (potError && !potError.message.includes('does not exist')) {
