@@ -100,8 +100,8 @@ export const useRTPControl = () => {
     try {
       const { error } = await supabase
         .from('scratch_card_settings')
-        .update({ 
-          target_rtp: targetRtp,
+        .update({
+          rtp_target: targetRtp,
           updated_at: new Date().toISOString()
         })
         .eq('scratch_type', scratchType);
