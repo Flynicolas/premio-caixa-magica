@@ -18,15 +18,17 @@ export const PixKeyForm = ({
   
   const formatPixKey = (value: string, type: string) => {
     switch (type) {
-      case 'cpf':
-        // Format CPF: 000.000.000-00
-        const cpf = value.replace(/\D/g, '').slice(0, 11);
-        return cpf.replace(/(\d{3})(\d{3})(\d{3})(\d{2})/, '$1.$2.$3-$4');
-      case 'cnpj':
-        // Format CNPJ: 00.000.000/0000-00
-        const cnpj = value.replace(/\D/g, '').slice(0, 14);
-        return cnpj.replace(/(\d{2})(\d{3})(\d{3})(\d{4})(\d{2})/, '$1.$2.$3/$4-$5');
-      case 'telefone':
+      case 'document':
+        // Format CPF/CNPJ
+        const numbers = value.replace(/\D/g, '');
+        if (numbers.length <= 11) {
+          // CPF: 000.000.000-00
+          return numbers.slice(0, 11).replace(/(\d{3})(\d{3})(\d{3})(\d{2})/, '$1.$2.$3-$4');
+        } else {
+          // CNPJ: 00.000.000/0000-00
+          return numbers.slice(0, 14).replace(/(\d{2})(\d{3})(\d{3})(\d{4})(\d{2})/, '$1.$2.$3/$4-$5');
+        }
+      case 'phoneNumber':
         // Format phone: (00) 00000-0000
         const phone = value.replace(/\D/g, '').slice(0, 11);
         if (phone.length <= 10) {
@@ -40,16 +42,16 @@ export const PixKeyForm = ({
 
   const getPlaceholder = (type: string) => {
     switch (type) {
-      case 'cpf':
-        return '000.000.000-00';
-      case 'cnpj':
-        return '00.000.000/0000-00';
+      case 'document':
+        return '000.000.000-00 ou 00.000.000/0000-00';
+      case 'phoneNumber':
+        return '(11) 99999-9999';
       case 'email':
         return 'seu@email.com';
-      case 'telefone':
-        return '(11) 99999-9999';
-      case 'aleatoria':
+      case 'randomKey':
         return 'Chave aleatória gerada pelo banco';
+      case 'paymentCode':
+        return 'Cole o código do QR Code';
       default:
         return 'Digite sua chave PIX';
     }
@@ -57,19 +59,18 @@ export const PixKeyForm = ({
 
   const validatePixKey = (value: string, type: string) => {
     switch (type) {
-      case 'cpf':
-        const cpfNumbers = value.replace(/\D/g, '');
-        return cpfNumbers.length === 11;
-      case 'cnpj':
-        const cnpjNumbers = value.replace(/\D/g, '');
-        return cnpjNumbers.length === 14;
-      case 'email':
-        return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value);
-      case 'telefone':
+      case 'document':
+        const numbers = value.replace(/\D/g, '');
+        return numbers.length === 11 || numbers.length === 14; // CPF ou CNPJ
+      case 'phoneNumber':
         const phoneNumbers = value.replace(/\D/g, '');
         return phoneNumbers.length >= 10 && phoneNumbers.length <= 11;
-      case 'aleatoria':
+      case 'email':
+        return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value);
+      case 'randomKey':
         return value.length >= 32; // Chaves aleatórias são UUID
+      case 'paymentCode':
+        return value.length > 10; // Códigos QR geralmente são longos
       default:
         return value.length > 0;
     }
@@ -91,11 +92,11 @@ export const PixKeyForm = ({
             <SelectValue placeholder="Selecione o tipo da chave" />
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value="cpf">CPF</SelectItem>
-            <SelectItem value="cnpj">CNPJ</SelectItem>
+            <SelectItem value="document">CPF/CNPJ</SelectItem>
+            <SelectItem value="phoneNumber">Telefone</SelectItem>
             <SelectItem value="email">E-mail</SelectItem>
-            <SelectItem value="telefone">Telefone</SelectItem>
-            <SelectItem value="aleatoria">Chave Aleatória</SelectItem>
+            <SelectItem value="randomKey">Chave Aleatória</SelectItem>
+            <SelectItem value="paymentCode">QR Code</SelectItem>
           </SelectContent>
         </Select>
       </div>
@@ -126,20 +127,20 @@ export const PixKeyForm = ({
           </div>
           {pixKey && !isValid && (
             <p className="text-sm text-red-500 mt-1">
-              {pixKeyType === 'cpf' && 'CPF deve ter 11 dígitos'}
-              {pixKeyType === 'cnpj' && 'CNPJ deve ter 14 dígitos'}
+              {pixKeyType === 'document' && 'CPF deve ter 11 dígitos ou CNPJ 14 dígitos'}
+              {pixKeyType === 'phoneNumber' && 'Telefone deve ter 10 ou 11 dígitos'}
               {pixKeyType === 'email' && 'Digite um e-mail válido'}
-              {pixKeyType === 'telefone' && 'Telefone deve ter 10 ou 11 dígitos'}
-              {pixKeyType === 'aleatoria' && 'Chave aleatória inválida'}
+              {pixKeyType === 'randomKey' && 'Chave aleatória inválida'}
+              {pixKeyType === 'paymentCode' && 'Código QR inválido'}
             </p>
           )}
           
           <div className="mt-2 text-xs text-muted-foreground">
-            {pixKeyType === 'cpf' && 'Digite apenas os números do CPF'}
-            {pixKeyType === 'cnpj' && 'Digite apenas os números do CNPJ'}
+            {pixKeyType === 'document' && 'Digite apenas os números do CPF ou CNPJ'}
+            {pixKeyType === 'phoneNumber' && 'Digite o telefone com DDD'}
             {pixKeyType === 'email' && 'Digite o e-mail cadastrado como chave PIX'}
-            {pixKeyType === 'telefone' && 'Digite o telefone com DDD'}
-            {pixKeyType === 'aleatoria' && 'Cole a chave aleatória gerada pelo seu banco'}
+            {pixKeyType === 'randomKey' && 'Cole a chave aleatória gerada pelo seu banco'}
+            {pixKeyType === 'paymentCode' && 'Cole o código completo do QR Code PIX'}
           </div>
         </div>
       )}

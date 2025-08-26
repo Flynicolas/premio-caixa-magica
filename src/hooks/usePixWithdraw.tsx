@@ -35,9 +35,11 @@ export const usePixWithdraw = () => {
 
     setIsLoading(true);
     try {
-      // Determinar a chave PIX baseada no tipo
-      let pixKey = data.pixKey;
-      if (data.pixKeyType === 'document' && profile.cpf) {
+      // Limpar todos os caracteres especiais da chave PIX
+      let pixKey = data.pixKey.replace(/[^\w@.-]/g, ''); // Remove caracteres especiais, mantém letras, números, @, . e -
+      
+      // Se for document e não foi preenchido, usar CPF do perfil
+      if (data.pixKeyType === 'document' && !pixKey && profile.cpf) {
         pixKey = profile.cpf.replace(/\D/g, ''); // Remove caracteres especiais do CPF
       }
 
