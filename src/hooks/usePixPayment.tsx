@@ -1,5 +1,7 @@
 import { useState, useCallback } from 'react';
 import { useToast } from '@/hooks/use-toast';
+import { useAuth } from '@/hooks/useAuth';
+import { useProfile } from '@/hooks/useProfile';
 import { supabase } from '@/integrations/supabase/client';
 
 interface PaymentData {
@@ -15,14 +17,34 @@ export const usePixPayment = () => {
   const [paymentData, setPaymentData] = useState<PaymentData | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const { toast } = useToast();
+  const { user } = useAuth();
+  const { profile } = useProfile();
 
   const createPayment = useCallback(async (amount: number) => {
+    if (!user || !profile) {
+      toast({
+        title: "Erro de autenticação",
+        description: "É necessário estar logado para gerar PIX",
+        variant: "destructive"
+      });
+      return;
+    }
+
+    if (!profile.full_name || !profile.cpf) {
+      toast({
+        title: "Perfil incompleto",
+        description: "Complete seu nome e CPF no perfil para gerar PIX",
+        variant: "destructive"
+      });
+      return;
+    }
+
     setIsLoading(true);
     try {
       const { data, error } = await supabase.functions.invoke('suitpay-request-qrcode', {
         body: {
-          client_name: "Wallison Felipe",
-          client_document: "06600363126",
+          client_name: profile.full_name,
+          client_document: profile.cpf.replace(/\D/g, ''), // Remove caracteres especiais do CPF
           amount: amount
         }
       });
@@ -58,7 +80,7 @@ export const usePixPayment = () => {
     } finally {
       setIsLoading(false);
     }
-  }, [toast]);
+  }, [toast, user, profile]);
 
   const clearPayment = useCallback(() => {
     setPaymentData(null);
