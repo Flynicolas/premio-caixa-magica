@@ -47,25 +47,55 @@ const ScratchModal = ({ isOpen, onClose, scratchType, price }: ScratchModalProps
 
   // Determine button state based on authentication, balance, and game state
   const getButtonState = useCallback((): ScratchGameState => {
-    if (!isAuthenticated) return 'locked';
-    if (isLoading) return 'locked';
-    if (!hasBalance) return 'locked';
+    console.log(`🎯 [SCRATCH] Button state check:`, {
+      isAuthenticated,
+      hasBalance,
+      balance: walletData?.balance,
+      price,
+      isLoading,
+      gameState
+    });
+    
+    if (!isAuthenticated) {
+      console.log(`🔒 [SCRATCH] Usuário não autenticado`);
+      return 'locked';
+    }
+    
+    if (isLoading) {
+      console.log(`⏳ [SCRATCH] Carregando...`);
+      return 'locked';
+    }
+    
+    if (!hasBalance) {
+      console.log(`💰 [SCRATCH] Saldo insuficiente: ${walletData?.balance} < ${price}`);
+      return 'locked';
+    }
 
+    console.log(`✅ [SCRATCH] Estado do botão: ${gameState}`);
     return gameState;
-  }, [isAuthenticated, hasBalance, isLoading, gameState]);
+  }, [isAuthenticated, hasBalance, isLoading, gameState, walletData?.balance, price]);
 
   const buttonState = getButtonState();
 
   // Handle main button action based on current state
   const handleButtonAction = useCallback(async () => {
+    console.log(`🎯 [SCRATCH] Ação do botão - Estado: ${buttonState}`);
+    
+    // Verificação adicional de saldo antes de qualquer ação
+    if ((buttonState === 'idle' || buttonState === 'ready') && !hasBalance) {
+      console.warn(`💰 [SCRATCH] Bloqueado: saldo insuficiente`);
+      return;
+    }
+    
     switch (buttonState) {
       case 'idle':
       case 'ready':
+        console.log(`🎯 [SCRATCH] Iniciando jogo...`);
         await startGame(scratchType);
         break;
       
       case 'scratching':
-        // Second click triggers fast reveal
+        console.log(`⚡ [SCRATCH] Revelação rápida ativada`);
         triggerFastReveal();
         if (canvasRef.current) {
           canvasRef.current.revealAll();
@@ -74,17 +104,17 @@ const ScratchModal = ({ isOpen, onClose, scratchType, price }: ScratchModalProps
       
       case 'success':
       case 'fail':
-        // Play again - reset and start new game
+        console.log(`🔄 [SCRATCH] Jogando novamente...`);
         resetGame();
         setGameState('ready');
         setTimeout(() => startGame(scratchType), 150);
         break;
       
       default:
-        // Do nothing for locked, fastReveal, resolving states
+        console.log(`🔒 [SCRATCH] Ação bloqueada para estado: ${buttonState}`);
         break;
     }
-  }, [buttonState, scratchType, startGame, triggerFastReveal, resetGame, setGameState]);
+  }, [buttonState, scratchType, startGame, triggerFastReveal, resetGame, setGameState, hasBalance]);
 
   // Handle game completion
   useEffect(() => {

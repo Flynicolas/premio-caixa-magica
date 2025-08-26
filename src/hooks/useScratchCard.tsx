@@ -163,18 +163,47 @@ export const useScratchCard = () => {
         }
 
         // Modo normal: usar a Edge Function
+        console.log(`🎯 [SCRATCH] Chamando Edge Function para ${chestType}`);
         let data: any = null; let error: any = null;
+        
         for (let attempt = 0; attempt < 2; attempt++) {
+          console.log(`🎯 [SCRATCH] Tentativa ${attempt + 1}/2`);
+          
           const res = await supabase.functions.invoke(
             "play-scratch-card",
             { body: { scratchType: chestType, forcedWin } },
           );
+          
           data = res.data; error = res.error;
-          if (!error && data) break;
+          console.log(`🎯 [SCRATCH] Response:`, { data, error });
+          
+          if (!error && data) {
+            console.log(`✅ [SCRATCH] Edge Function executada com sucesso`);
+            break;
+          }
+          
+          console.warn(`⚠️ [SCRATCH] Tentativa ${attempt + 1} falhou:`, error);
           await new Promise((r) => setTimeout(r, 300));
         }
 
-        if (error) throw error;
+        if (error) {
+          console.error(`❌ [SCRATCH] Edge Function falhou após 2 tentativas:`, error);
+          
+          // Tentar função alternativa se disponível
+          console.log(`🔄 [SCRATCH] Tentando função alternativa: generate-scratch-card-optimized`);
+          const fallbackRes = await supabase.functions.invoke(
+            "generate-scratch-card-optimized",
+            { body: { scratchType: chestType, forcedWin } },
+          );
+          
+          if (fallbackRes.error) {
+            console.error(`❌ [SCRATCH] Função alternativa também falhou:`, fallbackRes.error);
+            throw new Error(`Falha na comunicação: ${error?.message || fallbackRes.error?.message}`);
+          }
+          
+          data = fallbackRes.data;
+          console.log(`✅ [SCRATCH] Função alternativa executada com sucesso`);
+        }
 
         const cardData: ScratchCard = data;
         setScratchCard(cardData);
@@ -194,12 +223,37 @@ export const useScratchCard = () => {
 
         return cardData;
       } catch (error: any) {
-        console.error("Erro ao gerar/registrar raspadinha:", error);
+        console.error(`❌ [SCRATCH] Erro fatal ao gerar raspadinha:`, error);
+        
+        // Logs detalhados para diagnóstico
+        console.log(`🔍 [SCRATCH] Debug info:`, {
+          chestType,
+          forcedWin,
+          adminTestMode,
+          isDemo,
+          error: error?.message,
+          stack: error?.stack
+        });
+        
+        // Mensagem de erro amigável baseada no tipo de erro
+        let userMessage = "Falha ao iniciar a raspadinha. Tente novamente.";
+        
+        if (error?.message?.includes('insufficient_balance')) {
+          userMessage = "Saldo insuficiente para jogar.";
+        } else if (error?.message?.includes('no_items_available')) {
+          userMessage = "Não há itens disponíveis no momento.";
+        } else if (error?.message?.includes('network') || error?.message?.includes('fetch')) {
+          userMessage = "Erro de conexão. Verifique sua internet.";
+        }
+        
         toast({
           title: "Erro",
-          description: error.message || "Falha ao iniciar a raspadinha. Tente novamente.",
+          description: userMessage,
           variant: "destructive",
         });
+        
+        // Reset do estado em caso de erro
+        setGameState('idle');
         return null;
       } finally {
         setIsLoading(false);
@@ -330,9 +384,42 @@ export const useScratchCard = () => {
   }, [gameState, fastRevealTriggered, scratchAll]);
 
   const startGame = useCallback(async (chestType: ScratchCardType) => {
-    setGameState('scratching');
-    await generateScratchCard(chestType);
-  }, [generateScratchCard]);
+    console.log(`🎯 [SCRATCH] Iniciando jogo - Tipo: ${chestType}`);
+    
+    // Validar se há itens sorteáveis para este tipo
+    try {
+      const { data: probabilities } = await supabase
+        .from('scratch_card_probabilities')
+        .select('probability_weight')
+        .eq('scratch_type', chestType)
+        .eq('is_active', true);
+      
+      const totalWeight = (probabilities || []).reduce((sum, p) => sum + (p.probability_weight || 0), 0);
+      console.log(`🎯 [SCRATCH] Total weight para ${chestType}: ${totalWeight}`);
+      
+      if (totalWeight === 0) {
+        console.error(`❌ [SCRATCH] Nenhum item sorteável para ${chestType}`);
+        toast({
+          title: "Erro",
+          description: "Não há itens disponíveis para esta raspadinha no momento.",
+          variant: "destructive",
+        });
+        return;
+      }
+      
+      setGameState('scratching');
+      console.log(`🎯 [SCRATCH] Gerando raspadinha para ${chestType}...`);
+      await generateScratchCard(chestType);
+      console.log(`✅ [SCRATCH] Raspadinha gerada com sucesso`);
+    } catch (error) {
+      console.error(`❌ [SCRATCH] Erro ao validar itens:`, error);
+      toast({
+        title: "Erro",
+        description: "Erro ao verificar disponibilidade de itens.",
+        variant: "destructive",
+      });
+    }
+  }, [generateScratchCard, toast]);
 
   const processGameResult = useCallback(async (chestType: ScratchCardType, hasWin: boolean, winningItem?: any) => {
     setGameState('resolving');
