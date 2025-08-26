@@ -1,29 +1,19 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useMemo } from 'react';
 import { useAdminCheck } from '@/hooks/useAdminCheck';
 
 /**
  * Admin Test Mode helper
- * - Enabled only for admins
- * - Controlled by localStorage key: "admin_test_mode" (default: "true")
- * - Does NOT affect real users or backend data
+ * - DESABILITADO: Controle agora é feito via perfil do usuário no painel admin
+ * - Mantido para compatibilidade mas sempre retorna false
+ * - Use o campo is_demo no perfil do usuário para controlar modo demo
  */
 export const useAdminTestMode = () => {
   const { isAdmin } = useAdminCheck();
-  const [flag, setFlag] = useState<boolean>(true);
 
-  useEffect(() => {
-    try {
-      const raw = localStorage.getItem('admin_test_mode');
-      if (raw === null) {
-        // default ON for admins
-        setFlag(true);
-      } else {
-        setFlag(raw !== 'false');
-      }
-    } catch {
-      setFlag(true);
-    }
-  }, []);
-
-  return useMemo(() => ({ isEnabled: isAdmin && flag, isAdmin }), [isAdmin, flag]);
+  // Modo teste agora é controlado exclusivamente via perfil de usuário
+  // Admins não têm mais modo teste automático
+  return useMemo(() => ({ 
+    isEnabled: false, // Sempre false - use is_demo no perfil
+    isAdmin 
+  }), [isAdmin]);
 };

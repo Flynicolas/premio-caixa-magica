@@ -220,18 +220,25 @@ const UserEditDialog = ({ user, isOpen, onClose, onSave }: UserEditDialogProps) 
               </CardContent>
             </Card>
 
-            <Card>
+            <Card className={formData.is_demo ? "border-amber-500 bg-amber-50" : "border-gray-200"}>
               <CardHeader>
                 <CardTitle className="text-lg flex items-center gap-2">
-                  <AlertTriangle className="w-4 h-4" />
-                  Configurações Demo
+                  <AlertTriangle className={formData.is_demo ? "w-4 h-4 text-amber-600" : "w-4 h-4"} />
+                  Modo de Operação
                 </CardTitle>
               </CardHeader>
               <CardContent className="space-y-4">
-                <div className="flex items-center justify-between">
+                <div className="flex items-center justify-between p-3 rounded-lg border">
                   <div>
-                    <Label htmlFor="is_demo">Modo Demo</Label>
-                    <p className="text-xs text-gray-500">Ativa simulação para o usuário</p>
+                    <Label htmlFor="is_demo" className="font-medium">
+                      {formData.is_demo ? "🧪 Conta Demo" : "💰 Conta Real"}
+                    </Label>
+                    <p className="text-xs text-muted-foreground mt-1">
+                      {formData.is_demo 
+                        ? "Usuário opera com créditos simulados (sem dinheiro real)" 
+                        : "Usuário opera com dinheiro real"
+                      }
+                    </p>
                   </div>
                   <Switch
                     id="is_demo"
@@ -241,8 +248,8 @@ const UserEditDialog = ({ user, isOpen, onClose, onSave }: UserEditDialogProps) 
                 </div>
                 
                 {formData.is_demo && (
-                  <div className="space-y-2">
-                    <Label htmlFor="credito_demo">Crédito Demo (R$)</Label>
+                  <div className="space-y-2 p-3 bg-amber-50 rounded-lg">
+                    <Label htmlFor="credito_demo" className="text-amber-800">Crédito Demo (R$)</Label>
                     <Input
                       id="credito_demo"
                       type="number"
@@ -251,9 +258,10 @@ const UserEditDialog = ({ user, isOpen, onClose, onSave }: UserEditDialogProps) 
                       value={formData.credito_demo}
                       onChange={(e) => setFormData(prev => ({ ...prev, credito_demo: parseFloat(e.target.value) || 0 }))}
                       placeholder="1000.00"
+                      className="bg-white"
                     />
-                    <p className="text-xs text-gray-500">
-                      Valor resetado automaticamente em 24h
+                    <p className="text-xs text-amber-700">
+                      ⚠️ Créditos demo são resetados automaticamente a cada 24h
                     </p>
                   </div>
                 )}
