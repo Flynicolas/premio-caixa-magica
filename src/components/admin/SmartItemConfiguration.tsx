@@ -506,30 +506,16 @@ const SmartItemConfiguration = ({ items, onRefresh }: SmartItemConfigurationProp
                       )}
                     </CardTitle>
                     
-                    <div className="flex items-center gap-2">
-                      <Button
-                        onClick={() => applySmartWeights(scratchType)}
-                        disabled={applyingWeights || !rtpConfig}
-                        size="sm"
-                        className="gap-2"
-                      >
-                        {applyingWeights ? (
-                          <RefreshCw className="w-3 h-3 animate-spin" />
-                        ) : (
-                          <Zap className="w-3 h-3" />
-                        )}
-                        Aplicar Pesos Inteligentes
-                      </Button>
-                      
-                      <Badge className="bg-green-100 text-green-800 gap-1">
-                        <Target className="w-3 h-3" />
-                        {stats.drawable} Sorteáveis
-                      </Badge>
-                      <Badge className="bg-gray-100 text-gray-800 gap-1">
-                        <Eye className="w-3 h-3" />
-                        {stats.visual} Visuais
-                      </Badge>
-                    </div>
+                     <div className="flex items-center gap-2">
+                       <Badge className="bg-green-100 text-green-800 gap-1">
+                         <Target className="w-3 h-3" />
+                         {stats.drawable} Sorteáveis
+                       </Badge>
+                       <Badge className="bg-gray-100 text-gray-800 gap-1">
+                         <Eye className="w-3 h-3" />
+                         {stats.visual} Visuais
+                       </Badge>
+                     </div>
                   </div>
                   
                   {!rtpConfig && (
@@ -579,7 +565,9 @@ const SmartItemConfiguration = ({ items, onRefresh }: SmartItemConfigurationProp
                   {/* Lista de Itens */}
                   <div className="space-y-3">
                     {typeProbs.length > 0 ? (
-                      typeProbs.map(prob => {
+                      typeProbs
+                        .sort((a, b) => (a.item?.base_value || 0) - (b.item?.base_value || 0))
+                        .map(prob => {
                         const currentWeight = editingWeights[prob.id] ?? prob.probability_weight;
                         const isVisual = currentWeight === 0;
                         const probability = stats.totalWeight > 0 ? (currentWeight / stats.totalWeight * 100).toFixed(2) : '0';
