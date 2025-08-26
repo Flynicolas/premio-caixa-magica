@@ -348,7 +348,7 @@ const SmartItemConfiguration = ({ items, onRefresh }: SmartItemConfigurationProp
 
   const createManualRelease = async (scratchType: ScratchCardType, itemId: string) => {
     try {
-      // Buscar probability_id do item para este tipo de raspadinha
+      // Buscar item
       const prob = probabilities[scratchType]?.find(p => p.item_id === itemId);
       if (!prob) {
         toast({
@@ -372,25 +372,27 @@ const SmartItemConfiguration = ({ items, onRefresh }: SmartItemConfigurationProp
 
       const releaseData = {
         item_id: itemId,
-        chest_type: scratchType, // Usando chest_type para compatibilidade
-        probability_id: prob.id,
+        scratch_type: scratchType,
         released_by: user.id,
+        status: 'pending',
+        priority: 1,
         metadata: {
           manual_release: true,
           created_by_smart_config: true,
-          scratch_type: scratchType
+          item_name: prob.item?.name,
+          item_value: prob.item?.base_value
         }
       };
 
       const { error } = await supabase
-        .from('manual_item_releases')
+        .from('manual_scratch_releases')
         .insert(releaseData);
 
       if (error) throw error;
 
       toast({
-        title: "Liberação criada!",
-        description: `${prob.item?.name} foi inserido no próximo sorteio`,
+        title: "✅ Liberação criada!",
+        description: `${prob.item?.name} foi inserido no próximo sorteio de ${scratchCardTypes[scratchType].name}`,
       });
 
     } catch (error: any) {
@@ -445,18 +447,23 @@ const SmartItemConfiguration = ({ items, onRefresh }: SmartItemConfigurationProp
           </p>
         </div>
         {hasChanges && (
-          <Button 
-            onClick={saveChanges}
-            disabled={saving}
-            className="flex items-center gap-2"
-          >
-            {saving ? (
-              <RefreshCw className="w-4 h-4 animate-spin" />
-            ) : (
-              <Save className="w-4 h-4" />
-            )}
-            {saving ? 'Salvando...' : 'Salvar Alterações'}
-          </Button>
+          <div className="flex items-center gap-2">
+            <Badge className="bg-orange-500/20 text-orange-300 border-orange-500/20">
+              {Object.keys(editingWeights).length} alteração(ões) pendente(s)
+            </Badge>
+            <Button 
+              onClick={saveChanges}
+              disabled={saving}
+              className="flex items-center gap-2 bg-green-600 hover:bg-green-700"
+            >
+              {saving ? (
+                <RefreshCw className="w-4 h-4 animate-spin" />
+              ) : (
+                <Save className="w-4 h-4" />
+              )}
+              {saving ? 'Salvando...' : 'Salvar Alterações'}
+            </Button>
+          </div>
         )}
       </div>
 
@@ -507,11 +514,11 @@ const SmartItemConfiguration = ({ items, onRefresh }: SmartItemConfigurationProp
                     </CardTitle>
                     
                      <div className="flex items-center gap-2">
-                       <Badge className="bg-green-100 text-green-800 gap-1">
+                       <Badge className="bg-green-500/20 text-green-300 gap-1 border-green-500/20">
                          <Target className="w-3 h-3" />
                          {stats.drawable} Sorteáveis
                        </Badge>
-                       <Badge className="bg-gray-100 text-gray-800 gap-1">
+                       <Badge className="bg-gray-500/20 text-gray-300 gap-1 border-gray-500/20">
                          <Eye className="w-3 h-3" />
                          {stats.visual} Visuais
                        </Badge>
@@ -527,14 +534,25 @@ const SmartItemConfiguration = ({ items, onRefresh }: SmartItemConfigurationProp
                     </Alert>
                   )}
 
-                  {!stats.hasDrawable && stats.total > 0 && (
-                    <Alert>
-                      <AlertCircle className="h-4 w-4" />
-                      <AlertDescription>
-                        Atenção: Todos os itens estão com peso 0 (apenas visuais). Ninguém pode ganhar!
-                      </AlertDescription>
-                    </Alert>
-                  )}
+                   {!stats.hasDrawable && stats.total > 0 && (
+                     <Alert className="border-red-500/20 bg-red-500/10">
+                       <AlertCircle className="h-4 w-4 text-red-400" />
+                       <AlertDescription className="text-red-300">
+                         ⚠️ <strong>ATENÇÃO:</strong> Todos os itens estão com peso 0 (apenas visuais). 
+                         <br />Ninguém pode ganhar esta raspadinha! Configure pelo menos um item com peso maior que 0.
+                       </AlertDescription>
+                     </Alert>
+                   )}
+                   
+                   {stats.visual > 0 && (
+                     <Alert className="border-yellow-500/20 bg-yellow-500/10">
+                       <Eye className="h-4 w-4 text-yellow-400" />
+                       <AlertDescription className="text-yellow-300">
+                         💡 <strong>Itens Visuais:</strong> Itens com peso 0 aparecem nas raspadinhas mas nunca são sorteados. 
+                         Use para criar expectativa visual sem afetar a probabilidade real.
+                       </AlertDescription>
+                     </Alert>
+                   )}
                 </CardHeader>
 
                 <CardContent className="space-y-4">
@@ -573,7 +591,7 @@ const SmartItemConfiguration = ({ items, onRefresh }: SmartItemConfigurationProp
                         const probability = stats.totalWeight > 0 ? (currentWeight / stats.totalWeight * 100).toFixed(2) : '0';
                         
                         return (
-                          <div key={prob.id} className={`border rounded-lg p-3 ${isVisual ? 'bg-gray-50' : 'bg-white'}`}>
+                          <div key={prob.id} className={`border border-border rounded-lg p-3 ${isVisual ? 'bg-muted/50 border-yellow-500/20' : 'bg-card'}`}>
                             <div className="flex items-center justify-between">
                               <div className="flex items-center space-x-3">
                                 {prob.item?.image_url && (
@@ -584,12 +602,16 @@ const SmartItemConfiguration = ({ items, onRefresh }: SmartItemConfigurationProp
                                   />
                                 )}
                                 <div>
-                                  <div className="flex items-center gap-2">
-                                    <span className="font-medium">{prob.item?.name}</span>
-                                    <Badge variant={isVisual ? "secondary" : "default"}>
-                                      {isVisual ? 'Visual' : `${probability}%`}
-                                    </Badge>
-                                  </div>
+                                   <div className="flex items-center gap-2">
+                                     <span className="font-medium">{prob.item?.name}</span>
+                                     <Badge 
+                                       variant={isVisual ? "secondary" : "default"}
+                                       className={isVisual ? "bg-yellow-500/20 text-yellow-300 border-yellow-500/20" : ""}
+                                       title={isVisual ? "Item visual - Peso 0 (não pode ser sorteado)" : `Probabilidade de sorteio: ${probability}%`}
+                                     >
+                                       {isVisual ? '👁️ Visual' : `🎯 ${probability}%`}
+                                     </Badge>
+                                   </div>
                                   <div className="text-sm text-muted-foreground">
                                     R$ {prob.item?.base_value?.toFixed(2)} • {prob.item?.rarity}
                                   </div>
@@ -597,15 +619,16 @@ const SmartItemConfiguration = ({ items, onRefresh }: SmartItemConfigurationProp
                               </div>
                               
                               <div className="flex items-center gap-2">
-                                <Button
-                                  size="sm"
-                                  variant="outline"
-                                  onClick={() => createManualRelease(scratchType, prob.item_id)}
-                                  className="gap-1"
-                                >
-                                  <Gift className="w-3 h-3" />
-                                  Inserir no Sorteio
-                                </Button>
+                                 <Button
+                                   size="sm"
+                                   variant="outline"
+                                   onClick={() => createManualRelease(scratchType, prob.item_id)}
+                                   className="gap-1 border-purple-500/20 bg-purple-500/10 text-purple-300 hover:bg-purple-500/20"
+                                   title="Força este item a aparecer no próximo sorteio desta raspadinha"
+                                 >
+                                   <Gift className="w-3 h-3" />
+                                   Inserir no Sorteio
+                                 </Button>
                                 
                                 <div className="flex items-center gap-2">
                                   <span className="text-sm text-muted-foreground">Peso:</span>
