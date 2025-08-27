@@ -24,7 +24,6 @@ export const QRCodeDisplay = ({
 }: QRCodeDisplayProps) => {
   const [timeLeft, setTimeLeft] = useState<number>(0);
   const [copied, setCopied] = useState(false);
-  const [buttonTimer, setButtonTimer] = useState<number>(40);
   const [canConfirmPayment, setCanConfirmPayment] = useState(false);
   const [confirmationCountdown, setConfirmationCountdown] = useState<number>(60);
   const { toast } = useToast();
@@ -54,19 +53,8 @@ export const QRCodeDisplay = ({
     return () => clearInterval(timer);
   }, [expiresAt]);
 
-  // Timer para o botão "Já realizei o pagamento"
+  // Timer para habilitar o botão "Já realizei o pagamento"
   useEffect(() => {
-    // Timer de 40 segundos para o botão aparecer
-    const buttonTimerInterval = setInterval(() => {
-      setButtonTimer((prev) => {
-        if (prev <= 1) {
-          clearInterval(buttonTimerInterval);
-          return 0;
-        }
-        return prev - 1;
-      });
-    }, 1000);
-
     // Countdown de 60 segundos para liberar a funcionalidade do botão
     const confirmationCountdownInterval = setInterval(() => {
       setConfirmationCountdown((prev) => {
@@ -80,7 +68,6 @@ export const QRCodeDisplay = ({
     }, 1000);
 
     return () => {
-      clearInterval(buttonTimerInterval);
       clearInterval(confirmationCountdownInterval);
     };
   }, []);
@@ -251,34 +238,32 @@ export const QRCodeDisplay = ({
         </ul>
       </Card>
 
-      {/* Botão "Já realizei o pagamento" */}
-      {buttonTimer <= 0 && (
-        <Card className="p-4 bg-gradient-to-r from-blue-50 to-indigo-50 border-blue-200">
-          <div className="text-center">
-            <h4 className="font-medium text-blue-800 mb-3">
-              Já realizou o pagamento?
-            </h4>
-            {!canConfirmPayment ? (
-              <div className="space-y-3">
-                <p className="text-sm text-blue-600">
-                  Aguarde mais alguns segundos para confirmar...
-                </p>
-                <div className="text-2xl font-mono text-blue-700">
-                  {confirmationCountdown}s
-                </div>
+      {/* Botão "Já realizei o pagamento" - Sempre visível */}
+      <Card className="p-4 bg-gradient-to-r from-blue-50 to-indigo-50 border-blue-200">
+        <div className="text-center">
+          <h4 className="font-medium text-blue-800 mb-3">
+            Já realizou o pagamento?
+          </h4>
+          {!canConfirmPayment ? (
+            <div className="space-y-3">
+              <p className="text-sm text-blue-600">
+                Aguarde mais alguns segundos para confirmar...
+              </p>
+              <div className="text-2xl font-mono text-blue-700">
+                {confirmationCountdown}s
               </div>
-            ) : (
-              <Button
-                onClick={handleConfirmPayment}
-                className="bg-gradient-to-r from-blue-500 to-indigo-500 hover:from-blue-600 hover:to-indigo-600 text-white"
-              >
-                <Home className="w-4 h-4 mr-2" />
-                Já realizei o pagamento
-              </Button>
-            )}
-          </div>
-        </Card>
-      )}
+            </div>
+          ) : (
+            <Button
+              onClick={handleConfirmPayment}
+              className="bg-gradient-to-r from-blue-500 to-indigo-500 hover:from-blue-600 hover:to-indigo-600 text-white"
+            >
+              <Home className="w-4 h-4 mr-2" />
+              Já realizei o pagamento
+            </Button>
+          )}
+        </div>
+      </Card>
     </div>
   );
 };
