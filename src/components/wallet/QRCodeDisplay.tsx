@@ -4,7 +4,8 @@ import { Card } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { useToast } from '@/hooks/use-toast';
 import { useTransactionPolling } from '@/hooks/useTransactionPolling';
-import { Copy, Clock, CheckCircle, XCircle, RefreshCw } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
+import { Copy, Clock, CheckCircle, XCircle, RefreshCw, Home } from 'lucide-react';
 
 interface QRCodeDisplayProps {
   qrCode: string;
@@ -23,7 +24,11 @@ export const QRCodeDisplay = ({
 }: QRCodeDisplayProps) => {
   const [timeLeft, setTimeLeft] = useState<number>(0);
   const [copied, setCopied] = useState(false);
+  const [buttonTimer, setButtonTimer] = useState<number>(40);
+  const [canConfirmPayment, setCanConfirmPayment] = useState(false);
+  const [confirmationCountdown, setConfirmationCountdown] = useState<number>(60);
   const { toast } = useToast();
+  const navigate = useNavigate();
   
   const { status, isPolling } = useTransactionPolling(paymentId);
 
@@ -48,6 +53,37 @@ export const QRCodeDisplay = ({
 
     return () => clearInterval(timer);
   }, [expiresAt]);
+
+  // Timer para o botão "Já realizei o pagamento"
+  useEffect(() => {
+    // Timer de 40 segundos para o botão aparecer
+    const buttonTimerInterval = setInterval(() => {
+      setButtonTimer((prev) => {
+        if (prev <= 1) {
+          clearInterval(buttonTimerInterval);
+          return 0;
+        }
+        return prev - 1;
+      });
+    }, 1000);
+
+    // Countdown de 60 segundos para liberar a funcionalidade do botão
+    const confirmationCountdownInterval = setInterval(() => {
+      setConfirmationCountdown((prev) => {
+        if (prev <= 1) {
+          clearInterval(confirmationCountdownInterval);
+          setCanConfirmPayment(true);
+          return 0;
+        }
+        return prev - 1;
+      });
+    }, 1000);
+
+    return () => {
+      clearInterval(buttonTimerInterval);
+      clearInterval(confirmationCountdownInterval);
+    };
+  }, []);
 
   const formatTime = (seconds: number) => {
     const minutes = Math.floor(seconds / 60);
@@ -104,6 +140,14 @@ export const QRCodeDisplay = ({
           </Badge>
         );
     }
+  };
+
+  const handleConfirmPayment = () => {
+    toast({
+      title: "Redirecionando...",
+      description: "Você será direcionado para a tela inicial",
+    });
+    navigate('/');
   };
 
   if (status === 'paid') {
@@ -206,6 +250,35 @@ export const QRCodeDisplay = ({
           <li>• Em caso de dúvidas, entre em contato conosco</li>
         </ul>
       </Card>
+
+      {/* Botão "Já realizei o pagamento" */}
+      {buttonTimer <= 0 && (
+        <Card className="p-4 bg-gradient-to-r from-blue-50 to-indigo-50 border-blue-200">
+          <div className="text-center">
+            <h4 className="font-medium text-blue-800 mb-3">
+              Já realizou o pagamento?
+            </h4>
+            {!canConfirmPayment ? (
+              <div className="space-y-3">
+                <p className="text-sm text-blue-600">
+                  Aguarde mais alguns segundos para confirmar...
+                </p>
+                <div className="text-2xl font-mono text-blue-700">
+                  {confirmationCountdown}s
+                </div>
+              </div>
+            ) : (
+              <Button
+                onClick={handleConfirmPayment}
+                className="bg-gradient-to-r from-blue-500 to-indigo-500 hover:from-blue-600 hover:to-indigo-600 text-white"
+              >
+                <Home className="w-4 h-4 mr-2" />
+                Já realizei o pagamento
+              </Button>
+            )}
+          </div>
+        </Card>
+      )}
     </div>
   );
 };
