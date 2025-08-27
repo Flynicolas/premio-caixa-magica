@@ -135,7 +135,13 @@ const Configuracoes = () => {
       }
     }
 
-    const result = await updateProfile(formData);
+    // Sanitizar CPF removendo caracteres especiais antes de enviar
+    const sanitizedData = {
+      ...formData,
+      cpf: formData.cpf.replace(/\D/g, '') // Remove todos os caracteres que não são dígitos
+    };
+
+    const result = await updateProfile(sanitizedData);
     console.log('📊 Resultado do updateProfile:', result);
     
     if (!result.error) {
