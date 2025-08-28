@@ -25,6 +25,7 @@ const CaixaGeralDashboard = lazy(() => import('@/components/admin/CaixaGeralDash
 const VisualCustomizationPanel = lazy(() => import('@/components/admin/VisualCustomizationPanel'));
 const CashControlDashboard = lazy(() => import('@/components/admin/CashControlDashboard').then(m => ({ default: (m as any).default || (m as any).CashControlDashboard })));
 const FinancialReconciliation = lazy(() => import('@/components/admin/FinancialReconciliation').then(m => ({ default: (m as any).default || (m as any).FinancialReconciliation })));
+const AffiliateManagement = lazy(() => import('@/components/admin/AffiliateManagement').then(m => ({ default: m.AffiliateManagement })));
 
 
 
