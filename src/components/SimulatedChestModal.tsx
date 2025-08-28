@@ -288,7 +288,7 @@ const SimulatedChestModal = ({
                 </Button>
                 <Button
                   className="bg-gradient-to-r from-green-500 to-emerald-600 text-white font-bold shadow-md hover:scale-105 transition-transform"
-                  onClick={() => navigate("/?showAuth=true")}
+                  onClick={() => navigate('/', { state: { showAuth: true } })}
                 >
                   Registrar-se Agora
                 </Button>

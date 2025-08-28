@@ -74,9 +74,11 @@ export const useReferralTracking = () => {
     const pathSegments = location.pathname.split('/').filter(Boolean);
     const utmParams = getUtmParams();
     
-    // Verificar ref_code na URL path (ex: /ABC123)
-    const pathRefCode = pathSegments.length === 1 && isValidRefCode(pathSegments[0]) 
-      ? pathSegments[0] 
+    // Verificar ref_code SOMENTE na rota /convite/:code
+    const pathRefCode = pathSegments.length === 2 && 
+                       pathSegments[0] === 'convite' && 
+                       isValidRefCode(pathSegments[1]) 
+      ? pathSegments[1] 
       : null;
     
     // Verificar ref_code no query parameter (ex: ?ref=ABC123)
