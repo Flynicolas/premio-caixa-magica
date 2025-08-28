@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
 import {
   Dialog,
   DialogContent,
@@ -59,6 +60,7 @@ const ChestOpeningModal = ({
   const { generateRoulette, rouletteData, isLoading } = useSmartRoulette();
   const { spinDemoRoulette } = useDemoRoulette();
   const { processGamification } = useGamification();
+  const navigate = useNavigate();
 
   const configMap = {
     silver: {
@@ -376,7 +378,7 @@ const ChestOpeningModal = ({
                 </Button>
                 <Button
                   className={`bg-white/20 backdrop-blur-sm hover:bg-white/30 text-white font-bold border border-white/30 ${config.glow}`}
-                  onClick={() => (window.location.href = "/baus")}
+                  onClick={() => navigate("/baus")}
                 >
                   Ver Inventário
                 </Button>

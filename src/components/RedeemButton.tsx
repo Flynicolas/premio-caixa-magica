@@ -84,9 +84,10 @@ const RedeemButton = ({
         conversionAmount
       );
       
-      // Se o resgate foi bem-sucedido, recarregar para atualizar o estado
+      // Se o resgate foi bem-sucedido, recarregar dados
       if (result.success) {
-        window.location.reload();
+        // Trigger a refetch or update parent component state instead of full reload
+        if (onClick) onClick();
       }
     } catch (error) {
       console.error('Erro no resgate de dinheiro:', error);

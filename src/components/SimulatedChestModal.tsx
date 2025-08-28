@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
 import {
   Dialog,
   DialogContent,
@@ -37,6 +38,7 @@ const SimulatedChestModal = ({
 
   const { toast } = useToast();
   const { generateSimulatedRoulette, rouletteData, isLoading } = useSimulatedRoulette();
+  const navigate = useNavigate();
 
   const configMap = {
     diamond: {
@@ -286,7 +288,7 @@ const SimulatedChestModal = ({
                 </Button>
                 <Button
                   className="bg-gradient-to-r from-green-500 to-emerald-600 text-white font-bold shadow-md hover:scale-105 transition-transform"
-                  onClick={() => (window.location.href = "/auth")}
+                  onClick={() => navigate("/?showAuth=true")}
                 >
                   Registrar-se Agora
                 </Button>

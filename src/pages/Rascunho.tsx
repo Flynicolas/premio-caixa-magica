@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@/hooks/useAuth';
 import { useWallet } from '@/hooks/useWalletProvider';
 import ChestCard from '@/components/ChestCard';
@@ -31,6 +32,7 @@ import PrizeShowcaseStyleSix from '@/components/scratch-card/PrizeShowcaseStyleS
 const Rascunho = () => {
   const { user } = useAuth();
   const { walletData, refreshData } = useWallet();
+  const navigate = useNavigate();
   const [showWalletPanel, setShowWalletPanel] = useState(false);
   const [showItemsModal, setShowItemsModal] = useState(false);
   const [showConfirmModal, setShowConfirmModal] = useState(false);
@@ -150,7 +152,7 @@ const Rascunho = () => {
                 Experimente nosso novo jogo de raspadinha com chances reais de ganhar!
               </p>
               <button 
-                onClick={() => window.location.href = '/raspadinha'}
+                onClick={() => navigate('/raspadinha')}
                 className="gold-gradient text-black font-bold py-3 px-6 rounded-full shadow-lg hover:shadow-primary/50 transition-all duration-300 hover:scale-105"
               >
                 Jogar Raspadinha 🎯
