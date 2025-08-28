@@ -25,7 +25,7 @@ const Index = () => {
   const { code } = useParams();
   const { user } = useAuth();
   const { walletData, refreshData } = useWallet();
-  const { trackReferralClick } = useReferralTracking();
+  const { trackClick } = useReferralTracking();
   const [showAuthModal, setShowAuthModal] = useState(false);
   const location = useLocation();
 
@@ -120,9 +120,9 @@ const Index = () => {
       else if (referrer.includes('facebook')) source = 'facebook';
       else if (referrer.includes('instagram')) source = 'instagram';
       
-      trackReferralClick(code, source);
+      trackClick(code, { utm_medium: source });
     }
-  }, [code, trackReferralClick]);
+  }, [code, trackClick]);
 
 
   return (

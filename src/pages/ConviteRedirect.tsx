@@ -11,13 +11,13 @@ const ConviteRedirect = () => {
   const { codigo } = useParams<{ codigo: string }>();
   const navigate = useNavigate();
   const { user } = useAuth();
-  const { trackReferralClick } = useReferralTracking();
+  const { trackClick } = useReferralTracking();
   const [processing, setProcessing] = useState(false);
 
   useEffect(() => {
     if (codigo) {
       // Rastrear o clique imediatamente
-      trackReferralClick(codigo, 'direct');
+      trackClick(codigo, { utm_medium: 'direct' });
       
       if (user) {
         // Se já está logado, redirecionar para página principal
@@ -25,7 +25,7 @@ const ConviteRedirect = () => {
         setTimeout(() => navigate('/'), 1500);
       }
     }
-  }, [codigo, user, trackReferralClick, navigate]);
+  }, [codigo, user, trackClick, navigate]);
 
   const handleContinue = () => {
     setProcessing(true);
