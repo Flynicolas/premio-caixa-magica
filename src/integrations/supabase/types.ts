@@ -3425,6 +3425,16 @@ export type Database = {
           wallet_balance: number
         }[]
       }
+      process_suitpay_webhook: {
+        Args: {
+          p_amount: number
+          p_payer_cpf: string
+          p_payload: Json
+          p_status: string
+          p_transaction_id: string
+        }
+        Returns: undefined
+      }
       purchase_chest: {
         Args: { p_chest_type: string; p_price: number; p_user_id: string }
         Returns: string
