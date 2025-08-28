@@ -1,5 +1,4 @@
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import RTPDashboard from './RTPDashboard';
 import { RTPControlPanel } from './RTPControlPanel';
 import SmartItemConfiguration from './SmartItemConfiguration';
 import ScratchCardManualReleaseSystem from './scratch-card-probability/ScratchCardManualReleaseSystem';
@@ -18,20 +17,15 @@ const ScratchCardManager = () => {
         </p>
       </div>
 
-      <Tabs defaultValue="dashboard" className="w-full">
-        <TabsList className="grid w-full grid-cols-5">
-          <TabsTrigger value="dashboard">Dashboard RTP</TabsTrigger>
-          <TabsTrigger value="control">Controle RTP</TabsTrigger>
+      <Tabs defaultValue="rtp" className="w-full">
+        <TabsList className="grid w-full grid-cols-4">
+          <TabsTrigger value="rtp">RTP</TabsTrigger>
           <TabsTrigger value="items">Configurar Itens</TabsTrigger>
           <TabsTrigger value="manual">Liberação Manual</TabsTrigger>
           <TabsTrigger value="reports">Relatórios</TabsTrigger>
         </TabsList>
         
-        <TabsContent value="dashboard" className="space-y-6">
-          <RTPDashboard />
-        </TabsContent>
-        
-        <TabsContent value="control" className="space-y-6">
+        <TabsContent value="rtp" className="space-y-6">
           <RTPControlPanel />
         </TabsContent>
         

@@ -3750,8 +3750,8 @@ export type Database = {
         Args: Record<PropertyKey, never>
         Returns: {
           current_rtp: number
+          deviation: number
           health_status: string
-          rtp_deviation: number
           scratch_type: string
           target_rtp: number
           total_prizes: number

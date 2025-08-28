@@ -10,7 +10,7 @@ interface RTPHealth {
   scratch_type: string;
   current_rtp: number;
   target_rtp: number;
-  rtp_deviation: number;
+  deviation: number;
   total_sales: number;
   total_prizes: number;
   health_status: string;
@@ -170,10 +170,10 @@ export function RTPHealthMonitor() {
                 <div className="text-center">
                   <div className="text-sm text-muted-foreground">Desvio</div>
                   <div className={`text-lg font-semibold ${
-                    item.rtp_deviation <= 5 ? 'text-green-600' : 
-                    item.rtp_deviation <= 15 ? 'text-yellow-600' : 'text-red-600'
+                    item.deviation <= 5 ? 'text-green-600' : 
+                    item.deviation <= 15 ? 'text-yellow-600' : 'text-red-600'
                   }`}>
-                    ±{item.rtp_deviation.toFixed(1)}%
+                    ±{item.deviation.toFixed(1)}%
                   </div>
                 </div>
                 <div className="text-center">
@@ -218,7 +218,7 @@ export function RTPHealthMonitor() {
                   <div className="flex items-center gap-2 text-red-800">
                     <AlertTriangle className="h-4 w-4" />
                     <span className="text-sm font-medium">
-                      RTP crítico: desvio de {item.rtp_deviation.toFixed(1)}% do target
+                      RTP crítico: desvio de {item.deviation.toFixed(1)}% do target
                     </span>
                   </div>
                 </div>
@@ -229,7 +229,7 @@ export function RTPHealthMonitor() {
                   <div className="flex items-center gap-2 text-yellow-800">
                     <AlertTriangle className="h-4 w-4" />
                     <span className="text-sm font-medium">
-                      RTP em atenção: desvio de {item.rtp_deviation.toFixed(1)}% do target
+                      RTP em atenção: desvio de {item.deviation.toFixed(1)}% do target
                     </span>
                   </div>
                 </div>
