@@ -1,7 +1,8 @@
 import React from 'react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { RTPHealthMonitor } from './scratch-card-rtp/RTPHealthMonitor';
-import { RTPSettingsPanel } from './scratch-card-rtp/RTPSettingsPanel';
+import { useRTPControl } from '@/hooks/useRTPControl';
+import { RTPHealthMonitor } from './RTPHealthMonitor';
+import { RTPSettingsPanel } from './RTPSettingsPanel';
 
 export function RTPControlPanel() {
   return (

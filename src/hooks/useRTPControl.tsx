@@ -214,6 +214,20 @@ export const useRTPControl = () => {
     };
   }, []);
 
+  // Função para execução da recarga automática
+  const executeAutoRefill = async () => {
+    try {
+      const { error } = await supabase.rpc('auto_refill_scratch_budgets');
+      if (error) throw error;
+      
+      toast.success('Orçamentos recarregados automaticamente');
+      await Promise.all([loadRTPSettings(), loadRTPMetrics()]);
+    } catch (error) {
+      console.error('Erro ao executar recarga automática:', error);
+      toast.error('Erro ao recarregar orçamentos');
+    }
+  };
+
   return {
     rtpSettings,
     rtpMetrics,
@@ -221,6 +235,7 @@ export const useRTPControl = () => {
     updateTargetRTP,
     toggleRTPEnabled,
     resetRTPMetrics,
+    executeAutoRefill,
     refreshData: () => Promise.all([loadRTPSettings(), loadRTPMetrics()])
   };
 };

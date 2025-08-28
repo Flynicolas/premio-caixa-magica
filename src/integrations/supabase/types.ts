@@ -3556,6 +3556,10 @@ export type Database = {
         Args: Record<PropertyKey, never>
         Returns: undefined
       }
+      auto_refill_scratch_budgets: {
+        Args: Record<PropertyKey, never>
+        Returns: undefined
+      }
       calculate_affiliate_commissions: {
         Args: { p_period_end: string; p_period_start: string }
         Returns: {
@@ -3740,6 +3744,18 @@ export type Database = {
           errors: string[]
           migrated_count: number
           updated_count: number
+        }[]
+      }
+      monitor_rtp_health: {
+        Args: Record<PropertyKey, never>
+        Returns: {
+          current_rtp: number
+          health_status: string
+          rtp_deviation: number
+          scratch_type: string
+          target_rtp: number
+          total_prizes: number
+          total_sales: number
         }[]
       }
       normalize_phone: {
