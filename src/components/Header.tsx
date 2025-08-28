@@ -26,7 +26,7 @@ import {
 } from 'lucide-react';
 import { useAdminCheck } from '@/hooks/useAdminCheck';
 import { useInventory } from '@/hooks/useInventory';
-import ModernAuthModal from './ModernAuthModal';
+import AdvancedAuthModal from './AdvancedAuthModal';
 import WalletPanel from './WalletPanel';
 
 const Header = () => {
@@ -257,7 +257,7 @@ const Header = () => {
         </div>
       </div>
 
-      <ModernAuthModal 
+      <AdvancedAuthModal 
         isOpen={showAuthModal} 
         onClose={() => setShowAuthModal(false)} 
       />

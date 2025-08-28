@@ -3,13 +3,15 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 
 interface MaskedInputProps {
-  id: string;
+  id?: string;
   label: string;
   value: string;
   onChange: (value: string) => void;
   type: 'cpf' | 'phone' | 'text';
   placeholder?: string;
   required?: boolean;
+  icon?: React.ReactNode;
+  error?: string;
 }
 
 const MaskedInput = ({
@@ -19,7 +21,9 @@ const MaskedInput = ({
   onChange,
   type,
   placeholder,
-  required = false
+  required = false,
+  icon,
+  error
 }: MaskedInputProps) => {
   const formatValue = (inputValue: string, maskType: string) => {
     const numbers = inputValue.replace(/\D/g, '');
@@ -50,8 +54,9 @@ const MaskedInput = ({
   };
 
   return (
-    <div>
-      <Label htmlFor={id}>
+    <div className="space-y-2">
+      <Label htmlFor={id} className={icon ? "flex items-center gap-2 text-sm" : ""}>
+        {icon}
         {label}
         {required && <span className="text-destructive ml-1">*</span>}
       </Label>
@@ -60,7 +65,11 @@ const MaskedInput = ({
         value={value}
         onChange={handleChange}
         placeholder={placeholder}
+        className={`h-11 ${error ? 'border-destructive' : ''}`}
       />
+      {error && (
+        <p className="text-sm text-destructive">{error}</p>
+      )}
     </div>
   );
 };

@@ -8,8 +8,9 @@ interface AuthContextType {
   user: User | null;
   session: Session | null;
   loading: boolean;
-  signUp: (email: string, password: string, fullName: string, phone: string) => Promise<{ error: any }>;
+  signUp: (email: string, password: string, fullName: string, phone: string, cpf?: string, birthDate?: string) => Promise<{ error: any }>;
   signInWithEmailOrPhone: (emailOrPhone: string, password: string) => Promise<{ error: any }>;
+  signInWithCPF: (cpf: string, password: string) => Promise<{ error: any }>;
   signIn: (email: string, password: string) => Promise<{ error: any }>;
   signOut: () => Promise<void>;
   updateProfile: (data: { full_name?: string; avatar_url?: string }) => Promise<{ error: any }>;
@@ -43,7 +44,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     return () => subscription.unsubscribe();
   }, []);
 
-  const signUp = async (email: string, password: string, fullName: string, phone: string) => {
+  const signUp = async (email: string, password: string, fullName: string, phone: string, cpf?: string, birthDate?: string) => {
     const redirectUrl = `${window.location.origin}/`;
     
     const { error } = await supabase.auth.signUp({
@@ -53,7 +54,9 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
         emailRedirectTo: redirectUrl,
         data: {
           full_name: fullName,
-          phone: phone
+          phone: phone,
+          cpf: cpf,
+          birth_date: birthDate
         }
       }
     });
@@ -67,7 +70,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     } else {
       toast({
         title: "Cadastro realizado!",
-        description: "Bem-vindo ao Baú Premiado!",
+        description: "Bem-vindo ao Baú Premiado! Você já está logado.",
         variant: "default"
       });
     }
@@ -98,21 +101,53 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     return { error };
   };
 
+  const signInWithCPF = async (cpf: string, password: string) => {
+    const cleanCPF = cpf.replace(/\D/g, '');
+    
+    try {
+      const { data: profiles, error: profileError } = await supabase
+        .from('profiles')
+        .select('email')
+        .eq('cpf', cleanCPF)
+        .single();
+
+      if (profileError || !profiles) {
+        toast({
+          title: "Erro no login",
+          description: "CPF não encontrado",
+          variant: "destructive"
+        });
+        return { error: new Error('CPF não encontrado') };
+      }
+
+      return await signIn(profiles.email, password);
+    } catch (error: any) {
+      toast({
+        title: "Erro no login",
+        description: "Erro ao buscar usuário",
+        variant: "destructive"
+      });
+      return { error };
+    }
+  };
+
   const signInWithEmailOrPhone = async (emailOrPhone: string, password: string) => {
-    // Detectar se é email ou telefone
+    // Detectar se é email, CPF ou telefone
     const isEmail = emailOrPhone.includes('@');
+    const cleanInput = emailOrPhone.replace(/\D/g, '');
     
     if (isEmail) {
       return await signIn(emailOrPhone, password);
+    } else if (cleanInput.length === 11 && !cleanInput.startsWith('1')) {
+      // CPF tem 11 dígitos e não começa com 1
+      return await signInWithCPF(emailOrPhone, password);
     } else {
-      // Para telefone, buscar o email pelo telefone no perfil
-      const cleanPhone = emailOrPhone.replace(/\D/g, '');
-      
+      // Telefone
       try {
         const { data: profiles, error: profileError } = await supabase
           .from('profiles')
           .select('email')
-          .eq('phone', emailOrPhone)
+          .eq('phone', cleanInput)
           .single();
 
         if (profileError || !profiles) {
@@ -190,7 +225,8 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
       signIn,
       signOut,
       updateProfile,
-      signInWithEmailOrPhone
+      signInWithEmailOrPhone,
+      signInWithCPF
     }}>
       {children}
     </AuthContext.Provider>

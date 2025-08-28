@@ -1676,8 +1676,10 @@ export type Database = {
           created_at: string | null
           credito_demo: number | null
           delivery_updates: boolean | null
+          device_fingerprint: string | null
           email: string
           email_notifications: boolean | null
+          email_verified: boolean | null
           experience: number | null
           experience_points: number | null
           full_name: string | null
@@ -1685,18 +1687,24 @@ export type Database = {
           is_active: boolean | null
           is_demo: boolean | null
           join_date: string | null
+          last_device_info: Json | null
           last_login: string | null
           level: number | null
+          locked_until: string | null
+          login_attempts: number | null
           neighborhood: string | null
           number: string | null
           phone: string
+          phone_verified: boolean | null
           preferences: Json | null
           prize_notifications: boolean | null
           promo_emails: boolean | null
           push_notifications: boolean | null
+          referral_code: string | null
           referral_date: string | null
           referral_source: string | null
           referred_by: string | null
+          remember_login: boolean | null
           simulate_actions: boolean | null
           state: string | null
           street: string | null
@@ -1719,8 +1727,10 @@ export type Database = {
           created_at?: string | null
           credito_demo?: number | null
           delivery_updates?: boolean | null
+          device_fingerprint?: string | null
           email: string
           email_notifications?: boolean | null
+          email_verified?: boolean | null
           experience?: number | null
           experience_points?: number | null
           full_name?: string | null
@@ -1728,18 +1738,24 @@ export type Database = {
           is_active?: boolean | null
           is_demo?: boolean | null
           join_date?: string | null
+          last_device_info?: Json | null
           last_login?: string | null
           level?: number | null
+          locked_until?: string | null
+          login_attempts?: number | null
           neighborhood?: string | null
           number?: string | null
           phone?: string
+          phone_verified?: boolean | null
           preferences?: Json | null
           prize_notifications?: boolean | null
           promo_emails?: boolean | null
           push_notifications?: boolean | null
+          referral_code?: string | null
           referral_date?: string | null
           referral_source?: string | null
           referred_by?: string | null
+          remember_login?: boolean | null
           simulate_actions?: boolean | null
           state?: string | null
           street?: string | null
@@ -1762,8 +1778,10 @@ export type Database = {
           created_at?: string | null
           credito_demo?: number | null
           delivery_updates?: boolean | null
+          device_fingerprint?: string | null
           email?: string
           email_notifications?: boolean | null
+          email_verified?: boolean | null
           experience?: number | null
           experience_points?: number | null
           full_name?: string | null
@@ -1771,18 +1789,24 @@ export type Database = {
           is_active?: boolean | null
           is_demo?: boolean | null
           join_date?: string | null
+          last_device_info?: Json | null
           last_login?: string | null
           level?: number | null
+          locked_until?: string | null
+          login_attempts?: number | null
           neighborhood?: string | null
           number?: string | null
           phone?: string
+          phone_verified?: boolean | null
           preferences?: Json | null
           prize_notifications?: boolean | null
           promo_emails?: boolean | null
           push_notifications?: boolean | null
+          referral_code?: string | null
           referral_date?: string | null
           referral_source?: string | null
           referred_by?: string | null
+          remember_login?: boolean | null
           simulate_actions?: boolean | null
           state?: string | null
           street?: string | null
@@ -3193,6 +3217,14 @@ export type Database = {
         Args: { user_id_check: string }
         Returns: boolean
       }
+      check_user_duplicates: {
+        Args: { p_cpf?: string; p_email: string; p_user_id?: string }
+        Returns: {
+          duplicate_message: string
+          duplicate_type: string
+          has_duplicate: boolean
+        }[]
+      }
       check_user_role: {
         Args: { p_role: string; p_user_id: string }
         Returns: boolean
@@ -3336,6 +3368,10 @@ export type Database = {
           migrated_count: number
           updated_count: number
         }[]
+      }
+      normalize_phone: {
+        Args: { phone_input: string }
+        Returns: string
       }
       open_chest: {
         Args: { p_chest_id: string; p_item_id: string; p_user_id: string }
@@ -3498,6 +3534,10 @@ export type Database = {
       }
       validate_balance_operation: {
         Args: { p_amount: number; p_operation_type: string; p_user_id: string }
+        Returns: boolean
+      }
+      validate_cpf_digits: {
+        Args: { cpf_input: string }
         Returns: boolean
       }
       validate_cpf_for_withdrawal: {
