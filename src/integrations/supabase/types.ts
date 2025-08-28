@@ -1168,6 +1168,39 @@ export type Database = {
         }
         Relationships: []
       }
+      login_attempts: {
+        Row: {
+          created_at: string | null
+          device_fingerprint: string | null
+          email: string | null
+          failure_reason: string | null
+          id: string
+          ip_address: unknown | null
+          success: boolean | null
+          user_agent: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          device_fingerprint?: string | null
+          email?: string | null
+          failure_reason?: string | null
+          id?: string
+          ip_address?: unknown | null
+          success?: boolean | null
+          user_agent?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          device_fingerprint?: string | null
+          email?: string | null
+          failure_reason?: string | null
+          id?: string
+          ip_address?: unknown | null
+          success?: boolean | null
+          user_agent?: string | null
+        }
+        Relationships: []
+      }
       manual_item_releases: {
         Row: {
           chest_type: string
@@ -3435,13 +3468,19 @@ export type Database = {
         }[]
       }
       process_referral_signup: {
-        Args: {
-          p_ip_address?: string
-          p_referral_code: string
-          p_referral_source?: string
-          p_referred_user_id: string
-          p_user_agent?: string
-        }
+        Args:
+          | {
+              p_ip_address?: string
+              p_referral_code: string
+              p_referral_source?: string
+              p_referred_user_id: string
+              p_user_agent?: string
+            }
+          | {
+              p_referral_code: string
+              p_referral_source?: string
+              p_referred_user_id: string
+            }
         Returns: boolean
       }
       process_scratch_card_game: {

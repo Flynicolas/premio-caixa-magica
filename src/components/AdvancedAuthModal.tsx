@@ -340,18 +340,19 @@ const AdvancedAuthModal = ({ isOpen, onClose }: AdvancedAuthModalProps) => {
 
                     {/* CPF */}
                     <div className="space-y-2">
+                      <Label htmlFor="cpf" className="flex items-center gap-2 text-sm">
+                        <CreditCard className="w-3 h-3 lg:w-4 lg:h-4" />
+                        CPF *
+                      </Label>
                       <MaskedInput
                         id="cpf"
-                        label="CPF *"
+                        label=""
                         type="cpf"
                         placeholder="000.000.000-00"
                         value={registerForm.cpf}
                         onChange={handleCPFChange}
-                        icon={<CreditCard className="w-3 h-3 lg:w-4 lg:h-4" />}
+                        error={errors.cpf}
                       />
-                      {errors.cpf && (
-                        <p className="text-sm text-destructive">{errors.cpf}</p>
-                      )}
                     </div>
 
                     {/* Data de Nascimento */}
@@ -393,18 +394,19 @@ const AdvancedAuthModal = ({ isOpen, onClose }: AdvancedAuthModalProps) => {
 
                     {/* Telefone */}
                     <div className="space-y-2">
+                      <Label htmlFor="registerPhone" className="flex items-center gap-2 text-sm">
+                        <Phone className="w-3 h-3 lg:w-4 lg:h-4" />
+                        Telefone *
+                      </Label>
                       <MaskedInput
                         id="registerPhone"
-                        label="Telefone *"
+                        label=""
                         type="phone"
                         placeholder="(11) 99999-9999"
                         value={registerForm.phone}
                         onChange={(value) => setRegisterForm(prev => ({ ...prev, phone: value }))}
-                        icon={<Phone className="w-3 h-3 lg:w-4 lg:h-4" />}
+                        error={errors.phone}
                       />
-                      {errors.phone && (
-                        <p className="text-sm text-destructive">{errors.phone}</p>
-                      )}
                     </div>
 
                     {/* Código de Indicação (Opcional) */}

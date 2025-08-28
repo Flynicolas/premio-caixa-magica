@@ -8,7 +8,7 @@ import { Button } from '@/components/ui/button';
 import HeroSlider from '@/components/HeroSlider';
 import ChestCard from '@/components/ChestCard';
 import RealtimeWinsCarousel from '@/components/RealtimeWinsCarousel';
-import AuthModal from '@/components/AuthModal';
+import AdvancedAuthModal from '@/components/AdvancedAuthModal';
 import WalletPanel from '@/components/WalletPanel';
 import ChestItemsModal from '@/components/ChestItemsModal';
 import ChestConfirmModal from '@/components/ChestConfirmModal';
@@ -213,7 +213,7 @@ const Index = () => {
         </div>
       </div>
 
-      <AuthModal 
+      <AdvancedAuthModal 
         isOpen={showAuthModal} 
         onClose={() => setShowAuthModal(false)} 
       />

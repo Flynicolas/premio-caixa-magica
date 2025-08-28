@@ -45,37 +45,63 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   }, []);
 
   const signUp = async (email: string, password: string, fullName: string, phone: string, cpf?: string, birthDate?: string) => {
-    const redirectUrl = `${window.location.origin}/`;
-    
-    const { error } = await supabase.auth.signUp({
-      email,
-      password,
-      options: {
-        emailRedirectTo: redirectUrl,
-        data: {
-          full_name: fullName,
-          phone: phone,
-          cpf: cpf,
-          birth_date: birthDate
+    try {
+      // Verificar duplicatas antes de tentar cadastrar
+      if (cpf) {
+        const { data, error } = await supabase.rpc('check_user_duplicates', {
+          p_email: email,
+          p_cpf: cpf
+        });
+
+        if (error) throw error;
+        
+        const result = data?.[0];
+        if (result?.has_duplicate) {
+          throw new Error(result.duplicate_message);
         }
       }
-    });
 
-    if (error) {
+      const redirectUrl = `${window.location.origin}/`;
+      
+      const { data: authData, error } = await supabase.auth.signUp({
+        email,
+        password,
+        options: {
+          emailRedirectTo: redirectUrl,
+          data: {
+            full_name: fullName,
+            phone: phone,
+            cpf: cpf,
+            birth_date: birthDate
+          }
+        }
+      });
+
+      if (error) {
+        throw error;
+      }
+
+      // Processar código de indicação se fornecido
+      if (authData.user && cpf) {
+        // O código de indicação será processado automaticamente no trigger handle_new_user
+        // através dos dados em raw_user_meta_data
+      }
+
       toast({
-        title: "Erro no cadastro",
+        title: "✅ Cadastro realizado!",
+        description: "Bem-vindo ao Baú Premiado! Você já está logado e pronto para jogar.",
+        variant: "default"
+      });
+
+      return { error: null };
+    } catch (error: any) {
+      toast({
+        title: "❌ Erro no cadastro",
         description: error.message,
         variant: "destructive"
       });
-    } else {
-      toast({
-        title: "Cadastro realizado!",
-        description: "Bem-vindo ao Baú Premiado! Você já está logado.",
-        variant: "default"
-      });
+      return { error };
     }
-
-    return { error };
   };
 
   const signIn = async (email: string, password: string) => {
