@@ -166,9 +166,9 @@ const RedemptionModal = ({
                   <CreditCard className="w-5 h-5 text-white" />
                 </div>
                 <div>
-                  <p className="font-semibold">PIX ou Cartão</p>
+                  <p className="font-semibold">Pagamento PIX</p>
                   <p className="text-sm text-muted-foreground">
-                    Pagamento externo via MercadoPago
+                    Taxa de entrega via PIX
                   </p>
                 </div>
               </div>

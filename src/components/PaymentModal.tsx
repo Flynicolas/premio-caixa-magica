@@ -4,7 +4,8 @@ import { Input } from '@/components/ui/input';
 import { Card } from '@/components/ui/card';
 import { CreditCard, X } from 'lucide-react';
 import { useState } from 'react';
-import { useMercadoPago } from '@/hooks/useMercadoPago';
+// import { useMercadoPago } from '@/hooks/useMercadoPago'; // Comentado - Sistema em standby
+import { usePixPayment } from '@/hooks/usePixPayment';
 
 interface PaymentModalProps {
   isOpen: boolean;
@@ -22,17 +23,16 @@ const PaymentModal = ({
   description = "Escolha o valor para adicionar à sua carteira"
 }: PaymentModalProps) => {
   const [amount, setAmount] = useState(requiredAmount?.toString() || '');
-  const { processPayment, loading } = useMercadoPago();
+  // const { processPayment, loading } = useMercadoPago(); // Comentado - Sistema em standby
+  const { createPayment, isLoading } = usePixPayment();
 
   const quickAmounts = [10, 25, 50, 100, 200, 500];
 
   const handlePayment = async () => {
     const paymentAmount = parseFloat(amount);
     if (paymentAmount > 0) {
-      const result = await processPayment(paymentAmount);
-      if (result) {
-        onClose();
-      }
+      await createPayment(paymentAmount);
+      onClose();
     }
   };
 
@@ -113,23 +113,23 @@ const PaymentModal = ({
           <div className="space-y-3">
             <Button
               onClick={handlePayment}
-              disabled={!amount || parseFloat(amount) <= 0 || loading}
+              disabled={!amount || parseFloat(amount) <= 0 || isLoading}
               className="w-full gold-gradient text-black font-bold hover:opacity-90 h-12"
             >
-              {loading ? (
-                "Processando..."
+              {isLoading ? (
+                "Gerando PIX..."
               ) : (
                 <>
                   <CreditCard className="w-4 h-4 mr-2" />
-                  Pagar com Mercado Pago - R$ {parseFloat(amount || '0').toFixed(2)}
+                  Gerar PIX - R$ {parseFloat(amount || '0').toFixed(2)}
                 </>
               )}
             </Button>
 
             <div className="flex items-center justify-center space-x-4 text-xs text-muted-foreground">
-              <span>💳 PIX</span>
-              <span>💳 Cartão</span>
-              <span>💳 Boleto</span>
+              <span>💳 PIX Instantâneo</span>
+              <span>🔒 Seguro</span>
+              <span>⚡ Rápido</span>
             </div>
           </div>
         </div>

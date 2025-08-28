@@ -2,13 +2,17 @@
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from './useAuth';
 import { useToast } from './use-toast';
-import { useMercadoPago } from './useMercadoPago';
+// import { useMercadoPago } from './useMercadoPago'; // Comentado - Sistema em standby
+import { useDeliveryPayment } from './useDeliveryPayment';
 import { useEffect, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 
 export const useWithdrawItem = () => {
   const { user } = useAuth();
   const { toast } = useToast();
-  const { createPayment, redirectToPayment } = useMercadoPago();
+  // const { createPayment, redirectToPayment } = useMercadoPago(); // Comentado - Sistema em standby
+  const { createDeliveryPayment } = useDeliveryPayment();
+  const navigate = useNavigate();
   const [entregas, setEntregas] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [totalRescue, setTotalRescue] = useState(0);
@@ -227,16 +231,18 @@ export const useWithdrawItem = () => {
         
       if (retiradaError || !retirada) throw retiradaError;
       
-      const payment = await createPayment(25.0, `Retirada do prêmio #${retirada.id}`);
-      if (!payment) return;
+      // Criar PIX para taxa de entrega via SuitPay
+      const paymentData = await createDeliveryPayment(25.0, retirada.id, `Taxa de entrega - Prêmio`);
+      if (!paymentData) return;
       
+      // Salvar dados do pagamento
       const { error: payError } = await supabase
         .from('item_withdrawal_payments')
         .insert({
           withdrawal_id: retirada.id,
           user_id: user.id,
-          preference_id: payment.preference_id,
-          transaction_id: payment.transaction_id,
+          preference_id: paymentData.id,
+          transaction_id: paymentData.id,
           status: 'pending'
         });
       
@@ -246,7 +252,14 @@ export const useWithdrawItem = () => {
         return;
       }
       
-      redirectToPayment(payment);
+      // Redirecionar para página de PIX
+      navigate('/carteira', { 
+        state: { 
+          showPixPayment: true,
+          pixData: paymentData,
+          description: `Taxa de entrega - Prêmio` 
+        } 
+      });
     } catch (err: any) {
       console.error('Erro ao solicitar retirada:', err);
       toast({ title: 'Erro', description: err.message || 'Erro inesperado.', variant: 'destructive' });

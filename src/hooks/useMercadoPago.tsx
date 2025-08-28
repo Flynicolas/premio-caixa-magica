@@ -1,4 +1,11 @@
 
+/**
+ * @deprecated Hook do MercadoPago em standby
+ * Sistema atualmente utiliza SuitPay/PIX
+ * Manter este código para futura migração se necessário
+ */
+
+/*
 import { useState } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from './useAuth';
@@ -119,5 +126,17 @@ export const useMercadoPago = () => {
     redirectToPayment,
     processPayment,
     loading
+  };
+};
+*/
+
+// Hook temporário em standby - usar SuitPay no lugar
+export const useMercadoPago = () => {
+  console.warn('⚠️ useMercadoPago está em standby. Sistema utiliza SuitPay/PIX.');
+  return {
+    createPayment: () => Promise.resolve(null),
+    redirectToPayment: () => {},
+    processPayment: () => Promise.resolve(null),
+    loading: false
   };
 };

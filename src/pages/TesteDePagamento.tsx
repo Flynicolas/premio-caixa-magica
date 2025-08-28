@@ -6,23 +6,24 @@ import { Separator } from '@/components/ui/separator';
 import { CreditCard, TestTube, CheckCircle, XCircle, ArrowLeft, Clock } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { useKirvanoTest } from '@/hooks/useKirvanoTest';
-import { useMercadoPago } from '@/hooks/useMercadoPago';
+// import { useMercadoPago } from '@/hooks/useMercadoPago'; // Comentado - Sistema em standby
 import PixTestModal from '@/components/PixTestModal';
 import { toast } from 'sonner';
 
 const TesteDePagamento = () => {
   const navigate = useNavigate();
   const { createTestPayment, processTestPayment, isLoading, showPixModal, setShowPixModal, pixData } = useKirvanoTest();
-  const { processPayment: mercadoPagoPayment, loading: mercadoPagoLoading } = useMercadoPago();
+  // const { processPayment: mercadoPagoPayment, loading: mercadoPagoLoading } = useMercadoPago(); // Comentado - Sistema em standby
   const [testAmount, setTestAmount] = useState(50);
 
   const handleKirvanoTest = async () => {
     await createTestPayment(testAmount);
   };
 
-  const handleMercadoPagoTest = async () => {
-    await mercadoPagoPayment(testAmount, `Teste MercadoPago - R$ ${testAmount}`);
-  };
+  // Função comentada - MercadoPago em standby
+  // const handleMercadoPagoTest = async () => {
+  //   await mercadoPagoPayment(testAmount, `Teste MercadoPago - R$ ${testAmount}`);
+  // };
 
   const handleAbactepayTest = () => {
     toast.info('Abactepay ainda não implementado - Em desenvolvimento');
@@ -76,7 +77,7 @@ const TesteDePagamento = () => {
         </Card>
 
         {/* Métodos de Pagamento */}
-        <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
+        <div className="grid md:grid-cols-2 gap-6">
           {/* Kirvano Test */}
           <Card className="border-green-500/20 bg-gradient-to-br from-green-50/5 to-emerald-100/10">
             <CardHeader>
@@ -124,54 +125,45 @@ const TesteDePagamento = () => {
             </CardContent>
           </Card>
 
-          {/* MercadoPago */}
+          {/* SuitPay PIX - Sistema Principal */}
           <Card className="border-blue-500/20 bg-gradient-to-br from-blue-50/5 to-sky-100/10">
             <CardHeader>
               <div className="flex items-center justify-between">
-                <CardTitle className="text-lg text-blue-600">MercadoPago</CardTitle>
+                <CardTitle className="text-lg text-blue-600">SuitPay PIX</CardTitle>
                 <Badge variant="outline" className="text-blue-600 border-blue-600">
-                  PRODUÇÃO
+                  ATIVO
                 </Badge>
               </div>
             </CardHeader>
             <CardContent className="space-y-4">
               <div className="space-y-2">
                 <p className="text-sm text-muted-foreground">
-                  Teste de pagamento real via MercadoPago
+                  Sistema de pagamento principal via PIX
                 </p>
                 <div className="bg-blue-50/10 p-3 rounded border border-blue-500/20">
                   <p className="text-xs text-blue-600">
-                    ✓ PIX, Cartão e Boleto
+                    ✓ PIX instantâneo
                   </p>
                   <p className="text-xs text-blue-600">
-                    ✓ Webhook automático
+                    ✓ Sistema em produção
                   </p>
                   <p className="text-xs text-blue-600">
-                    ✓ Atualização de saldo real
+                    ✓ Integração completa
                   </p>
                 </div>
               </div>
               <Button 
-                onClick={handleMercadoPagoTest}
-                disabled={mercadoPagoLoading}
-                className="w-full bg-blue-600 hover:bg-blue-700"
+                disabled
+                variant="outline"
+                className="w-full border-blue-500/50 text-blue-600"
               >
-                {mercadoPagoLoading ? (
-                  <>
-                    <Clock className="w-4 h-4 mr-2 animate-spin" />
-                    Processando...
-                  </>
-                ) : (
-                  <>
-                    <CreditCard className="w-4 h-4 mr-2" />
-                    Testar MercadoPago
-                  </>
-                )}
+                <CheckCircle className="w-4 h-4 mr-2" />
+                Sistema Principal
               </Button>
             </CardContent>
           </Card>
 
-          {/* Abactepay */}
+          {/* Abactepay - Comentado temporariamente o MercadoPago */}
           <Card className="border-purple-500/20 bg-gradient-to-br from-purple-50/5 to-violet-100/10">
             <CardHeader>
               <div className="flex items-center justify-between">
@@ -222,7 +214,7 @@ const TesteDePagamento = () => {
                 <h4 className="font-semibold">Sistemas de Pagamento</h4>
                 <div className="space-y-2">
                   <div className="flex items-center justify-between p-2 rounded border">
-                    <span className="text-sm">MercadoPago Webhook</span>
+                    <span className="text-sm">SuitPay PIX</span>
                     <Badge variant="outline" className="text-green-600 border-green-600">
                       <CheckCircle className="w-3 h-3 mr-1" />
                       Ativo
