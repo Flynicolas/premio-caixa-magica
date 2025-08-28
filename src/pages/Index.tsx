@@ -20,6 +20,7 @@ import { DatabaseItem } from '@/types/database';
 import { useInventory } from '@/hooks/useInventory';
 import ChestSimulator from '@/components/ChestSimulator';
 import ResponsiveBanner from '@/components/ResponsiveBanner';
+import { AffiliatePromo } from '@/components/AffiliatePromo';
 
 const Index = () => {
   const { code } = useParams();
@@ -198,6 +199,8 @@ const Index = () => {
 
         {/* Banners para Mobile - Divididos horizontalmente */}
         <div className="space-y-4 md:space-y-6">
+          <AffiliatePromo />
+          
           <ResponsiveBanner 
             imageUrlPC="https://jhbafgzfphiizpuoqksj.supabase.co/storage/v1/object/public/head-images//raspadinha-banner-rodape01.png"
             imageUrlMobile="https://jhbafgzfphiizpuoqksj.supabase.co/storage/v1/object/public/head-images//raspadinha-banner-rodape01.png"

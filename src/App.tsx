@@ -36,6 +36,7 @@ import Rascunho from "./pages/Rascunho";
 import { WalletProvider } from "@/hooks/useWalletProvider";
 import RaspadinhaPlay from "./pages/RaspadinhaPlay";
 import Afiliados from "./pages/Afiliados";
+import Affiliate from "./pages/Affiliate";
 import { ReferralTracker } from "./components/tracking/ReferralTracker";
 
 const queryClient = new QueryClient();
@@ -77,6 +78,7 @@ const AppContent = () => {
           <Route path="/teste-erro" element={<TesteErro />} />
           <Route path="/rascunho" element={<Rascunho />} />
           <Route path="/afiliados" element={<Afiliados />} />
+          <Route path="/affiliate" element={<Affiliate />} />
           <Route path="*" element={<NotFound />} />
         </Routes>
       </main>
