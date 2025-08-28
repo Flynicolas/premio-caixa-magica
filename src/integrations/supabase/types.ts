@@ -226,6 +226,285 @@ export type Database = {
         }
         Relationships: []
       }
+      affiliate_assets: {
+        Row: {
+          active: boolean
+          created_at: string
+          description: string | null
+          id: number
+          tags: string[] | null
+          title: string
+          url: string
+        }
+        Insert: {
+          active?: boolean
+          created_at?: string
+          description?: string | null
+          id?: number
+          tags?: string[] | null
+          title: string
+          url: string
+        }
+        Update: {
+          active?: boolean
+          created_at?: string
+          description?: string | null
+          id?: number
+          tags?: string[] | null
+          title?: string
+          url?: string
+        }
+        Relationships: []
+      }
+      affiliate_attributions: {
+        Row: {
+          affiliate_id: string
+          attributed_at: string
+          first_click_id: number | null
+          last_click_id: number | null
+          ref_code: string
+          referred_user: string
+          upline2: string | null
+          upline3: string | null
+        }
+        Insert: {
+          affiliate_id: string
+          attributed_at?: string
+          first_click_id?: number | null
+          last_click_id?: number | null
+          ref_code: string
+          referred_user: string
+          upline2?: string | null
+          upline3?: string | null
+        }
+        Update: {
+          affiliate_id?: string
+          attributed_at?: string
+          first_click_id?: number | null
+          last_click_id?: number | null
+          ref_code?: string
+          referred_user?: string
+          upline2?: string | null
+          upline3?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "affiliate_attributions_first_click_id_fkey"
+            columns: ["first_click_id"]
+            isOneToOne: false
+            referencedRelation: "affiliate_clicks"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "affiliate_attributions_last_click_id_fkey"
+            columns: ["last_click_id"]
+            isOneToOne: false
+            referencedRelation: "affiliate_clicks"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      affiliate_clicks: {
+        Row: {
+          affiliate_id: string | null
+          created_at: string
+          id: number
+          ip: unknown | null
+          landing_path: string | null
+          ref_code: string
+          user_agent: string | null
+          utm_campaign: string | null
+          utm_content: string | null
+          utm_medium: string | null
+          utm_source: string | null
+          utm_term: string | null
+        }
+        Insert: {
+          affiliate_id?: string | null
+          created_at?: string
+          id?: number
+          ip?: unknown | null
+          landing_path?: string | null
+          ref_code: string
+          user_agent?: string | null
+          utm_campaign?: string | null
+          utm_content?: string | null
+          utm_medium?: string | null
+          utm_source?: string | null
+          utm_term?: string | null
+        }
+        Update: {
+          affiliate_id?: string | null
+          created_at?: string
+          id?: number
+          ip?: unknown | null
+          landing_path?: string | null
+          ref_code?: string
+          user_agent?: string | null
+          utm_campaign?: string | null
+          utm_content?: string | null
+          utm_medium?: string | null
+          utm_source?: string | null
+          utm_term?: string | null
+        }
+        Relationships: []
+      }
+      affiliate_commissions: {
+        Row: {
+          affiliate_id: string
+          amount_cents: number
+          approved_at: string | null
+          approved_by: string | null
+          base_amount_cents: number
+          created_at: string
+          id: number
+          kind: string
+          level: number
+          paid_at: string | null
+          period_end: string
+          period_start: string
+          rate: number
+          referred_user: string
+          source_ref: string | null
+          status: string
+        }
+        Insert: {
+          affiliate_id: string
+          amount_cents?: number
+          approved_at?: string | null
+          approved_by?: string | null
+          base_amount_cents?: number
+          created_at?: string
+          id?: number
+          kind: string
+          level: number
+          paid_at?: string | null
+          period_end: string
+          period_start: string
+          rate?: number
+          referred_user: string
+          source_ref?: string | null
+          status?: string
+        }
+        Update: {
+          affiliate_id?: string
+          amount_cents?: number
+          approved_at?: string | null
+          approved_by?: string | null
+          base_amount_cents?: number
+          created_at?: string
+          id?: number
+          kind?: string
+          level?: number
+          paid_at?: string | null
+          period_end?: string
+          period_start?: string
+          rate?: number
+          referred_user?: string
+          source_ref?: string | null
+          status?: string
+        }
+        Relationships: []
+      }
+      affiliate_settings: {
+        Row: {
+          cpa_l1_cents: number | null
+          cpa_l2_cents: number | null
+          cpa_l3_cents: number | null
+          cpa_trigger_min_deposit_cents: number | null
+          id: boolean
+          negative_carryover: boolean | null
+          ngr_l1: number | null
+          ngr_l2: number | null
+          ngr_l3: number | null
+          payout_day_of_week: number | null
+          payout_hour: number | null
+          payout_min_cents: number | null
+          plan_type: string
+          require_manual_approval: boolean | null
+          revshare_l1: number | null
+          revshare_l2: number | null
+          revshare_l3: number | null
+          updated_at: string
+        }
+        Insert: {
+          cpa_l1_cents?: number | null
+          cpa_l2_cents?: number | null
+          cpa_l3_cents?: number | null
+          cpa_trigger_min_deposit_cents?: number | null
+          id?: boolean
+          negative_carryover?: boolean | null
+          ngr_l1?: number | null
+          ngr_l2?: number | null
+          ngr_l3?: number | null
+          payout_day_of_week?: number | null
+          payout_hour?: number | null
+          payout_min_cents?: number | null
+          plan_type?: string
+          require_manual_approval?: boolean | null
+          revshare_l1?: number | null
+          revshare_l2?: number | null
+          revshare_l3?: number | null
+          updated_at?: string
+        }
+        Update: {
+          cpa_l1_cents?: number | null
+          cpa_l2_cents?: number | null
+          cpa_l3_cents?: number | null
+          cpa_trigger_min_deposit_cents?: number | null
+          id?: boolean
+          negative_carryover?: boolean | null
+          ngr_l1?: number | null
+          ngr_l2?: number | null
+          ngr_l3?: number | null
+          payout_day_of_week?: number | null
+          payout_hour?: number | null
+          payout_min_cents?: number | null
+          plan_type?: string
+          require_manual_approval?: boolean | null
+          revshare_l1?: number | null
+          revshare_l2?: number | null
+          revshare_l3?: number | null
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      affiliates: {
+        Row: {
+          auto_payout_enabled: boolean
+          created_at: string
+          ref_code: string
+          status: string
+          updated_at: string
+          upline1: string | null
+          upline2: string | null
+          upline3: string | null
+          user_id: string
+        }
+        Insert: {
+          auto_payout_enabled?: boolean
+          created_at?: string
+          ref_code: string
+          status?: string
+          updated_at?: string
+          upline1?: string | null
+          upline2?: string | null
+          upline3?: string | null
+          user_id: string
+        }
+        Update: {
+          auto_payout_enabled?: boolean
+          created_at?: string
+          ref_code?: string
+          status?: string
+          updated_at?: string
+          upline1?: string | null
+          upline2?: string | null
+          upline3?: string | null
+          user_id?: string
+        }
+        Relationships: []
+      }
       app_settings: {
         Row: {
           created_at: string | null
@@ -3194,7 +3473,31 @@ export type Database = {
       }
     }
     Views: {
-      [_ in never]: never
+      v_affiliate_metrics: {
+        Row: {
+          affiliate_id: string | null
+          cadastros: number | null
+          cliques: number | null
+          taxa_conversao_cadastro: number | null
+          taxa_conversao_deposito: number | null
+          total_depositos: number | null
+          usuarios_depositaram: number | null
+        }
+        Relationships: []
+      }
+      v_affiliate_overview: {
+        Row: {
+          affiliate_id: string | null
+          aprovado_cents: number | null
+          pago_cents: number | null
+          pendente_cents: number | null
+          ref_code: string | null
+          status: string | null
+          total_gerado_cents: number | null
+          total_indicados: number | null
+        }
+        Relationships: []
+      }
     }
     Functions: {
       add_experience_and_level: {
@@ -3204,6 +3507,27 @@ export type Database = {
       add_wallet_balance: {
         Args: { p_amount: number; p_description?: string; p_user_id: string }
         Returns: boolean
+      }
+      aff_assign_user: {
+        Args: {
+          p_first_click_id?: number
+          p_last_click_id?: number
+          p_ref_code: string
+          p_referred_user: string
+        }
+        Returns: undefined
+      }
+      aff_calc_commissions: {
+        Args: { p_end: string; p_start: string }
+        Returns: undefined
+      }
+      aff_try_cpa: {
+        Args: {
+          p_deposit_total_cents: number
+          p_payment_id: string
+          p_user: string
+        }
+        Returns: undefined
       }
       analyze_user_behavior: {
         Args: { p_user_id: string }
@@ -3292,6 +3616,10 @@ export type Database = {
       expire_old_manual_releases: {
         Args: Record<PropertyKey, never>
         Returns: undefined
+      }
+      gen_ref_code: {
+        Args: { p_len?: number }
+        Returns: string
       }
       generate_referral_code: {
         Args: Record<PropertyKey, never>
