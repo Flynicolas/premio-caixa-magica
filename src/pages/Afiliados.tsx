@@ -39,6 +39,7 @@ const Afiliados = () => {
     metrics,
     commissions,
     settings,
+    assets,
     loading,
     isAffiliate,
     isApprovedAffiliate,
