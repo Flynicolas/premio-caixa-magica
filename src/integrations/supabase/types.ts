@@ -3556,6 +3556,18 @@ export type Database = {
         Args: Record<PropertyKey, never>
         Returns: undefined
       }
+      calculate_affiliate_commissions: {
+        Args: { p_period_end: string; p_period_start: string }
+        Returns: {
+          affiliate_id: string
+          base_amount_cents: number
+          commission_amount_cents: number
+          commission_rate: number
+          commission_type: string
+          level: number
+          referred_user: string
+        }[]
+      }
       calculate_auto_weight_by_value: {
         Args: { item_value: number }
         Returns: number
@@ -3756,6 +3768,15 @@ export type Database = {
           winning_item_id: string
         }[]
       }
+      process_affiliate_payouts: {
+        Args: Record<PropertyKey, never>
+        Returns: {
+          affiliate_id: string
+          commission_count: number
+          payout_success: boolean
+          total_amount_cents: number
+        }[]
+      }
       process_excel_import: {
         Args: { column_mapping: Json; excel_data: Json; import_id: string }
         Returns: boolean
@@ -3856,6 +3877,10 @@ export type Database = {
       reset_demo_credits: {
         Args: Record<PropertyKey, never>
         Returns: undefined
+      }
+      run_affiliate_commission_job: {
+        Args: Record<PropertyKey, never>
+        Returns: Json
       }
       scratch_effective_probability: {
         Args: {
