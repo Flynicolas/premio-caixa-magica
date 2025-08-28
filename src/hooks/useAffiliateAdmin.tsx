@@ -410,6 +410,7 @@ export const useAffiliateAdmin = () => {
     // Ações
     fetchAffiliates,
     fetchCommissions,
+    fetchSettings,
     approveAffiliate,
     blockAffiliate,
     approveCommissions,

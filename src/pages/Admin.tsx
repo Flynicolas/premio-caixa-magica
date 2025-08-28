@@ -169,10 +169,14 @@ const [showGoalsDialog, setShowGoalsDialog] = useState(false);
               Financeiro
             </TabsTrigger>
           )}
-          <TabsTrigger value="users" className="flex items-center gap-2">
-            <Users className="w-4 h-4" />
-            Usuários
-          </TabsTrigger>
+            <TabsTrigger value="users" className="flex items-center gap-2">
+              <Users className="w-4 h-4" />
+              Usuários
+            </TabsTrigger>
+            <TabsTrigger value="affiliates" className="flex items-center gap-2">
+              <Users className="w-4 h-4" />
+              Afiliados
+            </TabsTrigger>
           <TabsTrigger value="collaborators" className="flex items-center gap-2">
             <Users className="w-4 h-4" />
             Colaboradores
@@ -224,7 +228,13 @@ const [showGoalsDialog, setShowGoalsDialog] = useState(false);
           </Suspense>
         </TabsContent>
 
-        <TabsContent value="users">
+          <TabsContent value="affiliates">
+            <Suspense fallback={<div>Carregando gerenciamento de afiliados...</div>}>
+              <AffiliateManagement />
+            </Suspense>
+          </TabsContent>
+
+          <TabsContent value="users">
           <Suspense fallback={<div className="p-6 text-muted-foreground">Carregando usuários...</div>}>
             <UsersManagement />
           </Suspense>
