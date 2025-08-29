@@ -8,6 +8,12 @@ const slides = [
     title: "PIX na Conta",
     subtitle: "Ache 3 iguais e ganha na hora. Concorra até 10 mil em prêmios!",
     image: "/lovable-uploads/81f74e08-b67f-4422-9b2b-5df3a043726c.png"
+  },
+  {
+    id: 2,
+    title: "Novos Prêmios",
+    subtitle: "Descubra as novas oportunidades de ganhar prêmios incríveis!",
+    image: "/user-uploads/aace1fc2-962f-43a1-bcc6-fcb5c7213837.png"
   }
 ];
 

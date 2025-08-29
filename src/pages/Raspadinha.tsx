@@ -161,10 +161,10 @@ const Raspadinha = () => {
                       </div>
                     </div>
 
-                    {/* Badge Premium - Top Left */}
+                    {/* Título Elegante Integrado */}
                     <div className="absolute top-3 left-3 z-10">
-                      <div className={`bg-gradient-to-r ${card.gradient} text-white px-2 py-1 md:px-3 md:py-1.5 rounded-full text-xs md:text-sm font-bold shadow-lg animate-pulse`}>
-                        {card.badge}
+                      <div className={`bg-black/60 backdrop-blur-sm text-white px-3 py-2 rounded-lg text-sm font-semibold shadow-lg border border-white/20`}>
+                        {card.title}
                       </div>
                     </div>
 
