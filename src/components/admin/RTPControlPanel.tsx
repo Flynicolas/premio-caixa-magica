@@ -1,9 +1,13 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { RTPHealthMonitor } from './scratch-card-rtp/RTPHealthMonitor';
 import { RTPSettingsPanel } from './scratch-card-rtp/RTPSettingsPanel';
+import { RTPObservabilityDashboard } from './scratch-card-rtp/RTPObservabilityDashboard';
+import { ScratchPrizeManager } from './scratch-card-rtp/ScratchPrizeManager';
 
 export function RTPControlPanel() {
+  const [selectedGameType, setSelectedGameType] = useState('');
+
   return (
     <div className="space-y-6">
       {/* Header */}
@@ -14,11 +18,24 @@ export function RTPControlPanel() {
         </p>
       </div>
 
-      <Tabs defaultValue="health" className="w-full">
-        <TabsList className="grid w-full grid-cols-2">
+      <Tabs defaultValue="observability" className="w-full">
+        <TabsList className="grid w-full grid-cols-4">
+          <TabsTrigger value="observability">Observabilidade</TabsTrigger>
+          <TabsTrigger value="prizes">Prêmios</TabsTrigger>
           <TabsTrigger value="health">Monitor de Saúde</TabsTrigger>
           <TabsTrigger value="settings">Configurações</TabsTrigger>
         </TabsList>
+        
+        <TabsContent value="observability" className="space-y-6">
+          <RTPObservabilityDashboard />
+        </TabsContent>
+        
+        <TabsContent value="prizes" className="space-y-6">
+          <ScratchPrizeManager 
+            selectedGameType={selectedGameType}
+            onGameTypeChange={setSelectedGameType}
+          />
+        </TabsContent>
         
         <TabsContent value="health" className="space-y-6">
           <RTPHealthMonitor />

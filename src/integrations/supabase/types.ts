@@ -3498,6 +3498,50 @@ export type Database = {
         }
         Relationships: []
       }
+      v_rounds_daily: {
+        Row: {
+          d: string | null
+          game_type: string | null
+          plays: number | null
+          rtp: number | null
+          total_bet: number | null
+          total_paid: number | null
+        }
+        Relationships: []
+      }
+      v_rtp_overview: {
+        Row: {
+          cap_enabled: boolean | null
+          cap_value: number | null
+          game_type: string | null
+          rtp_current: number | null
+          rtp_target: number | null
+          total_bet: number | null
+          total_paid: number | null
+          updated_at: string | null
+        }
+        Insert: {
+          cap_enabled?: boolean | null
+          cap_value?: number | null
+          game_type?: string | null
+          rtp_current?: never
+          rtp_target?: number | null
+          total_bet?: number | null
+          total_paid?: number | null
+          updated_at?: string | null
+        }
+        Update: {
+          cap_enabled?: boolean | null
+          cap_value?: number | null
+          game_type?: string | null
+          rtp_current?: never
+          rtp_target?: number | null
+          total_bet?: number | null
+          total_paid?: number | null
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
     }
     Functions: {
       add_experience_and_level: {
@@ -3783,6 +3827,10 @@ export type Database = {
           winning_amount: number
           winning_item_id: string
         }[]
+      }
+      populate_default_prizes: {
+        Args: { p_game_type: string; p_rtp_target?: number }
+        Returns: undefined
       }
       process_affiliate_payouts: {
         Args: Record<PropertyKey, never>
