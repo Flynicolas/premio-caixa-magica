@@ -2301,6 +2301,90 @@ export type Database = {
         }
         Relationships: []
       }
+      rtp_alert_settings: {
+        Row: {
+          cap_warning_threshold: number | null
+          created_at: string | null
+          email_notifications: boolean | null
+          game_type: string
+          high_loss_threshold: number | null
+          low_balance_threshold: number | null
+          rtp_deviation_threshold: number | null
+          slack_notifications: boolean | null
+          updated_at: string | null
+        }
+        Insert: {
+          cap_warning_threshold?: number | null
+          created_at?: string | null
+          email_notifications?: boolean | null
+          game_type: string
+          high_loss_threshold?: number | null
+          low_balance_threshold?: number | null
+          rtp_deviation_threshold?: number | null
+          slack_notifications?: boolean | null
+          updated_at?: string | null
+        }
+        Update: {
+          cap_warning_threshold?: number | null
+          created_at?: string | null
+          email_notifications?: boolean | null
+          game_type?: string
+          high_loss_threshold?: number | null
+          low_balance_threshold?: number | null
+          rtp_deviation_threshold?: number | null
+          slack_notifications?: boolean | null
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
+      rtp_alerts: {
+        Row: {
+          alert_type: string
+          created_at: string | null
+          current_value: number | null
+          game_type: string
+          id: string
+          message: string
+          metadata: Json | null
+          resolved: boolean | null
+          resolved_at: string | null
+          resolved_by: string | null
+          severity: string
+          threshold_value: number | null
+          updated_at: string | null
+        }
+        Insert: {
+          alert_type: string
+          created_at?: string | null
+          current_value?: number | null
+          game_type: string
+          id?: string
+          message: string
+          metadata?: Json | null
+          resolved?: boolean | null
+          resolved_at?: string | null
+          resolved_by?: string | null
+          severity?: string
+          threshold_value?: number | null
+          updated_at?: string | null
+        }
+        Update: {
+          alert_type?: string
+          created_at?: string | null
+          current_value?: number | null
+          game_type?: string
+          id?: string
+          message?: string
+          metadata?: Json | null
+          resolved?: boolean | null
+          resolved_at?: string | null
+          resolved_by?: string | null
+          severity?: string
+          threshold_value?: number | null
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
       rtp_cap_awards: {
         Row: {
           awarded: boolean
@@ -3509,6 +3593,28 @@ export type Database = {
         }
         Relationships: []
       }
+      v_rtp_advanced_reports: {
+        Row: {
+          active_alerts: number | null
+          bet_last_30_days: number | null
+          bet_last_7_days: number | null
+          critical_alerts: number | null
+          game_type: string | null
+          paid_last_30_days: number | null
+          paid_last_7_days: number | null
+          plays_last_30_days: number | null
+          plays_last_7_days: number | null
+          profit: number | null
+          rtp_current: number | null
+          rtp_last_30_days: number | null
+          rtp_last_7_days: number | null
+          rtp_target: number | null
+          total_bet: number | null
+          total_paid: number | null
+          updated_at: string | null
+        }
+        Relationships: []
+      }
       v_rtp_overview: {
         Row: {
           cap_enabled: boolean | null
@@ -3643,6 +3749,13 @@ export type Database = {
       check_admin_direct: {
         Args: { user_id_check: string }
         Returns: boolean
+      }
+      check_rtp_alerts: {
+        Args: Record<PropertyKey, never>
+        Returns: {
+          alerts_created: number
+          alerts_updated: number
+        }[]
       }
       check_user_duplicates: {
         Args: { p_cpf?: string; p_email: string; p_user_id?: string }
