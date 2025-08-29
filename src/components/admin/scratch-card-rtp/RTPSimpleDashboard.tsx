@@ -1,291 +1,280 @@
 import React, { useState } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
+import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
 import { Switch } from '@/components/ui/switch';
-import { Badge } from '@/components/ui/badge';
-import { Alert, AlertDescription } from '@/components/ui/alert';
+import { AlertTriangle, TrendingUp, Activity, RefreshCw, Zap, DollarSign, Target, Gauge } from 'lucide-react';
 import { useRTPControl } from '@/hooks/useRTPControl';
-import { Play, RotateCcw, RefreshCw, AlertTriangle, CheckCircle, TrendingUp, Settings } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
-import { toast } from 'sonner';
+import { useToast } from '@/hooks/use-toast';
 
 export function RTPSimpleDashboard() {
   const { rtpSettings, rtpMetrics, loading, updateTargetRTP, toggleRTPEnabled, resetRTPMetrics, executeAutoRefill } = useRTPControl();
-  const [targetInputs, setTargetInputs] = useState<Record<string, number>>({});
+  const [tempTargets, setTempTargets] = useState<Record<string, number>>({});
   const [initializing, setInitializing] = useState(false);
+  const { toast } = useToast();
 
-  // Inicialização do sistema RTP
-  const initializeSystem = async () => {
+  const initializeFreshSystem = async () => {
     try {
       setInitializing(true);
-      
-      toast.loading("Inicializando sistema RTP limpo...", { id: 'init-rtp' });
+      toast({
+        title: "Inicializando sistema",
+        description: "Configurando sistema RTP limpo..."
+      });
 
       const { data, error } = await supabase.rpc('initialize_fresh_rtp_system');
 
       if (error) throw error;
 
-      toast.success(`Sistema RTP inicializado para ${data?.length || 0} tipos de jogo`, { id: 'init-rtp' });
-      
-      // Recarregar dados
-      setTimeout(() => {
-        window.location.reload();
-      }, 1000);
+      toast({
+        title: "Sistema inicializado",
+        description: `${data?.length || 0} tipos de raspadinha configurados`
+      });
 
     } catch (error: any) {
-      console.error('Erro ao inicializar:', error);
-      toast.error(`Erro na inicialização: ${error.message}`, { id: 'init-rtp' });
+      console.error('Initialization error:', error);
+      toast({
+        title: "Erro na inicialização",
+        description: error.message,
+        variant: "destructive"
+      });
     } finally {
       setInitializing(false);
     }
   };
 
-  // Obter RTP atual para um tipo
-  const getCurrentRTP = (scratchType: string) => {
-    const metric = rtpMetrics.find(m => m.scratch_type === scratchType);
-    return metric?.current_rtp || 0;
-  };
-
-  // Obter cor do status baseado no RTP
-  const getRTPStatusColor = (scratchType: string, targetRTP: number) => {
-    const currentRTP = getCurrentRTP(scratchType);
-    if (currentRTP === 0) return 'text-muted-foreground';
-    if (Math.abs(currentRTP - targetRTP) <= 5) return 'text-green-600';
-    if (Math.abs(currentRTP - targetRTP) <= 15) return 'text-yellow-600';
-    return 'text-red-600';
-  };
-
-  // Atualizar RTP target com input local
-  const handleUpdateRTP = async (scratchType: string) => {
-    const newTarget = targetInputs[scratchType];
-    if (newTarget && newTarget >= 30 && newTarget <= 95) {
+  const handleTargetUpdate = async (scratchType: string) => {
+    const newTarget = tempTargets[scratchType];
+    if (newTarget && newTarget >= 10 && newTarget <= 95) {
       await updateTargetRTP(scratchType, newTarget);
-      setTargetInputs(prev => ({ ...prev, [scratchType]: 0 }));
-    } else {
-      toast.error('RTP deve estar entre 30% e 95%');
+      setTempTargets(prev => ({ ...prev, [scratchType]: 0 }));
     }
+  };
+
+  const getStatusColor = (enabled: boolean, currentRtp?: number) => {
+    if (!enabled) return 'text-muted-foreground';
+    if (!currentRtp) return 'text-blue-500';
+    if (currentRtp > 80) return 'text-red-500';
+    if (currentRtp > 60) return 'text-yellow-500';
+    return 'text-green-500';
+  };
+
+  const getStatusText = (enabled: boolean, currentRtp?: number) => {
+    if (!enabled) return 'Desativado';
+    if (!currentRtp) return 'Aguardando dados';
+    if (currentRtp > 80) return 'RTP Alto';
+    if (currentRtp > 60) return 'RTP Moderado';
+    return 'RTP OK';
   };
 
   if (loading) {
     return (
       <div className="flex items-center justify-center h-64">
-        <RefreshCw className="w-6 h-6 animate-spin mr-2" />
-        <span>Carregando sistema RTP...</span>
+        <RefreshCw className="w-8 h-8 animate-spin" />
       </div>
     );
   }
 
   return (
     <div className="space-y-6">
-      {/* Header com botão de inicialização */}
+      {/* Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h3 className="text-xl font-semibold">Controle RTP Simplificado</h3>
-          <p className="text-sm text-muted-foreground">
-            Configuração rápida do Return To Player para operação diária
+          <h2 className="text-2xl font-bold">RTP Simples</h2>
+          <p className="text-muted-foreground">
+            Controle essencial do sistema RTP para uso diário
           </p>
         </div>
         
         <div className="flex gap-2">
-          <Button 
-            variant="outline" 
+          <Button
+            onClick={initializeFreshSystem}
+            variant="outline"
             size="sm"
-            onClick={executeAutoRefill}
             disabled={initializing}
+          >
+            <Zap className="w-4 h-4 mr-2" />
+            {initializing ? 'Inicializando...' : 'Inicializar Sistema'}
+          </Button>
+          <Button
+            onClick={executeAutoRefill}
+            variant="outline"
+            size="sm"
           >
             <RefreshCw className="w-4 h-4 mr-2" />
-            Refill Automático
-          </Button>
-          
-          <Button 
-            variant="secondary" 
-            size="sm"
-            onClick={initializeSystem}
-            disabled={initializing}
-          >
-            <Play className="w-4 h-4 mr-2" />
-            {initializing ? 'Inicializando...' : 'Sistema Limpo'}
+            Auto Refill
           </Button>
         </div>
       </div>
 
-      {/* Alertas críticos */}
-      {rtpSettings.some(s => !s.rtp_enabled) && (
-        <Alert>
-          <AlertTriangle className="h-4 w-4" />
-          <AlertDescription>
-            <strong>Atenção:</strong> Alguns tipos de raspadinha estão com RTP desabilitado.
-          </AlertDescription>
-        </Alert>
-      )}
+      {/* Quick Stats */}
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+        <Card>
+          <CardContent className="flex items-center p-4">
+            <Activity className="w-8 h-8 mr-3 text-blue-500" />
+            <div>
+              <p className="text-sm font-medium">Tipos Ativos</p>
+              <p className="text-2xl font-bold">{rtpSettings.filter(s => s.rtp_enabled).length}</p>
+            </div>
+          </CardContent>
+        </Card>
 
-      {/* Cards por tipo de raspadinha */}
-      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-        {rtpSettings.map((setting) => {
-          const currentRTP = getCurrentRTP(setting.scratch_type);
-          const metric = rtpMetrics.find(m => m.scratch_type === setting.scratch_type);
+        <Card>
+          <CardContent className="flex items-center p-4">
+            <TrendingUp className="w-8 h-8 mr-3 text-green-500" />
+            <div>
+              <p className="text-sm font-medium">Total Jogos</p>
+              <p className="text-2xl font-bold">{rtpMetrics.reduce((sum, m) => sum + m.total_games, 0)}</p>
+            </div>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardContent className="flex items-center p-4">
+            <DollarSign className="w-8 h-8 mr-3 text-yellow-500" />
+            <div>
+              <p className="text-sm font-medium">Vendas Hoje</p>
+              <p className="text-2xl font-bold">
+                R$ {rtpMetrics.reduce((sum, m) => sum + m.total_sales, 0).toFixed(0)}
+              </p>
+            </div>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardContent className="flex items-center p-4">
+            <Target className="w-8 h-8 mr-3 text-purple-500" />
+            <div>
+              <p className="text-sm font-medium">RTP Médio</p>
+              <p className="text-2xl font-bold">
+                {rtpMetrics.length > 0 
+                  ? (rtpMetrics.reduce((sum, m) => sum + m.current_rtp, 0) / rtpMetrics.length).toFixed(0)
+                  : 0
+                }%
+              </p>
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+
+      {/* Scratch Cards Controls */}
+      <div className="grid gap-4">
+        {rtpSettings.map(setting => {
+          const metrics = rtpMetrics.find(m => m.scratch_type === setting.scratch_type);
           
           return (
-            <Card key={setting.scratch_type} className="relative">
-              <CardHeader className="pb-3">
+            <Card key={setting.id} className="relative">
+              <CardHeader className="pb-4">
                 <div className="flex items-center justify-between">
-                  <CardTitle className="text-base">{setting.name}</CardTitle>
+                  <div className="flex items-center gap-3">
+                    <Gauge className={`w-5 h-5 ${getStatusColor(setting.rtp_enabled, metrics?.current_rtp)}`} />
+                    <div>
+                      <CardTitle className="text-lg">{setting.name}</CardTitle>
+                      <CardDescription>R$ {setting.price.toFixed(2)} por jogo</CardDescription>
+                    </div>
+                  </div>
+                  
                   <Badge variant={setting.rtp_enabled ? 'default' : 'secondary'}>
-                    {setting.rtp_enabled ? 'Ativo' : 'Pausado'}
+                    {getStatusText(setting.rtp_enabled, metrics?.current_rtp)}
                   </Badge>
                 </div>
-                <CardDescription className="text-xs">
-                  R$ {setting.price.toFixed(2)} • {setting.scratch_type}
-                </CardDescription>
               </CardHeader>
-              
-              <CardContent className="space-y-4">
-                {/* Status RTP */}
-                <div className="grid grid-cols-2 gap-4 text-sm">
-                  <div>
-                    <div className="text-muted-foreground">RTP Atual</div>
-                    <div className={`font-mono font-medium ${getRTPStatusColor(setting.scratch_type, setting.target_rtp)}`}>
-                      {currentRTP > 0 ? `${currentRTP.toFixed(1)}%` : 'N/A'}
-                    </div>
-                  </div>
-                  <div>
-                    <div className="text-muted-foreground">Target</div>
-                    <div className="font-mono font-medium">
-                      {setting.target_rtp.toFixed(0)}%
-                    </div>
-                  </div>
-                </div>
 
-                {/* Métricas básicas */}
-                {metric && (
-                  <div className="grid grid-cols-2 gap-4 text-xs text-muted-foreground">
-                    <div>
-                      <span className="block">Jogadas: </span>
-                      <span className="font-mono">{metric.total_games}</span>
-                    </div>
-                    <div>
-                      <span className="block">Vendas: </span>
-                      <span className="font-mono">R$ {metric.total_sales.toFixed(0)}</span>
-                    </div>
-                  </div>
-                )}
-
-                {/* Controles inline */}
-                <div className="space-y-3 pt-2 border-t">
-                  {/* Toggle RTP */}
-                  <div className="flex items-center justify-between">
-                    <span className="text-sm">RTP Ativo</span>
+              <CardContent>
+                <div className="grid grid-cols-1 md:grid-cols-5 gap-4 items-center">
+                  {/* RTP Enable/Disable */}
+                  <div className="flex items-center space-x-2">
                     <Switch
                       checked={setting.rtp_enabled}
                       onCheckedChange={(enabled) => toggleRTPEnabled(setting.scratch_type, enabled)}
                     />
+                    <span className="text-sm font-medium">
+                      {setting.rtp_enabled ? 'Ativo' : 'Inativo'}
+                    </span>
                   </div>
 
-                  {/* Ajuste de Target */}
-                  <div className="flex gap-2">
+                  {/* Target RTP */}
+                  <div className="flex items-center space-x-2">
                     <Input
                       type="number"
-                      placeholder={`${setting.target_rtp}`}
-                      value={targetInputs[setting.scratch_type] || ''}
-                      onChange={(e) => setTargetInputs(prev => ({ 
-                        ...prev, 
-                        [setting.scratch_type]: Number(e.target.value) 
+                      placeholder={`${setting.target_rtp}%`}
+                      value={tempTargets[setting.scratch_type] || ''}
+                      onChange={(e) => setTempTargets(prev => ({
+                        ...prev,
+                        [setting.scratch_type]: parseInt(e.target.value) || 0
                       }))}
-                      className="text-xs h-8"
-                      min="30"
+                      className="w-20"
+                      min="10"
                       max="95"
                     />
                     <Button
                       size="sm"
-                      variant="outline"
-                      onClick={() => handleUpdateRTP(setting.scratch_type)}
-                      disabled={!targetInputs[setting.scratch_type]}
-                      className="h-8 px-2"
+                      onClick={() => handleTargetUpdate(setting.scratch_type)}
+                      disabled={!tempTargets[setting.scratch_type] || tempTargets[setting.scratch_type] < 10 || tempTargets[setting.scratch_type] > 95}
                     >
-                      <Settings className="w-3 h-3" />
+                      Ajustar
                     </Button>
                   </div>
 
-                  {/* Ações rápidas */}
-                  <div className="flex gap-1">
+                  {/* Current Metrics */}
+                  <div className="text-center">
+                    <p className="text-sm text-muted-foreground">RTP Atual</p>
+                    <p className="font-bold text-lg">
+                      {metrics?.current_rtp.toFixed(1) || '0.0'}%
+                    </p>
+                  </div>
+
+                  <div className="text-center">
+                    <p className="text-sm text-muted-foreground">Jogos Hoje</p>
+                    <p className="font-bold text-lg">
+                      {metrics?.total_games || 0}
+                    </p>
+                  </div>
+
+                  {/* Reset Action */}
+                  <div className="flex justify-end">
                     <Button
+                      variant="outline"
                       size="sm"
-                      variant="ghost"
                       onClick={() => resetRTPMetrics(setting.scratch_type)}
-                      className="h-7 text-xs flex-1"
                     >
-                      <RotateCcw className="w-3 h-3 mr-1" />
+                      <RefreshCw className="w-4 h-4 mr-1" />
                       Reset
                     </Button>
                   </div>
                 </div>
-              </CardContent>
 
-              {/* Indicador visual de status */}
-              <div className={`absolute top-2 right-2 w-2 h-2 rounded-full ${
-                setting.rtp_enabled 
-                  ? (Math.abs(currentRTP - setting.target_rtp) <= 10 ? 'bg-green-500' : 'bg-yellow-500')
-                  : 'bg-gray-400'
-              }`} />
+                {/* Alert for high RTP */}
+                {metrics && metrics.current_rtp > 70 && (
+                  <div className="mt-4 flex items-center gap-2 p-3 bg-yellow-50 border border-yellow-200 rounded-lg">
+                    <AlertTriangle className="w-4 h-4 text-yellow-600" />
+                    <span className="text-sm text-yellow-800">
+                      RTP acima de 70% - considere ajustar ou resetar
+                    </span>
+                  </div>
+                )}
+              </CardContent>
             </Card>
           );
         })}
       </div>
 
-      {/* Painel de status geral */}
-      <Card>
-        <CardHeader>
-          <CardTitle className="text-base flex items-center gap-2">
-            <TrendingUp className="w-4 h-4" />
-            Status Geral do Sistema
-          </CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
-            <div>
-              <div className="text-muted-foreground">Tipos Ativos</div>
-              <div className="font-medium">
-                {rtpSettings.filter(s => s.rtp_enabled).length} / {rtpSettings.length}
-              </div>
-            </div>
-            <div>
-              <div className="text-muted-foreground">Jogadas Hoje</div>
-              <div className="font-medium font-mono">
-                {rtpMetrics.reduce((sum, m) => sum + m.total_games, 0)}
-              </div>
-            </div>
-            <div>
-              <div className="text-muted-foreground">Vendas Hoje</div>
-              <div className="font-medium font-mono">
-                R$ {rtpMetrics.reduce((sum, m) => sum + m.total_sales, 0).toFixed(0)}
-              </div>
-            </div>
-            <div>
-              <div className="text-muted-foreground">Sistema</div>
-              <div className="flex items-center gap-1">
-                <CheckCircle className="w-3 h-3 text-green-500" />
-                <span className="font-medium">Operacional</span>
-              </div>
-            </div>
-          </div>
-        </CardContent>
-      </Card>
-
-      {/* Instruções rápidas */}
-      <Card className="border-dashed">
-        <CardContent className="pt-6">
-          <div className="text-sm text-muted-foreground space-y-2">
-            <div><strong>Controle Diário:</strong></div>
-            <ul className="list-disc list-inside space-y-1 ml-4">
-              <li>Toggle para ativar/pausar RTP por tipo</li>
-              <li>Ajuste target RTP entre 30% e 95%</li>
-              <li>Reset limpa métricas dos últimos 30 dias</li>
-              <li>Sistema Limpo reinicializa tudo do zero</li>
-            </ul>
-          </div>
-        </CardContent>
-      </Card>
+      {rtpSettings.length === 0 && (
+        <Card>
+          <CardContent className="flex flex-col items-center justify-center py-12">
+            <Zap className="w-12 h-12 text-muted-foreground mb-4" />
+            <h3 className="text-lg font-semibold mb-2">Sistema não inicializado</h3>
+            <p className="text-muted-foreground text-center mb-4">
+              Clique em "Inicializar Sistema" para configurar o RTP fresh start
+            </p>
+            <Button onClick={initializeFreshSystem} disabled={initializing}>
+              <Zap className="w-4 h-4 mr-2" />
+              {initializing ? 'Inicializando...' : 'Inicializar Sistema'}
+            </Button>
+          </CardContent>
+        </Card>
+      )}
     </div>
   );
 }

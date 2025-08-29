@@ -1,10 +1,10 @@
 import React, { useState } from 'react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { RTPSimpleDashboard } from './scratch-card-rtp/RTPSimpleDashboard';
 import { RTPHealthMonitor } from './scratch-card-rtp/RTPHealthMonitor';
 import { RTPSettingsPanel } from './scratch-card-rtp/RTPSettingsPanel';
 import { RTPObservabilityDashboard } from './scratch-card-rtp/RTPObservabilityDashboard';
 import { ScratchPrizeManager } from './scratch-card-rtp/ScratchPrizeManager';
+import { RTPSimpleDashboard } from './scratch-card-rtp/RTPSimpleDashboard';
 import { RTPAdvancedReports } from './scratch-card-rtp/RTPAdvancedReports';
 import { RTPAlertsPanel } from './scratch-card-rtp/RTPAlertsPanel';
 
@@ -17,7 +17,7 @@ export function RTPControlPanel() {
       <div className="mb-6">
         <h2 className="text-2xl font-bold">Sistema RTP - Controle Completo</h2>
         <p className="text-muted-foreground">
-          Monitoramento e configuração do Return To Player das raspadinhas
+          Monitoramento e configuração do Return To Player das raspadinhas (Fresh Start)
         </p>
       </div>
 
