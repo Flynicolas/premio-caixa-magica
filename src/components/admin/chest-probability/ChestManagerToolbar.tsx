@@ -25,6 +25,8 @@ interface ChestManagerToolbarProps {
   setRarityFilter: (value: string) => void;
   isCompactView: boolean;
   setIsCompactView: (value: boolean) => void;
+  densityMode: 'compact' | 'normal' | 'expanded';
+  setDensityMode: (mode: 'compact' | 'normal' | 'expanded') => void;
   onNewItem: () => void;
   onRefresh: () => void;
   stats: {
@@ -52,6 +54,8 @@ const ChestManagerToolbar = ({
   setRarityFilter,
   isCompactView,
   setIsCompactView,
+  densityMode,
+  setDensityMode,
   onNewItem,
   onRefresh,
   stats
@@ -81,6 +85,17 @@ const ChestManagerToolbar = ({
             {isCompactView ? <Maximize2 className="w-4 h-4" /> : <Minimize2 className="w-4 h-4" />}
             {isCompactView ? 'Expandir' : 'Compactar'}
           </Button>
+          
+          <Select value={densityMode} onValueChange={(value: 'compact' | 'normal' | 'expanded') => setDensityMode(value)}>
+            <SelectTrigger className="w-32">
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="compact">Compacto</SelectItem>
+              <SelectItem value="normal">Normal</SelectItem>
+              <SelectItem value="expanded">Expandido</SelectItem>
+            </SelectContent>
+          </Select>
         </div>
       </div>
 
