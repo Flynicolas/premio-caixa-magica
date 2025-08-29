@@ -40,7 +40,7 @@ export const scratchCardTypes = {
     color: 'from-green-400 to-green-600',
     bgColor: 'bg-green-500',
     textColor: 'text-green-700',
-    coverImage: 'https://jhbafgzfphiizpuoqksj.supabase.co/storage/v1/object/public/head-images//capa-raspadinha-sorte1.png',
+    coverImage: '/lovable-uploads/d170eb98-02d7-4c65-b64a-6e04a11aeb1b.png',
     scratchImage: 'https://jhbafgzfphiizpuoqksj.supabase.co/storage/v1/object/public/head-images//quadradoraspadinha01.png'
   },
   dupla: { 
@@ -49,16 +49,16 @@ export const scratchCardTypes = {
     color: 'from-green-500 to-green-700',
     bgColor: 'bg-green-600',
     textColor: 'text-green-800',
-    coverImage: 'https://jhbafgzfphiizpuoqksj.supabase.co/storage/v1/object/public/head-images//capa-raspadinha-sorte2x.png',
+    coverImage: '/lovable-uploads/db3bcfff-1593-4af1-931b-ed987714f1c8.png',
     scratchImage: 'https://jhbafgzfphiizpuoqksj.supabase.co/storage/v1/object/public/head-images//quadradoraspadinha03.png'
   },
   ouro: { 
-    name: 'Raspadinha de Ouro', 
+    name: 'Raspou Gold', 
     price: 5.00,
     color: 'from-yellow-400 to-yellow-600',
     bgColor: 'bg-yellow-500',
     textColor: 'text-yellow-700',
-    coverImage: 'https://jhbafgzfphiizpuoqksj.supabase.co/storage/v1/object/public/head-images//capa-raspadinha-ouro.png',
+    coverImage: '/lovable-uploads/2bf5298b-2f53-41c5-8ee2-a5f2abe1d802.png',
     scratchImage: 'https://jhbafgzfphiizpuoqksj.supabase.co/storage/v1/object/public/head-images//qaudradoraspadinhaouro2.png'
   },
   diamante: { 
