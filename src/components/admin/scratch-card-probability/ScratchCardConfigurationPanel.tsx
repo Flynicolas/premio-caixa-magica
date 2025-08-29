@@ -3,10 +3,11 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { Settings2, Package, Percent, Save } from 'lucide-react';
+import { Settings2, Package, Percent, Save, AlertTriangle } from 'lucide-react';
 import { useScratchCardManagement } from '@/hooks/useScratchCardManagement';
 import { scratchCardTypes } from '@/types/scratchCard';
 import ScratchCardProbabilityItem from './ScratchCardProbabilityItem';
+import { AdvancedScratchControlPanel } from '../advanced-scratch-control/AdvancedScratchControlPanel';
 
 export function ScratchCardConfigurationPanel() {
   const { 
@@ -74,15 +75,34 @@ export function ScratchCardConfigurationPanel() {
 
   return (
     <div className="space-y-6">
+      {/* ALERTA CRÍTICO - Sistema Corrigido */}
+      <Card className="border-green-200 bg-green-50">
+        <CardContent className="p-4">
+          <div className="flex items-start gap-3">
+            <AlertTriangle className="w-5 h-5 text-green-600 mt-0.5" />
+            <div>
+              <h3 className="font-medium text-green-800">✅ Sistema de Probabilidades Corrigido</h3>
+              <p className="text-sm text-green-700 mt-1">
+                <strong>Problema crítico resolvido:</strong> Win Probability e RTP agora são controlados separadamente. 
+                Use o painel avançado abaixo para configurações completas.
+              </p>
+            </div>
+          </div>
+        </CardContent>
+      </Card>
+
+      {/* Painel Avançado de Controle */}
+      <AdvancedScratchControlPanel />
+
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
           <h2 className="text-2xl font-bold text-primary flex items-center gap-2">
             <Package className="w-6 h-6" />
-            Configuração de Itens e Probabilidades
+            Gerenciamento de Itens por Raspadinha
           </h2>
           <p className="text-muted-foreground">
-            Gerencie itens e suas probabilidades para cada tipo de raspadinha
+            Configure quais itens podem ser sorteados em cada tipo de raspadinha
           </p>
         </div>
         
