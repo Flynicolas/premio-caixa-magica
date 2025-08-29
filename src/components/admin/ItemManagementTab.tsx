@@ -14,6 +14,7 @@ import { Plus, Settings } from 'lucide-react';
 import ItemSearchAndFilters from './ItemSearchAndFilters';
 import ItemStatsHeader from './ItemManagementTab/ItemStatsHeader';
 import CompactItemTableRow from './ItemManagementTab/CompactItemTableRow';
+const ItemTableRow = CompactItemTableRow;
 import EnhancedItemEditDialog from './EnhancedItemEditDialog';
 
 const ItemManagementTab = () => {
