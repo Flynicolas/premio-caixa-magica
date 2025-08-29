@@ -1,5 +1,8 @@
-import React, { Suspense, lazy } from 'react'
+import React, { Suspense } from 'react'
 import { AdminScratchCardManager } from './AdminScratchCardManager'
+
+// Import lazy separately to avoid initialization issues
+const { lazy } = React
 
 // Lazy-load components - same as original Admin.tsx
 const CollaboratorManagement = lazy(() => import('./CollaboratorManagement'))
