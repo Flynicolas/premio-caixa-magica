@@ -1,38 +1,18 @@
-import React, { useState, lazy, Suspense, useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useAuth } from '@/hooks/useAuth';
 import { useAdminData } from '@/hooks/useAdminData';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Card, CardContent } from '@/components/ui/card';
 import { Switch } from '@/components/ui/switch';
-import { Button } from '@/components/ui/button';
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
-import { Shield, Package, Settings, Users, Wallet, Target, Truck, AlertTriangle, Gamepad2, TestTube, DollarSign, Palette } from 'lucide-react';
+import { Shield } from 'lucide-react';
 import { useSearchParams } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
-// Lazy-load heavy admin modules to improve performance without changing logic
-const CollaboratorManagement = lazy(() => import('@/components/admin/CollaboratorManagement'));
-const WalletControlPanel = lazy(() => import('@/components/admin/WalletControlPanel'));
-const ItemManagementTab = lazy(() => import('@/components/admin/ItemManagementTab'));
-const EnhancedChestProbabilityManager = lazy(() => import('@/components/admin/EnhancedChestProbabilityManager'));
-const DeliveryManagementTab = lazy(() => import('@/components/admin/DeliveryManagementTab'));
-const UsersManagement = lazy(() => import('@/components/admin/UsersManagement'));
-const ChestGoalsManager = lazy(() => import('@/components/admin/ChestGoalsManager'));
-const AdminErrorDashboard = lazy(() => import('@/components/admin/AdminErrorDashboard').then(m => ({ default: m.AdminErrorDashboard })));
-const ScratchCardManager = lazy(() => import('@/components/admin/ScratchCardManager'));
-
-const DemoItemsManager = lazy(() => import('@/components/admin/DemoItemsManager'));
-const CaixaGeralDashboard = lazy(() => import('@/components/admin/CaixaGeralDashboard'));
-const VisualCustomizationPanel = lazy(() => import('@/components/admin/VisualCustomizationPanel'));
-const CashControlDashboard = lazy(() => import('@/components/admin/CashControlDashboard').then(m => ({ default: (m as any).default || (m as any).CashControlDashboard })));
-const FinancialReconciliation = lazy(() => import('@/components/admin/FinancialReconciliation').then(m => ({ default: (m as any).default || (m as any).FinancialReconciliation })));
-const AffiliateManagement = lazy(() => import('@/components/admin/AffiliateManagement').then(m => ({ default: m.AffiliateManagement })));
-
-
+import { SidebarProvider, SidebarTrigger } from '@/components/ui/sidebar';
+import { AdminSidebar } from '@/components/admin/AdminSidebar';
+import { AdminContent } from '@/components/admin/AdminContent';
 
 const Admin = () => {
   const { user } = useAuth();
   const { items, loading, isAdmin, refreshItems } = useAdminData();
-const [showGoalsDialog, setShowGoalsDialog] = useState(false);
 
   // Feature flag (local, read-only rollout)
   const [financeV2, setFinanceV2] = useState<boolean>(() => localStorage.getItem('admin_finance_v2') === 'true');
@@ -57,17 +37,18 @@ const [showGoalsDialog, setShowGoalsDialog] = useState(false);
     run();
   }, [isAdmin]);
 
-  // Sync active tab with URL (?tab=)
+  // Sync active section with URL (?section=)
   const [searchParams, setSearchParams] = useSearchParams();
-  const initialTab = searchParams.get('tab') || 'items';
-  const [activeTab, setActiveTab] = useState<string>(initialTab);
+  const initialSection = searchParams.get('section') || 'overview';
+  const [activeSection, setActiveSection] = useState<string>(initialSection);
+  
   useEffect(() => {
     setSearchParams(prev => {
       const p = new URLSearchParams(prev);
-      p.set('tab', activeTab);
+      p.set('section', activeSection);
       return p;
     }, { replace: true });
-  }, [activeTab, setSearchParams]);
+  }, [activeSection, setSearchParams]);
 
   if (!user) {
     return (
@@ -121,166 +102,49 @@ const [showGoalsDialog, setShowGoalsDialog] = useState(false);
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-900 via-black to-gray-900">
-      <div className="container mx-auto px-4 py-8">
-<div className="mb-8 flex items-start justify-between gap-4">
-        <div>
-          <h1 className="text-3xl font-bold mb-2">Painel Administrativo</h1>
-          <p className="text-muted-foreground">Gerencie o sistema de baús, itens, entregas e usuários</p>
-        </div>
-        <div className="flex items-center gap-3">
-          <span className="text-sm text-muted-foreground">Financeiro v2 (beta)</span>
-          <Switch
-            checked={financeV2 && precheck.ok}
-            onCheckedChange={(val) => {
-              const next = Boolean(val);
-              localStorage.setItem('admin_finance_v2', String(next));
-              setFinanceV2(next);
-            }}
-            disabled={!precheck.checked || !precheck.ok}
+    <SidebarProvider>
+      <div className="min-h-screen flex w-full bg-gradient-to-br from-gray-900 via-black to-gray-900">
+        <AdminSidebar 
+          activeSection={activeSection}
+          onSectionChange={setActiveSection}
+          financeV2Enabled={financeV2 && precheck.ok}
+        />
+        
+        <div className="flex-1 flex flex-col">
+          {/* Header */}
+          <header className="h-16 border-b flex items-center justify-between px-6">
+            <div className="flex items-center gap-4">
+              <SidebarTrigger />
+              <div>
+                <h1 className="text-lg font-semibold">Painel Administrativo</h1>
+              </div>
+            </div>
+            
+            <div className="flex items-center gap-3">
+              <span className="text-sm text-muted-foreground">Financeiro v2 (beta)</span>
+              <Switch
+                checked={financeV2 && precheck.ok}
+                onCheckedChange={(val) => {
+                  const next = Boolean(val);
+                  localStorage.setItem('admin_finance_v2', String(next));
+                  setFinanceV2(next);
+                }}
+                disabled={!precheck.checked || !precheck.ok}
+              />
+            </div>
+          </header>
+
+          {/* Main Content */}
+          <AdminContent 
+            activeSection={activeSection}
+            items={items}
+            refreshItems={refreshItems}
+            financeV2Enabled={financeV2}
+            precheckOk={precheck.ok}
           />
         </div>
       </div>
-
-      <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
-        <TabsList className="grid w-full grid-cols-10">
-          <TabsTrigger value="items" className="flex items-center gap-2">
-            <Package className="w-4 h-4" />
-            Itens
-          </TabsTrigger>
-          <TabsTrigger value="chests" className="flex items-center gap-2">
-            <Settings className="w-4 h-4" />
-            Baús
-          </TabsTrigger>
-          <TabsTrigger value="scratch" className="flex items-center gap-2">
-            <Gamepad2 className="w-4 h-4" />
-            Raspadinha
-          </TabsTrigger>
-          <TabsTrigger value="deliveries" className="flex items-center gap-2">
-            <Truck className="w-4 h-4" />
-            Entregas
-          </TabsTrigger>
-          <TabsTrigger value="caixa-geral" className="flex items-center gap-2">
-            <Wallet className="w-4 h-4" />
-            Caixa Geral
-          </TabsTrigger>
-          {financeV2 && precheck.ok && (
-            <TabsTrigger value="finance" className="flex items-center gap-2">
-              <DollarSign className="w-4 h-4" />
-              Financeiro
-            </TabsTrigger>
-          )}
-            <TabsTrigger value="users" className="flex items-center gap-2">
-              <Users className="w-4 h-4" />
-              Usuários
-            </TabsTrigger>
-            <TabsTrigger value="affiliates" className="flex items-center gap-2">
-              <Users className="w-4 h-4" />
-              Afiliados
-            </TabsTrigger>
-          <TabsTrigger value="collaborators" className="flex items-center gap-2">
-            <Users className="w-4 h-4" />
-            Colaboradores
-          </TabsTrigger>
-          <TabsTrigger value="errors" className="flex items-center gap-2">
-            <AlertTriangle className="w-4 h-4" />
-            Erros
-          </TabsTrigger>
-          <TabsTrigger value="demo" className="flex items-center gap-2">
-            <TestTube className="w-4 h-4" />
-            Demo
-          </TabsTrigger>
-          <TabsTrigger value="visual" className="flex items-center gap-2">
-            <Palette className="w-4 h-4" />
-            Visual
-          </TabsTrigger>
-        </TabsList>
-
-<TabsContent value="items">
-          <Suspense fallback={<div className="p-6 text-muted-foreground">Carregando itens...</div>}>
-            <ItemManagementTab />
-          </Suspense>
-        </TabsContent>
-
-        <TabsContent value="chests">
-          <Suspense fallback={<div className="p-6 text-muted-foreground">Carregando gerenciador de baús...</div>}>
-            <EnhancedChestProbabilityManager 
-              items={items.filter(item => item.is_active)} 
-              onRefresh={refreshItems} 
-            />
-          </Suspense>
-        </TabsContent>
-
-        <TabsContent value="scratch">
-          <Suspense fallback={<div className="p-6 text-muted-foreground">Carregando sistema RTP...</div>}>
-            <ScratchCardManager />
-          </Suspense>
-        </TabsContent>
-
-        <TabsContent value="deliveries">
-          <Suspense fallback={<div className="p-6 text-muted-foreground">Carregando entregas...</div>}>
-            <DeliveryManagementTab />
-          </Suspense>
-        </TabsContent>
-
-        <TabsContent value="caixa-geral">
-          <Suspense fallback={<div className="p-6 text-muted-foreground">Carregando caixa geral...</div>}>
-            <CaixaGeralDashboard />
-          </Suspense>
-        </TabsContent>
-
-          <TabsContent value="affiliates">
-            <Suspense fallback={<div>Carregando gerenciamento de afiliados...</div>}>
-              <AffiliateManagement />
-            </Suspense>
-          </TabsContent>
-
-          <TabsContent value="users">
-          <Suspense fallback={<div className="p-6 text-muted-foreground">Carregando usuários...</div>}>
-            <UsersManagement />
-          </Suspense>
-        </TabsContent>
-
-        <TabsContent value="collaborators">
-          <Suspense fallback={<div className="p-6 text-muted-foreground">Carregando colaboradores...</div>}>
-            <CollaboratorManagement />
-          </Suspense>
-        </TabsContent>
-
-        <TabsContent value="errors">
-          <Suspense fallback={<div className="p-6 text-muted-foreground">Carregando relatórios de erro...</div>}>
-            <AdminErrorDashboard />
-          </Suspense>
-        </TabsContent>
-
-        <TabsContent value="demo">
-          <Suspense fallback={<div className="p-6 text-muted-foreground">Carregando itens demo...</div>}>
-            <DemoItemsManager />
-          </Suspense>
-        </TabsContent>
-
-        <TabsContent value="visual">
-          <Suspense fallback={<div className="p-6 text-muted-foreground">Carregando personalização visual...</div>}>
-            <VisualCustomizationPanel />
-          </Suspense>
-        </TabsContent>
-
-        {financeV2 && precheck.ok && (
-          <TabsContent value="finance">
-            <div className="space-y-6">
-              <Suspense fallback={<div className="p-6 text-muted-foreground">Carregando financeiro...</div>}>
-                <CashControlDashboard />
-              </Suspense>
-              <Suspense fallback={<div className="p-6 text-muted-foreground">Carregando reconciliação...</div>}>
-                <FinancialReconciliation />
-              </Suspense>
-            </div>
-          </TabsContent>
-        )}
-
-      </Tabs>
-      </div>
-    </div>
+    </SidebarProvider>
   );
 };
 
