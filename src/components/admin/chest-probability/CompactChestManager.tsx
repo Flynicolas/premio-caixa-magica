@@ -10,8 +10,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { DatabaseItem, ChestItemProbability } from '@/types/database';
 import { 
   Crown, Archive, Search, Settings, Trash2, Gift, Eye, Plus, 
-  TrendingUp, Package, Coins, Filter, RefreshCw, Edit, Copy, MoreHorizontal,
-  Maximize2, Minimize2
+  TrendingUp, Package, Coins, Filter, RefreshCw, Edit, Copy, MoreHorizontal 
 } from 'lucide-react';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import {
@@ -55,8 +54,6 @@ const CompactChestManager = ({ items, onRefresh }: CompactChestManagerProps) => 
   const [selectedChest, setSelectedChest] = useState<string>('all');
   const [rarityFilter, setRarityFilter] = useState<string>('all');
   const [isCompactView, setIsCompactView] = useState(true);
-  const [densityMode, setDensityMode] = useState<'compact' | 'normal' | 'expanded'>('compact');
-  const [showNavSidebar, setShowNavSidebar] = useState(true);
   const [manualReleaseDialog, setManualReleaseDialog] = useState<{
     isOpen: boolean;
     probabilityId: string;
@@ -351,29 +348,6 @@ const CompactChestManager = ({ items, onRefresh }: CompactChestManagerProps) => 
     return acc;
   }, {} as Record<string, ChestItemProbability[]>);
 
-  // Create flat list with chest info for better density
-  const flatProbabilities = Object.entries(filteredProbabilities).flatMap(([chestType, probs], chestIndex) =>
-    probs.map((prob, itemIndex) => ({
-      ...prob,
-      chestType,
-      chestInfo: CHEST_TYPES.find(c => c.value === chestType),
-      chestIndex,
-      itemIndex,
-      isFirstInChest: itemIndex === 0
-    }))
-  );
-
-  const getRowColorClass = (chestIndex: number) => {
-    return chestIndex % 2 === 0 ? 'bg-background' : 'bg-muted/20';
-  };
-
-  const scrollToChest = (chestType: string) => {
-    const element = document.getElementById(`chest-${chestType}`);
-    if (element) {
-      element.scrollIntoView({ behavior: 'smooth', block: 'start' });
-    }
-  };
-
   return (
     <div className="space-y-6">
       <Card>
@@ -393,8 +367,6 @@ const CompactChestManager = ({ items, onRefresh }: CompactChestManagerProps) => 
             setRarityFilter={setRarityFilter}
             isCompactView={isCompactView}
             setIsCompactView={setIsCompactView}
-            densityMode={densityMode}
-            setDensityMode={setDensityMode}
             onNewItem={() => setItemEditDialog({ isOpen: true, item: null })}
             onRefresh={() => {
               fetchProbabilities();
@@ -403,60 +375,29 @@ const CompactChestManager = ({ items, onRefresh }: CompactChestManagerProps) => 
             stats={stats}
           />
 
-          {/* Quick Navigation Bar */}
-          <div className="flex flex-wrap items-center gap-2 p-4 bg-muted/30 rounded-lg">
-            <div className="flex items-center gap-2 text-sm text-muted-foreground">
-              <span>Navegação rápida:</span>
-            </div>
-            {CHEST_TYPES.map(chest => {
-              const chestProbs = filteredProbabilities[chest.value];
-              if (!chestProbs || chestProbs.length === 0) return null;
-              
-              return (
-                <Button
-                  key={chest.value}
-                  variant="outline"
-                  size="sm"
-                  onClick={() => scrollToChest(chest.value)}
-                  className="flex items-center gap-2 h-8"
-                  style={{ 
-                    borderColor: chest.color,
-                    color: chest.color
-                  }}
-                >
-                  <Badge 
-                    className="w-3 h-3 p-0 rounded-full"
-                    style={{ backgroundColor: chest.color }}
-                  />
-                  {chest.label} ({chestProbs.length})
-                </Button>
-              );
-            })}
-          </div>
-
           <Tabs defaultValue="table" className="w-full">
             <TabsList className="grid w-full grid-cols-2">
-              <TabsTrigger value="table">Tabela Otimizada</TabsTrigger>
+              <TabsTrigger value="table">Tabela Unificada</TabsTrigger>
               <TabsTrigger value="history">Histórico Liberações</TabsTrigger>
             </TabsList>
             
             <TabsContent value="table" className="space-y-4">
               <div className="rounded-md border">
                 <Table>
-                  <TableHeader className="sticky top-0 bg-background z-10">
+                  <TableHeader>
                     <TableRow>
-                      <TableHead className="w-24">Baú</TableHead>
+                      <TableHead>Baú</TableHead>
                       <TableHead>Item</TableHead>
                       {!isCompactView && <TableHead>Categoria</TableHead>}
-                      <TableHead className="w-20">Raridade</TableHead>
-                      <TableHead className="w-24">Valor</TableHead>
-                      <TableHead className="w-16">Peso</TableHead>
-                      <TableHead className="w-16">%</TableHead>
-                      <TableHead className="w-32">Ações</TableHead>
+                      <TableHead>Raridade</TableHead>
+                      <TableHead>Valor Base</TableHead>
+                      <TableHead>Peso</TableHead>
+                      <TableHead>%</TableHead>
+                      <TableHead>Ações</TableHead>
                     </TableRow>
                   </TableHeader>
                   <TableBody>
-                    {flatProbabilities.length === 0 ? (
+                    {Object.keys(filteredProbabilities).length === 0 ? (
                       <TableRow>
                         <TableCell colSpan={isCompactView ? 7 : 8}>
                           <div className="text-center py-8">
@@ -480,152 +421,146 @@ const CompactChestManager = ({ items, onRefresh }: CompactChestManagerProps) => 
                         </TableCell>
                       </TableRow>
                     ) : (
-                      flatProbabilities.map((prob) => {
-                        const totalWeight = probabilities[prob.chestType]?.reduce((sum, p) => sum + p.probability_weight, 0) || 1;
-                        const percentage = ((prob.probability_weight / totalWeight) * 100).toFixed(1);
-                        
-                        return (
-                          <TableRow 
-                            key={prob.id}
-                            id={prob.isFirstInChest ? `chest-${prob.chestType}` : undefined}
-                            className={`${getRowColorClass(prob.chestIndex)} hover:bg-muted/40 transition-colors ${
-                              densityMode === 'compact' ? 'h-12' : densityMode === 'normal' ? 'h-16' : 'h-20'
-                            }`}
-                          >
-                            <TableCell className="p-2">
-                              <div className="flex items-center gap-2">
-                                {prob.isFirstInChest && (
-                                  <Button
-                                    variant="ghost"
-                                    size="sm"
-                                    onClick={() => setItemSelectorDialog({
-                                      isOpen: true,
-                                      chestType: prob.chestType,
-                                      chestName: prob.chestInfo?.label || prob.chestType
-                                    })}
-                                    className="h-6 w-6 p-0 opacity-60 hover:opacity-100"
+                      Object.entries(filteredProbabilities).map(([chestType, probs]) => (
+                        <React.Fragment key={chestType}>
+                          <TableRow className="bg-muted/30">
+                            <TableCell colSpan={isCompactView ? 7 : 8} className="font-medium">
+                              <div className="flex items-center justify-between">
+                                <div className="flex items-center gap-2">
+                                  <Badge 
+                                    style={{ 
+                                      backgroundColor: CHEST_TYPES.find(c => c.value === chestType)?.color,
+                                      color: 'white'  
+                                    }}
                                   >
-                                    <Plus className="w-3 h-3" />
-                                  </Button>
-                                )}
-                                <Badge 
-                                  className="text-xs px-2 py-1 font-medium"
-                                  style={{ 
-                                    backgroundColor: prob.chestInfo?.color,
-                                    color: 'white'
-                                  }}
-                                >
-                                  {prob.chestInfo?.label}
-                                </Badge>
-                              </div>
-                            </TableCell>
-                            
-                            <TableCell className="p-2">
-                              <div className="flex items-center gap-3">
-                                {prob.item?.image_url && densityMode !== 'compact' && (
-                                  <img 
-                                    src={prob.item.image_url} 
-                                    alt={prob.item.name}
-                                    className={`object-cover rounded ${
-                                      densityMode === 'expanded' ? 'w-12 h-12' : 'w-8 h-8'
-                                    }`}
-                                  />
-                                )}
-                                <div className="min-w-0 flex-1">
-                                  <div className="font-medium truncate">{prob.item?.name}</div>
-                                  {densityMode === 'expanded' && prob.item?.description && (
-                                    <div className="text-xs text-muted-foreground truncate">
-                                      {prob.item.description}
-                                    </div>
-                                  )}
+                                    {CHEST_TYPES.find(c => c.value === chestType)?.label}
+                                  </Badge>
+                                  <span className="text-sm text-muted-foreground">
+                                    {probs.length} item(s) - Valor total: R$ {probs.reduce((sum, p) => sum + (p.item?.base_value || 0), 0).toFixed(2)}
+                                  </span>
                                 </div>
+                                <Button
+                                  variant="outline"
+                                  size="sm"
+                                  onClick={() => setItemSelectorDialog({
+                                    isOpen: true,
+                                    chestType,
+                                    chestName: CHEST_TYPES.find(c => c.value === chestType)?.label || chestType
+                                  })}
+                                  className="flex items-center gap-2"
+                                >
+                                  <Plus className="w-4 h-4" />
+                                  Adicionar Item
+                                </Button>
                               </div>
-                            </TableCell>
-                            
-                            {!isCompactView && (
-                              <TableCell className="p-2">
-                                <Badge variant="outline" className="text-xs">
-                                  {prob.item?.category}
-                                </Badge>
-                              </TableCell>
-                            )}
-                            
-                            <TableCell className="p-2">
-                              <Badge 
-                                className="text-xs"
-                                style={{ 
-                                  backgroundColor: getRarityColor(prob.item?.rarity || 'common'),
-                                  color: 'white'
-                                }}
-                              >
-                                {prob.item?.rarity}
-                              </Badge>
-                            </TableCell>
-                            
-                            <TableCell className="p-2 font-mono text-sm">
-                              R$ {prob.item?.base_value?.toFixed(2)}
-                            </TableCell>
-                            
-                            <TableCell className="p-2">
-                              <Input
-                                type="number"
-                                value={editingValues[prob.id] ?? prob.probability_weight}
-                                onChange={(e) => setEditingValues({
-                                  ...editingValues,
-                                  [prob.id]: parseFloat(e.target.value) || 0
-                                })}
-                                onBlur={() => {
-                                  const newValue = editingValues[prob.id];
-                                  if (newValue !== undefined && newValue !== prob.probability_weight) {
-                                    handleProbabilityUpdate(prob.id, newValue);
-                                  }
-                                }}
-                                className="w-16 h-8 text-xs text-center"
-                                min="0"
-                                step="0.1"
-                              />
-                            </TableCell>
-                            
-                            <TableCell className="p-2 font-mono text-xs">
-                              {percentage}%
-                            </TableCell>
-                            
-                            <TableCell className="p-2">
-                              <DropdownMenu>
-                                <DropdownMenuTrigger asChild>
-                                  <Button variant="ghost" size="sm" className="h-8 w-8 p-0">
-                                    <MoreHorizontal className="h-4 w-4" />
-                                  </Button>
-                                </DropdownMenuTrigger>
-                                <DropdownMenuContent align="end" className="bg-background border shadow-lg">
-                                  <DropdownMenuItem onClick={() => handleEditItem(prob.item!)}>
-                                    <Edit className="mr-2 h-4 w-4" />
-                                    Editar Item
-                                  </DropdownMenuItem>
-                                  <DropdownMenuItem 
-                                    onClick={() => setManualReleaseDialog({
-                                      isOpen: true,
-                                      probabilityId: prob.id,
-                                      itemName: prob.item?.name || '',
-                                      chestType: prob.chestType
-                                    })}
-                                  >
-                                    <Gift className="mr-2 h-4 w-4" />
-                                    Liberar Manual
-                                  </DropdownMenuItem>
-                                  <DropdownMenuItem 
-                                    onClick={() => removeItemFromChest(prob.id)}
-                                    className="text-destructive"
-                                  >
-                                    <Trash2 className="mr-2 h-4 w-4" />
-                                    Remover do Baú
-                                  </DropdownMenuItem>
-                                </DropdownMenuContent>
-                              </DropdownMenu>
                             </TableCell>
                           </TableRow>
-                        );
-                      })
+                          {probs.map((prob) => {
+                            const totalWeight = probabilities[chestType]?.reduce((sum, p) => sum + p.probability_weight, 0) || 1;
+                            const percentage = ((prob.probability_weight / totalWeight) * 100).toFixed(1);
+                            
+                            return (
+                              <TableRow key={prob.id}>
+                                <TableCell></TableCell>
+                                <TableCell>
+                                  <div className="flex items-center gap-3">
+                                    {prob.item?.image_url && (
+                                      <img 
+                                        src={prob.item.image_url} 
+                                        alt={prob.item.name}
+                                        className="w-8 h-8 object-cover rounded"
+                                      />
+                                    )}
+                                    <div>
+                                      <div className="font-medium">{prob.item?.name}</div>
+                                      {!isCompactView && prob.item?.description && (
+                                        <div className="text-xs text-muted-foreground truncate max-w-xs">
+                                          {prob.item.description}
+                                        </div>
+                                      )}
+                                    </div>
+                                  </div>
+                                </TableCell>
+                                {!isCompactView && (
+                                  <TableCell>
+                                    <Badge variant="outline">
+                                      {prob.item?.category === 'dinheiro' ? 'Dinheiro' : 
+                                       prob.item?.category === 'product' ? 'Produto' : 
+                                       prob.item?.category}
+                                    </Badge>
+                                  </TableCell>
+                                )}
+                                <TableCell>
+                                  <Badge style={{ backgroundColor: getRarityColor(prob.item?.rarity || 'common'), color: 'white' }}>
+                                    {prob.item?.rarity === 'common' ? 'Comum' :
+                                     prob.item?.rarity === 'rare' ? 'Raro' :
+                                     prob.item?.rarity === 'epic' ? 'Épico' : 'Lendário'}
+                                  </Badge>
+                                </TableCell>
+                                <TableCell className="font-mono">
+                                  R$ {prob.item?.base_value.toFixed(2)}
+                                </TableCell>
+                                <TableCell>
+                                  <Input
+                                    type="number"
+                                    min="0"
+                                    max="100"
+                                    value={editingValues[prob.id] !== undefined ? editingValues[prob.id] : prob.probability_weight}
+                                    onChange={(e) => setEditingValues(prev => ({
+                                      ...prev,
+                                      [prob.id]: parseInt(e.target.value) || 0
+                                    }))}
+                                    onBlur={() => {
+                                      if (editingValues[prob.id] !== undefined && editingValues[prob.id] !== prob.probability_weight) {
+                                        handleProbabilityUpdate(prob.id, editingValues[prob.id]);
+                                      }
+                                    }}
+                                    className="w-20"
+                                  />
+                                </TableCell>
+                                <TableCell>
+                                  <Badge variant="outline">
+                                    {percentage}%
+                                  </Badge>
+                                </TableCell>
+                                <TableCell>
+                                  <div className="flex items-center gap-1">
+                                    <DropdownMenu>
+                                      <DropdownMenuTrigger asChild>
+                                        <Button variant="outline" size="sm">
+                                          <MoreHorizontal className="w-4 h-4" />
+                                        </Button>
+                                      </DropdownMenuTrigger>
+                                      <DropdownMenuContent align="end">
+                                        <DropdownMenuItem onClick={() => handleEditItem(prob.item!)}>
+                                          <Edit className="w-4 h-4 mr-2" />
+                                          Editar Item
+                                        </DropdownMenuItem>
+                                        <DropdownMenuItem onClick={() => setManualReleaseDialog({
+                                          isOpen: true,
+                                          probabilityId: prob.id,
+                                          itemName: prob.item?.name || '',
+                                          chestType: chestType
+                                        })}>
+                                          <Gift className="w-4 h-4 mr-2" />
+                                          Liberar Manual
+                                        </DropdownMenuItem>
+                                        <DropdownMenuItem 
+                                          onClick={() => removeItemFromChest(prob.id)}
+                                          className="text-destructive"
+                                        >
+                                          <Trash2 className="w-4 h-4 mr-2" />
+                                          Remover do Baú
+                                        </DropdownMenuItem>
+                                      </DropdownMenuContent>
+                                    </DropdownMenu>
+                                  </div>
+                                </TableCell>
+                              </TableRow>
+                            );
+                          })}
+                        </React.Fragment>
+                      ))
                     )}
                   </TableBody>
                 </Table>
