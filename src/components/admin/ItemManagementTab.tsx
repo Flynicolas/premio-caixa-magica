@@ -12,8 +12,9 @@ import {
 } from '@/components/ui/table';
 import { Plus, Settings } from 'lucide-react';
 import ItemSearchAndFilters from './ItemSearchAndFilters';
+import ItemStatsHeader from './ItemManagementTab/ItemStatsHeader';
+import CompactItemTableRow from './ItemManagementTab/CompactItemTableRow';
 import EnhancedItemEditDialog from './EnhancedItemEditDialog';
-import ItemTableRow from './ItemManagementTab/ItemTableRow';
 
 const ItemManagementTab = () => {
   const {
@@ -35,10 +36,14 @@ const ItemManagementTab = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [sortBy, setSortBy] = useState('name');
   const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('asc');
+  const [rarityFilter, setRarityFilter] = useState('all');
+  const [statusFilter, setStatusFilter] = useState('all');
+  const [density, setDensity] = useState<'compact' | 'normal' | 'comfortable'>('normal');
+  const [viewMode, setViewMode] = useState<'table' | 'grid'>('table');
 
   React.useEffect(() => {
     applyFiltersAndSorting();
-  }, [items, searchTerm, sortBy, sortOrder]);
+  }, [items, searchTerm, sortBy, sortOrder, rarityFilter, statusFilter]);
 
   const applyFiltersAndSorting = () => {
     let filtered = [...items];
@@ -46,8 +51,20 @@ const ItemManagementTab = () => {
     // Aplicar busca
     if (searchTerm) {
       filtered = filtered.filter(item =>
-        item.name.toLowerCase().includes(searchTerm.toLowerCase())
+        item.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        item.description?.toLowerCase().includes(searchTerm.toLowerCase())
       );
+    }
+
+    // Aplicar filtro de raridade
+    if (rarityFilter && rarityFilter !== 'all') {
+      filtered = filtered.filter(item => item.rarity === rarityFilter);
+    }
+
+    // Aplicar filtro de status
+    if (statusFilter && statusFilter !== 'all') {
+      const isActive = statusFilter === 'active';
+      filtered = filtered.filter(item => item.is_active === isActive);
     }
 
     // Aplicar ordenação
@@ -60,6 +77,9 @@ const ItemManagementTab = () => {
           break;
         case 'base_value':
           comparison = a.base_value - b.base_value;
+          break;
+        case 'created_at':
+          comparison = new Date(a.created_at || 0).getTime() - new Date(b.created_at || 0).getTime();
           break;
         case 'rarity':
           // Ordenação por raridade ponderada pelo valor
@@ -158,29 +178,34 @@ const ItemManagementTab = () => {
 
   return (
     <div className="space-y-6">
+      {/* Statistics Header */}
+      <ItemStatsHeader items={items} />
+      
       <Card>
-<CardHeader>
-  <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-4">
-    <div>
-      <CardTitle className="text-lg sm:text-2xl">Catálogo Universal de Itens ({filteredItems.length})</CardTitle>
-      <p className="text-muted-foreground mt-1">
-        Gerencie todos os itens do sistema. Estes itens podem ser usados em baús e raspadinhas.
-      </p>
-    </div>
-    <div className="flex gap-2">
-      <Button variant="outline" asChild>
-        <a href="/admin?tab=scratch">
-          <Settings className="w-4 h-4 mr-2" />
-          Configurar Raspadinhas
-        </a>
-      </Button>
-      <Button onClick={() => setIsCreateDialogOpen(true)} className="w-full sm:w-auto">
-        <Plus className="w-4 h-4 mr-2" />
-        Adicionar Item
-      </Button>
-    </div>
-  </div>
-</CardHeader>
+        <CardHeader>
+          <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-4">
+            <div>
+              <CardTitle className="text-lg sm:text-2xl">
+                Catálogo Universal de Itens ({filteredItems.length})
+              </CardTitle>
+              <p className="text-muted-foreground mt-1">
+                Gerencie todos os itens do sistema. Estes itens podem ser usados em baús e raspadinhas.
+              </p>
+            </div>
+            <div className="flex gap-2">
+              <Button variant="outline" asChild>
+                <a href="/admin?tab=scratch">
+                  <Settings className="w-4 h-4 mr-2" />
+                  Configurar Raspadinhas
+                </a>
+              </Button>
+              <Button onClick={() => setIsCreateDialogOpen(true)} className="w-full sm:w-auto">
+                <Plus className="w-4 h-4 mr-2" />
+                Adicionar Item
+              </Button>
+            </div>
+          </div>
+        </CardHeader>
 
         <CardContent>
           <ItemSearchAndFilters
@@ -198,28 +223,24 @@ const ItemManagementTab = () => {
             </div>
           ) : (
             <div className="rounded-md border overflow-x-auto">
-              <Table className="min-w-[700px]">
+              <Table className="min-w-[600px]">
                 <TableHeader>
                   <TableRow>
-                    <TableHead>Imagem</TableHead>
-                    <TableHead>Nome</TableHead>
-                    <TableHead>Preço</TableHead>
-                    <TableHead>Raridade</TableHead>
-                    <TableHead>Usado em</TableHead>
-                    <TableHead>Baús Atribuídos</TableHead>
-                    <TableHead>Status</TableHead>
-                    <TableHead>Ações</TableHead>
+                    <TableHead>Item & Detalhes</TableHead>
+                    <TableHead>Uso & Configuração</TableHead>
+                    <TableHead>Status & Ações</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
                   {filteredItems.map((item) => (
-                    <ItemTableRow
+                    <CompactItemTableRow
                       key={item.id}
                       item={item}
                       onEdit={handleEdit}
                       onDelete={handleDelete}
                       onToggleActive={handleToggleActive}
                       onUpdate={refetchItems}
+                      density={density}
                     />
                   ))}
                 </TableBody>
