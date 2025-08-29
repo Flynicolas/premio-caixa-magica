@@ -11,6 +11,7 @@ import { Alert, AlertDescription } from '@/components/ui/alert';
 import ChestCard from './EnhancedChestProbabilityManager/ChestCard';
 import ManualReleaseDialog from './ManualReleaseDialog';
 import ManualReleaseHistory from './ManualReleaseHistory';
+import CompactChestManager from './chest-probability/CompactChestManager';
 
 interface EnhancedChestProbabilityManagerProps {
   items: DatabaseItem[];
@@ -188,84 +189,7 @@ const EnhancedChestProbabilityManager = ({ items, onRefresh }: EnhancedChestProb
   const hasChanges = Object.keys(editingProbabilities).length > 0;
 
   return (
-    <div className="space-y-6">
-      <Tabs defaultValue="manage" className="w-full">
-        <TabsList className="grid w-full grid-cols-2">
-          <TabsTrigger value="manage" className="flex items-center gap-2">
-            <Crown className="w-4 h-4" />
-            Gerenciar Baús
-          </TabsTrigger>
-          <TabsTrigger value="history" className="flex items-center gap-2">
-            <History className="w-4 h-4" />
-            Histórico Manual
-          </TabsTrigger>
-        </TabsList>
-
-        <TabsContent value="manage">
-          <Card>
-            <CardHeader>
-              <div className="flex justify-between items-center">
-                <CardTitle>Gerenciar Probabilidades dos Baús</CardTitle>
-                {hasChanges && (
-                  <Button onClick={() => setShowSaveConfirmation(true)} disabled={loading}>
-                    <Save className="w-4 h-4 mr-2" />
-                    Salvar Alterações
-                  </Button>
-                )}
-              </div>
-            </CardHeader>
-            <CardContent>
-              {showSaveConfirmation && (
-                <Alert className="mb-6">
-                  <AlertCircle className="h-4 w-4" />
-                  <AlertDescription>
-                    Tem certeza que deseja salvar todas as alterações? Isso atualizará as probabilidades no banco de dados.
-                    <div className="flex space-x-2 mt-3">
-                      <Button size="sm" onClick={handleSaveChanges} disabled={loading}>
-                        {loading ? 'Salvando...' : 'Confirmar'}
-                      </Button>
-                      <Button size="sm" variant="outline" onClick={() => setShowSaveConfirmation(false)}>
-                        Cancelar
-                      </Button>
-                    </div>
-                  </AlertDescription>
-                </Alert>
-              )}
-
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                {CHEST_TYPES.map(chestType => (
-                  <ChestCard
-                    key={chestType.value}
-                    chestType={chestType}
-                    probabilities={probabilities[chestType.value] || []}
-                    editingProbabilities={editingProbabilities}
-                    onProbabilityChange={handleProbabilityChange}
-                    onManualRelease={(probId, itemName) => handleManualRelease(probId, itemName, chestType.value)}
-                    onRemoveItem={removeItemFromChest}
-                  />
-                ))}
-              </div>
-            </CardContent>
-          </Card>
-        </TabsContent>
-
-        <TabsContent value="history">
-          <ManualReleaseHistory />
-        </TabsContent>
-      </Tabs>
-
-      <ManualReleaseDialog
-        isOpen={manualReleaseDialog.isOpen}
-        onClose={() => setManualReleaseDialog(prev => ({ ...prev, isOpen: false }))}
-        probabilityId={manualReleaseDialog.probabilityId}
-        itemName={manualReleaseDialog.itemName}
-        chestType={manualReleaseDialog.chestType}
-        onSuccess={() => {
-          fetchProbabilities();
-          onRefresh();
-        }}
-      />
-    </div>
+    <CompactChestManager items={items} onRefresh={onRefresh} />
   );
 };
 
