@@ -3604,6 +3604,16 @@ export type Database = {
         Args: Record<PropertyKey, never>
         Returns: undefined
       }
+      backfill_rtp_data: {
+        Args: Record<PropertyKey, never>
+        Returns: {
+          game_type: string
+          games_processed: number
+          status: string
+          total_bet: number
+          total_paid: number
+        }[]
+      }
       calculate_affiliate_commissions: {
         Args: { p_period_end: string; p_period_start: string }
         Returns: {
@@ -3828,6 +3838,14 @@ export type Database = {
           winning_item_id: string
         }[]
       }
+      populate_all_game_types_prizes: {
+        Args: Record<PropertyKey, never>
+        Returns: {
+          game_type: string
+          prizes_created: number
+          status: string
+        }[]
+      }
       populate_default_prizes: {
         Args: { p_game_type: string; p_rtp_target?: number }
         Returns: undefined
@@ -3979,6 +3997,10 @@ export type Database = {
           p_requested: number
         }
         Returns: boolean
+      }
+      toggle_rtp_enabled: {
+        Args: { p_enabled: boolean; p_game_type: string }
+        Returns: undefined
       }
       update_scratch_profit_monitoring: {
         Args: {
