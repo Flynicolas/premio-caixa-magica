@@ -20,7 +20,7 @@ import { DatabaseItem } from '@/types/database';
 import { useInventory } from '@/hooks/useInventory';
 import ChestSimulator from '@/components/ChestSimulator';
 import ResponsiveBanner from '@/components/ResponsiveBanner';
-import { AffiliatePromo } from '@/components/AffiliatePromo';
+import ScratchCardShowcase from '@/components/ScratchCardShowcase';
 
 const Index = () => {
   const { code } = useParams();
@@ -137,6 +137,9 @@ const Index = () => {
         {/* Real-time Wins Carousel */}
         <RealtimeWinsCarousel className="mb-6 md:mb-12" />
         
+        {/* Scratch Cards Showcase */}
+        <ScratchCardShowcase />
+        
         {/* Chest Navigation Bar - Mobile Only */}
         <ChestNavigationBar 
           onChestSelect={setSelectedChestType}
@@ -154,7 +157,7 @@ const Index = () => {
         <section className="mb-16">
           <div className="text-center mb-12 hidden md:block">
             <h2 className="text-2xl sm:text-3xl md:text-4xl font-bold mb-4 gold-gradient-text leading-snug">
-              🏆 Escolha Seu Baú 🏆
+              🏆 Baús com Teste Grátis 🏆
             </h2>
             <p className="text-lg gold-text max-w-3xl mx-auto font-medium">
               Cada baú tem diferentes chances de prêmios. Quanto maior o investimento, maiores as recompensas!
@@ -197,20 +200,12 @@ const Index = () => {
           </section>
         )}
 
-        {/* Banners para Mobile - Divididos horizontalmente */}
-        <div className="space-y-4 md:space-y-6">
-          <AffiliatePromo />
-          
+        {/* Banner promocional */}
+        <div className="mt-8">
           <ResponsiveBanner 
             imageUrlPC="https://jhbafgzfphiizpuoqksj.supabase.co/storage/v1/object/public/head-images//raspadinha-banner-rodape01.png"
             imageUrlMobile="https://jhbafgzfphiizpuoqksj.supabase.co/storage/v1/object/public/head-images//raspadinha-banner-rodape01.png"
-            altText="Banner promocional 1"
-            className="h-20 md:h-auto"
-          />
-          <ResponsiveBanner 
-            imageUrlPC="/banners/home-banner-2-pc.jpg"
-            imageUrlMobile="/banners/home-banner-2-mobile.jpg"
-            altText="Banner promocional 2"
+            altText="Banner promocional"
             className="h-20 md:h-auto"
           />
         </div>
