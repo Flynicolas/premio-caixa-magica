@@ -3710,16 +3710,6 @@ export type Database = {
         Args: Record<PropertyKey, never>
         Returns: undefined
       }
-      backfill_rtp_data: {
-        Args: Record<PropertyKey, never>
-        Returns: {
-          game_type: string
-          games_processed: number
-          status: string
-          total_bet: number
-          total_paid: number
-        }[]
-      }
       calculate_affiliate_commissions: {
         Args: { p_period_end: string; p_period_start: string }
         Returns: {
@@ -3865,6 +3855,15 @@ export type Database = {
         Args: Record<PropertyKey, never>
         Returns: undefined
       }
+      initialize_fresh_rtp_system: {
+        Args: Record<PropertyKey, never>
+        Returns: {
+          prizes_configured: boolean
+          rtp_pot_created: boolean
+          scratch_type: string
+          system_ready: boolean
+        }[]
+      }
       is_admin_role: {
         Args: Record<PropertyKey, never>
         Returns: boolean
@@ -3949,14 +3948,6 @@ export type Database = {
           wallet_balance: number
           winning_amount: number
           winning_item_id: string
-        }[]
-      }
-      populate_all_game_types_prizes: {
-        Args: Record<PropertyKey, never>
-        Returns: {
-          game_type: string
-          prizes_created: number
-          status: string
         }[]
       }
       populate_default_prizes: {

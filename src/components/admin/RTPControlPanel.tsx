@@ -1,10 +1,10 @@
 import React, { useState } from 'react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { RTPSimpleDashboard } from './scratch-card-rtp/RTPSimpleDashboard';
 import { RTPHealthMonitor } from './scratch-card-rtp/RTPHealthMonitor';
 import { RTPSettingsPanel } from './scratch-card-rtp/RTPSettingsPanel';
 import { RTPObservabilityDashboard } from './scratch-card-rtp/RTPObservabilityDashboard';
 import { ScratchPrizeManager } from './scratch-card-rtp/ScratchPrizeManager';
-import { RTPMigrationPanel } from './scratch-card-rtp/RTPMigrationPanel';
 import { RTPAdvancedReports } from './scratch-card-rtp/RTPAdvancedReports';
 import { RTPAlertsPanel } from './scratch-card-rtp/RTPAlertsPanel';
 
@@ -21,9 +21,9 @@ export function RTPControlPanel() {
         </p>
       </div>
 
-      <Tabs defaultValue="migration" className="w-full">
+      <Tabs defaultValue="simple" className="w-full">
         <TabsList className="grid w-full grid-cols-7">
-          <TabsTrigger value="migration">Migração</TabsTrigger>
+          <TabsTrigger value="simple">Simples</TabsTrigger>
           <TabsTrigger value="observability">Observabilidade</TabsTrigger>
           <TabsTrigger value="reports">Relatórios</TabsTrigger>
           <TabsTrigger value="alerts">Alertas</TabsTrigger>
@@ -32,8 +32,8 @@ export function RTPControlPanel() {
           <TabsTrigger value="settings">Configurações</TabsTrigger>
         </TabsList>
         
-        <TabsContent value="migration" className="space-y-6">
-          <RTPMigrationPanel />
+        <TabsContent value="simple" className="space-y-6">
+          <RTPSimpleDashboard />
         </TabsContent>
         
         <TabsContent value="observability" className="space-y-6">
