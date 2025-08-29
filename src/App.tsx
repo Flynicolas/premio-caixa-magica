@@ -38,6 +38,7 @@ import RaspadinhaPlay from "./pages/RaspadinhaPlay";
 import Afiliados from "./pages/Afiliados";
 import Affiliate from "./pages/Affiliate";
 import { ReferralTracker } from "./components/tracking/ReferralTracker";
+import ScrollToTop from "./components/ScrollToTop";
 
 const queryClient = new QueryClient();
 
@@ -102,6 +103,7 @@ const App = () => {
             <Toaster />
             <Sonner />
             <BrowserRouter>
+              <ScrollToTop />
               <ReferralTracker />
               <AppContent />
             </BrowserRouter>

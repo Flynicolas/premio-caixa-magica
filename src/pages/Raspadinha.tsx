@@ -171,13 +171,8 @@ const Raspadinha = () => {
                     {/* Content Overlay */}
                     <div className="absolute bottom-0 left-0 right-0 p-4 md:p-6 text-white">
                       
-                      {/* Title */}
-                      <h3 className="text-xl md:text-2xl font-bold mb-2 text-white drop-shadow-lg">
-                        {card.title}
-                      </h3>
-
                       {/* Prize Amount - Mobile optimized */}
-                      <div className="mb-3">
+                      <div className="mb-2">
                         <span className="text-yellow-400 font-bold text-sm md:text-lg">PRÊMIOS ATÉ </span>
                         <span className="text-yellow-400 font-black text-xl md:text-2xl">
                           {card.maxPrize}
