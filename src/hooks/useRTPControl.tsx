@@ -95,7 +95,7 @@ export const useRTPControl = () => {
     }
   };
 
-  // Atualizar RTP target
+  // Atualizar RTP target - Sistema RTP Exclusivo
   const updateTargetRTP = async (scratchType: string, targetRtp: number) => {
     try {
       const { error } = await supabase
@@ -108,18 +108,7 @@ export const useRTPControl = () => {
 
       if (error) throw error;
 
-      // Atualizar também na tabela rtp_pots se existir
-      const { error: potError } = await supabase
-        .from('rtp_pots')
-        .update({ rtp_target: targetRtp / 100 })
-        .eq('game_type', scratchType);
-
-      // Ignorar erro se a tabela não existir
-      if (potError && !potError.message.includes('does not exist')) {
-        console.warn('Erro ao atualizar rtp_pots:', potError);
-      }
-
-      toast.success(`RTP target atualizado para ${targetRtp}%`);
+      toast.success(`RTP Exclusivo atualizado para ${targetRtp}% - Sistema simplificado ativo`);
       await loadRTPSettings();
     } catch (error) {
       console.error('Erro ao atualizar RTP target:', error);
@@ -127,7 +116,7 @@ export const useRTPControl = () => {
     }
   };
 
-  // Habilitar/Desabilitar RTP
+  // Habilitar/Desabilitar RTP Exclusivo
   const toggleRTPEnabled = async (scratchType: string, enabled: boolean) => {
     try {
       const { error } = await supabase
@@ -140,7 +129,7 @@ export const useRTPControl = () => {
 
       if (error) throw error;
 
-      toast.success(`RTP ${enabled ? 'habilitado' : 'desabilitado'} com sucesso`);
+      toast.success(`Sistema RTP Exclusivo ${enabled ? 'habilitado' : 'desabilitado'} - Controle simplificado por target RTP`);
       await loadRTPSettings();
     } catch (error) {
       console.error('Erro ao alterar status RTP:', error);

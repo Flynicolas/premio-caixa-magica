@@ -81,9 +81,9 @@ export function RTPSimpleDashboard() {
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h2 className="text-2xl font-bold">RTP Simples</h2>
+          <h2 className="text-2xl font-bold">RTP Exclusivo - Controle Simplificado</h2>
           <p className="text-muted-foreground">
-            Controle essencial do sistema RTP para uso diário
+            Sistema RTP Exclusivo: Cada raspadinha com seu target RTP configurado
           </p>
         </div>
         

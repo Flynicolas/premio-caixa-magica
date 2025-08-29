@@ -181,9 +181,31 @@ serve(async (req) => {
       return jsonError(`Nenhum item encontrado para raspadinha tipo: ${scratchType}`, 400);
     }
 
-    // =================== 4. DECIDE WIN/LOSS ===================
+    // =================== 4. DECIDE WIN/LOSS - RTP EXCLUSIVO ===================
     
-    let hasWin = !!forcedWin || (Math.random() < baseProbability);
+    // Buscar configurações RTP da raspadinha
+    const { data: rtpSettings, error: rtpErr } = await supabase
+      .from('scratch_card_settings')
+      .select('target_rtp, rtp_enabled')
+      .eq('scratch_type', scratchType)
+      .single();
+
+    if (rtpErr || !rtpSettings) {
+      return jsonError('Configurações RTP não encontradas', 400);
+    }
+
+    // Usar RTP configurado se habilitado, senão usar probabilidade padrão
+    const winProbability = rtpSettings.rtp_enabled 
+      ? rtpSettings.target_rtp / 100 
+      : baseProbability;
+
+    let hasWin = !!forcedWin || (Math.random() < winProbability);
+    
+    console.log(`🎯 RTP EXCLUSIVO - Scratch Card:`);
+    console.log(`   - RTP habilitado: ${rtpSettings.rtp_enabled}`);
+    console.log(`   - Target RTP: ${rtpSettings.target_rtp}%`);
+    console.log(`   - Probabilidade usada: ${(winProbability * 100).toFixed(2)}%`);
+    console.log(`   - Resultado: ${hasWin ? '✅ GANHOU' : '❌ PERDEU'}`);
     let winningItem: ScratchSymbol | null = null;
 
     if (hasWin) {

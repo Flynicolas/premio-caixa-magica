@@ -268,100 +268,83 @@ serve(async (req) => {
       }
     }
     
-    // PRIORIDADE 2: Sistema inteligente 90/10
+     // PRIORIDADE 2: Sistema RTP Exclusivo
     if (!hasWin && !forcedWin) {
+      // Buscar configurações RTP da raspadinha
+      const { data: settings, error: settingsError } = await supabase
+        .from('scratch_card_settings')
+        .select('target_rtp, rtp_enabled')
+        .eq('scratch_type', scratchType)
+        .single();
+
+      if (settingsError || !settings) {
+        throw new Error('Configurações RTP não encontradas');
+      }
+
+      // Usar apenas o RTP configurado na raspadinha
+      winProbability = settings.rtp_enabled ? settings.target_rtp / 100 : 0.20; // Default 20% se RTP desabilitado
+      
       const randomRoll = Math.random();
       hasWin = randomRoll < winProbability;
       
+      console.log(`🎯 SISTEMA RTP EXCLUSIVO:`);
+      console.log(`   - RTP habilitado: ${settings.rtp_enabled}`);
+      console.log(`   - RTP configurado: ${settings.target_rtp}%`);
+      console.log(`   - Probabilidade: ${(winProbability * 100).toFixed(2)}%`);
+      console.log(`   - Roll: ${(randomRoll * 100).toFixed(2)}%`);
+      console.log(`   - Resultado: ${hasWin ? '✅ GANHOU' : '❌ PERDEU'}`);
+      
       if (hasWin) {
-        decisionType = 'intelligent_win';
-        decisionReason = `Sistema 90/10 - Roll: ${(randomRoll * 100).toFixed(2)}% vs ${(winProbability * 100).toFixed(2)}%`;
+        decisionType = 'rtp_exclusive';
+        decisionReason = `RTP Exclusivo - Target: ${settings.target_rtp}%`;
         
-        // 🚨 FILTRO RIGOROSO DE ITENS - CONTROLE 90/10 EMERGENCIAL
-        let eligibleItems = items.filter(item => {
+        // Filtrar itens disponíveis por peso de probabilidade
+        const availableItems = items.filter(item => {
           const prob = probabilities.find(p => p.item_id === item.id);
-          const hasValidProbability = prob && prob.probability_weight > 0;
-          
-          if (!hasValidProbability) return false;
-          
-          // 🚨 BLACKOUT CRÍTICO: Apenas dinheiro até R$ 3
-          if (remainingBudget < 5) {
-            return item.category === 'dinheiro' && item.base_value <= 3;
-          }
-          
-          // ⚠️ ORÇAMENTO BAIXO: Apenas dinheiro até R$ 5
-          if (remainingBudget < 20) {
-            return item.category === 'dinheiro' && item.base_value <= 5;
-          }
-          
-          // 💰 ORÇAMENTO MÉDIO: Priorizar dinheiro, físicos só até R$ 15
-          if (remainingBudget < 50) {
-            if (item.category === 'dinheiro') return item.base_value <= remainingBudget;
-            return item.base_value <= 15;
-          }
-          
-          // 📈 ORÇAMENTO ALTO: 80% dinheiro, 20% físicos
-          if (remainingBudget < 100) {
-            if (item.category === 'dinheiro') return item.base_value <= remainingBudget;
-            return item.base_value <= 30; // Limitar físicos
-          }
-          
-          // 🎯 ORÇAMENTO EXCELENTE: Permitir itens maiores mas com controle
-          if (item.category === 'dinheiro') return item.base_value <= remainingBudget;
-          return item.base_value <= Math.min(50, remainingBudget * 0.8); // Máximo 50 ou 80% do orçamento
+          return prob && prob.probability_weight > 0;
         });
-
-        if (eligibleItems.length > 0) {
-          // Ordenar por valor (menores primeiro para preservar orçamento)
-          eligibleItems.sort((a, b) => a.base_value - b.base_value);
-          
-          // Selecionar baseado em peso de probabilidade
-          const totalWeight = eligibleItems.reduce((sum, item) => {
+        
+        if (availableItems.length > 0) {
+          // Selecionar item baseado no peso de probabilidade
+          const totalWeight = availableItems.reduce((sum, item) => {
             const prob = probabilities.find(p => p.item_id === item.id);
-            return sum + (prob ? prob.probability_weight : 0);
+            return sum + (prob?.probability_weight || 0);
           }, 0);
           
-          if (totalWeight > 0) {
-            let randomWeight = Math.random() * totalWeight;
-            let selectedItem = eligibleItems[0];
-            
-            for (const item of eligibleItems) {
-              const prob = probabilities.find(p => p.item_id === item.id);
-              const weight = prob ? prob.probability_weight : 0;
-              randomWeight -= weight;
-              if (randomWeight <= 0) {
-                selectedItem = item;
-                break;
-              }
+          let randomWeight = Math.random() * totalWeight;
+          let selectedItem = availableItems[0];
+          
+          for (const item of availableItems) {
+            const prob = probabilities.find(p => p.item_id === item.id);
+            const weight = prob?.probability_weight || 0;
+            randomWeight -= weight;
+            if (randomWeight <= 0) {
+              selectedItem = item;
+              break;
             }
-
-            winningItem = {
-              id: selectedItem.id,
-              symbolId: selectedItem.id,
-              name: selectedItem.name,
-              image_url: selectedItem.image_url,
-              rarity: selectedItem.rarity,
-              base_value: selectedItem.base_value,
-              isWinning: true,
-              category: selectedItem.category
-            };
-
-            console.log(`🧮 VITÓRIA INTELIGENTE: ${winningItem.name} - R$ ${winningItem.base_value}`);
-          } else {
-            hasWin = false;
-            decisionType = 'loss';
-            decisionReason = 'Sistema 90/10 - Sem itens com peso válido';
-            console.log(`❌ Roll ganhou mas sem itens válidos`);
           }
+
+          winningItem = {
+            id: selectedItem.id,
+            symbolId: selectedItem.id,
+            name: selectedItem.name,
+            image_url: selectedItem.image_url,
+            rarity: selectedItem.rarity,
+            base_value: selectedItem.base_value,
+            isWinning: true,
+            category: selectedItem.category
+          };
+
+          console.log(`🎁 ITEM SELECIONADO RTP: ${winningItem.name} - R$ ${winningItem.base_value} (peso: ${probabilities.find(p => p.item_id === selectedItem.id)?.probability_weight})`);
         } else {
           hasWin = false;
-          decisionType = 'budget_block';
-          decisionReason = 'Sistema 90/10 - Orçamento insuficiente para itens disponíveis';
-          console.log(`❌ Roll ganhou mas orçamento insuficiente`);
+          decisionType = 'loss';
+          decisionReason = 'RTP Exclusivo - Sem itens com peso válido';
+          console.log(`❌ Roll ganhou mas sem itens válidos`);
         }
       } else {
         decisionType = 'loss';
-        decisionReason = `Sistema 90/10 - Roll perdeu: ${(randomRoll * 100).toFixed(2)}% vs ${(winProbability * 100).toFixed(2)}%`;
+        decisionReason = `RTP Exclusivo - Roll perdeu: ${(randomRoll * 100).toFixed(2)}% vs ${(winProbability * 100).toFixed(2)}%`;
         console.log(`❌ DERROTA: Roll ${(randomRoll * 100).toFixed(2)}% não atingiu ${(winProbability * 100).toFixed(2)}%`);
       }
     }
@@ -529,7 +512,7 @@ serve(async (req) => {
       scratchType
     };
 
-    console.log(`✅ SISTEMA 90/10 AVANÇADO CONCLUÍDO`);
+    console.log(`✅ SISTEMA RTP EXCLUSIVO CONCLUÍDO`);
     console.log(`🎯 Resultado: ${hasWin ? 'VITÓRIA' : 'DERROTA'} - ${decisionType}`);
     console.log(`📈 Probabilidade final: ${(winProbability * 100).toFixed(2)}%`);
     console.log(`💰 Orçamento restante: R$ ${remainingBudget.toFixed(2)}`);
