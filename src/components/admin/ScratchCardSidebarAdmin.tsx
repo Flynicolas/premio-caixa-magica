@@ -27,12 +27,15 @@ import {
   AlertTriangle, 
   Sparkles,
   TrendingUp,
-  DollarSign
+  DollarSign,
+  Percent
 } from 'lucide-react'
 import { ScratchCardDashboard } from './sidebar-sections/ScratchCardDashboard'
 import { ScratchCardItemManager } from './sidebar-sections/ScratchCardItemManager'
 import { ScratchCardUnifiedControls } from './sidebar-sections/ScratchCardUnifiedControls'
 import { ScratchCardAnalytics } from './sidebar-sections/ScratchCardAnalytics'
+import { ScratchCardConfigurationPanel } from './scratch-card-probability/ScratchCardConfigurationPanel'
+import { RTPSettingsPanel } from './scratch-card-rtp/RTPSettingsPanel'
 
 interface SidebarMenuItem {
   id: string
@@ -61,6 +64,18 @@ const menuItems: SidebarMenuItem[] = [
     section: 'scratch-controls'
   },
   {
+    id: 'probabilities',
+    title: 'Probabilidades',
+    icon: Percent,
+    section: 'scratch-probability'
+  },
+  {
+    id: 'rtp',
+    title: 'RTP',
+    icon: DollarSign,
+    section: 'scratch-rtp'
+  },
+  {
     id: 'analytics',
     title: 'Análises',
     icon: TrendingUp,
@@ -72,8 +87,19 @@ function ScratchCardSidebar() {
   const [searchParams] = useSearchParams()
   const navigate = useNavigate()
   const { state } = useSidebar()
-  
-  const currentSection = searchParams.get('section') || 'scratch-dashboard'
+
+  const normalizeSection = (s: string) => {
+    const map: Record<string, string> = {
+      'scratch-advanced': 'scratch-controls',
+      'scratch-config': 'scratch-controls',
+      'rtp-settings': 'scratch-rtp',
+      'probability-settings': 'scratch-probability',
+    }
+    return map[s] || s
+  }
+
+  const currentSectionRaw = searchParams.get('section') || 'scratch-dashboard'
+  const effectiveSection = normalizeSection(currentSectionRaw)
   
   const handleSectionChange = (section: string) => {
     navigate(`/admin?section=${section}`)
@@ -95,7 +121,7 @@ function ScratchCardSidebar() {
           <SidebarGroupContent>
             <SidebarMenu>
               {menuItems.map((item) => {
-                const isActive = currentSection === item.section
+                const isActive = effectiveSection === item.section
                 return (
                   <SidebarMenuItem key={item.id}>
                     <SidebarMenuButton
@@ -118,7 +144,17 @@ function ScratchCardSidebar() {
 
 export function ScratchCardSidebarAdmin() {
   const [searchParams] = useSearchParams()
-  const currentSection = searchParams.get('section') || 'scratch-dashboard'
+  const normalizeSection = (s: string) => {
+    const map: Record<string, string> = {
+      'scratch-advanced': 'scratch-controls',
+      'scratch-config': 'scratch-controls',
+      'rtp-settings': 'scratch-rtp',
+      'probability-settings': 'scratch-probability',
+    }
+    return map[s] || s
+  }
+  const currentSectionRaw = searchParams.get('section') || 'scratch-dashboard'
+  const currentSection = normalizeSection(currentSectionRaw)
   
   const { scratchTypes, probabilities, loading: managementLoading } = useScratchCardManagement()
   const { settings, loading: adminLoading } = useScratchCardAdministration()
@@ -149,6 +185,10 @@ export function ScratchCardSidebarAdmin() {
         return <ScratchCardItemManager />
       case 'scratch-controls':
         return <ScratchCardUnifiedControls />
+      case 'scratch-probability':
+        return <ScratchCardConfigurationPanel />
+      case 'scratch-rtp':
+        return <RTPSettingsPanel />
       case 'scratch-analytics':
         return <ScratchCardAnalytics />
       default:
