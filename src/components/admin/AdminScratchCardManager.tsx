@@ -1,9 +1,9 @@
-import { ScratchCardSidebarAdmin } from './ScratchCardSidebarAdmin'
+import { ScratchCardUnifiedAdmin } from './ScratchCardUnifiedAdmin'
 
 interface AdminScratchCardManagerProps {
   activeTab: string
 }
 
 export function AdminScratchCardManager({ activeTab }: AdminScratchCardManagerProps) {
-  return <ScratchCardSidebarAdmin />
+  return <ScratchCardUnifiedAdmin />
 }
