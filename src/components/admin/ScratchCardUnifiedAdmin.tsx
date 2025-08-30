@@ -1,81 +1,61 @@
-import { useState } from 'react';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
-import { Alert, AlertDescription } from '@/components/ui/alert';
-import { 
-  Settings2, 
-  BarChart3, 
-  TrendingUp, 
-  Sparkles, 
-  AlertTriangle,
-  Save,
-  Shield,
-  Target,
-  Coins
-} from 'lucide-react';
-import { AdvancedScratchControlPanel } from './advanced-scratch-control/AdvancedScratchControlPanel';
-import { useScratchCardManagement } from '@/hooks/useScratchCardManagement';
-import { useScratchCardAdministration } from '@/hooks/useScratchCardAdministration';
-import { useAdvancedScratchCard } from '@/hooks/useAdvancedScratchCard';
-import { scratchCardTypes } from '@/types/scratchCard';
+import { useState, useEffect } from 'react'
+import { useSearchParams } from 'react-router-dom'
+import { useScratchCardManagement } from '@/hooks/useScratchCardManagement'
+import { useScratchCardAdministration } from '@/hooks/useScratchCardAdministration'
+import { useAdvancedScratchCard } from '@/hooks/useAdvancedScratchCard'
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
+import { Badge } from '@/components/ui/badge'
+import { Alert, AlertDescription } from '@/components/ui/alert'
+import { AlertTriangle, DollarSign, TrendingUp, Shield, BarChart3, Package, Settings2, Sparkles } from 'lucide-react'
+import { AdvancedScratchControlPanel } from './advanced-scratch-control/AdvancedScratchControlPanel'
+import { ScratchCardItemManagement } from './advanced-scratch/ScratchCardItemManagement'
+import { ScratchCardConfigurationPanel } from './scratch-card-probability/ScratchCardConfigurationPanel'
+import { scratchCardTypes } from '@/types/scratchCard'
 
 export function ScratchCardUnifiedAdmin() {
-  const [activeTab, setActiveTab] = useState('dashboard');
-  const { probabilities, loading: probLoading } = useScratchCardManagement();
-  const { settings, loading: settingsLoading } = useScratchCardAdministration();
-  const { scratchCards, loading: advancedLoading } = useAdvancedScratchCard();
+  const [searchParams] = useSearchParams()
+  const sectionParam = searchParams.get('section')
+  
+  // Map URL sections to tab values
+  const getTabFromSection = (section: string | null) => {
+    switch (section) {
+      case 'scratch-items': return 'items'
+      case 'scratch-rtp': return 'advanced'
+      case 'scratch-probability': return 'probability'
+      case 'scratch-profitability': return 'profitability'
+      case 'scratch-security': return 'security'
+      case 'scratch-reports': return 'reports'
+      default: return 'dashboard'
+    }
+  }
 
-  const loading = probLoading || settingsLoading || advancedLoading;
+  const [activeTab, setActiveTab] = useState(getTabFromSection(sectionParam))
+  
+  const { scratchTypes, probabilities, loading: managementLoading } = useScratchCardManagement()
+  const { settings, loading: adminLoading } = useScratchCardAdministration()
+  const { scratchCards, loading: advancedLoading } = useAdvancedScratchCard()
 
-  // Calcular estatísticas dinâmicas
-  const getDashboardStats = () => {
-    const totalTypes = settings.length;
-    const configuredTypes = probabilities.length > 0 ? new Set(probabilities.map(p => p.scratch_type)).size : 0;
-    const totalItems = probabilities.length;
-    
-    // Calcular estatísticas de segurança
-    const dangerousConfigs = scratchCards.filter(sc => 
-      (sc.win_probability_global || 0) > 20 || ((sc as any).target_rtp || 0) > 60
-    ).length;
-    
-    const healthyProfit = scratchCards.filter(sc => {
-      const avgPrize = 10; // Estimativa
-      const expectedProfit = (100 - sc.win_probability_global) / 100;
-      return expectedProfit > 0.7; // Mais de 70% de lucro
-    }).length;
+  useEffect(() => {
+    setActiveTab(getTabFromSection(sectionParam))
+  }, [sectionParam])
 
-    return {
-      totalTypes,
-      configuredTypes,
-      totalItems,
-      dangerousConfigs,
-      healthyProfit,
-      stats: settings.map(setting => {
-        const typeProbs = probabilities.filter(p => p.scratch_type === setting.scratch_type);
-        const frontendType = Object.entries(scratchCardTypes).find(
-          ([key]) => key === setting.scratch_type
-        );
-        const scratchConfig = scratchCards.find(sc => sc.scratch_type === setting.scratch_type);
-        
-        return {
-          value: setting.scratch_type,
-          label: setting.name,
-          price: setting.price,
-          color: frontendType ? frontendType[1].bgColor : 'bg-gray-500',
-          itemCount: typeProbs.length,
-          isConfigured: typeProbs.length > 0,
-          isActive: setting.is_active,
-          winProbability: scratchConfig?.win_probability_global || 0,
-          targetRTP: (scratchConfig as any)?.target_rtp || 0,
-          isDangerous: scratchConfig ? ((scratchConfig.win_probability_global || 0) > 20 || ((scratchConfig as any).target_rtp || 0) > 60) : false
-        };
-      })
-    };
-  };
+  const loading = managementLoading || adminLoading || advancedLoading
 
-  const overview = getDashboardStats();
+  // Calculate dashboard statistics
+  const stats = {
+    totalTypes: scratchTypes?.length || settings?.length || 0,
+    configuredTypes: probabilities ? new Set(probabilities.filter(p => p.is_active).map(p => p.scratch_type)).size : 0,
+    totalItems: probabilities?.filter(p => p.is_active)?.length || 0,
+    dangerousConfigs: scratchCards?.filter(sc => 
+      (sc.win_probability_global || 0) > 15 || ((sc as any).target_rtp || 0) > 20
+    ).length || 0,
+    healthyProfit: scratchCards?.filter(sc => {
+      const winProb = sc.win_probability_global || 0
+      const targetRtp = (sc as any).target_rtp || 0
+      return winProb >= 5 && winProb <= 10 && targetRtp >= 10 && targetRtp <= 15
+    }).length || 0
+  }
 
   if (loading) {
     return (
@@ -84,7 +64,7 @@ export function ScratchCardUnifiedAdmin() {
           <div className="text-center">Carregando sistema unificado...</div>
         </CardContent>
       </Card>
-    );
+    )
   }
 
   return (
@@ -102,221 +82,229 @@ export function ScratchCardUnifiedAdmin() {
         </div>
         
         <div className="flex items-center gap-3">
-          <Badge variant={overview.dangerousConfigs > 0 ? "destructive" : "default"} className="gap-2">
+          <Badge variant={stats.dangerousConfigs > 0 ? "destructive" : "default"} className="gap-2">
             <Shield className="w-4 h-4" />
-            {overview.dangerousConfigs === 0 ? 'Configurações Seguras' : `${overview.dangerousConfigs} Configs. Perigosas`}
+            {stats.dangerousConfigs === 0 ? 'Configurações Seguras' : `${stats.dangerousConfigs} Configs. Perigosas`}
           </Badge>
         </div>
       </div>
 
-      {/* Alerta de Segurança */}
-      {overview.dangerousConfigs > 0 && (
-        <Alert className="border-red-200 bg-red-50">
-          <AlertTriangle className="w-5 h-5 text-red-600" />
-          <AlertDescription className="text-red-700">
-            <strong>Atenção:</strong> Foram detectadas {overview.dangerousConfigs} configurações perigosas 
+      {/* Security Alert */}
+      {stats.dangerousConfigs > 0 && (
+        <Alert className="border-destructive/50 bg-destructive/10">
+          <AlertTriangle className="w-5 h-5 text-destructive" />
+          <AlertDescription>
+            <strong>Atenção:</strong> Foram detectadas {stats.dangerousConfigs} configurações perigosas 
             que podem causar prejuízos. Acesse a aba "Controles Avançados" para corrigir.
           </AlertDescription>
         </Alert>
       )}
 
-      {/* Tabs Principais */}
-      <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-        <TabsList className="grid w-full grid-cols-5">
-          <TabsTrigger value="dashboard" className="gap-2">
-            <BarChart3 className="w-4 h-4" />
-            Dashboard
-          </TabsTrigger>
-          <TabsTrigger value="advanced-controls" className="gap-2">
-            <Settings2 className="w-4 h-4" />
-            Controles Avançados
-          </TabsTrigger>
-          <TabsTrigger value="profitability" className="gap-2">
-            <TrendingUp className="w-4 h-4" />
-            Lucratividade
-          </TabsTrigger>
-          <TabsTrigger value="security" className="gap-2">
-            <Shield className="w-4 h-4" />
-            Segurança
-          </TabsTrigger>
-          <TabsTrigger value="reports" className="gap-2">
-            <BarChart3 className="w-4 h-4" />
-            Relatórios
-          </TabsTrigger>
+      {/* Main Tabs */}
+      <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
+        <TabsList className="grid w-full grid-cols-6">
+          <TabsTrigger value="dashboard">Dashboard</TabsTrigger>
+          <TabsTrigger value="items">Gerenciar Itens</TabsTrigger>
+          <TabsTrigger value="probability">Probabilidades</TabsTrigger>
+          <TabsTrigger value="advanced">Controles Avançados</TabsTrigger>
+          <TabsTrigger value="profitability">Lucratividade</TabsTrigger>
+          <TabsTrigger value="security">Segurança</TabsTrigger>
         </TabsList>
 
-        {/* Dashboard Principal */}
         <TabsContent value="dashboard" className="space-y-6">
-          {/* Estatísticas Gerais */}
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+          {/* Dashboard Statistics */}
+          <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
             <Card>
-              <CardContent className="p-4">
-                <div className="text-center">
-                  <div className="text-2xl font-bold text-primary">{overview.totalTypes}</div>
-                  <div className="text-sm text-muted-foreground">Tipos Total</div>
-                </div>
+              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                <CardTitle className="text-sm font-medium">Tipos Totais</CardTitle>
+                <Package className="h-4 w-4 text-muted-foreground" />
+              </CardHeader>
+              <CardContent>
+                <div className="text-2xl font-bold">{stats.totalTypes}</div>
+                <p className="text-xs text-muted-foreground">raspadinhas configuradas</p>
               </CardContent>
             </Card>
             
             <Card>
-              <CardContent className="p-4">
-                <div className="text-center">
-                  <div className="text-2xl font-bold text-green-600">{overview.configuredTypes}</div>
-                  <div className="text-sm text-muted-foreground">Configurados</div>
-                </div>
+              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                <CardTitle className="text-sm font-medium">Tipos Configurados</CardTitle>
+                <TrendingUp className="h-4 w-4 text-muted-foreground" />
+              </CardHeader>
+              <CardContent>
+                <div className="text-2xl font-bold">{stats.configuredTypes}</div>
+                <p className="text-xs text-muted-foreground">com itens ativos</p>
               </CardContent>
             </Card>
-            
+
             <Card>
-              <CardContent className="p-4">
-                <div className="text-center">
-                  <div className="text-2xl font-bold text-blue-600">{overview.totalItems}</div>
-                  <div className="text-sm text-muted-foreground">Itens Ativos</div>
-                </div>
+              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                <CardTitle className="text-sm font-medium">Itens Totais</CardTitle>
+                <BarChart3 className="h-4 w-4 text-muted-foreground" />
+              </CardHeader>
+              <CardContent>
+                <div className="text-2xl font-bold">{stats.totalItems}</div>
+                <p className="text-xs text-muted-foreground">nos sistemas</p>
               </CardContent>
             </Card>
-            
+
             <Card>
-              <CardContent className="p-4">
-                <div className="text-center">
-                  <div className={`text-2xl font-bold ${overview.dangerousConfigs === 0 ? 'text-green-600' : 'text-red-600'}`}>
-                    {overview.dangerousConfigs === 0 ? '✓' : overview.dangerousConfigs}
-                  </div>
-                  <div className="text-sm text-muted-foreground">Riscos</div>
-                </div>
+              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                <CardTitle className="text-sm font-medium">Configurações Perigosas</CardTitle>
+                <AlertTriangle className="h-4 w-4 text-destructive" />
+              </CardHeader>
+              <CardContent>
+                <div className="text-2xl font-bold text-destructive">{stats.dangerousConfigs}</div>
+                <p className="text-xs text-muted-foreground">requerem atenção</p>
               </CardContent>
             </Card>
           </div>
 
-          {/* Status por Tipo */}
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            {overview.stats.map((type) => (
-              <Card key={type.value} className={`border-l-4 ${
-                type.isDangerous ? 'border-l-red-500' : 
-                type.isConfigured ? 'border-l-green-500' : 'border-l-orange-500'
-              }`}>
-                <CardHeader className="pb-3">
-                  <CardTitle className="flex items-center justify-between">
-                    <div className="flex items-center gap-3">
-                      <div className={`w-4 h-4 rounded-full ${type.color}`} />
-                      {type.label}
-                    </div>
-                    <div className="flex gap-2">
-                      {type.isDangerous && (
-                        <Badge variant="destructive" className="text-xs">
-                          Perigoso
-                        </Badge>
-                      )}
-                      <Badge variant={type.isConfigured ? 'default' : 'secondary'}>
-                        {type.isConfigured ? 'OK' : 'Pendente'}
-                      </Badge>
-                    </div>
-                  </CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <div className="grid grid-cols-2 gap-4 text-sm">
-                    <div>
-                      <span className="text-muted-foreground">Preço:</span>
-                      <span className="font-medium ml-2">R$ {type.price.toFixed(2)}</span>
-                    </div>
-                    <div>
-                      <span className="text-muted-foreground">Itens:</span>
-                      <span className="font-medium ml-2">{type.itemCount}</span>
-                    </div>
-                    <div>
-                      <span className="text-muted-foreground">Win Prob:</span>
-                      <span className={`font-medium ml-2 ${type.winProbability > 20 ? 'text-red-600' : 'text-green-600'}`}>
-                        {type.winProbability.toFixed(1)}%
-                      </span>
-                    </div>
-                    <div>
-                      <span className="text-muted-foreground">RTP:</span>
-                      <span className={`font-medium ml-2 ${type.targetRTP > 60 ? 'text-red-600' : 'text-green-600'}`}>
-                        {type.targetRTP.toFixed(1)}%
-                      </span>
-                    </div>
-                  </div>
-                </CardContent>
-              </Card>
-            ))}
-          </div>
-        </TabsContent>
-
-        {/* Controles Avançados */}
-        <TabsContent value="advanced-controls">
-          <AdvancedScratchControlPanel />
-        </TabsContent>
-
-        {/* Lucratividade */}
-        <TabsContent value="profitability">
+          {/* Detailed Breakdown */}
           <Card>
             <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <Coins className="w-5 h-5" />
-                Análise de Lucratividade
-              </CardTitle>
+              <CardTitle>Análise por Tipo de Raspadinha</CardTitle>
+              <CardDescription>
+                Estado atual de cada tipo de raspadinha no sistema
+              </CardDescription>
             </CardHeader>
             <CardContent>
-              <div className="text-center py-8 text-muted-foreground">
-                <Target className="w-12 h-12 mx-auto mb-4 opacity-50" />
-                <p>Calculadora avançada de lucratividade em desenvolvimento</p>
-                <p className="text-sm mt-2">
-                  Use os "Controles Avançados" para simular cenários de lucratividade
-                </p>
+              <div className="space-y-4">
+                {scratchTypes?.map((type) => {
+                  const typeProbs = probabilities?.filter(p => p.scratch_type === type.scratch_type && p.is_active) || []
+                  const totalWeight = typeProbs.reduce((sum, p) => sum + (p.probability_weight || 0), 0)
+                  const hasItems = typeProbs.length > 0
+                  const scratchCard = scratchCards?.find(sc => sc.scratch_type === type.scratch_type)
+                  
+                  const winProb = scratchCard?.win_probability_global || 0
+                  const targetRTP = (scratchCard as any)?.target_rtp || 0
+                  
+                  // Risk assessment
+                  const isHighRisk = winProb > 15 || targetRTP > 20 || !hasItems
+                  const isHealthy = winProb >= 5 && winProb <= 10 && targetRTP >= 10 && targetRTP <= 15 && hasItems
+                  
+                  return (
+                    <div key={type.id} className="flex items-center justify-between p-4 border rounded-lg">
+                      <div className="space-y-1">
+                        <div className="flex items-center gap-2">
+                          <h3 className="font-medium">{type.name}</h3>
+                          <Badge variant="outline">R$ {type.price}</Badge>
+                        </div>
+                        <div className="flex items-center gap-4 text-sm text-muted-foreground">
+                          <span>{typeProbs.length} itens</span>
+                          <span>Peso total: {totalWeight}</span>
+                          <span>Win: {winProb}%</span>
+                          <span>RTP: {targetRTP}%</span>
+                        </div>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        {isHighRisk && (
+                          <Badge variant="destructive">Alto Risco</Badge>
+                        )}
+                        {isHealthy && (
+                          <Badge variant="default" className="bg-green-500">Saudável</Badge>
+                        )}
+                        {!hasItems && (
+                          <Badge variant="secondary">Sem Itens</Badge>
+                        )}
+                      </div>
+                    </div>
+                  )
+                }) || (
+                  <div className="text-center py-4 text-muted-foreground">
+                    Nenhum tipo de raspadinha encontrado
+                  </div>
+                )}
               </div>
             </CardContent>
           </Card>
         </TabsContent>
 
-        {/* Segurança */}
-        <TabsContent value="security">
+        <TabsContent value="items" className="space-y-6">
+          <ScratchCardItemManagement />
+        </TabsContent>
+
+        <TabsContent value="probability" className="space-y-6">
+          <ScratchCardConfigurationPanel />
+        </TabsContent>
+
+        <TabsContent value="advanced" className="space-y-6">
+          <AdvancedScratchControlPanel />
+        </TabsContent>
+
+        <TabsContent value="profitability" className="space-y-6">
           <Card>
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
-                <Shield className="w-5 h-5" />
-                Sistema de Segurança
+                <DollarSign className="h-5 w-5" />
+                Análise de Lucratividade
               </CardTitle>
+              <CardDescription>
+                Métricas de rentabilidade e performance financeira
+              </CardDescription>
             </CardHeader>
             <CardContent>
               <div className="space-y-4">
                 <Alert>
-                  <AlertTriangle className="w-4 h-4" />
+                  <TrendingUp className="h-4 w-4" />
                   <AlertDescription>
-                    Sistema de validações de segurança implementado. 
-                    Probabilidades limitadas entre 5-30% e RTPs entre configurações seguras.
+                    Sistema de análise de lucratividade em desenvolvimento. Use os "Controles Avançados" para simular cenários.
+                  </AlertDescription>
+                </Alert>
+              </div>
+            </CardContent>
+          </Card>
+        </TabsContent>
+
+        <TabsContent value="security" className="space-y-6">
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <Shield className="h-5 w-5" />
+                Análise de Segurança
+              </CardTitle>
+              <CardDescription>
+                Verificações de segurança e conformidade do sistema
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <div className="space-y-4">
+                <Alert>
+                  <AlertTriangle className="h-4 w-4" />
+                  <AlertDescription>
+                    Sistema de auditoria em desenvolvimento. Verificações automáticas serão implementadas em breve.
                   </AlertDescription>
                 </Alert>
                 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <Card>
                     <CardContent className="p-4">
-                      <h4 className="font-medium mb-2">Validações Ativas</h4>
-                      <ul className="text-sm space-y-1 text-muted-foreground">
-                        <li>✓ Win Probability: 5-30%</li>
-                        <li>✓ Caps de prêmio por tipo</li>
-                        <li>✓ Monitoramento de prejuízos</li>
-                        <li>✓ Alertas automáticos</li>
-                      </ul>
+                      <h4 className="font-medium mb-2">Status do Sistema</h4>
+                      <div className="space-y-2 text-sm">
+                        <div className="flex justify-between">
+                          <span>Configurações Seguras:</span>
+                          <Badge variant={stats.dangerousConfigs === 0 ? "default" : "destructive"}>
+                            {stats.totalTypes - stats.dangerousConfigs}/{stats.totalTypes}
+                          </Badge>
+                        </div>
+                        <div className="flex justify-between">
+                          <span>Tipos Lucrativos:</span>
+                          <Badge variant="default">
+                            {stats.healthyProfit}/{stats.totalTypes}
+                          </Badge>
+                        </div>
+                      </div>
                     </CardContent>
                   </Card>
                   
                   <Card>
                     <CardContent className="p-4">
-                      <h4 className="font-medium mb-2">Status do Sistema</h4>
-                      <div className="space-y-2">
-                        <div className="flex justify-between items-center text-sm">
-                          <span>Configurações Seguras:</span>
-                          <Badge variant={overview.dangerousConfigs === 0 ? "default" : "destructive"}>
-                            {overview.totalTypes - overview.dangerousConfigs}/{overview.totalTypes}
-                          </Badge>
-                        </div>
-                        <div className="flex justify-between items-center text-sm">
-                          <span>Tipos Lucrativos:</span>
-                          <Badge variant="default">
-                            {overview.healthyProfit}/{overview.totalTypes}
-                          </Badge>
-                        </div>
-                      </div>
+                      <h4 className="font-medium mb-2">Validações Ativas</h4>
+                      <ul className="text-sm space-y-1 text-muted-foreground">
+                        <li>✓ Win Probability: 5-15%</li>
+                        <li>✓ RTP: 10-20%</li>
+                        <li>✓ Caps de prêmio por tipo</li>
+                        <li>✓ Monitoramento automático</li>
+                      </ul>
                     </CardContent>
                   </Card>
                 </div>
@@ -324,28 +312,7 @@ export function ScratchCardUnifiedAdmin() {
             </CardContent>
           </Card>
         </TabsContent>
-
-        {/* Relatórios */}
-        <TabsContent value="reports">
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <BarChart3 className="w-5 h-5" />
-                Relatórios e Analytics
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="text-center py-8 text-muted-foreground">
-                <BarChart3 className="w-12 h-12 mx-auto mb-4 opacity-50" />
-                <p>Sistema de relatórios avançados em desenvolvimento</p>
-                <p className="text-sm mt-2">
-                  Em breve: análises de performance, ROI e métricas de usuário
-                </p>
-              </div>
-            </CardContent>
-          </Card>
-        </TabsContent>
       </Tabs>
     </div>
-  );
+  )
 }
