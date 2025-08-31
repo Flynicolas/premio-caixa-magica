@@ -61,11 +61,14 @@ export function AdminContent({ activeSection, items, refreshItems, financeV2Enab
 
       case 'scratch':
       case 'scratch-rtp':
+      case 'scratch-probability':
       case 'scratch-items':
       case 'scratch-manual':
       case 'scratch-reports':
+      case 'scratch-profitability':
+      case 'scratch-security':
         return (
-          <Suspense fallback={<div className="p-6 text-muted-foreground">Carregando sistema RTP...</div>}>
+          <Suspense fallback={<div className="p-6 text-muted-foreground">Carregando sistema de raspadinhas...</div>}>
             <AdminScratchCardManager activeTab={activeSection} />
           </Suspense>
         )

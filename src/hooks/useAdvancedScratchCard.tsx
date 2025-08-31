@@ -109,6 +109,27 @@ export const useAdvancedScratchCard = () => {
     }
   };
 
+  // Aplicar configurações padrão seguras
+  const applySafeDefaults = async () => {
+    const safeDefaults = {
+      pix: { win_probability_global: 8, target_rtp: 25 },
+      sorte: { win_probability_global: 10, target_rtp: 30 },
+      dupla: { win_probability_global: 12, target_rtp: 35 },
+      ouro: { win_probability_global: 8, target_rtp: 40 },
+      diamante: { win_probability_global: 6, target_rtp: 45 },
+      premium: { win_probability_global: 5, target_rtp: 50 }
+    };
+
+    try {
+      for (const [scratchType, defaults] of Object.entries(safeDefaults)) {
+        await updateScratchCard(scratchType, defaults);
+      }
+      toast.success('Configurações seguras aplicadas a todas as raspadinhas');
+    } catch (error) {
+      toast.error('Erro ao aplicar configurações seguras');
+    }
+  };
+
   // Atualizar configuração de raspadinha
   const updateScratchCard = async (scratchType: string, updates: Partial<ScratchCardSettings>) => {
     try {
@@ -254,6 +275,7 @@ export const useAdvancedScratchCard = () => {
     applyPreset,
     updateBankControl,
     simulateGame,
+    applySafeDefaults,
     refetch: loadData
   };
 };

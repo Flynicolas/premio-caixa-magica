@@ -18,10 +18,11 @@ export function AdvancedScratchControlPanel() {
     loading: scratchLoading
   } = useScratchCardManagement();
   
-  const {
-    scratchCards,
+  const { 
+    scratchCards, 
     loading: advancedLoading,
-    updateScratchCard
+    updateScratchCard,
+    applySafeDefaults
   } = useAdvancedScratchCard();
   
   const [activeTab, setActiveTab] = useState<string>('');
@@ -89,7 +90,7 @@ export function AdvancedScratchControlPanel() {
 
   return (
     <div className="space-y-6">
-      {/* Header */}
+      {/* Header com Botões de Ação */}
       <div className="flex items-center justify-between">
         <div>
           <h2 className="text-2xl font-bold text-primary flex items-center gap-2">
@@ -102,29 +103,42 @@ export function AdvancedScratchControlPanel() {
           </p>
         </div>
         
-        {hasChanges && (
+        <div className="flex items-center gap-3">
           <Button 
-            onClick={saveChanges}
-            disabled={saving}
-            className="gap-2"
+            onClick={applySafeDefaults}
+            variant="outline"
+            className="gap-2 border-green-200 text-green-700 hover:bg-green-50"
           >
-            <Save className="w-4 h-4" />
-            Salvar Alterações ({Object.keys(changes).length})
+            🛡️ Padrões Seguros
           </Button>
-        )}
+          
+          {hasChanges && (
+            <Button 
+              onClick={saveChanges}
+              disabled={saving}
+              className="gap-2"
+            >
+              <Save className="w-4 h-4" />
+              Salvar Alterações ({Object.keys(changes).length})
+            </Button>
+          )}
+        </div>
       </div>
 
-      {/* Alert de Configuração Crítica */}
-      <Card className="border-amber-200 bg-amber-50">
+      {/* Alert de Sistema Sincronizado */}
+      <Card className="border-blue-200 bg-blue-50">
         <CardContent className="p-4">
           <div className="flex items-start gap-3">
-            <TrendingUp className="w-5 h-5 text-amber-600 mt-0.5" />
+            <TrendingUp className="w-5 h-5 text-blue-600 mt-0.5" />
             <div>
-              <h3 className="font-medium text-amber-800">Configuração Crítica Corrigida</h3>
-              <p className="text-sm text-amber-700 mt-1">
-                Sistema corrigido: Win Probability e RTP agora são independentes. 
-                Win Probability controla <strong>frequência de vitórias</strong> (5-30%), 
-                RTP controla <strong>valor retornado</strong> (20-80%).
+              <h3 className="font-medium text-blue-800">Sistema Sincronizado Ativo</h3>
+              <p className="text-sm text-blue-700 mt-1">
+                <strong>Nova funcionalidade:</strong> Win Probability e RTP agora são sincronizados automaticamente. 
+                Win Probability controla <strong>frequência</strong> (3-15%), 
+                RTP controla <strong>valor retornado</strong> com limite máximo de <strong>Win_Probability × 4</strong>.
+              </p>
+              <p className="text-xs text-blue-600 mt-2">
+                💡 Exemplo: Win Probability 10% → RTP máximo 40% | Isso garante sustentabilidade matemática
               </p>
             </div>
           </div>
