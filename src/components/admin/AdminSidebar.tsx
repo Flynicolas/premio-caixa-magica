@@ -77,7 +77,8 @@ export function AdminSidebar({ activeSection, onSectionChange, financeV2Enabled 
             { id: 'scratch-rtp', label: 'RTP Simples' },
             { id: 'scratch-items', label: 'Configurar Itens' },
             { id: 'scratch-manual', label: 'Liberação Manual' },
-            { id: 'scratch-reports', label: 'Relatórios' }
+            { id: 'scratch-reports', label: 'Relatórios' },
+            { id: 'scratch-security', label: 'Auditoria & Segurança' }
           ]
         }
       ]

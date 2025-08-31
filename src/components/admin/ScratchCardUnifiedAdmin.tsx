@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react'
+
 import { useSearchParams } from 'react-router-dom'
 import { useScratchCardManagement } from '@/hooks/useScratchCardManagement'
 import { useScratchCardAdministration } from '@/hooks/useScratchCardAdministration'
@@ -6,11 +6,11 @@ import { useAdvancedScratchCard } from '@/hooks/useAdvancedScratchCard'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { Alert, AlertDescription } from '@/components/ui/alert'
-import { AlertTriangle, DollarSign, TrendingUp, Shield, BarChart3, Package, Settings2, Sparkles } from 'lucide-react'
-import { ScratchCardSidebarLayout } from './scratch-card-unified/ScratchCardSidebarLayout'
+import { AlertTriangle, TrendingUp, Shield, BarChart3, Package } from 'lucide-react'
+
 import { UnifiedItemManager } from './scratch-card-unified/UnifiedItemManager'
 import { AdvancedScratchControlPanel } from './advanced-scratch-control/AdvancedScratchControlPanel'
-import { scratchCardTypes } from '@/types/scratchCard'
+
 
 export function ScratchCardUnifiedAdmin() {
   const [searchParams] = useSearchParams()
@@ -263,8 +263,8 @@ export function ScratchCardUnifiedAdmin() {
   }
 
   return (
-    <ScratchCardSidebarLayout>
+    <>
       {renderContent()}
-    </ScratchCardSidebarLayout>
+    </>
   )
 }
