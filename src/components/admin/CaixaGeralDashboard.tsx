@@ -27,10 +27,17 @@ import {
   Target,
   BarChart3,
   TrendingDown,
-  Shield
+  Shield,
+  ArrowUpRight,
+  ArrowDownRight,
+  Activity,
+  Filter,
+  Search,
+  RefreshCw
 } from 'lucide-react';
 import { formatDistanceToNow } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
+import { Input } from '@/components/ui/input';
 
 const CaixaGeralDashboard = () => {
   const {
@@ -120,156 +127,268 @@ const CaixaGeralDashboard = () => {
   }
 
   return (
-    <div className="space-y-6">
-      {/* Header */}
-      <div className="flex items-center justify-between">
+    <div className="space-y-6 p-6 bg-background min-h-screen">
+      {/* Modern Header */}
+      <div className="flex items-center justify-between mb-8">
         <div>
-          <h2 className="text-2xl font-bold text-white">Caixa Geral</h2>
-          <p className="text-muted-foreground">Monitoramento completo de transações, carteira e resgates</p>
+          <h1 className="text-3xl font-bold bg-gradient-to-r from-primary to-primary/70 bg-clip-text text-transparent">
+            Dashboard Financeiro
+          </h1>
+          <p className="text-muted-foreground mt-1">Visão geral completa do sistema financeiro</p>
         </div>
-        <Button onClick={refreshRedemptionData} disabled={loading}>
-          <TrendingUp className="w-4 h-4 mr-2" />
-          Atualizar Dados
-        </Button>
+        <div className="flex items-center gap-3">
+          <Button onClick={refreshRedemptionData} disabled={loading} variant="outline" size="sm">
+            <RefreshCw className={`w-4 h-4 mr-2 ${loading ? 'animate-spin' : ''}`} />
+            Atualizar
+          </Button>
+        </div>
       </div>
 
-      {/* Cards de Estatísticas Principais */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 xl:grid-cols-8 gap-4">
-        {/* Estatísticas de Carteira */}
-        <Card className="bg-gradient-to-br from-green-900/20 to-green-800/20 border-green-500/30">
-          <CardContent className="p-4">
+      {/* Modern Metrics Grid */}
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+        {/* Depósitos Aprovados */}
+        <Card className="bg-card border-border hover:shadow-lg transition-all duration-300">
+          <CardContent className="p-6">
             <div className="flex items-center justify-between">
-              <div>
-                <p className="text-xs text-green-300">Saldo Total Sistema</p>
-                <p className="text-xl font-bold text-green-200">
-                  R$ {walletStats?.totalSystemBalance?.toFixed(2) || '0.00'}
-                </p>
+              <div className="space-y-2">
+                <p className="text-sm text-muted-foreground font-medium">Depósitos Aprovados</p>
+                <div className="flex items-center gap-2">
+                  <span className="text-2xl font-bold text-foreground">
+                    R$ {dailyStats?.totalDeposits?.toFixed(2) || '0.00'}
+                  </span>
+                  <div className="flex items-center text-green-500 text-xs">
+                    <ArrowUpRight className="w-3 h-3" />
+                    <span>+12%</span>
+                  </div>
+                </div>
+                <div className="w-full bg-muted h-1 rounded-full">
+                  <div className="bg-green-500 h-1 rounded-full w-3/4"></div>
+                </div>
               </div>
-              <Wallet className="w-8 h-8 text-green-400" />
+              <div className="bg-green-500/10 p-3 rounded-lg">
+                <TrendingUp className="w-6 h-6 text-green-500" />
+              </div>
             </div>
           </CardContent>
         </Card>
 
-        <Card className="bg-gradient-to-br from-blue-900/20 to-blue-800/20 border-blue-500/30">
-          <CardContent className="p-4">
+        {/* Saques Pendentes */}
+        <Card className="bg-card border-border hover:shadow-lg transition-all duration-300">
+          <CardContent className="p-6">
             <div className="flex items-center justify-between">
-              <div>
-                <p className="text-xs text-blue-300">Entradas Hoje</p>
-                <p className="text-xl font-bold text-blue-200">
-                  R$ {dailyStats?.totalDeposits?.toFixed(2) || '0.00'}
-                </p>
+              <div className="space-y-2">
+                <p className="text-sm text-muted-foreground font-medium">Saques Pendentes</p>
+                <div className="flex items-center gap-2">
+                  <span className="text-2xl font-bold text-foreground">
+                    {redemptionStats?.pending_approvals || 0}
+                  </span>
+                  <div className="flex items-center text-orange-500 text-xs">
+                    <ArrowDownRight className="w-3 h-3" />
+                    <span>-5%</span>
+                  </div>
+                </div>
+                <div className="w-full bg-muted h-1 rounded-full">
+                  <div className="bg-orange-500 h-1 rounded-full w-1/2"></div>
+                </div>
               </div>
-              <TrendingUp className="w-8 h-8 text-blue-400" />
+              <div className="bg-orange-500/10 p-3 rounded-lg">
+                <Clock className="w-6 h-6 text-orange-500" />
+              </div>
             </div>
           </CardContent>
         </Card>
 
-        <Card className="bg-gradient-to-br from-purple-900/20 to-purple-800/20 border-purple-500/30">
-          <CardContent className="p-4">
+        {/* Usuários Ativos */}
+        <Card className="bg-card border-border hover:shadow-lg transition-all duration-300">
+          <CardContent className="p-6">
             <div className="flex items-center justify-between">
-              <div>
-                <p className="text-xs text-purple-300">Vendas de Baús</p>
-                <p className="text-xl font-bold text-purple-200">
-                  R$ {dailyStats?.chestSales?.toFixed(2) || '0.00'}
-                </p>
+              <div className="space-y-2">
+                <p className="text-sm text-muted-foreground font-medium">Usuários Ativos</p>
+                <div className="flex items-center gap-2">
+                  <span className="text-2xl font-bold text-foreground">
+                    {topUsers?.length || 0}
+                  </span>
+                  <div className="flex items-center text-blue-500 text-xs">
+                    <ArrowUpRight className="w-3 h-3" />
+                    <span>+8%</span>
+                  </div>
+                </div>
+                <div className="w-full bg-muted h-1 rounded-full">
+                  <div className="bg-blue-500 h-1 rounded-full w-2/3"></div>
+                </div>
               </div>
-              <CreditCard className="w-8 h-8 text-purple-400" />
+              <div className="bg-blue-500/10 p-3 rounded-lg">
+                <Users className="w-6 h-6 text-blue-500" />
+              </div>
             </div>
           </CardContent>
         </Card>
 
-        <Card className="bg-gradient-to-br from-yellow-900/20 to-yellow-800/20 border-yellow-500/30">
-          <CardContent className="p-4">
+        {/* Ganhos/Perdas Totais */}
+        <Card className="bg-card border-border hover:shadow-lg transition-all duration-300">
+          <CardContent className="p-6">
             <div className="flex items-center justify-between">
-              <div>
-                <p className="text-xs text-yellow-300">Lucro Líquido</p>
-                <p className={`text-xl font-bold ${(dailyStats?.netProfit || 0) >= 0 ? 'text-yellow-200' : 'text-red-200'}`}>
-                  R$ {dailyStats?.netProfit?.toFixed(2) || '0.00'}
-                </p>
+              <div className="space-y-2">
+                <p className="text-sm text-muted-foreground font-medium">Lucro Líquido</p>
+                <div className="flex items-center gap-2">
+                  <span className={`text-2xl font-bold ${(dailyStats?.netProfit || 0) >= 0 ? 'text-green-500' : 'text-red-500'}`}>
+                    R$ {dailyStats?.netProfit?.toFixed(2) || '0.00'}
+                  </span>
+                  <div className={`flex items-center text-xs ${(dailyStats?.netProfit || 0) >= 0 ? 'text-green-500' : 'text-red-500'}`}>
+                    {(dailyStats?.netProfit || 0) >= 0 ? <ArrowUpRight className="w-3 h-3" /> : <ArrowDownRight className="w-3 h-3" />}
+                    <span>{(dailyStats?.netProfit || 0) >= 0 ? '+' : '-'}15%</span>
+                  </div>
+                </div>
+                <div className="w-full bg-muted h-1 rounded-full">
+                  <div className={`h-1 rounded-full w-4/5 ${(dailyStats?.netProfit || 0) >= 0 ? 'bg-green-500' : 'bg-red-500'}`}></div>
+                </div>
               </div>
-              <Target className="w-8 h-8 text-yellow-400" />
-            </div>
-          </CardContent>
-        </Card>
-
-        {/* Estatísticas de Resgates */}
-        <Card className="bg-gradient-to-br from-cyan-900/20 to-cyan-800/20 border-cyan-500/30">
-          <CardContent className="p-4">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-xs text-cyan-300">Resgates Totais</p>
-                <p className="text-xl font-bold text-cyan-200">{redemptionStats?.total_redemptions || 0}</p>
+              <div className={`bg-opacity-10 p-3 rounded-lg ${(dailyStats?.netProfit || 0) >= 0 ? 'bg-green-500/10' : 'bg-red-500/10'}`}>
+                <Target className={`w-6 h-6 ${(dailyStats?.netProfit || 0) >= 0 ? 'text-green-500' : 'text-red-500'}`} />
               </div>
-              <DollarSign className="w-8 h-8 text-cyan-400" />
-            </div>
-          </CardContent>
-        </Card>
-
-        <Card className="bg-gradient-to-br from-emerald-900/20 to-emerald-800/20 border-emerald-500/30">
-          <CardContent className="p-4">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-xs text-emerald-300">Valor Resgatado</p>
-                <p className="text-xl font-bold text-emerald-200">
-                  R$ {redemptionStats?.total_amount?.toFixed(2) || '0.00'}
-                </p>
-              </div>
-              <Wallet className="w-8 h-8 text-emerald-400" />
-            </div>
-          </CardContent>
-        </Card>
-
-        <Card className="bg-gradient-to-br from-orange-900/20 to-orange-800/20 border-orange-500/30">
-          <CardContent className="p-4">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-xs text-orange-300">Pendentes Aprovação</p>
-                <p className="text-xl font-bold text-orange-200">{redemptionStats?.pending_approvals || 0}</p>
-              </div>
-              <Clock className="w-8 h-8 text-orange-400" />
-            </div>
-          </CardContent>
-        </Card>
-
-        <Card className="bg-gradient-to-br from-red-900/20 to-red-800/20 border-red-500/30">
-          <CardContent className="p-4">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-xs text-red-300">Alertas Ativos</p>
-                <p className="text-xl font-bold text-red-200">{securityAlerts?.length || 0}</p>
-              </div>
-              <Shield className="w-8 h-8 text-red-400" />
             </div>
           </CardContent>
         </Card>
       </div>
+
+      {/* Retenção de Usuários */}
+      <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
+        <Card className="bg-card border-border">
+          <CardContent className="p-6">
+            <div className="text-center">
+              <p className="text-sm text-muted-foreground mb-2">1x Depósito</p>
+              <p className="text-3xl font-bold text-foreground">85%</p>
+              <div className="w-full bg-muted h-2 rounded-full mt-3">
+                <div className="bg-blue-500 h-2 rounded-full" style={{width: '85%'}}></div>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+
+        <Card className="bg-card border-border">
+          <CardContent className="p-6">
+            <div className="text-center">
+              <p className="text-sm text-muted-foreground mb-2">2x Depósito</p>
+              <p className="text-3xl font-bold text-foreground">62%</p>
+              <div className="w-full bg-muted h-2 rounded-full mt-3">
+                <div className="bg-green-500 h-2 rounded-full" style={{width: '62%'}}></div>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+
+        <Card className="bg-card border-border">
+          <CardContent className="p-6">
+            <div className="text-center">
+              <p className="text-sm text-muted-foreground mb-2">3x Depósito</p>
+              <p className="text-3xl font-bold text-foreground">41%</p>
+              <div className="w-full bg-muted h-2 rounded-full mt-3">
+                <div className="bg-yellow-500 h-2 rounded-full" style={{width: '41%'}}></div>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+
+        <Card className="bg-card border-border">
+          <CardContent className="p-6">
+            <div className="text-center">
+              <p className="text-sm text-muted-foreground mb-2">4x+ Depósito</p>
+              <p className="text-3xl font-bold text-foreground">28%</p>
+              <div className="w-full bg-muted h-2 rounded-full mt-3">
+                <div className="bg-purple-500 h-2 rounded-full" style={{width: '28%'}}></div>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+
+      {/* Modern Activity Section */}
+      <Card className="bg-card border-border">
+        <CardHeader className="pb-4">
+          <div className="flex items-center justify-between">
+            <CardTitle className="flex items-center gap-2">
+              <Activity className="w-5 h-5" />
+              Atividades Recentes
+            </CardTitle>
+            <div className="flex items-center gap-2">
+              <div className="relative">
+                <Search className="w-4 h-4 absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground" />
+                <Input 
+                  placeholder="Buscar atividades..." 
+                  className="pl-9 w-64"
+                />
+              </div>
+              <Button variant="outline" size="sm">
+                <Filter className="w-4 h-4 mr-2" />
+                Filtros
+              </Button>
+            </div>
+          </div>
+        </CardHeader>
+        <CardContent>
+          <div className="space-y-3">
+            {recentTransactions?.slice(0, 8).map((transaction, index) => (
+              <div key={index} className="flex items-center justify-between p-3 rounded-lg bg-muted/30 hover:bg-muted/50 transition-colors">
+                <div className="flex items-center gap-4">
+                  <div className="w-2 h-2 bg-green-500 rounded-full"></div>
+                  <div>
+                    <p className="text-sm font-medium text-foreground">
+                      {transaction.user_email}
+                    </p>
+                    <p className="text-xs text-muted-foreground">
+                      {transaction.type} • {formatDistanceToNow(new Date(transaction.created_at), { addSuffix: true, locale: ptBR })}
+                    </p>
+                  </div>
+                </div>
+                <div className="flex items-center gap-3">
+                  <Badge variant="secondary" className="text-xs">
+                    {transaction.type === 'deposit' ? 'Depósito' : 
+                     transaction.type === 'purchase' ? 'Compra' : 'Outros'}
+                  </Badge>
+                  <span className={`text-sm font-semibold ${
+                    transaction.type === 'deposit' ? 'text-green-500' : 'text-blue-500'
+                  }`}>
+                    R$ {transaction.amount.toFixed(2)}
+                  </span>
+                </div>
+              </div>
+            )) || (
+              <div className="text-center py-8">
+                <Activity className="w-12 h-12 mx-auto text-muted-foreground mb-4" />
+                <p className="text-lg font-semibold text-foreground">Nenhuma atividade recente</p>
+                <p className="text-muted-foreground">As atividades aparecerão aqui quando houver transações</p>
+              </div>
+            )}
+          </div>
+        </CardContent>
+      </Card>
 
       {/* Tabs para diferentes seções */}
       <Tabs defaultValue="overview" className="w-full">
-        <TabsList className="grid w-full grid-cols-5">
-          <TabsTrigger value="overview">Dashboard</TabsTrigger>
-          <TabsTrigger value="transactions">Transações & Histórico</TabsTrigger>
-          <TabsTrigger value="approvals">Liberações & Aprovações</TabsTrigger>
-          <TabsTrigger value="reports">Relatórios Financeiros</TabsTrigger>
-          <TabsTrigger value="casino-stats">Estatísticas de Casino</TabsTrigger>
+        <TabsList className="grid w-full grid-cols-5 bg-muted/30">
+          <TabsTrigger value="overview" className="data-[state=active]:bg-background">Dashboard</TabsTrigger>
+          <TabsTrigger value="transactions" className="data-[state=active]:bg-background">Transações & Histórico</TabsTrigger>
+          <TabsTrigger value="approvals" className="data-[state=active]:bg-background">Liberações & Aprovações</TabsTrigger>
+          <TabsTrigger value="reports" className="data-[state=active]:bg-background">Relatórios Financeiros</TabsTrigger>
+          <TabsTrigger value="casino-stats" className="data-[state=active]:bg-background">Estatísticas de Casino</TabsTrigger>
         </TabsList>
 
         {/* Visão Geral */}
         <TabsContent value="overview" className="space-y-6">
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
             {/* Resumo Mensal */}
-            <Card>
+            <Card className="bg-card border-border">
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
                   <Calendar className="w-5 h-5" />
-                  Resumo Mensal
+                  Performance Mensal
                 </CardTitle>
               </CardHeader>
               <CardContent className="space-y-4">
-                <div className="space-y-2">
-                  <div className="flex justify-between text-sm">
-                    <span>Entradas do Mês</span>
-                    <span className="font-semibold text-green-600">
+                <div className="space-y-3">
+                  <div className="flex justify-between items-center">
+                    <span className="text-sm text-muted-foreground">Entradas do Mês</span>
+                    <span className="font-semibold text-green-500">
                       R$ {monthlyStats?.totalDeposits?.toFixed(2) || '0.00'}
                     </span>
                   </div>
@@ -279,10 +398,10 @@ const CaixaGeralDashboard = () => {
                   />
                 </div>
                 
-                <div className="space-y-2">
-                  <div className="flex justify-between text-sm">
-                    <span>Vendas de Baús</span>
-                    <span className="font-semibold text-blue-600">
+                <div className="space-y-3">
+                  <div className="flex justify-between items-center">
+                    <span className="text-sm text-muted-foreground">Vendas de Baús</span>
+                    <span className="font-semibold text-blue-500">
                       R$ {monthlyStats?.chestSales?.toFixed(2) || '0.00'}
                     </span>
                   </div>
@@ -292,10 +411,10 @@ const CaixaGeralDashboard = () => {
                   />
                 </div>
 
-                <div className="pt-2 border-t">
+                <div className="pt-4 border-t border-border">
                   <div className="flex justify-between items-center">
-                    <span className="text-sm font-medium">Lucro Mensal:</span>
-                    <span className={`font-bold ${(monthlyStats?.netProfit || 0) >= 0 ? 'text-green-600' : 'text-red-600'}`}>
+                    <span className="text-sm font-medium text-foreground">Lucro Mensal:</span>
+                    <span className={`font-bold text-lg ${(monthlyStats?.netProfit || 0) >= 0 ? 'text-green-500' : 'text-red-500'}`}>
                       R$ {monthlyStats?.netProfit?.toFixed(2) || '0.00'}
                     </span>
                   </div>
@@ -304,7 +423,7 @@ const CaixaGeralDashboard = () => {
             </Card>
 
             {/* Top Usuários */}
-            <Card>
+            <Card className="bg-card border-border">
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
                   <Users className="w-5 h-5" />
@@ -314,20 +433,20 @@ const CaixaGeralDashboard = () => {
               <CardContent>
                 <div className="space-y-3">
                   {topUsers?.slice(0, 5).map((user, index) => (
-                    <div key={user.user_id} className="flex items-center justify-between p-2 rounded-lg bg-muted/50">
+                    <div key={user.user_id} className="flex items-center justify-between p-3 rounded-lg bg-muted/30 hover:bg-muted/50 transition-colors">
                       <div className="flex items-center gap-3">
-                        <Badge variant="outline" className="w-6 h-6 p-0 flex items-center justify-center">
+                        <Badge variant="outline" className="w-7 h-7 p-0 flex items-center justify-center text-xs">
                           {index + 1}
                         </Badge>
                         <div>
-                          <p className="text-sm font-medium">{user.email}</p>
+                          <p className="text-sm font-medium text-foreground">{user.email}</p>
                           <p className="text-xs text-muted-foreground">
                             {user.transactions_count} transações
                           </p>
                         </div>
                       </div>
                       <div className="text-right">
-                        <p className="text-sm font-semibold text-green-600">
+                        <p className="text-sm font-semibold text-green-500">
                           R$ {user.total_spent?.toFixed(2) || '0.00'}
                         </p>
                         <p className="text-xs text-muted-foreground">
@@ -335,7 +454,9 @@ const CaixaGeralDashboard = () => {
                         </p>
                       </div>
                     </div>
-                  )) || <p className="text-center text-muted-foreground">Carregando usuários...</p>}
+                  )) || (
+                    <p className="text-center text-muted-foreground py-8">Carregando usuários...</p>
+                  )}
                 </div>
               </CardContent>
             </Card>
