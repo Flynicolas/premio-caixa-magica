@@ -18,6 +18,12 @@ const CashControlDashboard = lazy(() => import('./CashControlDashboard').then(m 
 const FinancialReconciliation = lazy(() => import('./FinancialReconciliation').then(m => ({ default: (m as any).default || (m as any).FinancialReconciliation })))
 const AffiliateManagement = lazy(() => import('./AffiliateManagement').then(m => ({ default: m.AffiliateManagement })))
 
+// Lazy-load new settings components
+const LimitsConfiguration = lazy(() => import('./LimitsConfiguration'))
+const PaymentConfiguration = lazy(() => import('./PaymentConfiguration'))
+const GatewayManager = lazy(() => import('./GatewayManager'))
+const SystemSettingsManager = lazy(() => import('./SystemSettingsManager'))
+
 interface AdminContentProps {
   activeSection: string
   items: any[]
@@ -139,6 +145,35 @@ export function AdminContent({ activeSection, items, refreshItems, financeV2Enab
         return (
           <Suspense fallback={<div className="p-6 text-muted-foreground">Carregando personalização visual...</div>}>
             <VisualCustomizationPanel />
+          </Suspense>
+        )
+
+      // Settings sections
+      case 'limits-config':
+        return (
+          <Suspense fallback={<div className="p-6 text-muted-foreground">Carregando configurações de limites...</div>}>
+            <LimitsConfiguration />
+          </Suspense>
+        )
+
+      case 'payment-config':
+        return (
+          <Suspense fallback={<div className="p-6 text-muted-foreground">Carregando configurações de pagamento...</div>}>
+            <PaymentConfiguration />
+          </Suspense>
+        )
+
+      case 'gateway-config':
+        return (
+          <Suspense fallback={<div className="p-6 text-muted-foreground">Carregando gerenciador de gateways...</div>}>
+            <GatewayManager />
+          </Suspense>
+        )
+
+      case 'system-config':
+        return (
+          <Suspense fallback={<div className="p-6 text-muted-foreground">Carregando configurações do sistema...</div>}>
+            <SystemSettingsManager />
           </Suspense>
         )
 

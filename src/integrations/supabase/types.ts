@@ -1768,6 +1768,81 @@ export type Database = {
         }
         Relationships: []
       }
+      payment_configurations: {
+        Row: {
+          category: string
+          config_key: string
+          config_type: string
+          config_value: string
+          created_at: string
+          description: string | null
+          id: string
+          is_active: boolean
+          updated_at: string
+        }
+        Insert: {
+          category: string
+          config_key: string
+          config_type?: string
+          config_value: string
+          created_at?: string
+          description?: string | null
+          id?: string
+          is_active?: boolean
+          updated_at?: string
+        }
+        Update: {
+          category?: string
+          config_key?: string
+          config_type?: string
+          config_value?: string
+          created_at?: string
+          description?: string | null
+          id?: string
+          is_active?: boolean
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      payment_gateways: {
+        Row: {
+          api_credentials: Json
+          configuration: Json
+          created_at: string
+          gateway_name: string
+          gateway_type: string
+          id: string
+          is_active: boolean
+          is_primary: boolean
+          priority: number
+          updated_at: string
+        }
+        Insert: {
+          api_credentials?: Json
+          configuration?: Json
+          created_at?: string
+          gateway_name: string
+          gateway_type: string
+          id?: string
+          is_active?: boolean
+          is_primary?: boolean
+          priority?: number
+          updated_at?: string
+        }
+        Update: {
+          api_credentials?: Json
+          configuration?: Json
+          created_at?: string
+          gateway_name?: string
+          gateway_type?: string
+          id?: string
+          is_active?: boolean
+          is_primary?: boolean
+          priority?: number
+          updated_at?: string
+        }
+        Relationships: []
+      }
       payments: {
         Row: {
           amount_cents: number
@@ -2987,6 +3062,36 @@ export type Database = {
           updated_at?: string
           value?: number
           weight?: number
+        }
+        Relationships: []
+      }
+      system_limits: {
+        Row: {
+          created_at: string
+          id: string
+          is_active: boolean
+          limit_type: string
+          limit_value: number
+          updated_at: string
+          user_type: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          is_active?: boolean
+          limit_type: string
+          limit_value?: number
+          updated_at?: string
+          user_type?: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          is_active?: boolean
+          limit_type?: string
+          limit_value?: number
+          updated_at?: string
+          user_type?: string
         }
         Relationships: []
       }

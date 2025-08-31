@@ -12,7 +12,11 @@ import {
   Palette,
   BarChart3,
   ChevronDown,
-  Shield
+  Shield,
+  Sliders,
+  CreditCard,
+  Building,
+  Cog
 } from "lucide-react"
 import { NavLink, useLocation } from "react-router-dom"
 
@@ -107,6 +111,16 @@ export function AdminSidebar({ activeSection, onSectionChange, financeV2Enabled 
       label: 'Operações',
       items: [
         { id: 'deliveries', label: 'Entregas', icon: Truck }
+      ]
+    },
+    {
+      id: 'settings',
+      label: 'Configurações',
+      items: [
+        { id: 'limits-config', label: 'Limites & Valores', icon: Sliders },
+        { id: 'payment-config', label: 'Pagamentos', icon: CreditCard },
+        { id: 'gateway-config', label: 'Gateways', icon: Building },
+        { id: 'system-config', label: 'Sistema Geral', icon: Cog }
       ]
     },
     {
