@@ -45,7 +45,8 @@ export const usePixPayment = () => {
         body: {
           client_name: profile.full_name,
           client_document: profile.cpf.replace(/\D/g, ''), // Remove caracteres especiais do CPF
-          amount: amount
+          amount: amount,
+          webhookUrl: `${window.location.origin}/api/pix-webhook`
         }
       });
 
