@@ -3845,6 +3845,16 @@ export type Database = {
         Args: { user_id_check: string }
         Returns: boolean
       }
+      check_financial_health: {
+        Args: Record<PropertyKey, never>
+        Returns: {
+          profit_margin: number
+          recommended_action: string
+          remaining_budget: number
+          scratch_type: string
+          status: string
+        }[]
+      }
       check_rtp_alerts: {
         Args: Record<PropertyKey, never>
         Returns: {
@@ -3959,6 +3969,10 @@ export type Database = {
       initialize_cash_control_system: {
         Args: Record<PropertyKey, never>
         Returns: undefined
+      }
+      initialize_daily_financial_controls: {
+        Args: Record<PropertyKey, never>
+        Returns: string
       }
       initialize_fresh_rtp_system: {
         Args: Record<PropertyKey, never>
