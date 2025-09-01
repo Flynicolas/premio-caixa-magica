@@ -190,7 +190,7 @@ serve(async (req) => {
     let hasWin = !!forcedWin || (Math.random() < winProbability);
     
     console.log(`🎯 SISTEMA CORRIGIDO - Scratch Card:`);
-    console.log(`   - Win Probability: ${(currentWinProb * 100).toFixed(2)}%`);
+    console.log(`   - Win Probability: ${(winProbability * 100).toFixed(2)}%`);
     console.log(`   - Probabilidade final: ${(winProbability * 100).toFixed(2)}%`);
     console.log(`   - Bank Balance: R$ ${currentBankBalance.toFixed(2)}`);
     console.log(`   - Resultado: ${hasWin ? '✅ GANHOU' : '❌ PERDEU'}`);

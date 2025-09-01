@@ -125,32 +125,27 @@ serve(async (req) => {
       .gt('expires_at', new Date().toISOString())
       .limit(1);
 
-    // ✅ ETAPA 5: SISTEMA 90/10 EMERGENCIAL - PROBABILIDADES RIGOROSAMENTE CONTROLADAS
+    // ✅ ETAPA 5: SISTEMA CORRIGIDO - PROBABILIDADES BASEADAS EM ORÇAMENTO
     
-    // 🚨 BLACKOUT TOTAL - Orçamento crítico (< R$ 5)
-    if (remainingBudget < 5) {
-      winProbability = 0.01; // 1% apenas para emergência
-      console.log(`🚨 BLACKOUT CRÍTICO: Orçamento R$ ${remainingBudget} - Probabilidade 1%`);
+    // 🚨 BLACKOUT TOTAL - Orçamento crítico (< R$ 10)
+    if (remainingBudget < 10) {
+      winProbability = Math.min(winProbability * 0.1, 0.005); // Reduzir drasticamente, máx 0.5%
+      console.log(`🚨 BLACKOUT CRÍTICO: Orçamento R$ ${remainingBudget} - Probabilidade reduzida para ${(winProbability * 100).toFixed(2)}%`);
     }
-    // ⚠️ Orçamento baixo (R$ 5-20) - Apenas dinheiro pequeno
-    else if (remainingBudget < 20) {
-      winProbability = 0.02; // 2% máximo
-      console.log(`⚠️ ORÇAMENTO BAIXO: R$ ${remainingBudget} - Probabilidade 2%`);
+    // ⚠️ Orçamento baixo (R$ 10-30)
+    else if (remainingBudget < 30) {
+      winProbability = Math.min(winProbability * 0.3, 0.015); // Reduzir significativamente, máx 1.5%
+      console.log(`⚠️ ORÇAMENTO BAIXO: R$ ${remainingBudget} - Probabilidade reduzida para ${(winProbability * 100).toFixed(2)}%`);
     }
-    // 💰 Orçamento médio (R$ 20-50)
-    else if (remainingBudget < 50) {
-      winProbability = 0.03; // 3%
-      console.log(`💰 ORÇAMENTO MÉDIO: R$ ${remainingBudget} - Probabilidade 3%`);
-    }
-    // 📈 Orçamento alto (R$ 50-100)
+    // 💰 Orçamento médio (R$ 30-100)
     else if (remainingBudget < 100) {
-      winProbability = 0.05; // 5%
-      console.log(`📈 ORÇAMENTO ALTO: R$ ${remainingBudget} - Probabilidade 5%`);
+      winProbability = Math.min(winProbability * 0.6, 0.03); // Redução moderada, máx 3%
+      console.log(`💰 ORÇAMENTO MÉDIO: R$ ${remainingBudget} - Probabilidade ajustada para ${(winProbability * 100).toFixed(2)}%`);
     }
-    // 🎯 Orçamento excelente (> R$ 100)
+    // 📈 Orçamento alto (R$ 100+)
     else {
-      winProbability = 0.08; // Máximo absoluto: 8%
-      console.log(`🎯 ORÇAMENTO EXCELENTE: R$ ${remainingBudget} - Probabilidade 8%`);
+      winProbability = Math.min(winProbability, 0.05); // Máximo absoluto: 5%
+      console.log(`📈 ORÇAMENTO SUFICIENTE: R$ ${remainingBudget} - Probabilidade mantida em ${(winProbability * 100).toFixed(2)}%`);
     }
 
     // Ajuste mínimo para usuários premium (máximo +1%)
@@ -281,8 +276,15 @@ serve(async (req) => {
         throw new Error('Configurações RTP não encontradas');
       }
 
-      // Usar apenas o RTP configurado na raspadinha
-      winProbability = settings.rtp_enabled ? settings.target_rtp / 100 : 0.20; // Default 20% se RTP desabilitado
+      // CORREÇÃO CRÍTICA: Usar win_probability_global, NÃO target_rtp
+      // target_rtp é para margem de lucro, win_probability_global é para probabilidade real de vitória
+      const { data: scratchSettings } = await supabase
+        .from('scratch_card_settings')
+        .select('win_probability_global')
+        .eq('scratch_type', scratchType)
+        .single();
+      
+      winProbability = settings.rtp_enabled ? (scratchSettings?.win_probability_global || 0.05) / 100 : 0.02; // Máximo 5% ou 2% default
       
       const randomRoll = Math.random();
       hasWin = randomRoll < winProbability;
