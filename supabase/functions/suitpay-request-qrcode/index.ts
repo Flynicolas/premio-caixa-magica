@@ -14,13 +14,16 @@ serve(async (req) => {
 
   try {
     const { client_name, client_document, amount, webhookUrl } = await req.json();
+    
+    // Usar webhook padrão se não fornecido
+    const finalWebhookUrl = webhookUrl || 'https://jhbafgzfphiizpuoqksj.supabase.co/functions/v1/suitpay-webhook';
 
     // Validar parâmetros
-    if (!client_name || !client_document || !amount || !webhookUrl) {
+    if (!client_name || !client_document || !amount) {
       return new Response(
         JSON.stringify({
           success: false,
-          message: "Parâmetros obrigatórios: client_name, client_document, amount, webhookUrl"
+          message: "Parâmetros obrigatórios: client_name, client_document, amount"
         }),
         { 
           status: 400,
@@ -52,7 +55,7 @@ serve(async (req) => {
       client_name,
       client_document,
       amount,
-      webhookUrl
+      webhookUrl: finalWebhookUrl
     };
 
     console.log('Chamando API do SuitPay:', {
@@ -78,10 +81,24 @@ serve(async (req) => {
         body: errorText
       });
       
+      // Tentar fazer parse do erro como JSON para mais detalhes
+      let errorDetails = errorText;
+      try {
+        const errorJson = JSON.parse(errorText);
+        errorDetails = errorJson.message || errorJson.error || errorText;
+      } catch (e) {
+        // Se não conseguir fazer parse, usar o texto original
+      }
+      
       return new Response(
         JSON.stringify({
           success: false,
-          message: "Erro ao processar pagamento PIX"
+          message: "Erro na API SuitPay: " + errorDetails,
+          error_details: {
+            status: suitpayResponse.status,
+            statusText: suitpayResponse.statusText,
+            body: errorText
+          }
         }),
         { 
           status: 500,
