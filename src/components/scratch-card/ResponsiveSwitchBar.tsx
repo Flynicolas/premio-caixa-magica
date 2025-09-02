@@ -99,9 +99,14 @@ const ResponsiveSwitchBar = ({
                        type === 'diamante' ? 'Diam.' :
                        'Premium'}
                     </span>
-                    {/* Desktop: Nome limpo */}
+                    {/* Desktop: Nome atrativo */}
                     <span className="hidden sm:inline">
-                      {config.name.replace('Raspadinha', '').replace(/do|da/g, '').trim()}
+                      {type === 'pix' ? 'PIX Rápido' : 
+                       type === 'sorte' ? 'Sorte Premium' :
+                       type === 'dupla' ? 'Dupla Chance' :
+                       type === 'ouro' ? 'Ouro Tech' :
+                       type === 'diamante' ? 'Diamante VIP' :
+                       'Casa Deluxe'}
                     </span>
                   </span>
                   

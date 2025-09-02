@@ -107,9 +107,13 @@ const Raspadinha = () => {
           </div>
           <div className="flex gap-2 overflow-x-auto no-scrollbar py-1">
             {premiumScratchCards.map((c) => (
-              <a key={c.id} href={`#card-${c.id}`} className="px-3 py-1.5 rounded-full bg-white/10 text-white/90 text-xs hover:bg-white/15 transition-colors whitespace-nowrap">
-                #{c.title}
-              </a>
+              <button 
+                key={c.id} 
+                onClick={() => handleCardClick(c.id as ScratchCardType)}
+                className="px-3 py-1.5 rounded-full bg-white/10 text-white/90 text-xs hover:bg-white/15 transition-colors whitespace-nowrap"
+              >
+                {c.title}
+              </button>
             ))}
           </div>
         </div>

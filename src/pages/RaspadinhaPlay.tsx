@@ -14,6 +14,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { supabase } from "@/integrations/supabase/client";
 import confetti from 'canvas-confetti';
+import PrizeCatalog from "@/components/scratch-card/PrizeCatalog";
 
 interface PrizeItem {
   id: string;
@@ -383,7 +384,10 @@ useEffect(() => {
           </div>
         </section>
 
-        {/* Catálogo removido conforme solicitado */}
+        {/* Catálogo de prêmios */}
+        <section className="max-w-3xl mx-auto">
+          <PrizeCatalog items={items} scratchType={scratchType} />
+        </section>
       </main>
 
       {/* Minimal win modal */}

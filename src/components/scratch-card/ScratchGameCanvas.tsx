@@ -116,43 +116,26 @@ const ScratchGameCanvas = forwardRef<{ revealAll: () => void }, ScratchGameCanva
     setCanvasFullyLoaded(false);
     console.log('🎯 Resetting canvas, canvasFullyLoaded set to false');
 
-    // Usar a imagem temática específica do tipo de raspadinha (local, confiável)
-    const scratchCardConfig = {
-      sorte: scratchBanner,
-      dupla: scratchBanner,
-      ouro: scratchBanner,
-      diamante: scratchBanner,
-      premium: scratchBanner
-    } as const;
-
-    const imageUrl = scratchCardConfig[scratchType as keyof typeof scratchCardConfig];
+    // Usar a nova imagem padrão para todas as raspadinhas
+    const newCanvasImage = '/lovable-uploads/d158c9fd-8d2c-4e37-bcb7-9fbc926658ff.png';
     
-    if (imageUrl) {
-      const img = new Image();
-      img.crossOrigin = 'anonymous';
-      img.onload = () => {
-        ctx.globalCompositeOperation = 'source-over';
-        ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
-        setCanvasFullyLoaded(true);
-        console.log('🎯 Canvas image loaded, canvasFullyLoaded set to true');
-      };
-      img.onerror = () => {
-        // Fallback se imagem falhar
-        ctx.globalCompositeOperation = 'source-over';
-        ctx.fillStyle = '#999';
-        ctx.fillRect(0, 0, canvas.width, canvas.height);
-        setCanvasFullyLoaded(true);
-        console.log('🎯 Canvas fallback loaded, canvasFullyLoaded set to true');
-      };
-      img.src = imageUrl;
-    } else {
-      // Fallback para cinza se não encontrar a imagem
+    const img = new Image();
+    img.crossOrigin = 'anonymous';
+    img.onload = () => {
       ctx.globalCompositeOperation = 'source-over';
-      ctx.fillStyle = '#999';
+      ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+      setCanvasFullyLoaded(true);
+      console.log('🎯 Canvas image loaded, canvasFullyLoaded set to true');
+    };
+    img.onerror = () => {
+      // Fallback se imagem falhar
+      ctx.globalCompositeOperation = 'source-over';
+      ctx.fillStyle = '#DAA520';
       ctx.fillRect(0, 0, canvas.width, canvas.height);
       setCanvasFullyLoaded(true);
       console.log('🎯 Canvas fallback loaded, canvasFullyLoaded set to true');
-    }
+    };
+    img.src = newCanvasImage;
     
     canvas.style.display = 'block';
     setIsRevealed(false);
