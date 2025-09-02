@@ -1,5 +1,4 @@
 project_id = "jhbafgzfphiizpuoqksj"
-
 [functions.mercadopago-webhook]
 verify_jwt = false
 
@@ -7,9 +6,6 @@ verify_jwt = false
 verify_jwt = true
 
 [functions.suitpay-request-qrcode]
-verify_jwt = false
-
-[functions.suitpay-webhook]
 verify_jwt = false
 
 [functions.affiliate-commission-job]

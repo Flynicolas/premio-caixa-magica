@@ -14,16 +14,13 @@ serve(async (req) => {
 
   try {
     const { client_name, client_document, amount, webhookUrl } = await req.json();
-    
-    // Usar webhook padrão se não fornecido
-    const finalWebhookUrl = webhookUrl || 'https://jhbafgzfphiizpuoqksj.supabase.co/functions/v1/suitpay-webhook';
 
     // Validar parâmetros
-    if (!client_name || !client_document || !amount) {
+    if (!client_name || !client_document || !amount || !webhookUrl) {
       return new Response(
         JSON.stringify({
           success: false,
-          message: "Parâmetros obrigatórios: client_name, client_document, amount"
+          message: "Parâmetros obrigatórios: client_name, client_document, amount, webhookUrl"
         }),
         { 
           status: 400,
@@ -55,7 +52,7 @@ serve(async (req) => {
       client_name,
       client_document,
       amount,
-      webhookUrl: finalWebhookUrl
+      webhookUrl
     };
 
     console.log('Chamando API do SuitPay:', {
@@ -67,11 +64,8 @@ serve(async (req) => {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
-        // Inclui variações comuns de cabeçalhos para compatibilidade
         'client_id': suitpayClientId,
         'client_secret': suitpayClientSecret,
-        'Client-Id': suitpayClientId,
-        'Client-Secret': suitpayClientSecret,
       },
       body: JSON.stringify(suitpayPayload)
     });
@@ -84,24 +78,10 @@ serve(async (req) => {
         body: errorText
       });
       
-      // Tentar fazer parse do erro como JSON para mais detalhes
-      let errorDetails = errorText;
-      try {
-        const errorJson = JSON.parse(errorText);
-        errorDetails = errorJson.message || errorJson.error || errorText;
-      } catch (e) {
-        // Se não conseguir fazer parse, usar o texto original
-      }
-      
       return new Response(
         JSON.stringify({
           success: false,
-          message: "Erro na API SuitPay: " + errorDetails,
-          error_details: {
-            status: suitpayResponse.status,
-            statusText: suitpayResponse.statusText,
-            body: errorText
-          }
+          message: "Erro ao processar pagamento PIX"
         }),
         { 
           status: 500,

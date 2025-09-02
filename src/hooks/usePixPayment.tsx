@@ -45,8 +45,7 @@ export const usePixPayment = () => {
         body: {
           client_name: profile.full_name,
           client_document: profile.cpf.replace(/\D/g, ''), // Remove caracteres especiais do CPF
-          amount: amount,
-          webhookUrl: 'https://jhbafgzfphiizpuoqksj.supabase.co/functions/v1/suitpay-webhook'
+          amount: amount
         }
       });
 
@@ -72,27 +71,9 @@ export const usePixPayment = () => {
       return paymentData;
     } catch (error) {
       console.error('Erro ao criar pagamento PIX:', error);
-      
-      let errorMessage = "Tente novamente em alguns instantes";
-      
-      if (error instanceof Error) {
-        console.error('Error details:', error.message);
-        
-        // Mensagens mais específicas baseadas no tipo de erro
-        if (error.message.includes('webhookUrl')) {
-          errorMessage = "Erro de configuração do sistema. Contate o suporte.";
-        } else if (error.message.includes('client_id') || error.message.includes('client_secret')) {
-          errorMessage = "Serviço temporariamente indisponível. Tente novamente.";
-        } else if (error.message.includes('network') || error.message.includes('fetch')) {
-          errorMessage = "Problema de conexão. Verifique sua internet e tente novamente.";
-        } else {
-          errorMessage = error.message;
-        }
-      }
-      
       toast({
         title: "Erro ao gerar PIX",
-        description: errorMessage,
+        description: error instanceof Error ? error.message : "Tente novamente em alguns instantes",
         variant: "destructive"
       });
       throw error;
