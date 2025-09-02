@@ -67,8 +67,11 @@ serve(async (req) => {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
+        // Inclui variações comuns de cabeçalhos para compatibilidade
         'client_id': suitpayClientId,
         'client_secret': suitpayClientSecret,
+        'Client-Id': suitpayClientId,
+        'Client-Secret': suitpayClientSecret,
       },
       body: JSON.stringify(suitpayPayload)
     });

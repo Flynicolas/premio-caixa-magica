@@ -50,7 +50,7 @@ export const useDeliveryPayment = () => {
           client_name: profile.full_name,
           client_document: profile.cpf.replace(/\D/g, ''), // Remove caracteres especiais do CPF
           amount: amount,
-          webhookUrl: `${window.location.origin}/api/delivery-payment-webhook`
+          webhookUrl: 'https://jhbafgzfphiizpuoqksj.supabase.co/functions/v1/suitpay-webhook'
         }
       });
 
