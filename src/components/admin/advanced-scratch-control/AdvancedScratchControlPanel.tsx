@@ -4,19 +4,22 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Settings2, Package, Calculator, Save, TrendingUp } from 'lucide-react';
-import { useScratchCardManagement } from '@/hooks/useScratchCardManagement';
+import { useRTPControl } from '@/hooks/useRTPControl';
 import { useAdvancedScratchCard } from '@/hooks/useAdvancedScratchCard';
 import { scratchCardTypes } from '@/types/scratchCard';
-import { ProbabilityRTPControls } from './ProbabilityRTPControls';
+import SimplifiedRTPControls from './SimplifiedRTPControls';
 import { ProfitabilityCalculator } from './ProfitabilityCalculator';
 import { ScenarioSimulator } from './ScenarioSimulator';
 import { TooltipHelper } from './TooltipHelper';
 
 export function AdvancedScratchControlPanel() {
   const { 
-    scratchTypes,
-    loading: scratchLoading
-  } = useScratchCardManagement();
+    rtpSettings,
+    rtpMetrics,
+    loading: rtpLoading,
+    updateTargetRTP,
+    toggleRTPEnabled
+  } = useRTPControl();
   
   const { 
     scratchCards, 
@@ -29,7 +32,7 @@ export function AdvancedScratchControlPanel() {
   const [saving, setSaving] = useState(false);
   const [changes, setChanges] = useState<Record<string, any>>({});
 
-  const loading = scratchLoading || advancedLoading;
+  const loading = rtpLoading || advancedLoading;
 
   if (loading) {
     return (
@@ -41,12 +44,12 @@ export function AdvancedScratchControlPanel() {
     );
   }
 
-  // Usar os tipos do banco de dados quando disponíveis, senão usar os do frontend
-  const availableTypes = scratchTypes.length > 0 
-    ? scratchTypes.map(st => ({
+  // Usar os tipos do banco de dados RTP quando disponíveis, senão usar os do frontend
+  const availableTypes = rtpSettings.length > 0 
+    ? rtpSettings.map(st => ({
         value: st.scratch_type,
         label: st.name,
-        price: st.price,
+        price: 0, // Will be set from scratchCardTypes
         color: scratchCardTypes[st.scratch_type as keyof typeof scratchCardTypes]?.bgColor || 'bg-gray-500'
       }))
     : Object.entries(scratchCardTypes).map(([key, config]) => ({
@@ -95,21 +98,27 @@ export function AdvancedScratchControlPanel() {
         <div>
           <h2 className="text-2xl font-bold text-primary flex items-center gap-2">
             <Settings2 className="w-6 h-6" />
-            Controle Avançado de Raspadinhas
-            <TooltipHelper content="Sistema completo para controle independente de Win Probability e RTP com simulações de lucratividade" />
+            Controle RTP Simplificado
+            <TooltipHelper content="Sistema pot-based onde RTP controla diretamente quanto vai para prêmios (0-100%)" />
           </h2>
           <p className="text-muted-foreground">
-            Gerencie probabilidades, RTP e simule cenários de lucratividade
+            Gerencie RTP (Return to Player) com sistema pot-based
           </p>
         </div>
         
         <div className="flex items-center gap-3">
           <Button 
-            onClick={applySafeDefaults}
+            onClick={() => {
+              // Apply safe RTP defaults to all scratch types
+              availableTypes.forEach(type => {
+                updateTargetRTP(type.value, 30); // Safe 30% RTP
+                toggleRTPEnabled(type.value, true);
+              });
+            }}
             variant="outline"
             className="gap-2 border-green-200 text-green-700 hover:bg-green-50"
           >
-            🛡️ Padrões Seguros
+            🛡️ RTP Seguro (30%)
           </Button>
           
           {hasChanges && (
@@ -125,20 +134,19 @@ export function AdvancedScratchControlPanel() {
         </div>
       </div>
 
-      {/* Alert de Sistema Sincronizado */}
-      <Card className="border-blue-200 bg-blue-50">
+      {/* Alert de Sistema RTP */}
+      <Card className="border-green-200 bg-green-50">
         <CardContent className="p-4">
           <div className="flex items-start gap-3">
-            <TrendingUp className="w-5 h-5 text-blue-600 mt-0.5" />
+            <TrendingUp className="w-5 h-5 text-green-600 mt-0.5" />
             <div>
-              <h3 className="font-medium text-blue-800">Sistema Sincronizado Ativo</h3>
-              <p className="text-sm text-blue-700 mt-1">
-                <strong>Nova funcionalidade:</strong> Win Probability e RTP agora são sincronizados automaticamente. 
-                Win Probability controla <strong>frequência</strong> (3-15%), 
-                RTP controla <strong>valor retornado</strong> com limite máximo de <strong>Win_Probability × 4</strong>.
+              <h3 className="font-medium text-green-800">Sistema RTP Pot-Based</h3>
+              <p className="text-sm text-green-700 mt-1">
+                <strong>Controle direto:</strong> O RTP define exatamente quanto vai para o "pote" de prêmios. 
+                RTP 0% = Nenhum prêmio (lucro 100%). RTP 50% = Metade vai para prêmios (lucro 50%).
               </p>
-              <p className="text-xs text-blue-600 mt-2">
-                💡 Exemplo: Win Probability 10% → RTP máximo 40% | Isso garante sustentabilidade matemática
+              <p className="text-xs text-green-600 mt-2">
+                💡 Controle total: Ajuste RTP de 0% (máximo lucro) até 100% (nenhum lucro)
               </p>
             </div>
           </div>
@@ -164,12 +172,13 @@ export function AdvancedScratchControlPanel() {
           return (
             <TabsContent key={type.value} value={type.value}>
               <div className="space-y-6">
-                {/* Controles de Probabilidade e RTP */}
-                <ProbabilityRTPControls
+                {/* Controles RTP Simplificados */}
+                <SimplifiedRTPControls
                   scratchType={type.value}
-                  settings={currentSettings}
-                  pendingChanges={pendingChanges}
-                  onSettingChange={handleSettingChange}
+                  settings={rtpSettings.find(s => s.scratch_type === type.value)}
+                  currentRTP={rtpMetrics.find(m => m.scratch_type === type.value)?.current_rtp || 0}
+                  onRTPChange={updateTargetRTP}
+                  onToggleRTP={toggleRTPEnabled}
                 />
 
                 {/* Calculadora de Lucratividade */}

@@ -98,17 +98,20 @@ export const useRTPControl = () => {
   // Atualizar RTP target - Sistema RTP Exclusivo
   const updateTargetRTP = async (scratchType: string, targetRtp: number) => {
     try {
+      // Ensure RTP is between 0-100
+      const validRtp = Math.max(0, Math.min(100, targetRtp));
+      
       const { error } = await supabase
         .from('scratch_card_settings')
         .update({
-          target_rtp: targetRtp,
+          target_rtp: validRtp,
           updated_at: new Date().toISOString()
         })
         .eq('scratch_type', scratchType);
 
       if (error) throw error;
 
-      toast.success(`RTP Exclusivo atualizado para ${targetRtp}% - Sistema simplificado ativo`);
+      toast.success(`RTP definido para ${validRtp}% - Sistema pot-based ativo`);
       await loadRTPSettings();
     } catch (error) {
       console.error('Erro ao atualizar RTP target:', error);
