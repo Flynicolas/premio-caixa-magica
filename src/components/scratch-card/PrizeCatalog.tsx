@@ -32,31 +32,13 @@ const PrizeCatalog = ({ items, scratchType }: PrizeCatalogProps) => {
         </CardTitle>
       </CardHeader>
       <CardContent>
-        <div className="grid grid-cols-2 sm:grid-cols-4 md:grid-cols-8 gap-2">
+        <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-6 lg:grid-cols-8 gap-1 sm:gap-2">
           {topPrizes.map((item) => (
-            <div key={item.id} className="flex flex-col items-center p-2 rounded-lg bg-background/50 hover:gold-gradient-subtle hover:gold-border transition-all duration-300 hover-scale">
-              {/* Imagem ou placeholder */}
-              <div className="w-10 h-10 bg-muted rounded-md mb-1 flex items-center justify-center overflow-hidden">
-                {item.image_url ? (
-                  <img 
-                    src={item.image_url} 
-                    alt={item.name}
-                    className="w-full h-full object-cover"
-                  />
-                ) : (
-                  <Gift className="w-4 h-4 text-muted-foreground/50" />
-                )}
-              </div>
-              
-              {/* Nome */}
-              <h4 className="text-xs font-medium text-center mb-1 line-clamp-1 hover:gold-text transition-colors duration-300">
+            <div key={item.id} className="flex items-center justify-center p-2 sm:p-3 rounded-lg bg-background/50 hover:gold-gradient-subtle hover:gold-border transition-all duration-300 hover-scale">
+              {/* Nome apenas - otimizado para mobile */}
+              <h4 className="text-xs sm:text-sm font-medium text-center line-clamp-2 hover:gold-text transition-colors duration-300">
                 {item.name}
               </h4>
-              
-              {/* Valor */}
-              <span className="text-xs font-semibold gold-text">
-                R$ {item.base_value.toFixed(2).replace('.', ',')}
-              </span>
             </div>
           ))}
         </div>

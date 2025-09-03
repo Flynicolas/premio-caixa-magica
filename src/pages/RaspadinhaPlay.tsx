@@ -304,9 +304,9 @@ useEffect(() => {
         {/* Game panel - Canvas Inline sempre visível - MODAL MAIOR */}
         <Card className="max-w-3xl mx-auto relative">
           <CardContent className="p-4 sm:p-6">
-            <div className="flex flex-col items-center gap-4">
-              {/* Canvas area - maior para melhor experiência */}
-              <div className="w-full aspect-square max-w-[480px] relative">
+            <div className="flex flex-col items-center gap-6 sm:gap-4">
+              {/* Canvas area - centralizado com mais espaço no mobile */}
+              <div className="w-full aspect-square max-w-[480px] relative mt-4 sm:mt-0">
                 {scratchCard && scratchCard.symbols ? (
                   <ScratchGameCanvas
                     ref={canvasRef}
@@ -335,25 +335,27 @@ useEffect(() => {
                 )}
               </div>
 
-              {/* Smart Action Button */}
-              <ScratchActionButton
-                state={buttonState}
-                onAction={handleButtonAction}
-                onAddBalance={handleAddBalance}
-                price={config.price}
-                balance={walletData?.balance || 0}
-                className={cn(
-                  "w-full max-w-[300px] transition-all duration-300",
-                  (isLoading || gameState === 'resolving') && "gold-loading",
-                  buttonState === 'scratching' && "hover:gold-gradient-subtle hover:gold-border"
-                )}
-              />
+              {/* Smart Action Button - espaçado para mobile */}
+              <div className="w-full max-w-[300px] space-y-3 mt-6 sm:mt-2">
+                <ScratchActionButton
+                  state={buttonState}
+                  onAction={handleButtonAction}
+                  onAddBalance={handleAddBalance}
+                  price={config.price}
+                  balance={walletData?.balance || 0}
+                  className={cn(
+                    "w-full transition-all duration-300",
+                    (isLoading || gameState === 'resolving') && "gold-loading",
+                    buttonState === 'scratching' && "hover:gold-gradient-subtle hover:gold-border"
+                  )}
+                />
 
-              {/* Status Bar - integrated below button */}
-              <StatusBar 
-                status={gameState as any}
-                className="w-full max-w-[300px]"
-              />
+                {/* Status Bar - integrated below button */}
+                <StatusBar 
+                  status={gameState as any}
+                  className="w-full"
+                />
+              </div>
 
               {/* Auth prompt for non-authenticated users */}
               {!user && (
