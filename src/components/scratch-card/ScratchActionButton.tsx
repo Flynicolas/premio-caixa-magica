@@ -148,7 +148,7 @@ const ScratchActionButton = ({
           'transition-all duration-300',
           {
             // Estado principal (ready/idle) - Tema dourado
-            'gold-gradient-subtle gold-border hover:gold-gradient text-white': 
+            'gold-gradient gold-border hover:shadow-lg hover:shadow-[hsl(var(--gold-middle))]/25 text-white': 
               state === 'ready' || state === 'idle',
             // Estado de raspagem ativa - Verde
             'bg-gradient-to-r from-green-500 to-emerald-600 hover:from-green-600 hover:to-emerald-700 text-white': 

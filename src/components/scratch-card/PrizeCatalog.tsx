@@ -1,7 +1,7 @@
 import React from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Gift } from 'lucide-react';
-import { ScratchCardType } from '@/types/scratchCard';
+import { ScratchCardType, scratchCardTypes } from '@/types/scratchCard';
 
 interface PrizeItem {
   id: string;
@@ -17,8 +17,18 @@ interface PrizeCatalogProps {
   scratchType: ScratchCardType;
 }
 
+const scratchDescriptions = {
+  pix: 'Comece sua jornada com prêmios instantâneos! Descubra o que o destino preparou para você.',
+  sorte: 'A sorte está do seu lado! Raspe e revele prêmios incríveis que podem mudar seu dia.',
+  dupla: 'Dobrar ou nada! Sua chance de ganhar prêmios ainda maiores está aqui.',
+  ouro: 'Toque de Midas! Raspe este ouro e transforme sua sorte em fortuna.',
+  diamante: 'Brilho que deslumbra! Descubra tesouros preciosos escondidos na sua sorte.',
+  premium: 'O que há de melhor! Prêmios exclusivos e experiências únicas te aguardam.'
+} as const;
+
 const PrizeCatalog = ({ items, scratchType }: PrizeCatalogProps) => {
   const topPrizes = items.slice(0, 8);
+  const config = scratchCardTypes[scratchType];
 
   if (items.length === 0) {
     return null;
@@ -27,9 +37,12 @@ const PrizeCatalog = ({ items, scratchType }: PrizeCatalogProps) => {
   return (
     <Card className="bg-card/50">
       <CardHeader className="pb-3">
-        <CardTitle className="text-base font-medium">
-          Prêmios Disponíveis
+        <CardTitle className="text-base font-medium gold-text">
+          {config.name}
         </CardTitle>
+        <p className="text-sm text-muted-foreground mt-1">
+          {scratchDescriptions[scratchType]}
+        </p>
       </CardHeader>
       <CardContent>
         <div className="grid grid-cols-4 sm:grid-cols-6 md:grid-cols-8 lg:grid-cols-10 gap-1">

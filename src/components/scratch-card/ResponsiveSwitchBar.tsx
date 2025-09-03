@@ -69,7 +69,7 @@ const ResponsiveSwitchBar = ({
                 />
               </div>
               <span className={cn(
-                "text-xs font-semibold transition-colors duration-300 text-center leading-tight",
+                "text-xs font-semibold transition-colors duration-300 text-center leading-tight whitespace-nowrap",
                 isSelected ? "gold-text" : "text-primary hover:gold-text"
               )}>
                 R$ {config.price.toFixed(2).replace('.', ',')}
