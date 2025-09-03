@@ -373,20 +373,20 @@ useEffect(() => {
           </CardContent>
         </Card>
 
+        {/* Catálogo de prêmios */}
+        <section className="max-w-3xl mx-auto">
+          <PrizeCatalog items={items} scratchType={scratchType} />
+        </section>
+
         {/* Como funciona - Copys limpas */}
         <section className="max-w-3xl mx-auto text-center space-y-3">
-          <h2 className="text-xl font-semibold text-foreground">Como funciona</h2>
-          <div className="text-sm text-muted-foreground space-y-2">
+          <h2 className="text-base font-medium text-foreground">Como Jogar</h2>
+          <div className="text-sm text-muted-foreground space-y-1">
             <p>1. Escolha a raspadinha e toque em <strong>Raspar</strong></p>
             <p>2. Revele os quadrados — ao encontrar <strong>3 figuras iguais</strong>, você vence</p>
             <p>3. Use <strong>Revelar tudo</strong> se quiser acelerar</p>
             <p>4. O resultado aparece na hora e você pode jogar novamente</p>
           </div>
-        </section>
-
-        {/* Catálogo de prêmios */}
-        <section className="max-w-3xl mx-auto">
-          <PrizeCatalog items={items} scratchType={scratchType} />
         </section>
       </main>
 
