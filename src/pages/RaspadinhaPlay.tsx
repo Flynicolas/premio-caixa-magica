@@ -13,6 +13,7 @@ import { scratchCardTypes, ScratchCardType } from "@/types/scratchCard";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { supabase } from "@/integrations/supabase/client";
+import { cn } from "@/lib/utils";
 import confetti from 'canvas-confetti';
 import PrizeCatalog from "@/components/scratch-card/PrizeCatalog";
 
@@ -324,7 +325,10 @@ useEffect(() => {
                     <div className="text-center space-y-2">
                       <div className="text-4xl opacity-50">🎲</div>
                       <p className="text-sm text-muted-foreground">
-                        {gameState === 'idle' ? 'Clique em "Raspar" para iniciar' : 'Carregando...'}
+                        {gameState === 'idle' ? 'Clique em "Raspar" para iniciar' : 
+                         isLoading ? (
+                           <span className="gold-loading px-2 py-1 rounded">Preparando jogo...</span>
+                         ) : 'Carregando...'}
                       </p>
                     </div>
                   </div>
@@ -338,7 +342,11 @@ useEffect(() => {
                 onAddBalance={handleAddBalance}
                 price={config.price}
                 balance={walletData?.balance || 0}
-                className="w-full max-w-[300px]"
+                className={cn(
+                  "w-full max-w-[300px] transition-all duration-300",
+                  (isLoading || gameState === 'resolving') && "gold-loading",
+                  buttonState === 'scratching' && "hover:gold-gradient-subtle hover:gold-border"
+                )}
               />
 
               {/* Status Bar - integrated below button */}

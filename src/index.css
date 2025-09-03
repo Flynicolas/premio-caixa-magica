@@ -105,6 +105,24 @@
   .slide-up {
     @apply animate-in slide-in-from-bottom-2 duration-300;
   }
+  
+  .gold-shimmer {
+    @apply bg-gradient-to-r from-transparent via-[hsl(var(--gold-middle)/0.3)] to-transparent animate-pulse;
+  }
+  
+  .gold-loading {
+    background: linear-gradient(90deg, 
+      hsl(var(--gold-start) / 0.1) 0%, 
+      hsl(var(--gold-middle) / 0.3) 50%, 
+      hsl(var(--gold-end) / 0.1) 100%);
+    background-size: 200% 100%;
+    animation: shimmer 2s ease-in-out infinite;
+  }
+  
+  @keyframes shimmer {
+    0% { background-position: -200% 0; }
+    100% { background-position: 200% 0; }
+  }
 }
 
 /* Responsividade mobile */
