@@ -50,8 +50,8 @@ const ResponsiveSwitchBar = ({
               onClick={() => handleScratchClick(type)}
               disabled={isDisabled}
               className={cn(
-                "flex flex-col items-center gap-1 p-2 rounded-lg transition-all duration-300",
-                "min-w-[50px] flex-shrink-0",
+                "flex flex-col items-center gap-1.5 p-2.5 rounded-lg transition-all duration-300",
+                "w-16 h-20 flex-shrink-0",
                 {
                   "gold-border ring-2 ring-[hsl(var(--gold-middle))] scale-105 gold-gradient-subtle": isSelected,
                   "bg-card/50 hover:gold-gradient-subtle hover:scale-102 hover:gold-border": !isSelected && !isDisabled,
@@ -61,7 +61,7 @@ const ResponsiveSwitchBar = ({
                 }
               )}
             >
-              <div className="w-8 h-8 rounded-md overflow-hidden bg-muted">
+              <div className="w-10 h-10 rounded-md overflow-hidden bg-muted">
                 <img
                   src={config.coverImage}
                   alt={config.name}
@@ -69,7 +69,7 @@ const ResponsiveSwitchBar = ({
                 />
               </div>
               <span className={cn(
-                "text-xs font-semibold transition-colors duration-300",
+                "text-xs font-semibold transition-colors duration-300 text-center leading-tight",
                 isSelected ? "gold-text" : "text-primary hover:gold-text"
               )}>
                 R$ {config.price.toFixed(2).replace('.', ',')}

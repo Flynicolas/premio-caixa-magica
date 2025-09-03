@@ -46,15 +46,15 @@ const ScratchActionButton = ({
   const getButtonConfig = useCallback(() => {
     const configs = {
       idle: {
-        label: `🎯 Raspar Agora! • R$ ${price.toFixed(2)}`,
-        icon: Sparkles,
+        label: `Raspar • R$ ${price.toFixed(2)}`,
+        icon: Play,
         variant: 'default' as const,
         disabled: false,
         showSpinner: false
       },
       ready: {
-        label: `🎯 Raspar Agora! • R$ ${price.toFixed(2)}`,
-        icon: Sparkles,
+        label: `Raspar • R$ ${price.toFixed(2)}`,
+        icon: Play,
         variant: 'default' as const,
         disabled: false,
         showSpinner: false
@@ -147,18 +147,15 @@ const ScratchActionButton = ({
           'focus:ring-2 focus:ring-primary focus:ring-offset-2',
           'transition-all duration-300',
           {
-            // Estado de sucesso com confete
+            // Estado principal (ready/idle) - Tema dourado
+            'gold-gradient-subtle gold-border hover:gold-gradient text-white': 
+              state === 'ready' || state === 'idle',
+            // Estado de raspagem ativa - Verde
             'bg-gradient-to-r from-green-500 to-emerald-600 hover:from-green-600 hover:to-emerald-700 text-white': 
-              state === 'success',
+              state === 'scratching' || state === 'success',
             // Estado de falha com destaque sutil
             'bg-gradient-to-r from-orange-500 to-amber-600 hover:from-orange-600 hover:to-amber-700 text-white': 
               state === 'fail',
-            // Estado principal (ready/idle)
-            'bg-gradient-to-r from-primary to-primary/90 hover:from-primary/90 hover:to-primary text-primary-foreground': 
-              state === 'ready' || state === 'idle',
-            // Estado de raspagem ativa
-            'bg-gradient-to-r from-blue-500 to-cyan-600 hover:from-blue-600 hover:to-cyan-700 text-white': 
-              state === 'scratching',
             // Estados de loading
             'opacity-75 cursor-not-allowed': 
               state === 'fastReveal' || state === 'resolving',
