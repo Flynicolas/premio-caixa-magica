@@ -137,8 +137,17 @@ const Index = () => {
         {/* Real-time Wins Carousel */}
         <RealtimeWinsCarousel className="mb-6 md:mb-12" />
         
-        {/* Scratch Cards Showcase */}
-        <ScratchCardShowcase />
+        {/* Link para Raspadinhas */}
+        <div className="text-center mb-8">
+          <Button 
+            onClick={() => window.location.href = '/raspadinhas'}
+            variant="outline"
+            size="sm"
+            className="gold-border gold-text hover:gold-gradient hover:text-black"
+          >
+            🎫 Ver Raspadinhas
+          </Button>
+        </div>
         
         {/* Chest Navigation Bar - Mobile Only */}
         <ChestNavigationBar 
@@ -182,23 +191,8 @@ const Index = () => {
           </div>
         </section>
 
-        {/* Call to Action - only show for non-authenticated users */}
-        {!user && (
-          <section className="text-center py-16 gold-gradient-subtle rounded-3xl border gold-border">
-            <h2 className="text-4xl font-bold mb-6 gold-gradient-text">
-              Pronto para Ganhar?
-            </h2>
-            <p className="text-xl gold-text mb-8 max-w-2xl mx-auto font-medium">
-              Cadastre-se agora e receba R$ 50 de bônus para começar a jogar!
-            </p>
-            <button
-              onClick={() => setShowAuthModal(true)}
-              className="gold-gradient text-black text-xl font-bold py-4 px-12 rounded-full shadow-2xl hover:shadow-primary/50 transition-all duration-300 hover:scale-105"
-            >
-              Começar Agora - Ganhe R$ 50! 🎯
-            </button>
-          </section>
-        )}
+        {/* Scratch Cards Showcase */}
+        <ScratchCardShowcase />
 
         {/* Banner promocional */}
         <div className="mt-8">
