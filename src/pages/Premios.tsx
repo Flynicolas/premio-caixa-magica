@@ -104,7 +104,7 @@ const Premios = () => {
         {/* Catálogo de Baús - Seção Principal */}
         <section className="mb-12" ref={catalogRef}>
           <div className="text-center mb-8">
-            <h2 className="text-3xl font-bold text-primary mb-4">Catálogo de Baús</h2>
+            <h2 className="text-3xl font-bold text-primary mb-4">🏆 Baús 🏆</h2>
             <p className="text-lg text-muted-foreground">Explore todos os tipos de baús e suas recompensas exclusivas</p>
           </div>
 

@@ -26,6 +26,29 @@ const MeusPremios = () => {
   const [showRedemptionModal, setShowRedemptionModal] = useState(false);
   const { isProcessing } = useRedemptionFlow();
 
+  // Se não está logado, mostrar botão de login
+  if (!user) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-gray-900 via-black to-gray-900 flex items-center justify-center">
+        <Card className="bg-card/50 border-primary/20 max-w-md mx-auto">
+          <CardContent className="p-8 text-center">
+            <Package className="w-16 h-16 mx-auto text-muted-foreground mb-4" />
+            <h2 className="text-2xl font-bold mb-4">Inventário de Prêmios</h2>
+            <p className="text-muted-foreground mb-6">
+              Faça login para visualizar e gerenciar seus prêmios conquistados
+            </p>
+            <Button 
+              onClick={() => navigate('/', { state: { showAuth: true } })}
+              className="bg-primary hover:bg-primary/90 w-full"
+            >
+              Fazer Login
+            </Button>
+          </CardContent>
+        </Card>
+      </div>
+    );
+  }
+
   if (loading) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-gray-900 via-black to-gray-900 flex items-center justify-center">
