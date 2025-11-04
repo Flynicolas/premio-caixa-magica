@@ -93,9 +93,6 @@ const Premios = () => {
           <RealtimeWinsCarousel showIcons={false} className="bg-gradient-to-r from-gray-900/20 to-gray-800/20 border border-green-500/10 p-3" />
         </div>
 
-        {/* Meus Prêmios Minimizado (apenas para usuários logados) */}
-        <MeusPremiosMinified />
-
         {/* Mensagens Dinâmicas */}
         <section className="mb-8">
           <DynamicMessage />
@@ -224,8 +221,11 @@ const Premios = () => {
           </Card>
         </section>
 
+        {/* Meus Prêmios Minimizado - Inventário no final (apenas para usuários logados) */}
+        <MeusPremiosMinified />
+
         {/* Banner antes do rodapé - SUBSTITUA AS URLs PELAS SUAS IMAGENS */}
-        <ResponsiveBanner 
+        <ResponsiveBanner
           imageUrlPC="https://jhbafgzfphiizpuoqksj.supabase.co/storage/v1/object/public/head-images//raspadinha-banner-rodape01.png"
           imageUrlMobile="https://jhbafgzfphiizpuoqksj.supabase.co/storage/v1/object/public/head-images//raspadinha-banner-rodape01.png"
           altText="Banner promocional da página de prêmios"

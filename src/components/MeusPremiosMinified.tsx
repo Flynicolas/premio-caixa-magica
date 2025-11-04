@@ -14,8 +14,28 @@ const MeusPremiosMinified = () => {
   const { walletData } = useWallet();
   const [showModal, setShowModal] = useState(false);
 
-  // Se não está logado, não mostrar nada
-  if (!user) return null;
+  // Se não está logado, mostrar botão de login
+  if (!user) {
+    return (
+      <section className="mb-12">
+        <Card className="bg-gradient-to-r from-purple-900/20 to-blue-900/20 border-purple-500/30 max-w-6xl mx-auto">
+          <CardContent className="p-8 text-center">
+            <Package className="w-16 h-16 mx-auto text-muted-foreground mb-4" />
+            <h2 className="text-2xl font-bold mb-4">Meus Prêmios</h2>
+            <p className="text-muted-foreground mb-6">
+              Faça login para visualizar seu inventário de prêmios conquistados
+            </p>
+            <Button 
+              onClick={() => window.location.href = '/?showAuth=true'}
+              className="bg-primary hover:bg-primary/90"
+            >
+              Fazer Login
+            </Button>
+          </CardContent>
+        </Card>
+      </section>
+    );
+  }
 
   if (loading) {
     return (
