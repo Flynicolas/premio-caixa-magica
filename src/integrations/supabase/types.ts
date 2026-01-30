@@ -309,7 +309,7 @@ export type Database = {
           affiliate_id: string | null
           created_at: string
           id: number
-          ip: unknown | null
+          ip: unknown
           landing_path: string | null
           ref_code: string
           user_agent: string | null
@@ -323,7 +323,7 @@ export type Database = {
           affiliate_id?: string | null
           created_at?: string
           id?: number
-          ip?: unknown | null
+          ip?: unknown
           landing_path?: string | null
           ref_code: string
           user_agent?: string | null
@@ -337,7 +337,7 @@ export type Database = {
           affiliate_id?: string | null
           created_at?: string
           id?: number
-          ip?: unknown | null
+          ip?: unknown
           landing_path?: string | null
           ref_code?: string
           user_agent?: string | null
@@ -1454,7 +1454,7 @@ export type Database = {
           email: string | null
           failure_reason: string | null
           id: string
-          ip_address: unknown | null
+          ip_address: unknown
           success: boolean | null
           user_agent: string | null
         }
@@ -1464,7 +1464,7 @@ export type Database = {
           email?: string | null
           failure_reason?: string | null
           id?: string
-          ip_address?: unknown | null
+          ip_address?: unknown
           success?: boolean | null
           user_agent?: string | null
         }
@@ -1474,7 +1474,7 @@ export type Database = {
           email?: string | null
           failure_reason?: string | null
           id?: string
-          ip_address?: unknown | null
+          ip_address?: unknown
           success?: boolean | null
           user_agent?: string | null
         }
@@ -3807,14 +3807,8 @@ export type Database = {
           success: boolean
         }[]
       }
-      audit_financial_consistency: {
-        Args: Record<PropertyKey, never>
-        Returns: undefined
-      }
-      auto_refill_scratch_budgets: {
-        Args: Record<PropertyKey, never>
-        Returns: undefined
-      }
+      audit_financial_consistency: { Args: never; Returns: undefined }
+      auto_refill_scratch_budgets: { Args: never; Returns: undefined }
       calculate_affiliate_commissions: {
         Args: { p_period_end: string; p_period_start: string }
         Returns: {
@@ -3841,12 +3835,9 @@ export type Database = {
           name: string
         }[]
       }
-      check_admin_direct: {
-        Args: { user_id_check: string }
-        Returns: boolean
-      }
+      check_admin_direct: { Args: { user_id_check: string }; Returns: boolean }
       check_financial_health: {
-        Args: Record<PropertyKey, never>
+        Args: never
         Returns: {
           profit_margin: number
           recommended_action: string
@@ -3856,7 +3847,7 @@ export type Database = {
         }[]
       }
       check_rtp_alerts: {
-        Args: Record<PropertyKey, never>
+        Args: never
         Returns: {
           alerts_created: number
           alerts_updated: number
@@ -3874,12 +3865,9 @@ export type Database = {
         Args: { p_role: string; p_user_id: string }
         Returns: boolean
       }
-      cleanup_expired_invites: {
-        Args: Record<PropertyKey, never>
-        Returns: undefined
-      }
+      cleanup_expired_invites: { Args: never; Returns: undefined }
       clear_items_table: {
-        Args: Record<PropertyKey, never>
+        Args: never
         Returns: {
           deleted_count: number
         }[]
@@ -3901,20 +3889,11 @@ export type Database = {
         }
         Returns: undefined
       }
-      expire_old_manual_releases: {
-        Args: Record<PropertyKey, never>
-        Returns: undefined
-      }
-      gen_ref_code: {
-        Args: { p_len?: number }
-        Returns: string
-      }
-      generate_referral_code: {
-        Args: Record<PropertyKey, never>
-        Returns: string
-      }
+      expire_old_manual_releases: { Args: never; Returns: undefined }
+      gen_ref_code: { Args: { p_len?: number }; Returns: string }
+      generate_referral_code: { Args: never; Returns: string }
       get_conversion_stats: {
-        Args: Record<PropertyKey, never>
+        Args: never
         Returns: {
           amount_today: number
           avg_conversion_amount: number
@@ -3944,7 +3923,7 @@ export type Database = {
         }[]
       }
       get_ranking_top10: {
-        Args: Record<PropertyKey, never>
+        Args: never
         Returns: {
           full_name: string
           id: string
@@ -3966,16 +3945,10 @@ export type Database = {
           total_spent: number
         }[]
       }
-      initialize_cash_control_system: {
-        Args: Record<PropertyKey, never>
-        Returns: undefined
-      }
-      initialize_daily_financial_controls: {
-        Args: Record<PropertyKey, never>
-        Returns: string
-      }
+      initialize_cash_control_system: { Args: never; Returns: undefined }
+      initialize_daily_financial_controls: { Args: never; Returns: string }
       initialize_fresh_rtp_system: {
-        Args: Record<PropertyKey, never>
+        Args: never
         Returns: {
           prizes_configured: boolean
           rtp_pot_created: boolean
@@ -3983,22 +3956,10 @@ export type Database = {
           system_ready: boolean
         }[]
       }
-      is_admin_role: {
-        Args: Record<PropertyKey, never>
-        Returns: boolean
-      }
-      is_admin_user: {
-        Args: Record<PropertyKey, never>
-        Returns: boolean
-      }
-      is_valid_email: {
-        Args: { input_text: string }
-        Returns: boolean
-      }
-      is_valid_phone: {
-        Args: { input_text: string }
-        Returns: boolean
-      }
+      is_admin_role: { Args: never; Returns: boolean }
+      is_admin_user: { Args: never; Returns: boolean }
+      is_valid_email: { Args: { input_text: string }; Returns: boolean }
+      is_valid_phone: { Args: { input_text: string }; Returns: boolean }
       log_admin_action: {
         Args: {
           p_action_type: string
@@ -4032,7 +3993,7 @@ export type Database = {
         }[]
       }
       monitor_rtp_health: {
-        Args: Record<PropertyKey, never>
+        Args: never
         Returns: {
           current_rtp: number
           deviation: number
@@ -4043,10 +4004,7 @@ export type Database = {
           total_sales: number
         }[]
       }
-      normalize_phone: {
-        Args: { phone_input: string }
-        Returns: string
-      }
+      normalize_phone: { Args: { phone_input: string }; Returns: string }
       open_chest: {
         Args: { p_chest_id: string; p_item_id: string; p_user_id: string }
         Returns: boolean
@@ -4074,7 +4032,7 @@ export type Database = {
         Returns: undefined
       }
       process_affiliate_payouts: {
-        Args: Record<PropertyKey, never>
+        Args: never
         Returns: {
           affiliate_id: string
           commission_count: number
@@ -4121,22 +4079,25 @@ export type Database = {
           status: string
         }[]
       }
-      process_referral_signup: {
-        Args:
-          | {
+      process_referral_signup:
+        | {
+            Args: {
+              p_referral_code: string
+              p_referral_source?: string
+              p_referred_user_id: string
+            }
+            Returns: boolean
+          }
+        | {
+            Args: {
               p_ip_address?: string
               p_referral_code: string
               p_referral_source?: string
               p_referred_user_id: string
               p_user_agent?: string
             }
-          | {
-              p_referral_code: string
-              p_referral_source?: string
-              p_referred_user_id: string
-            }
-        Returns: boolean
-      }
+            Returns: boolean
+          }
       process_scratch_card_game: {
         Args: {
           p_game_price: number
@@ -4179,14 +4140,8 @@ export type Database = {
           success: boolean
         }[]
       }
-      reset_demo_credits: {
-        Args: Record<PropertyKey, never>
-        Returns: undefined
-      }
-      run_affiliate_commission_job: {
-        Args: Record<PropertyKey, never>
-        Returns: Json
-      }
+      reset_demo_credits: { Args: never; Returns: undefined }
+      run_affiliate_commission_job: { Args: never; Returns: Json }
       scratch_effective_probability: {
         Args: {
           p_global: number
@@ -4237,10 +4192,7 @@ export type Database = {
         Args: { p_amount: number; p_operation_type: string; p_user_id: string }
         Returns: boolean
       }
-      validate_cpf_digits: {
-        Args: { cpf_input: string }
-        Returns: boolean
-      }
+      validate_cpf_digits: { Args: { cpf_input: string }; Returns: boolean }
       validate_cpf_for_withdrawal: {
         Args: { cpf_input: string }
         Returns: boolean
