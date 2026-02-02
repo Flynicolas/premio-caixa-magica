@@ -3958,6 +3958,7 @@ export type Database = {
       }
       is_admin_role: { Args: never; Returns: boolean }
       is_admin_user: { Args: never; Returns: boolean }
+      is_super_admin: { Args: { user_uuid: string }; Returns: boolean }
       is_valid_email: { Args: { input_text: string }; Returns: boolean }
       is_valid_phone: { Args: { input_text: string }; Returns: boolean }
       log_admin_action: {
