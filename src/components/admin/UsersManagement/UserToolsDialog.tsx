@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
@@ -13,10 +12,21 @@ import {
   DollarSign, 
   RotateCcw,
   AlertTriangle,
-  Gift
+  Gift,
+  Plus,
+  Minus,
+  ArrowUpDown
 } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Alert, AlertDescription } from '@/components/ui/alert';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
+import { Textarea } from '@/components/ui/textarea';
 
 interface UserToolsDialogProps {
   user: any;
@@ -26,7 +36,9 @@ interface UserToolsDialogProps {
 }
 
 const UserToolsDialog = ({ user, isOpen, onClose, onUpdate }: UserToolsDialogProps) => {
-  const [bonusAmount, setBonusAmount] = useState('');
+  const [balanceAmount, setBalanceAmount] = useState('');
+  const [balanceOperation, setBalanceOperation] = useState<'add' | 'subtract' | 'set'>('add');
+  const [balanceReason, setBalanceReason] = useState('');
   const [loading, setLoading] = useState(false);
   const { toast } = useToast();
 
@@ -60,56 +72,102 @@ const UserToolsDialog = ({ user, isOpen, onClose, onUpdate }: UserToolsDialogPro
     }
   };
 
-  const handleAddBonus = async () => {
-    if (!user || !bonusAmount || parseFloat(bonusAmount) <= 0) {
+  const handleBalanceAdjustment = async () => {
+    if (!user || !balanceAmount || parseFloat(balanceAmount) <= 0) {
       toast({
         title: "Valor inválido",
-        description: "Por favor, insira um valor válido para o bônus.",
+        description: "Por favor, insira um valor válido.",
         variant: "destructive"
       });
       return;
     }
 
+    const amount = parseFloat(balanceAmount);
+    let newBalance: number;
+    let transactionType: string;
+    let description: string;
+
+    switch (balanceOperation) {
+      case 'add':
+        newBalance = user.balance + amount;
+        transactionType = 'bonus';
+        description = `Bônus adicionado pelo administrador${balanceReason ? `: ${balanceReason}` : ''}`;
+        break;
+      case 'subtract':
+        newBalance = Math.max(0, user.balance - amount);
+        transactionType = 'admin_deduction';
+        description = `Dedução pelo administrador${balanceReason ? `: ${balanceReason}` : ''}`;
+        break;
+      case 'set':
+        newBalance = amount;
+        transactionType = 'admin_adjustment';
+        description = `Saldo definido pelo administrador${balanceReason ? `: ${balanceReason}` : ''}`;
+        break;
+      default:
+        return;
+    }
+
+    if (balanceOperation === 'subtract' && amount > user.balance) {
+      toast({
+        title: "Aviso",
+        description: `O saldo será zerado pois o valor a deduzir (R$ ${amount.toFixed(2)}) é maior que o saldo atual (R$ ${user.balance.toFixed(2)}).`,
+      });
+    }
+
     setLoading(true);
     try {
-      const amount = parseFloat(bonusAmount);
-
       // Atualizar saldo da carteira
+      const updateData: any = { balance: newBalance };
+      
+      if (balanceOperation === 'add') {
+        updateData.total_deposited = (user.total_deposited || 0) + amount;
+      }
+
       const { error: walletError } = await supabase
         .from('user_wallets')
-        .update({ 
-          balance: user.balance + amount,
-          total_deposited: (user.total_deposited || 0) + amount
-        })
+        .update(updateData)
         .eq('user_id', user.id);
 
       if (walletError) throw walletError;
 
       // Registrar a transação
+      const transactionAmount = balanceOperation === 'set' 
+        ? newBalance - user.balance 
+        : (balanceOperation === 'add' ? amount : -amount);
+
       const { error: transactionError } = await supabase
         .from('transactions')
         .insert({
           user_id: user.id,
-          wallet_id: user.id, // Assumindo que wallet_id é o mesmo que user_id
-          type: 'bonus',
-          amount: amount,
-          description: `Bônus adicionado pelo administrador`,
+          wallet_id: user.id,
+          type: transactionType,
+          amount: Math.abs(transactionAmount),
+          description: description,
           status: 'completed'
         });
 
-      if (transactionError) throw transactionError;
+      if (transactionError) {
+        console.warn('Erro ao registrar transação:', transactionError);
+      }
+
+      const operationLabels = {
+        add: 'adicionado',
+        subtract: 'deduzido',
+        set: 'definido'
+      };
 
       toast({
-        title: "Bônus adicionado!",
-        description: `R$ ${amount.toFixed(2)} foram adicionados ao saldo do usuário.`
+        title: "Saldo atualizado!",
+        description: `Saldo ${operationLabels[balanceOperation]} com sucesso. Novo saldo: R$ ${newBalance.toFixed(2)}`
       });
 
-      setBonusAmount('');
+      setBalanceAmount('');
+      setBalanceReason('');
       onUpdate();
     } catch (error: any) {
-      console.error('Erro ao adicionar bônus:', error);
+      console.error('Erro ao ajustar saldo:', error);
       toast({
-        title: "Erro ao adicionar bônus",
+        title: "Erro ao ajustar saldo",
         description: error.message,
         variant: "destructive"
       });
@@ -178,7 +236,7 @@ const UserToolsDialog = ({ user, isOpen, onClose, onUpdate }: UserToolsDialogPro
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="max-w-2xl">
+      <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
             <Settings className="w-5 h-5" />
@@ -200,7 +258,7 @@ const UserToolsDialog = ({ user, isOpen, onClose, onUpdate }: UserToolsDialogPro
                       {user.is_active ? 'Ativo' : 'Bloqueado'}
                     </span>
                   </p>
-                  <p className="text-sm text-gray-600">
+                  <p className="text-sm text-muted-foreground">
                     {user.is_active 
                       ? 'O usuário pode fazer login e usar o sistema normalmente'
                       : 'O usuário está bloqueado e não pode acessar o sistema'
@@ -230,26 +288,111 @@ const UserToolsDialog = ({ user, isOpen, onClose, onUpdate }: UserToolsDialogPro
 
           <Card>
             <CardHeader>
-              <CardTitle className="text-lg">Adicionar Saldo Bônus</CardTitle>
+              <CardTitle className="text-lg flex items-center gap-2">
+                <ArrowUpDown className="w-5 h-5" />
+                Ajustar Saldo
+              </CardTitle>
             </CardHeader>
             <CardContent className="space-y-4">
-              <div className="space-y-2">
-                <Label htmlFor="bonus">Valor do Bônus (R$)</Label>
-                <Input
-                  id="bonus"
-                  type="number"
-                  step="0.01"
-                  value={bonusAmount}
-                  onChange={(e) => setBonusAmount(e.target.value)}
-                  placeholder="0.00"
-                />
-                <p className="text-sm text-gray-600">
-                  Saldo atual: R$ {user.balance?.toFixed(2) || '0.00'}
-                </p>
+              <div className="p-4 bg-muted rounded-lg">
+                <div className="flex items-center gap-2">
+                  <DollarSign className="w-5 h-5 text-green-600" />
+                  <span className="text-sm text-muted-foreground">Saldo atual:</span>
+                  <span className="text-xl font-bold text-green-600">
+                    R$ {user.balance?.toFixed(2) || '0.00'}
+                  </span>
+                </div>
               </div>
-              <Button onClick={handleAddBonus} disabled={loading || !bonusAmount}>
-                <Gift className="w-4 h-4 mr-2" />
-                Adicionar Bônus
+
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <Label>Operação</Label>
+                  <Select value={balanceOperation} onValueChange={(v: 'add' | 'subtract' | 'set') => setBalanceOperation(v)}>
+                    <SelectTrigger>
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="add">
+                        <div className="flex items-center gap-2">
+                          <Plus className="w-4 h-4 text-green-600" />
+                          Adicionar saldo
+                        </div>
+                      </SelectItem>
+                      <SelectItem value="subtract">
+                        <div className="flex items-center gap-2">
+                          <Minus className="w-4 h-4 text-red-600" />
+                          Remover saldo
+                        </div>
+                      </SelectItem>
+                      <SelectItem value="set">
+                        <div className="flex items-center gap-2">
+                          <DollarSign className="w-4 h-4 text-blue-600" />
+                          Definir saldo exato
+                        </div>
+                      </SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="amount">Valor (R$)</Label>
+                  <Input
+                    id="amount"
+                    type="number"
+                    step="0.01"
+                    min="0"
+                    value={balanceAmount}
+                    onChange={(e) => setBalanceAmount(e.target.value)}
+                    placeholder="0.00"
+                  />
+                </div>
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="reason">Motivo (opcional)</Label>
+                <Textarea
+                  id="reason"
+                  value={balanceReason}
+                  onChange={(e) => setBalanceReason(e.target.value)}
+                  placeholder="Ex: Compensação por erro, bônus promocional, correção de saldo..."
+                  rows={2}
+                />
+              </div>
+
+              {balanceAmount && parseFloat(balanceAmount) > 0 && (
+                <div className="p-3 bg-muted/50 rounded-lg border">
+                  <p className="text-sm">
+                    <strong>Prévia:</strong>{' '}
+                    {balanceOperation === 'add' && (
+                      <span className="text-green-600">
+                        R$ {user.balance?.toFixed(2)} + R$ {parseFloat(balanceAmount).toFixed(2)} = R$ {(user.balance + parseFloat(balanceAmount)).toFixed(2)}
+                      </span>
+                    )}
+                    {balanceOperation === 'subtract' && (
+                      <span className="text-red-600">
+                        R$ {user.balance?.toFixed(2)} - R$ {parseFloat(balanceAmount).toFixed(2)} = R$ {Math.max(0, user.balance - parseFloat(balanceAmount)).toFixed(2)}
+                      </span>
+                    )}
+                    {balanceOperation === 'set' && (
+                      <span className="text-blue-600">
+                        Novo saldo: R$ {parseFloat(balanceAmount).toFixed(2)}
+                      </span>
+                    )}
+                  </p>
+                </div>
+              )}
+
+              <Button 
+                onClick={handleBalanceAdjustment} 
+                disabled={loading || !balanceAmount || parseFloat(balanceAmount) <= 0}
+                className="w-full"
+              >
+                {balanceOperation === 'add' && <Plus className="w-4 h-4 mr-2" />}
+                {balanceOperation === 'subtract' && <Minus className="w-4 h-4 mr-2" />}
+                {balanceOperation === 'set' && <DollarSign className="w-4 h-4 mr-2" />}
+                {balanceOperation === 'add' && 'Adicionar Saldo'}
+                {balanceOperation === 'subtract' && 'Remover Saldo'}
+                {balanceOperation === 'set' && 'Definir Saldo'}
               </Button>
             </CardContent>
           </Card>
@@ -269,7 +412,7 @@ const UserToolsDialog = ({ user, isOpen, onClose, onUpdate }: UserToolsDialogPro
               <div className="space-y-3">
                 <div>
                   <h4 className="font-medium mb-2">Resetar Dados do Usuário</h4>
-                  <p className="text-sm text-gray-600 mb-3">
+                  <p className="text-sm text-muted-foreground mb-3">
                     Remove todo o histórico, saldo, baús abertos e estatísticas do usuário.
                   </p>
                   <Button
